@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 use dotenv;
 use std::env;
 use serde;
@@ -34,25 +35,30 @@ struct AllPagesArticles {
 pub struct AllPagesRes {
     batchcomplete: String,
     #[serde(rename="continue")]
-    continueCode: AllPagesContinue,
+    continue_code: AllPagesContinue,
     limits: AllPagesLimits,
     query: AllPagesArticles,
 }
 
 impl AllPagesRes {
     pub fn is_continue(&self) -> bool {
-        if self.continueCode.continue_id.is_empty() && self.continueCode.continue_code.is_empty() {
+        if self.continue_code.continue_id.is_empty() && self.continue_code.continue_code.is_empty() {
             return false
         }
         true
     }
 
     pub fn get_continue(&self) -> (&String, &String) {
-        (&self.continueCode.continue_id, &self.continueCode.continue_code)
+        (&self.continue_code.continue_id, &self.continue_code.continue_code)
     }
 }
 
-#[allow(dead_code)]
+pub trait ArticlesResultCallback {
+    fn on_req_start (&self, req_no: i32) {}
+    fn on_req_finish (&self, res: AllPagesRes);
+    fn on_all_finished (&self, req_no: i32) {}
+}
+
 pub struct Api {
     client: reqwest::blocking::Client,
     base_url: String,
@@ -73,29 +79,37 @@ impl Api {
     }
 }
 
-#[allow(dead_code)]
 impl Api {
-    pub fn fetch_all_articles(&self) {
-        let mut response = self.fetch_articles(None)
-            .unwrap()
-            .json::<AllPagesRes>()
-            .unwrap();
-
+    pub fn fetch_all_articles(&self, callback: Box<dyn ArticlesResultCallback>) {
         let mut n = 0;
-        while response.is_continue() {
-            response = self.fetch_articles(Some(response.get_continue().0))
+        let mut continue_code: String = "None".to_string();
+        let mut response;
+        let mut is_continue;
+
+        loop {
+            callback.on_req_start(n);
+
+            response = self.fetch_articles(Some(continue_code))
                 .unwrap()
                 .json::<AllPagesRes>()
                 .unwrap();
-            for article in &response.query.allpages {
-                println!("Found article {} with the title {}", article.pageid, article.title)
+            continue_code = response.get_continue().0.to_string();
+            is_continue = response.is_continue();
+
+            if !is_continue {
+                break;
             }
+
+            callback.on_req_finish(response);
+            n += 1;
         }
+
+        callback.on_all_finished(n);
     }
 
-    fn fetch_articles(&self, continue_id: Option<&String>) -> reqwest::Result<Response> {
+    fn fetch_articles(&self, continue_id: Option<String>) -> reqwest::Result<Response> {
         let mut request_url: String;
-        if continue_id.is_some() {
+        if continue_id != Some("None".to_string()) {
             request_url = format!("{}?action=query&list=allpages&aplimit={}&apcontinue={}&format=json", &self.base_url, &self.ap_limit, continue_id.unwrap());
         } else {
             request_url = format!("{}?action=query&list=allpages&aplimit={}&format=json", &self.base_url, &self.ap_limit);
