@@ -4,8 +4,7 @@ pub mod db;
 pub mod tui;
 pub mod tests;
 pub mod logging;
-
-use uuid;
+pub mod traits;
 
 fn main() {
     logging::Logger::new();

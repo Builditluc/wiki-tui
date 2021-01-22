@@ -6,6 +6,8 @@ use serde::Deserialize;
 use reqwest;
 use reqwest::blocking::Response;
 
+use crate::traits::ArticlesResultCallback;
+
 #[derive(Deserialize, Debug)]
 struct AllPagesArticle {
     pageid: i32,
@@ -50,16 +52,6 @@ impl AllPagesRes {
 
     pub fn get_continue(&self) -> (&String, &String) {
         (&self.continue_code.continue_id, &self.continue_code.continue_code)
-    }
-}
-
-pub trait ArticlesResultCallback {
-    fn on_req_start (&self, req_no: i32) {
-        debug!("Started the Article Request {}", req_no)
-    }
-    fn on_req_finish (&self, res: AllPagesRes);
-    fn on_all_finished (&self, req_no: i32) {
-        debug!("Finished all Article Requests with a total of {} requests", req_no)
     }
 }
 
