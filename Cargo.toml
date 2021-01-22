@@ -16,7 +16,7 @@ log = "0.4.13"
 
 [dependencies.diesel]
 version = "1.4.4"
-features = ["postgres", "uuid", "chrono"]
+features = ["sqlite", "uuid", "chrono"]
 
 [dependencies.uuid]
 version = "0.8.1"
