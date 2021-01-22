@@ -3,6 +3,7 @@ pub struct Logger;
 impl Logger {
     pub fn new() {
         use simple_logging::log_to_file;
+        dotenv::dotenv().ok();
 
         let log_level = std::env::var("LOG_LEVEL").unwrap();
         let max_log_level: log::LevelFilter = match &log_level[..] {
