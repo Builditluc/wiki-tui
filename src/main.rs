@@ -1,9 +1,11 @@
-use crate::db::api::{AllPagesRes, ArticlesResultCallback};
+#[macro_use] extern crate log;
 
 pub mod db;
 pub mod tui;
 pub mod tests;
+pub mod logging;
 
+use crate::db::api::{AllPagesRes, ArticlesResultCallback};
 struct TestCallback;
 
 impl TestCallback {
@@ -27,6 +29,9 @@ impl db::api::ArticlesResultCallback for TestCallback {
 }
 
 fn main() {
+    logging::Logger::new();
+
     let api = db::api::Api::new();
     api.fetch_all_articles(Box::new(TestCallback::new()));
+
 }
