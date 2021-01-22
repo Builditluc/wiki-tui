@@ -54,9 +54,13 @@ impl AllPagesRes {
 }
 
 pub trait ArticlesResultCallback {
-    fn on_req_start (&self, req_no: i32) {}
+    fn on_req_start (&self, req_no: i32) {
+        debug!("Started the Article Request {}", req_no)
+    }
     fn on_req_finish (&self, res: AllPagesRes);
-    fn on_all_finished (&self, req_no: i32) {}
+    fn on_all_finished (&self, req_no: i32) {
+        debug!("Finished all Article Requests with a total of {} requests", req_no)
+    }
 }
 
 pub struct Api {
@@ -69,12 +73,14 @@ impl Api {
     pub fn new() -> Self {
         dotenv::dotenv().ok();
 
+        debug!("Created a new instance of Api");
         Api {
             client: reqwest::blocking::Client::new(),
             base_url: env::var("BASE_URL")
                 .expect("BASE_URL must be set"),
             ap_limit: env::var("AP_LIMIT")
-                .expect("AP_LIMIT must be set")
+                .expect("AP_LIMIT must be set"),
+
         }
     }
 }
