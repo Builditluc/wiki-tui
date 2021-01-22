@@ -63,17 +63,17 @@ pub struct Api {
 
 impl Api {
     pub fn new() -> Self {
-        dotenv::dotenv().ok();
-
-        debug!("Created a new instance of Api");
-        Api {
+        let api = Api {
             client: reqwest::blocking::Client::new(),
             base_url: env::var("BASE_URL")
                 .expect("BASE_URL must be set"),
             ap_limit: env::var("AP_LIMIT")
                 .expect("AP_LIMIT must be set"),
 
-        }
+        };
+        debug!("Successfully created a new instance of db::api::Api");
+
+        return api;
     }
 }
 
