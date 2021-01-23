@@ -24,3 +24,36 @@ pub struct NewArticleIndex<'a> {
 
     pub updated_at: &'a NaiveDateTime
 }
+
+type AllColumns = (
+    article_index::id,
+    article_index::page_id,
+    article_index::article_id,
+    article_index::namespace,
+    article_index::title,
+    article_index::updated_at
+);
+
+const ALL_COLUMNS: AllColumns = (
+    article_index::id,
+    article_index::page_id,
+    article_index::article_id,
+    article_index::namespace,
+    article_index::title,
+    article_index::updated_at
+);
+
+type All = diesel::dsl::Select<article_index::table, AllColumns>;
+type WithTitle<'a> = diesel::dsl::Eq<article_index::title, &'a str>;
+type WithId<'a> = diesel::dsl::Eq<article_index::article_id, &'a i32>;
+type ByTitle<'a> = diesel::dsl::Filter<All, WithTitle<'a>>;
+type ById<'a> = diesel::dsl::Filter<All, WithId<'a>>;
+
+fn with_title(title: &str) -> WithTitle { article_index::title.eq(title) }
+fn with_id(article_id: &i32) -> WithId { article_index::article_id.eq(article_id) }
+
+impl ArticleIndex {
+    pub fn all() -> All { article_index::table.select(ALL_COLUMNS) }
+    pub fn by_id(id: &i32) -> ById { Self::all().filter(with_id(id)) }
+    pub fn by_title(title: &str) -> ByTitle { Self::all().filter(with_title(title)) }
+}
