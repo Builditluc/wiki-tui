@@ -119,3 +119,35 @@ impl Updatable for WikiSql {
         unimplemented!()
     }
 }
+
+impl Removable for WikiSql {
+    fn delete_all_articles(&self) {
+        use crate::db::schema::article_index;
+
+        let result = diesel::delete(ArticleIndex::all())
+            .execute(&self.connection);
+
+        if result.is_ok() {
+            debug!("{}", format!("Successfully removed {} articles from the ArticleIndex", result.unwrap()));
+            return;
+        }
+
+        error!("Failed to remove every article from the ArticleIndex");
+        panic!("An unexpected error occurred \n Please check the logs")
+    }
+
+    fn delete_article(&self, article: ArticleIndex) {
+        use crate::db::schema::article_index;
+
+        let result = diesel::delete(ArticleIndex::by_id(&article.article_id))
+            .execute(&self.connection);
+
+        if result.is_ok() {
+            debug!("{}", format!("Successfully removed the article {} from the ArticleIndex", article.article_id));
+            return;
+        }
+
+        error!("{}", format!("Failed to remove the article {} from the ArticleIndex", article.article_id));
+        panic!("An unexpected error occurred \n Please check the logs")
+    }
+}

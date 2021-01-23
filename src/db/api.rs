@@ -113,6 +113,7 @@ impl Api {
             request_url = format!("{}?action=query&list=allpages&aplimit={}&format=json", &self.base_url, &self.ap_limit);
         }
 
-        self.client.get(&request_url).send()
+        debug!("Sending the Request to Wikipedia");
+         self.client.get(&request_url).send();
     }
 }
