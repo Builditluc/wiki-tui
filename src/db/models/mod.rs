@@ -1,0 +1,1 @@
+pub mod article_index;

@@ -2,15 +2,15 @@ use crate::db::api;
 use diesel::prelude::*;
 use diesel::sqlite::SqliteConnection;
 
-pub struct Wiki {
+pub struct WikiSql {
     connection: SqliteConnection,
     api: api::Api,
 }
 
-impl Wiki {
+impl WikiSql {
     pub fn new() -> Self {
         let new = Self { connection: Self::establish_connection(), api: api::Api::new() };
-        debug!("Successfully created a new instance of db::wiki::Wiki");
+        debug!("Successfully created a new instance of db::wiki::wiki");
         return new;
     }
 

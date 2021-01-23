@@ -5,5 +5,6 @@ table! {
         article_id -> Integer,
         namespace -> Integer,
         title -> Text,
+        updated_at -> Timestamp,
     }
 }

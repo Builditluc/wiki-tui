@@ -10,5 +10,5 @@ pub mod traits;
 fn main() {
     logging::Logger::new();
 
-    let wiki = db::wiki::Wiki::new();
+    let wiki = db::wiki::WikiSql::new();
 }
