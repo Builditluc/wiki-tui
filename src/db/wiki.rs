@@ -60,7 +60,7 @@ impl Fetchable for WikiSql {
 
     fn get_article_by_page_id(&self, page_id: &i32) -> ArticleIndex {
         let result = ArticleIndex::by_page_id(page_id)
-            .load::<ArticleIndex>(&self.connection);
+            .first::<ArticleIndex>(&self.connection);
 
         if result.is_ok() {
             debug!("{}", format!("Successfully selected the article {} from the ArticleIndex", page_id));
