@@ -114,6 +114,6 @@ impl Api {
         }
 
         debug!("Sending the Request to Wikipedia");
-         self.client.get(&request_url).send();
+        self.client.get(&request_url).send()
     }
 }

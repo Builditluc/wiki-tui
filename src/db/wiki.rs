@@ -124,7 +124,7 @@ impl Removable for WikiSql {
     fn delete_all_articles(&self) {
         use crate::db::schema::article_index;
 
-        let result = diesel::delete(ArticleIndex::all())
+        let result = diesel::delete(article_index::table)
             .execute(&self.connection);
 
         if result.is_ok() {
@@ -139,7 +139,7 @@ impl Removable for WikiSql {
     fn delete_article(&self, article: ArticleIndex) {
         use crate::db::schema::article_index;
 
-        let result = diesel::delete(ArticleIndex::by_id(&article.article_id))
+        let result = diesel::delete(article_index::table)
             .execute(&self.connection);
 
         if result.is_ok() {
