@@ -2,6 +2,7 @@ use crate::db::api;
 use diesel::prelude::*;
 use diesel::sqlite::SqliteConnection;
 
+//TODO: Make WikiSQL implement the Wiki traits
 pub struct WikiSql {
     connection: SqliteConnection,
     api: api::Api,
