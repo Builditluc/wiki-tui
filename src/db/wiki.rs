@@ -5,7 +5,6 @@ use diesel::prelude::*;
 use diesel::sqlite::SqliteConnection;
 use crate::db::models::article_index::ArticleIndex;
 use uuid::Uuid;
-use core::panicking::panic_fmt;
 
 //TODO: Make WikiSQL implement the Wiki traits
 pub struct WikiSql {
