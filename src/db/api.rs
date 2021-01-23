@@ -42,6 +42,19 @@ pub struct AllPagesRes {
     query: AllPagesArticles,
 }
 
+#[derive(Deserialize, Debug)]
+struct ArticleParse {
+    title: String,
+    #[serde(rename="pageid")]
+    page_id: i32,
+    text: String
+}
+
+#[derive(Deserialize, Debug)]
+pub struct ArticleRes {
+    parse: ArticleParse
+}
+
 impl AllPagesRes {
     pub fn is_continue(&self) -> bool {
         if self.continue_code.continue_id.is_empty() && self.continue_code.continue_code.is_empty() {
@@ -115,5 +128,23 @@ impl Api {
 
         debug!("Sending the Request to Wikipedia");
         self.client.get(&request_url).send()
+    }
+
+    pub fn fetch_article(&self, page_id: i32) -> String {
+        let request_url = format!("{}?action=parse&format=json&pageid={}&prop=text&formatversion=2", &self.base_url, page_id);
+        debug!("Sending the Request to Wikipedia");
+        let result = self.client.get(&request_url)
+            .send()
+            .unwrap()
+            .json::<ArticleRes>()
+            .unwrap();
+
+        debug!("Parsing the HTML text to normal text");
+        self.parse_article_text(result.parse.text)
+    }
+
+    //TODO: Write a parser here
+    fn parse_article_text(&self, text: String) -> String {
+        text
     }
 }
