@@ -5,6 +5,7 @@ use diesel::prelude::*;
 use diesel::sqlite::SqliteConnection;
 use crate::db::models::article_index::ArticleIndex;
 use uuid::Uuid;
+use core::panicking::panic_fmt;
 
 //TODO: Make WikiSQL implement the Wiki traits
 pub struct WikiSql {
@@ -32,29 +33,69 @@ impl WikiSql {
 }
 
 impl Fetchable for WikiSql {
-    //TODO: Implement get_all_articles for WikiSql
     fn get_all_articles(&self) -> Vec<ArticleIndex> {
-        unimplemented!()
+        let result = ArticleIndex::all()
+            .load::<ArticleIndex>(&self.connection);
+
+        if result.is_ok() {
+            debug!("Successfully selected every article from the ArticleIndex");
+            return result.unwrap();
+        }
+
+        error!("Failed to select every article from the ArticleIndex");
+        panic!("An unexpected error occurred\n Please check the logs")
     }
 
-    //TODO: Implement get_article_by_id for WikiSql
     fn get_article_by_id(&self, article_id: &Uuid) -> ArticleIndex {
-        unimplemented!()
+        let result = ArticleIndex::by_id(&article_id.to_string())
+            .first::<ArticleIndex>(&self.connection);
+
+        if result.is_ok() {
+            debug!("{}", format!("Successfully selected the article {} from the ArticleIndex", article_id.to_string()));
+            return result.unwrap();
+        }
+
+        error!("{}", format!("Failed to select the article {} from the ArticleIndex", article_id.to_string()));
+        panic!("An unexpected error occurred\n Please check the logs")
     }
 
-    //TODO: Implement get_article_by_page_id for WikiSql
     fn get_article_by_page_id(&self, page_id: &i32) -> ArticleIndex {
-        unimplemented!()
+        let result = ArticleIndex::by_page_id(page_id)
+            .load::<ArticleIndex>(&self.connection);
+
+        if result.is_ok() {
+            debug!("{}", format!("Successfully selected the article {} from the ArticleIndex", page_id));
+            return result.unwrap();
+        }
+
+        error!("{}", format!("Failed to select the article {} from the ArticleIndex", page_id));
+        panic!("An unexpected error occurred\n Please check the logs")
     }
 
-    //TODO: Implement get_article_by_title for WikiSql
-    fn get_article_by_title(&self, title: &String) -> ArticleIndex {
-        unimplemented!()
+    fn get_article_by_title(&self, title: &String) -> Vec<ArticleIndex> {
+        let result = ArticleIndex::by_title(title)
+            .load::<ArticleIndex>(&self.connection);
+
+        if result.is_ok() {
+            debug!("{}", format!("Successfully selected multiple articles with the name {} from the ArticleIndex", title));
+            return result.unwrap();
+        }
+
+        error!("{}", format!("Failed to select multiple articles with the name {} from the ArticleIndex", title));
+        panic!("An unexpected error occurred\n Please check the logs")
     }
 
-    //TODO: Implement get_article_with_title for WikiSql
-    fn get_article_with_title(&self, title: &String) -> Vec<ArticleIndex> {
-        unimplemented!()
+    fn get_article_with_title(&self, title: &String) -> ArticleIndex {
+        let result = ArticleIndex::by_title(title)
+            .first::<ArticleIndex>(&self.connection);
+
+        if result.is_ok() {
+            debug!("{}", format!("Successfully selected an article with the name {} from the ArticleIndex", title));
+            return result.unwrap();
+        }
+
+        error!("{}", format!("Failed to select an article with the name {} from the ArticleIndex", title));
+        panic!("An unexpected error occurred \n Please check the logs")
     }
 
     //TODO: Implement fetch_article for WikiSql

@@ -18,8 +18,8 @@ pub mod wiki {
         fn get_all_articles (&self) -> Vec<ArticleIndex>;
         fn get_article_by_id (&self, article_id: &Uuid) -> ArticleIndex;
         fn get_article_by_page_id (&self, page_id: &i32) -> ArticleIndex;
-        fn get_article_by_title (&self, title: &String) -> ArticleIndex;
-        fn get_article_with_title (&self, title: &String) -> Vec<ArticleIndex>;
+        fn get_article_by_title (&self, title: &String) -> Vec<ArticleIndex>;
+        fn get_article_with_title (&self, title: &String) -> ArticleIndex;
 
         //TODO: Make this function return an Article
         fn fetch_article (&self, index: &ArticleIndex);
