@@ -102,3 +102,20 @@ impl Fetchable for WikiSql {
         unimplemented!()
     }
 }
+
+impl Updatable for WikiSql {
+    //TODO: Implement update_all_articles for WikiSql
+    fn update_all_articles(&self) {
+        //TODO: Create a DefaultCallback Struct
+        //let callback;
+
+        debug!("Starting to fetch all articles");
+        //&self.api.fetch_all_articles(Box::new(callback);
+        debug!("Finished to fetch all articles");
+    }
+
+    //TODO: Implement update_article for WikiSql
+    fn update_article(&self, article: ArticleIndex) {
+        unimplemented!()
+    }
+}
