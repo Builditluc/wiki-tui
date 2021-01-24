@@ -7,6 +7,7 @@ use diesel::sqlite::SqliteConnection;
 
 use crate::db::models::article::Article;
 use crate::db::models::article_index::ArticleIndex;
+use chrono::Utc;
 
 //TODO: Make WikiSQL implement the Wiki traits
 pub struct WikiSql {
@@ -124,9 +125,29 @@ impl Updatable for WikiSql {
         debug!("Finished to fetch all articles");
     }
 
-    //TODO: Implement update_article for WikiSql
     fn update_article(&self, article: ArticleIndex) {
-        unimplemented!()
+        use crate::db::schema::articles;
+
+        debug!("Fetching the new article");
+        let new_article = self.fetch_article(&article);
+        debug!("Successfully fetched the new article");
+
+        debug!("Updating the old article with the new one");
+        let result = diesel::update(&self.fetch_article(&article))
+            .set((
+                articles::title.eq(&new_article.title),
+                articles::text.eq(&new_article.text),
+                articles::updated_at.eq(&Utc::now().naive_utc())
+                ))
+            .execute(&self.connection);
+
+        if result.is_ok() {
+            debug!("{}", format!("Successfully updated article {} with an result of {}", article.article_id, result.unwrap()));
+            return;
+        }
+
+        error!("{}", format!("Failed to update article {}", article.article_id));
+        panic!("An unexpected error occurred \n Please check the logs")
     }
 }
 
