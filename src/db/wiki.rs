@@ -1,10 +1,12 @@
 use crate::db::api;
 use crate::traits::wiki::*;
 
+use uuid::Uuid;
 use diesel::prelude::*;
 use diesel::sqlite::SqliteConnection;
+
+use crate::db::models::article::Article;
 use crate::db::models::article_index::ArticleIndex;
-use uuid::Uuid;
 
 //TODO: Make WikiSQL implement the Wiki traits
 pub struct WikiSql {
@@ -97,9 +99,17 @@ impl Fetchable for WikiSql {
         panic!("An unexpected error occurred \n Please check the logs")
     }
 
-    //TODO: Implement fetch_article for WikiSql
-    fn fetch_article(&self, index: &ArticleIndex) {
-        unimplemented!()
+    fn fetch_article(&self, index: &ArticleIndex) -> Article {
+        let result = Article::by_id(&index.article_id)
+            .first::<Article>(&self.connection);
+
+        if result.is_ok() {
+            debug!("{}", format!("Successfully fetched the article {}", index.article_id));
+            return result.unwrap();
+        }
+
+        error!("{}", format!("Failed to fetch the article {}", index.article_id));
+        panic!("An unexpected error occurred \n Please check the logs")
     }
 }
 

@@ -12,6 +12,8 @@ pub trait ArticlesResultCallback {
 
 pub mod wiki {
     use uuid::Uuid;
+
+    use crate::db::models::article::Article;
     use crate::db::models::article_index::ArticleIndex;
 
     pub trait Fetchable {
@@ -21,8 +23,7 @@ pub mod wiki {
         fn get_article_by_title (&self, title: &String) -> Vec<ArticleIndex>;
         fn get_article_with_title (&self, title: &String) -> ArticleIndex;
 
-        //TODO: Make this function return an Article
-        fn fetch_article (&self, index: &ArticleIndex);
+        fn fetch_article (&self, index: &ArticleIndex) -> Article;
     }
     pub trait Updatable {
         fn update_all_articles (&self);
