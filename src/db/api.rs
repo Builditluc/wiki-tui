@@ -55,6 +55,45 @@ pub struct ArticleRes {
     parse: ArticleParse
 }
 
+#[derive(Deserialize, Debug)]
+pub struct SearchArticleContinue {
+    #[serde(rename="continue")]
+    continue_code: String,
+    sroffset: i32
+}
+
+#[derive(Deserialize, Debug)]
+pub struct SearchArticleSearchRes {
+    pub ns: i32,
+    #[serde(rename="pageid")]
+    pub page_id: i32,
+    size: i32,
+    snippet: String,
+    timestamp: String,
+    pub title: String,
+    wordcount: i32
+}
+
+#[derive(Deserialize, Debug)]
+pub struct SearchArticleInfo {
+    totalhits: i32
+}
+
+#[derive(Deserialize, Debug)]
+pub struct SearchArticleQuery {
+    search: Vec<SearchArticleSearchRes>,
+    #[serde(rename="searchinfo")]
+    search_info: SearchArticleInfo
+}
+
+
+#[derive(Deserialize, Debug)]
+pub struct SearchArticleRes {
+    batchcomplete: String,
+    continue_code: SearchArticleContinue,
+    query: SearchArticleQuery
+}
+
 impl AllPagesRes {
     pub fn is_continue(&self) -> bool {
         if self.continue_code.continue_id.is_empty() && self.continue_code.continue_code.is_empty() {
@@ -65,6 +104,12 @@ impl AllPagesRes {
 
     pub fn get_continue(&self) -> (&String, &String) {
         (&self.continue_code.continue_id, &self.continue_code.continue_code)
+    }
+}
+
+impl SearchArticleRes {
+    pub fn get_queries(&self) -> &Vec<SearchArticleSearchRes> {
+        &self.query.search
     }
 }
 
@@ -146,5 +191,15 @@ impl Api {
     //TODO: Write a parser here
     fn parse_article_text(&self, text: String) -> String {
         text
+    }
+
+    pub fn search_articles(&self, title: String) -> SearchArticleRes {
+        let request_url = format!("{}?action=query&list=searcg&srwhat=text&srsearch={}&format=json", &self.base_url, title);
+        debug!("Sending the Request to Wikipedia");
+        self.client.get(&request_url)
+            .send()
+            .unwrap()
+            .json::<SearchArticleRes>()
+            .unwrap()
     }
 }

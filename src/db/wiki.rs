@@ -100,6 +100,28 @@ impl Fetchable for WikiSql {
         panic!("An unexpected error occurred \n Please check the logs")
     }
 
+    fn search_articles(&self, title: &String) -> Vec<ArticleIndex> {
+        use crate::db::schema::article_index;
+        use crate::db::models::article_index::NewArticleIndex;
+
+        let result = self.api.search_articles(title.to_string());
+        for query in result.get_queries() {
+            let new_article_index = NewArticleIndex {
+                page_id: &query.page_id,
+                article_id: &Uuid::new_v4().to_string(),
+                namespace: &query.ns,
+                title: &query.title,
+                updated_at: &Utc::now().naive_utc(),
+            };
+
+            diesel::insert_into(article_index::table)
+                .values(new_article_index)
+                .execute(&self.connection);
+        }
+
+        self.get_article_by_title(title)
+    }
+
     fn fetch_article(&self, index: &ArticleIndex) -> Article {
         let result = Article::by_id(&index.article_id)
             .first::<Article>(&self.connection);

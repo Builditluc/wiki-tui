@@ -23,6 +23,7 @@ pub mod wiki {
         fn get_article_by_title (&self, title: &String) -> Vec<ArticleIndex>;
         fn get_article_with_title (&self, title: &String) -> ArticleIndex;
 
+        fn search_articles (&self, title: &String) -> Vec<ArticleIndex>;
         fn fetch_article (&self, index: &ArticleIndex) -> Article;
     }
     pub trait Updatable {
