@@ -24,8 +24,7 @@
 [![Forks][forks-shield]][forks-url]
 [![Stargazers][stars-shield]][stars-url]
 [![Issues][issues-shield]][issues-url]
-[![MIT license](https://img.shields.io/github/license/Builditluc/wiki-tui?style=for-the-badge)](https://github.com/Builditluc/wiki-tui/blob/master/LICENSE.txt)
-[![LinkedIn][linkedin-shield]][linkedin-url]
+[![MIT license][license-shield]][license-url]
 
 
 
@@ -33,13 +32,13 @@
 <br />
 <p align="center">
   <a href="https://github.com/Builditluc/wiki-tui">
-    <img src="logo.png" alt="Logo" width="234" height="167">
+    <img src= "logo.png" alt="Logo" width="234" height="167">
   </a>
 
   <h3 align="center">WIKI-TUI</h3>
 
   <p align="center">
-    project_description
+    A simple and easy to use Wikipedia Text-User-Interface
     <br />
     <a href="https://github.com/Builditluc/wiki-tui"><strong>Explore the docs »</strong></a>
     <br />
@@ -48,7 +47,7 @@
     ·
     <a href="https://github.com/Builditluc/wiki-tui/issues">Report Bug</a>
     ·
-    <a href="https://github.com/Builditluc/wiki-tui/issues">Request Feature</a>
+    <a href="https://github.com/Builditluc/wiki-tui/pulls">Request Feature</a>
   </p>
 </p>
 
@@ -87,17 +86,11 @@
 
 [![Product Name Screen Shot][product-screenshot]](https://example.com)
 
-Here's a blank template to get started:
-**To avoid retyping too much info. Do a search and replace with your text editor for the following:**
-`github_username`, `repo_name`, `twitter_handle`, `email`, `project_title`, `project_description`
-
-
 ### Built With
 
-* []()
-* []()
-* []()
-
+* [Rust](https://rust-lang.org)
+* [cursive - A Text User Interface for Rust](https://github.com/gyscos/cursive)
+* [diesel - A safe, extensible ORM and Query Builder for Rust](https://github.com/diesel-rs/diesel)
 
 
 <!-- GETTING STARTED -->
@@ -107,29 +100,30 @@ To get a local copy up and running follow these simple steps.
 
 ### Prerequisites
 
-This is an example of how to list things you need to use the software and how to install them.
-* npm
-  ```sh
-  npm install npm@latest -g
-  ```
+You will need these things to build wiki-tui on your own
+* [Rust](https://www.rust-lang.org/tools/install)
+
+
+If you're using another feature than SQL you will need to install these
 
 ### Installation
 
 1. Clone the repo
    ```sh
-   git clone https://github.com/github_username/repo_name.git
+   git clone https://github.com/Builditluc/wiki-tui.git
    ```
-2. Install NPM packages
+2. Build the project with cargo
    ```sh
-   npm install
+   cargo build
    ```
-
-
+3. Then run it
+    ```sh
+   cargo run
+    ```
 
 <!-- USAGE EXAMPLES -->
 ## Usage
 
-Use this space to show useful examples of how a project can be used. Additional screenshots, code examples and demos work well in this space. You may also link to more resources.
 
 _For more examples, please refer to the [Documentation](https://example.com)_
 
@@ -138,7 +132,8 @@ _For more examples, please refer to the [Documentation](https://example.com)_
 <!-- ROADMAP -->
 ## Roadmap
 
-See the [open issues](https://github.com/github_username/repo_name/issues) for a list of proposed features (and known issues).
+See the [open issues](https://github.com/github_username/repo_name/issues) for a list of known issues.
+Or you can open the [Roadmap](https://github.com/Builditluc/wiki-tui/projects/1) for a list of proposed features.
 
 
 
@@ -165,21 +160,16 @@ Distributed under the MIT License. See `LICENSE` for more information.
 <!-- CONTACT -->
 ## Contact
 
-Your Name - [@twitter_handle](https://twitter.com/twitter_handle) - email
+Your Name - [@builditluc](https://twitter.com/builditluc) - builditluc@bi-bi.de
 
-Project Link: [https://github.com/github_username/repo_name](https://github.com/github_username/repo_name)
+Project Link: [https://github.com/Builditluc/wiki-tui](https://github.com/Builditluc/wiki-tui)
 
 
 
 <!-- ACKNOWLEDGEMENTS -->
 ## Acknowledgements
 
-* []()
-* []()
-* []()
-
-
-
+* [Best-README-Template](https://github.com/othneildrew/Best-README-Template)
 
 
 <!-- MARKDOWN LINKS & IMAGES -->
@@ -192,7 +182,5 @@ Project Link: [https://github.com/github_username/repo_name](https://github.com/
 [stars-url]: https://github.com/Builditluc/wiki-tui/stargazers
 [issues-shield]: https://img.shields.io/github/issues/Builditluc/wiki-tui.svg?style=for-the-badge
 [issues-url]: https://github.com/Builditluc/wiki-tui/issues
-[license-shield]: https://img.shields.io/github/license/Builditluc/wiki-tui.svg?style=for-the-badge
+[license-shield]: https://img.shields.io/github/license/Builditluc/wiki-tui?style=for-the-badge
 [license-url]: https://github.com/Builditluc/wiki-tui/blob/master/LICENSE.txt
-[linkedin-shield]: https://img.shields.io/badge/-LinkedIn-black.svg?style=for-the-badge&logo=linkedin&colorB=555
-[linkedin-url]: https://linkedin.com/in/Builditluc
