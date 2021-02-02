@@ -38,7 +38,7 @@
   <h3 align="center">WIKI-TUI</h3>
 
   <p align="center">
-    A simple and easy to use Wikipedia Text-User-Interface
+    A simple and easy to use Wikipedia Text User Interface
     <br />
     <a href="https://github.com/Builditluc/wiki-tui"><strong>Explore the docs »</strong></a>
     <br />
