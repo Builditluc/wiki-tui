@@ -16,6 +16,8 @@ pub mod wiki {
     use crate::db::models::article::Article;
     use crate::db::models::article_index::ArticleIndex;
 
+    pub trait Wikipedia: Fetchable + Updatable + Removable {}
+
     pub trait Fetchable {
         fn get_all_articles (&self) -> Vec<ArticleIndex>;
         fn get_article_by_id (&self, article_id: &Uuid) -> ArticleIndex;

@@ -32,7 +32,13 @@ impl WikiSql {
 
         return connection;
     }
+
+    pub fn new_boxed() -> Box<Self> {
+        Box::new(Self::new())
+    }
 }
+
+impl Wikipedia for WikiSql {}
 
 impl Fetchable for WikiSql {
     fn get_all_articles(&self) -> Vec<ArticleIndex> {
