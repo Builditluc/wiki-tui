@@ -3,9 +3,14 @@ pub struct Logger;
 impl Logger {
     pub fn new() {
         use simple_logging::log_to_file;
-        dotenv::dotenv().ok();
+        use ini::Ini;
 
-        let log_level = std::env::var("LOG_LEVEL").unwrap();
+        let log_conf = Ini::load_from_file("config.ini")
+            .unwrap()
+            .section(Some("Logging"))
+            .unwrap();
+
+        let log_level = log_conf.get("LOG_LEVEL").unwrap();
         let max_log_level: log::LevelFilter = match &log_level[..] {
             "OFF" => log::LevelFilter::Off,
             "TRACE" => log::LevelFilter::Trace,
@@ -17,9 +22,7 @@ impl Logger {
             _ => log::LevelFilter::Off
         };
 
-        dotenv::dotenv().ok();
-        log_to_file(std::env::var("LOG_OUTPUT").unwrap(), max_log_level);
-
+        log_to_file(log_conf.get("LOG_OUTPUT").unwrap(), max_log_level);
         log::info!("Successfully initialized the Logging Module");
     }
 }
