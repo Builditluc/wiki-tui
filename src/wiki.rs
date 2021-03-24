@@ -2,8 +2,8 @@ use serde::*;
 use ini::{Properties, Ini};
 
 #[derive(Deserialize, Debug)]
-#[serde(deny_unknown_fields)]
 pub struct SearchResponse {
+    #[serde(rename="continue")]
     continue_code: ContinueCode,
     query: QuerySearchResponse
 }
@@ -19,11 +19,11 @@ struct ContinueCode {
 #[derive(Deserialize, Debug)]
 struct QuerySearchResponse {
     search: Vec<SearchResult>,
+    #[serde(rename="searchinfo")]
     search_info: SearchInfo 
 }
 
 #[derive(Deserialize, Debug)]
-#[serde(deny_unknown_fields)]
 struct SearchResult {
     #[serde(rename="pageid")]
     page_id: i32,
@@ -48,7 +48,6 @@ pub struct ArticleResponse {
 }
 
 #[derive(Deserialize, Debug)]
-#[serde(deny_unknown_fields)]
 struct ParseArticle {
     text: ParseArticleText 
 }
@@ -74,10 +73,12 @@ impl Wiki {
         }
     }
 
-    fn search(&self, title: &str) -> SearchResponse {
+    pub fn search(&self, title: &str) -> SearchResponse {
         let base_url = &self.api_config
             .get("BASE_URL");
-        let url = format!("{}?action=query&list=searcg&srwhat=text&srsearch={}&format=json", base_url.unwrap(), title);
+        let url = format!("{}?action=query&list=search&srwhat=text&srsearch={}&format=json", base_url.unwrap(), title);
+
+        println!("{}", &url);
 
         self.client.get(&url)
             .send()
@@ -86,11 +87,11 @@ impl Wiki {
             .unwrap()
     }
 
-    fn get_article(&self, page_id: &i32) -> ArticleResponse {
+    pub fn get_article(&self, page_id: &i32) -> ArticleResponse {
         let base_url = &self.api_config
             .get("BASE_URL");
         let url = format!("{}?action=parse&prop=text&pageid={}&format=json", base_url.unwrap(), page_id);
-
+        println!("{}", &url);
         self.client.get(&url)
             .send()
             .unwrap()
