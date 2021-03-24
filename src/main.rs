@@ -8,4 +8,7 @@ pub mod wiki;
 
 fn main() {
     logging::Logger::new();
+
+    let ui = tui::Tui::new();
+    ui.run();
 }

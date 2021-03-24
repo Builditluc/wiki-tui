@@ -2,14 +2,14 @@ use serde::*;
 use ini::{Properties, Ini};
 
 #[derive(Deserialize, Debug)]
-#[serde(deny_unknown_fields)]
 pub struct SearchResponse {
+    #[serde(rename="continue")]
     continue_code: ContinueCode,
     query: QuerySearchResponse
 }
 
 #[derive(Deserialize, Debug)]
-struct ContinueCode {
+pub struct ContinueCode {
     #[serde(rename="continue")]
     continue_code: String,
     #[serde(rename="sroffset")]
@@ -19,11 +19,11 @@ struct ContinueCode {
 #[derive(Deserialize, Debug)]
 struct QuerySearchResponse {
     search: Vec<SearchResult>,
+    #[serde(rename="searchinfo")]
     search_info: SearchInfo 
 }
 
 #[derive(Deserialize, Debug)]
-#[serde(deny_unknown_fields)]
 struct SearchResult {
     #[serde(rename="pageid")]
     page_id: i32,
@@ -48,7 +48,6 @@ pub struct ArticleResponse {
 }
 
 #[derive(Deserialize, Debug)]
-#[serde(deny_unknown_fields)]
 struct ParseArticle {
     text: ParseArticleText 
 }
@@ -74,10 +73,32 @@ impl Wiki {
         }
     }
 
-    fn search(&self, title: &str) -> SearchResponse {
+    pub fn search(&self, title: &str) -> SearchResponse {
+        self.search_articles(title, None)
+    }
+
+    pub fn get_article(&self, page_id: &i32) -> ArticleResponse {
         let base_url = &self.api_config
             .get("BASE_URL");
-        let url = format!("{}?action=query&list=searcg&srwhat=text&srsearch={}&format=json", base_url.unwrap(), title);
+        let url = format!("{}?action=parse&prop=text&pageid={}&format=json", base_url.unwrap(), page_id);
+        println!("{}", &url);
+        self.client.get(&url)
+            .send()
+            .unwrap()
+            .json::<ArticleResponse>()
+            .unwrap()
+    }
+    
+    fn search_articles(&self, title: &str, continue_code: Option<&ContinueCode>) -> SearchResponse {
+        let base_url = &self.api_config
+            .get("BASE_URL");
+        let url = format!("{}?action=query&list=search&srwhat=text&srsearch={}&format=json", base_url.unwrap(), title);
+        if (continue_code.is_some()) {
+            let continue_unwrapped = continue_code.unwrap();
+            let continue_code_unwrapped = &continue_unwrapped.continue_code;
+            let continue_scroll_offset_unwrapped = continue_unwrapped.scroll_offset;
+            let url = format!("{}?action=query&list=search&srwhat=text&srsearch={}&format=json&continue={}&sroffset={}", base_url.unwrap(), title, continue_code_unwrapped, continue_scroll_offset_unwrapped);
+        }
 
         self.client.get(&url)
             .send()
@@ -85,16 +106,7 @@ impl Wiki {
             .json::<SearchResponse>()
             .unwrap()
     }
-
-    fn get_article(&self, page_id: &i32) -> ArticleResponse {
-        let base_url = &self.api_config
-            .get("BASE_URL");
-        let url = format!("{}?action=parse&prop=text&pageid={}&format=json", base_url.unwrap(), page_id);
-
-        self.client.get(&url)
-            .send()
-            .unwrap()
-            .json::<ArticleResponse>()
-            .unwrap()
+    pub fn continue_search(&self, title: &str, continue_code: &ContinueCode) -> SearchResponse {
+        self.search_articles(title, Some(continue_code))
     }
 }
