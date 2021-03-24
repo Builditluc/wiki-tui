@@ -90,8 +90,7 @@ This Project is currently at a very early developement Stage!
 
 * [Rust](https://rust-lang.org)
 * [cursive - A Text User Interface for Rust](https://github.com/gyscos/cursive)
-* [diesel - A safe, extensible ORM and Query Builder for Rust](https://github.com/diesel-rs/diesel)
-
+* [Mediawiki Api](https://en.wikipedia.org/w/api.php)
 
 <!-- GETTING STARTED -->
 ## Getting Started
@@ -102,9 +101,6 @@ To get a local copy up and running follow these simple steps.
 
 You will need these things to build wiki-tui on your own
 * [Rust](https://www.rust-lang.org/tools/install)
-
-
-If you're using another feature than SQL you will need to install these
 
 ### Installation
 
@@ -133,9 +129,6 @@ _For more examples, please refer to the [Documentation](https://example.com)_
 ## Roadmap
 
 See the [open issues](https://github.com/github_username/repo_name/issues) for a list of known issues.
-Or you can open the [Roadmap](https://github.com/Builditluc/wiki-tui/projects/1) for a list of proposed features.
-
-
 
 <!-- CONTRIBUTING -->
 ## Contributing
