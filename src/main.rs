@@ -8,7 +8,7 @@ pub mod wiki;
 
 fn main() {
     logging::Logger::new();
-    let wiki_struct = wiki::Wiki::new();
-    let search_response = wiki_struct.search("meeting");
-    println!("{:?}", search_response)
+
+    let ui = tui::Tui::new();
+    ui.run();
 }
