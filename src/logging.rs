@@ -5,9 +5,9 @@ impl Logger {
         use simple_logging::log_to_file;
         use ini::Ini;
 
-        let log_conf = Ini::load_from_file("config.ini")
-            .unwrap()
-            .section(Some("Logging"))
+        let conf = Ini::load_from_file("config.ini")
+            .unwrap();
+        let log_conf = conf.section(Some("Logging"))
             .unwrap();
 
         let log_level = log_conf.get("LOG_LEVEL").unwrap();
