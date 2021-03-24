@@ -1,9 +1,46 @@
 use serde::*;
 use ini::{Properties, Ini};
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Debug)]
 #[serde(deny_unknown_fields)]
-pub struct SearchResponse;
+pub struct SearchResponse {
+    continue_code: ContinueCode,
+    query: QuerySearchResponse
+}
+
+#[derive(Deserialize, Debug)]
+struct ContinueCode {
+    #[serde(rename="continue")]
+    continue_code: String,
+    #[serde(rename="sroffset")]
+    scroll_offset: i32
+}
+
+#[derive(Deserialize, Debug)]
+struct QuerySearchResponse {
+    search: Vec<SearchResult>,
+    search_info: SearchInfo 
+}
+
+#[derive(Deserialize, Debug)]
+#[serde(deny_unknown_fields)]
+struct SearchResult {
+    #[serde(rename="pageid")]
+    page_id: i32,
+    size: i32,
+    snippet: String,
+    timestamp: String,
+    title: String,
+    #[serde(rename="wordcount")]
+    word_count: i32
+}
+
+#[derive(Deserialize, Debug)]
+struct SearchInfo {
+    #[serde(rename="totalhits")]
+    total_hits: i32
+}
+
 pub struct Wiki {
     client: reqwest::blocking::Client,
     api_config: Properties

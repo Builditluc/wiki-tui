@@ -3,3 +3,4 @@ target/
 .gradle/
 Cargo.lock
 .DS_Store
+wiki_tui.log
