@@ -41,6 +41,24 @@ struct SearchInfo {
     total_hits: i32
 }
 
+#[derive(Deserialize, Debug)]
+pub struct ArticleResponse {
+    #[serde(rename="parse")]
+    parsed_content: ParseArticle
+}
+
+#[derive(Deserialize, Debug)]
+#[serde(deny_unknown_fields)]
+struct ParseArticle {
+    text: ParseArticleText 
+}
+
+#[derive(Deserialize, Debug)]
+struct ParseArticleText {
+    #[serde(rename="*")]
+    content: String
+}
+
 pub struct Wiki {
     client: reqwest::blocking::Client,
     api_config: Properties
@@ -56,13 +74,27 @@ impl Wiki {
         }
     }
 
-    fn search(&self, title: &str) {
+    fn search(&self, title: &str) -> SearchResponse {
         let base_url = &self.api_config
             .get("BASE_URL");
         let url = format!("{}?action=query&list=searcg&srwhat=text&srsearch={}&format=json", base_url.unwrap(), title);
 
-        let result = self.client.get(&url)
+        self.client.get(&url)
             .send()
-            .unwrap();
+            .unwrap()
+            .json::<SearchResponse>()
+            .unwrap()
+    }
+
+    fn get_article(&self, page_id: &i32) -> ArticleResponse {
+        let base_url = &self.api_config
+            .get("BASE_URL");
+        let url = format!("{}?action=parse&prop=text&pageid={}&format=json", base_url.unwrap(), page_id);
+
+        self.client.get(&url)
+            .send()
+            .unwrap()
+            .json::<ArticleResponse>()
+            .unwrap()
     }
 }
