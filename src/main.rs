@@ -8,6 +8,7 @@ use cursive::traits::*;
 pub mod tests;
 pub mod logging;
 pub mod wiki;
+pub mod structs;
 
 fn main() {
     logging::Logger::new();
