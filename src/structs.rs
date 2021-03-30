@@ -27,13 +27,13 @@ pub mod wiki {
         #[derive(Deserialize, Debug)]
         pub struct SearchResult {
             #[serde(rename="pageid")]
-            page_id: i32,
-            size: i32,
-            snippet: String,
-            timestamp: String,
-            title: String,
+            pub page_id: i32,
+            pub size: i32,
+            pub snippet: String,
+            pub timestamp: String,
+            pub title: String,
             #[serde(rename="wordcount")]
-            word_count: i32
+            pub word_count: i32
         }
 
         #[derive(Deserialize, Debug)]
@@ -61,5 +61,10 @@ pub mod wiki {
             #[serde(rename="*")]
             content: String
         }
+    }
+    pub struct ArticleResultPreview {
+        page_id: i32,
+        snippet: String,
+        title: String
     }
 }
