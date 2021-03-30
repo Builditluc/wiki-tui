@@ -1,62 +1,7 @@
-use serde::*;
+use crate::structs::wiki::search::*;
+use crate::structs::wiki::article::*;
+
 use ini::{Properties, Ini};
-
-#[derive(Deserialize, Debug)]
-pub struct SearchResponse {
-    #[serde(rename="continue")]
-    continue_code: ContinueCode,
-    query: QuerySearchResponse
-}
-
-#[derive(Deserialize, Debug)]
-pub struct ContinueCode {
-    #[serde(rename="continue")]
-    continue_code: String,
-    #[serde(rename="sroffset")]
-    scroll_offset: i32
-}
-
-#[derive(Deserialize, Debug)]
-struct QuerySearchResponse {
-    search: Vec<SearchResult>,
-    #[serde(rename="searchinfo")]
-    search_info: SearchInfo 
-}
-
-#[derive(Deserialize, Debug)]
-struct SearchResult {
-    #[serde(rename="pageid")]
-    page_id: i32,
-    size: i32,
-    snippet: String,
-    timestamp: String,
-    title: String,
-    #[serde(rename="wordcount")]
-    word_count: i32
-}
-
-#[derive(Deserialize, Debug)]
-struct SearchInfo {
-    #[serde(rename="totalhits")]
-    total_hits: i32
-}
-
-#[derive(Deserialize, Debug)]
-pub struct ArticleResponse {
-    #[serde(rename="parse")]
-    parsed_content: ParseArticle
-}
-
-#[derive(Deserialize, Debug)]
-struct ParseArticle {
-    text: ParseArticleText 
-}
-
-#[derive(Deserialize, Debug)]
-struct ParseArticleText {
-    #[serde(rename="*")]
-    content: String
-}
 
 pub struct Wiki {
     client: reqwest::blocking::Client,
