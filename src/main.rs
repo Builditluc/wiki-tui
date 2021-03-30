@@ -38,13 +38,29 @@ fn main() {
 }
 
 fn on_search(siv: &mut Cursive) {
+    log::trace!("on_search was called");
+
     let search_query = siv.call_on_name("search", |view: &mut EditView| {
         view.get_content()
     }).unwrap();
 
-    let wiki = wiki::Wiki::new();
-    let search_results = wiki.search(&search_query);
+    log::trace!("The Search Query is {}", search_query);
 
-    siv.call_on_name("results", |view: &mut SelectView| {
+    let wiki = wiki::Wiki::new();
+    let search_response = wiki.search(&search_query);
+
+    log::trace!("got the wikipedia response");
+
+    // until the convert function is properly implemented, these default response are being
+    // displayed in the SelectView when searchnig
+    let search_results = vec![
+        structs::wiki::ArticleResultPreview {page_id: 0001, snippet: "This is a test".to_string(), title: "Title of an Article".to_string()}
+    ];
+    log::trace!("Adding the items to the Results View");
+    siv.call_on_name("results", |view: &mut SelectView<structs::wiki::ArticleResultPreview>| {
+        for search_result in search_results.into_iter() {
+            log::trace!("Added {} to the Results View", search_result.title);
+            //view.add_item("This is a Test", search_result);
+        }
     });
 }

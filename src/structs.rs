@@ -5,8 +5,8 @@ pub mod wiki {
         #[derive(Deserialize, Debug)]
         pub struct SearchResponse {
             #[serde(rename="continue")]
-            continue_code: ContinueCode,
-            query: QuerySearch
+            pub continue_code: ContinueCode,
+            pub query: QuerySearch
         }
 
         #[derive(Deserialize, Debug)]
@@ -19,9 +19,9 @@ pub mod wiki {
 
         #[derive(Deserialize, Debug)]
         pub struct QuerySearch {
-            search: Vec<SearchResult>,
+            pub search: Vec<SearchResult>,
             #[serde(rename="searchinfo")]
-            search_info: SearchInfo
+            pub search_info: SearchInfo
         }
 
         #[derive(Deserialize, Debug)]
@@ -39,7 +39,7 @@ pub mod wiki {
         #[derive(Deserialize, Debug)]
         pub struct SearchInfo {
             #[serde(rename="totalhits")]
-            total_hits: i32
+            pub total_hits: i32
         }
     }
     pub mod article {
