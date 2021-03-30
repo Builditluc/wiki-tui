@@ -63,8 +63,18 @@ pub mod wiki {
         }
     }
     pub struct ArticleResultPreview {
-        page_id: i32,
-        snippet: String,
-        title: String
+        pub page_id: i32,
+        pub snippet: String,
+        pub title: String
+    }
+}
+
+impl From<wiki::search::SearchResult> for wiki::ArticleResultPreview {
+    fn from(search_result: wiki::search::SearchResult) -> Self {
+        wiki::ArticleResultPreview {
+            page_id: search_result.page_id,
+            snippet: search_result.snippet,
+            title: search_result.title
+        }
     }
 }
