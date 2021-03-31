@@ -38,11 +38,11 @@ impl Wiki {
         let base_url = &self.api_config
             .get("BASE_URL");
         let url = format!("{}?action=query&list=search&srwhat=text&srsearch={}&format=json", base_url.unwrap(), title);
-        if (continue_code.is_some()) {
+        if continue_code.is_some() {
             let continue_unwrapped = continue_code.unwrap();
             let continue_code_unwrapped = &continue_unwrapped.continue_code;
             let continue_scroll_offset_unwrapped = continue_unwrapped.scroll_offset;
-            let url = format!("{}?action=query&list=search&srwhat=text&srsearch={}&format=json&continue={}&sroffset={}", base_url.unwrap(), title, continue_code_unwrapped, continue_scroll_offset_unwrapped);
+            let _url = format!("{}?action=query&list=search&srwhat=text&srsearch={}&format=json&continue={}&sroffset={}", base_url.unwrap(), title, continue_code_unwrapped, continue_scroll_offset_unwrapped);
         }
 
         self.client.get(&url)

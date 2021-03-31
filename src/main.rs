@@ -13,7 +13,10 @@ pub mod structs;
 fn main() {
     logging::Logger::new();
 
-    let mut siv = cursive::default();
+     let wiki = wiki::Wiki::new();
+    let _search_response = wiki.search("Test");
+
+   let mut siv = cursive::default();
     siv.add_global_callback('q', Cursive::quit);
 
     let search_bar = EditView::new()
@@ -24,7 +27,7 @@ fn main() {
                                        .child(search_bar)
                                        .child(search_button));
 
-    let mut search_results = SelectView::<structs::wiki::ArticleResultPreview>::new()
+    let search_results = SelectView::<structs::wiki::ArticleResultPreview>::new()
         .with_name("results");
     let search_results = search_results.full_screen();
 
@@ -44,23 +47,22 @@ fn on_search(siv: &mut Cursive) {
         view.get_content()
     }).unwrap();
 
+    if search_query.is_empty() {
+        log::warn!("No Search Query, aborting Search");
+        return;
+    }
+
     log::trace!("The Search Query is {}", search_query);
 
     let wiki = wiki::Wiki::new();
-    let search_response = wiki.search(&search_query);
+    let _search_response = wiki.search(&search_query);
 
-    log::trace!("got the wikipedia response");
+    // test articlepreview
+    let search_results = vec![structs::wiki::ArticleResultPreview { page_id: 0001, title: "Title".to_string(), snippet: "".to_string() }];
 
-    // until the convert function is properly implemented, these default response are being
-    // displayed in the SelectView when searchnig
-    let search_results = vec![
-        structs::wiki::ArticleResultPreview {page_id: 0001, snippet: "This is a test".to_string(), title: "Title of an Article".to_string()}
-    ];
-    log::trace!("Adding the items to the Results View");
-    siv.call_on_name("results", |view: &mut SelectView<structs::wiki::ArticleResultPreview>| {
+    siv.call_on_name("results", |view: &mut SelectView::<structs::wiki::ArticleResultPreview>| {
         for search_result in search_results.into_iter() {
-            log::trace!("Added {} to the Results View", search_result.title);
-            //view.add_item("This is a Test", search_result);
+            view.add_item(format!("{} \n{}", search_result.title.to_string(), search_result.snippet.to_string()), search_result);
         }
     });
 }
