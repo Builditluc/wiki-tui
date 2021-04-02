@@ -25,6 +25,7 @@ fn main() {
                                        .child(search_button));
 
     let search_results = SelectView::<structs::wiki::ArticleResultPreview>::new()
+        .on_submit(|s, a| {on_article_submit(s, a)})
         .with_name("results");
     let search_results = search_results.full_screen();
 
@@ -65,4 +66,8 @@ fn on_search(siv: &mut Cursive) {
             view.add_item(search_result.title.to_string(), search_result);
         }
     });
+}
+
+fn on_article_submit(siv: &mut Cursive, article: &structs::wiki::ArticleResultPreview) {
+    println!("Yay, you've selected {}", article.title);
 }
