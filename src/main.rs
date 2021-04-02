@@ -4,6 +4,9 @@ extern crate ini;
 use cursive::Cursive;
 use cursive::views::*;
 use cursive::traits::*;
+use cursive::view::{Scrollable, Resizable};
+
+use html2text::from_read;
 
 pub mod tests;
 pub mod logging;
@@ -68,6 +71,24 @@ fn on_search(siv: &mut Cursive) {
     });
 }
 
-fn on_article_submit(siv: &mut Cursive, article: &structs::wiki::ArticleResultPreview) {
-    println!("Yay, you've selected {}", article.title);
+fn on_article_submit(siv: &mut Cursive, article_preview: &structs::wiki::ArticleResultPreview) {
+    // get the article
+    let wiki = wiki::Wiki::new();
+    let article_response = wiki.get_article(&article_preview.page_id);
+
+    // convert the article into the right format
+    let mut article = structs::wiki::Article::from(article_response); 
+
+    // parse the html text
+    article.content = from_read(article.content.as_bytes(), 100);
+
+    let article_view = TextView::new(article.content)
+        .full_width()
+        .scrollable();
+
+    siv.add_fullscreen_layer(Dialog::around(article_view)
+                             .title(article.title)
+                             .dismiss_button("Back")
+                             .button("Quit", Cursive::quit)
+                             .full_screen());
 }
