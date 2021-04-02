@@ -24,7 +24,7 @@ fn main() {
                                        .child(search_bar)
                                        .child(search_button));
 
-    let mut search_results = SelectView::<structs::wiki::ArticleResultPreview>::new()
+    let search_results = SelectView::<structs::wiki::ArticleResultPreview>::new()
         .with_name("results");
     let search_results = search_results.full_screen();
 
@@ -44,23 +44,25 @@ fn on_search(siv: &mut Cursive) {
         view.get_content()
     }).unwrap();
 
+    if search_query.is_empty() {
+        log::warn!("No Search Query, aborting Search");
+        return;
+    }
+
     log::trace!("The Search Query is {}", search_query);
 
     let wiki = wiki::Wiki::new();
     let search_response = wiki.search(&search_query);
+    let mut search_results: Vec<structs::wiki::ArticleResultPreview> = Vec::new();
 
-    log::trace!("got the wikipedia response");
+    // convert the search results into Article Result Previews
+    for search_result in search_response.query.search.into_iter() {
+        search_results.push(structs::wiki::ArticleResultPreview::from(search_result));
+    }
 
-    // until the convert function is properly implemented, these default response are being
-    // displayed in the SelectView when searchnig
-    let search_results = vec![
-        structs::wiki::ArticleResultPreview {page_id: 0001, snippet: "This is a test".to_string(), title: "Title of an Article".to_string()}
-    ];
-    log::trace!("Adding the items to the Results View");
-    siv.call_on_name("results", |view: &mut SelectView<structs::wiki::ArticleResultPreview>| {
+    siv.call_on_name("results", |view: &mut SelectView::<structs::wiki::ArticleResultPreview>| {
         for search_result in search_results.into_iter() {
-            log::trace!("Added {} to the Results View", search_result.title);
-            //view.add_item("This is a Test", search_result);
+            view.add_item(search_result.title.to_string(), search_result);
         }
     });
 }
