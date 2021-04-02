@@ -20,6 +20,7 @@ fn main() {
     siv.add_global_callback('q', Cursive::quit);
 
     let search_bar = EditView::new()
+        .on_submit(on_bar_search)
         .with_name("search")
         .full_width();
     let search_button = Button::new("Search", |s| {on_search(s)});
@@ -39,6 +40,10 @@ fn main() {
                              .button("Quit", Cursive::quit)
                              .full_screen());
     siv.run();
+}
+
+fn on_bar_search(siv: &mut Cursive, text: &str) {
+    on_search(siv);
 }
 
 fn on_search(siv: &mut Cursive) {
@@ -65,6 +70,7 @@ fn on_search(siv: &mut Cursive) {
     }
 
     siv.call_on_name("results", |view: &mut SelectView::<structs::wiki::ArticleResultPreview>| {
+        view.clear();
         for search_result in search_results.into_iter() {
             view.add_item(search_result.title.to_string(), search_result);
         }
@@ -78,9 +84,6 @@ fn on_article_submit(siv: &mut Cursive, article_preview: &structs::wiki::Article
 
     // convert the article into the right format
     let mut article = structs::wiki::Article::from(article_response); 
-
-    // parse the html text
-    //article.content = from_read(article.content.as_bytes(), 100);
 
     let article_view = TextView::new(article.content)
         .full_width()
