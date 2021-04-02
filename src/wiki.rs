@@ -25,7 +25,7 @@ impl Wiki {
     pub fn get_article(&self, page_id: &i32) -> ArticleResponse {
         let base_url = &self.api_config
             .get("BASE_URL");
-        let url = format!("{}?action=parse&prop=text&pageid={}&format=json", base_url.unwrap(), page_id);
+        let url = format!("{}?action=query&prop=extracts&pageids={}&formatversion=2&explaintext=true&exsectionformat=plain&format=json", base_url.unwrap(), page_id);
         println!("{}", &url);
         self.client.get(&url)
             .send()

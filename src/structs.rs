@@ -45,23 +45,23 @@ pub mod wiki {
     pub mod article {
     	use serde::*;
 
+
         #[derive(Deserialize, Debug)]
         pub struct ArticleResponse {
-            #[serde(rename="parse")]
-            pub parsed_content: Parse
+            pub query: QueryArticle
         }
 
         #[derive(Deserialize, Debug)]
-        pub struct Parse {
+        pub struct QueryArticle {
+            pub pages: Vec<ArticleResult>
+        }
+
+        #[derive(Deserialize, Debug)]
+        pub struct ArticleResult {
             #[serde(rename="pageid")]
             pub page_id: i32,
             pub title: String,
-            pub text: ParseText
-        }
-
-        #[derive(Deserialize, Debug)]
-        pub struct ParseText {
-            #[serde(rename="*")]
+            #[serde(rename="extract")]
             pub content: String
         }
     }
@@ -91,9 +91,9 @@ impl From<wiki::search::SearchResult> for wiki::ArticleResultPreview {
 impl From<wiki::article::ArticleResponse> for wiki::Article {
     fn from(article_response: wiki::article::ArticleResponse) -> Self {
         wiki::Article {
-            page_id: article_response.parsed_content.page_id,
-            title: article_response.parsed_content.title,
-            content: article_response.parsed_content.text.content
+            page_id: article_response.query.pages[0].page_id,
+            title: article_response.query.pages[0].title.to_string(),
+            content: article_response.query.pages[0].content.to_string()
         }
     }
 }

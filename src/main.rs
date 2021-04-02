@@ -80,7 +80,7 @@ fn on_article_submit(siv: &mut Cursive, article_preview: &structs::wiki::Article
     let mut article = structs::wiki::Article::from(article_response); 
 
     // parse the html text
-    article.content = from_read(article.content.as_bytes(), 100);
+    //article.content = from_read(article.content.as_bytes(), 100);
 
     let article_view = TextView::new(article.content)
         .full_width()
