@@ -13,10 +13,7 @@ pub mod structs;
 fn main() {
     logging::Logger::new();
 
-     let wiki = wiki::Wiki::new();
-    let _search_response = wiki.search("Test");
-
-   let mut siv = cursive::default();
+    let mut siv = cursive::default();
     siv.add_global_callback('q', Cursive::quit);
 
     let search_bar = EditView::new()
@@ -55,14 +52,17 @@ fn on_search(siv: &mut Cursive) {
     log::trace!("The Search Query is {}", search_query);
 
     let wiki = wiki::Wiki::new();
-    let _search_response = wiki.search(&search_query);
+    let search_response = wiki.search(&search_query);
+    let mut search_results: Vec<structs::wiki::ArticleResultPreview> = Vec::new();
 
-    // test articlepreview
-    let search_results = vec![structs::wiki::ArticleResultPreview { page_id: 0001, title: "Title".to_string(), snippet: "".to_string() }];
+    // convert the search results into Article Result Previews
+    for search_result in search_response.query.search.into_iter() {
+        search_results.push(structs::wiki::ArticleResultPreview::from(search_result));
+    }
 
     siv.call_on_name("results", |view: &mut SelectView::<structs::wiki::ArticleResultPreview>| {
         for search_result in search_results.into_iter() {
-            view.add_item(format!("{} \n{}", search_result.title.to_string(), search_result.snippet.to_string()), search_result);
+            view.add_item(search_result.title.to_string(), search_result);
         }
     });
 }
