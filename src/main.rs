@@ -6,8 +6,6 @@ use cursive::views::*;
 use cursive::traits::*;
 use cursive::view::{Scrollable, Resizable};
 
-use html2text::from_read;
-
 pub mod tests;
 pub mod logging;
 pub mod wiki;
