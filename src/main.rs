@@ -73,6 +73,8 @@ fn on_search(siv: &mut Cursive) {
             view.add_item(search_result.title.to_string(), search_result);
         }
     });
+
+    siv.focus_name("results");
 }
 
 fn on_article_submit(siv: &mut Cursive, article_preview: &structs::wiki::ArticleResultPreview) {
