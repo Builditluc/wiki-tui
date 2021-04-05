@@ -21,10 +21,10 @@ fn main() {
         .on_submit(on_bar_search)
         .with_name("search")
         .full_width();
-    let search_button = Button::new("Search", |s| {on_search(s)});
     let search_layout = Dialog::around(LinearLayout::horizontal()
-                                       .child(search_bar)
-                                       .child(search_button));
+                                       .child(search_bar))
+        .title("Search")
+        .title_position(cursive::align::HAlign::Left);
 
     let search_results = SelectView::<structs::wiki::ArticleResultPreview>::new()
         .on_submit(|s, a| {on_article_submit(s, a)})
