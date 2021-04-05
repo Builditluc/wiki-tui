@@ -18,7 +18,7 @@ fn main() {
     siv.add_global_callback('q', Cursive::quit);
 
     let search_bar = EditView::new()
-        .on_submit(on_bar_search)
+        .on_submit(on_search)
         .with_name("search")
         .full_width();
     let search_layout = Dialog::around(LinearLayout::horizontal()
@@ -26,30 +26,22 @@ fn main() {
         .title("Search")
         .title_position(cursive::align::HAlign::Left);
 
-    let search_results = SelectView::<structs::wiki::ArticleResultPreview>::new()
-        .on_submit(|s, a| {on_article_submit(s, a)})
-        .with_name("results");
-    let search_results = search_results.full_screen();
+    let article_view = TextView::new("Welcome to wiki-tui!")
+        .with_name("article")
+        .full_screen()
+        .scrollable();
 
     siv.add_fullscreen_layer(Dialog::around(LinearLayout::vertical()
                                             .child(search_layout)
-                                            .child(Dialog::around(search_results)))
+                                            .child(Dialog::around(article_view)))
                              .title("wiki-tui")
                              .button("Quit", Cursive::quit)
                              .full_screen());
     siv.run();
 }
 
-fn on_bar_search(siv: &mut Cursive, text: &str) {
-    on_search(siv);
-}
-
-fn on_search(siv: &mut Cursive) {
+fn on_search(siv: &mut Cursive, search_query: &str) {
     log::trace!("on_search was called");
-
-    let search_query = siv.call_on_name("search", |view: &mut EditView| {
-        view.get_content()
-    }).unwrap();
 
     if search_query.is_empty() {
         log::warn!("No Search Query, aborting Search");
@@ -67,17 +59,22 @@ fn on_search(siv: &mut Cursive) {
         search_results.push(structs::wiki::ArticleResultPreview::from(search_result));
     }
 
-    siv.call_on_name("results", |view: &mut SelectView::<structs::wiki::ArticleResultPreview>| {
-        view.clear();
-        for search_result in search_results.into_iter() {
-            view.add_item(search_result.title.to_string(), search_result);
-        }
-    });
+    let mut results_view = SelectView::<structs::wiki::ArticleResultPreview>::new()
+        .on_submit(|s, a| {on_article_submit(s, a)});
 
-    siv.focus_name("results");
-}
+    for search_result in search_results.into_iter() {
+        results_view.add_item(search_result.title.to_string(), search_result);
+    }
+
+    siv.add_layer(Dialog::around(results_view)
+                  .title(format!("Results for {}", search_query))
+                  .dismiss_button("Back")
+                  .button("Quit", Cursive::quit));
+ }
 
 fn on_article_submit(siv: &mut Cursive, article_preview: &structs::wiki::ArticleResultPreview) {
+    siv.pop_layer();
+
     // get the article
     let wiki = wiki::Wiki::new();
     let article_response = wiki.get_article(&article_preview.page_id);
@@ -85,13 +82,9 @@ fn on_article_submit(siv: &mut Cursive, article_preview: &structs::wiki::Article
     // convert the article into the right format
     let mut article = structs::wiki::Article::from(article_response); 
 
-    let article_view = TextView::new(article.content)
-        .full_width()
-        .scrollable();
+    siv.call_on_name("article", |view: &mut TextView| {
+        view.set_content(article.content);
+    });
 
-    siv.add_fullscreen_layer(Dialog::around(article_view)
-                             .title(article.title)
-                             .dismiss_button("Back")
-                             .button("Quit", Cursive::quit)
-                             .full_screen());
+    siv.focus_name("article");
 }
