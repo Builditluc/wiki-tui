@@ -14,7 +14,6 @@ simple-logging = "2.0.2"
 cursive = "0.16.3"
 log = "0.4.13"
 rust-ini = "0.16.1"
-html2text = "0.2.1"
 
 [dependencies.reqwest]
 version = "0.11"
