@@ -67,7 +67,8 @@ fn on_search(siv: &mut Cursive, search_query: &str) {
 
     let results_preview = TextView::new("Please select an Article")
         .h_align(cursive::align::HAlign::Left)
-        .with_name("results_preview");
+        .with_name("results_preview")
+        .fixed_width(50);
 
     for search_result in search_results.into_iter() {
         results_view.add_item(search_result.title.to_string(), search_result);
@@ -104,6 +105,7 @@ fn on_result_select(siv: &mut Cursive, item: &structs::wiki::ArticleResultPrevie
         }
     }
 
+    styled_snippet.append_plain("...");
     siv.call_on_name("results_preview", |view: &mut TextView| {
         view.set_content(styled_snippet);
     });
