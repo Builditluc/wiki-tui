@@ -60,14 +60,11 @@ fn on_search(siv: &mut Cursive, search_query: &str) {
     }
     
     let mut results_view = SelectView::<structs::wiki::ArticleResultPreview>::new()
-        .on_select(|s, item| {
-            s.call_on_name("results_preview", |view: &mut TextView| {
-                view.set_content(format!("{}\n\n{}", item.title, item.snippet));
-            });
-        })
+        .on_select(|s, item| {on_result_select(s, item)})
         .on_submit(|s, a| {on_article_submit(s, a)});
 
     let results_preview = TextView::new("Please select an Article")
+        .h_align(cursive::align::HAlign::Left)
         .with_name("results_preview");
 
     for search_result in search_results.into_iter() {
@@ -83,6 +80,19 @@ fn on_search(siv: &mut Cursive, search_query: &str) {
                   .dismiss_button("Back")
                   .button("Quit", Cursive::quit));
  }
+
+fn on_result_select(siv: &mut Cursive, item: &structs::wiki::ArticleResultPreview) {
+    let title = &item.title;
+    let snippet = &item.snippet;
+
+    // formatting the snippet for styled text
+    let split_snippet: Vec<&str> = snippet.split(r#"<span class="searchmatch">"#).collect();
+    let snippet = split_snippet.into_iter().collect::<String>().replace("</span>", "");
+    
+    siv.call_on_name("results_preview", |view: &mut TextView| {
+        view.set_content(format!("{}\n\n{}", title, snippet));
+    });
+}
 
 fn on_article_submit(siv: &mut Cursive, article_preview: &structs::wiki::ArticleResultPreview) {
     siv.pop_layer();
