@@ -4,6 +4,8 @@ extern crate ini;
 use cursive::Cursive;
 use cursive::views::*;
 use cursive::traits::*;
+use cursive::theme::*;
+use cursive::utils::*;
 use cursive::view::{Scrollable, Resizable};
 
 pub mod tests;
@@ -87,10 +89,21 @@ fn on_result_select(siv: &mut Cursive, item: &structs::wiki::ArticleResultPrevie
 
     // formatting the snippet for styled text
     let split_snippet: Vec<&str> = snippet.split(r#"<span class="searchmatch">"#).collect();
-    let snippet = split_snippet.into_iter().collect::<String>().replace("</span>", "");
-    
+
+    let mut styled_snippet = markup::StyledString::new();
+    for slice in split_snippet {
+        if slice.contains("</span>") {
+            let split_slice: Vec<&str> = slice.split("</span>").collect();
+            
+            styled_snippet.append(markup::StyledString::styled(split_slice[0], Color::Dark(BaseColor::Red)));
+            styled_snippet.append_plain(split_slice[1]);
+        } else {
+            styled_snippet.append_plain(slice);
+        }
+    }
+
     siv.call_on_name("results_preview", |view: &mut TextView| {
-        view.set_content(format!("{}\n\n{}", title, snippet));
+        view.set_content(styled_snippet);
     });
 }
 
