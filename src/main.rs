@@ -91,6 +91,8 @@ fn on_result_select(siv: &mut Cursive, item: &structs::wiki::ArticleResultPrevie
     let split_snippet: Vec<&str> = snippet.split(r#"<span class="searchmatch">"#).collect();
 
     let mut styled_snippet = markup::StyledString::new();
+    styled_snippet.append_plain(format!("{}\n", title));
+
     for slice in split_snippet {
         if slice.contains("</span>") {
             let split_slice: Vec<&str> = slice.split("</span>").collect();
