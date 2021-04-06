@@ -58,15 +58,27 @@ fn on_search(siv: &mut Cursive, search_query: &str) {
     for search_result in search_response.query.search.into_iter() {
         search_results.push(structs::wiki::ArticleResultPreview::from(search_result));
     }
-
+    
     let mut results_view = SelectView::<structs::wiki::ArticleResultPreview>::new()
+        .on_select(|s, item| {
+            s.call_on_name("results_preview", |view: &mut TextView| {
+                view.set_content(format!("{}\n\n{}", item.title, item.snippet));
+            });
+        })
         .on_submit(|s, a| {on_article_submit(s, a)});
+
+    let results_preview = TextView::new("Please select an Article")
+        .with_name("results_preview");
 
     for search_result in search_results.into_iter() {
         results_view.add_item(search_result.title.to_string(), search_result);
     }
 
-    siv.add_layer(Dialog::around(results_view)
+    let results_layout = LinearLayout::horizontal()
+        .child(results_view)
+        .child(results_preview);
+
+    siv.add_layer(Dialog::around(results_layout)
                   .title(format!("Results for {}", search_query))
                   .dismiss_button("Back")
                   .button("Quit", Cursive::quit));
