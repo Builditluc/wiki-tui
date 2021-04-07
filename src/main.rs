@@ -13,6 +13,7 @@ pub mod tests;
 pub mod logging;
 pub mod wiki;
 pub mod structs;
+pub mod config;
 
 fn main() {
     logging::Logger::new();
