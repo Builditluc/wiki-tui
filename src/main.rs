@@ -6,6 +6,7 @@ use cursive::views::*;
 use cursive::traits::*;
 use cursive::theme::*;
 use cursive::utils::*;
+use cursive::event::*;
 use cursive::view::{Scrollable, Resizable};
 
 pub mod tests;
@@ -79,6 +80,10 @@ fn on_search(siv: &mut Cursive, search_query: &str) {
         .child(Dialog::around(results_view))
         .child(Dialog::around(results_preview));
 
+    // paging yay
+    siv.add_global_callback(Key::Left, page_left);
+    siv.add_global_callback(Key::Right, page_right);
+
     siv.add_layer(Dialog::around(LinearLayout::vertical()
                                  .child(results_layout)
                                  .child(search_info))
@@ -115,6 +120,10 @@ fn on_result_select(siv: &mut Cursive, item: &structs::wiki::ArticleResultPrevie
 }
 
 fn on_article_submit(siv: &mut Cursive, article_preview: &structs::wiki::ArticleResultPreview) {
+    // remoe the results layer and the paging callbacks
+    siv.clear_global_callbacks(Key::Left);
+    siv.clear_global_callbacks(Key::Right);
+
     siv.pop_layer();
 
     // get the article
@@ -129,4 +138,12 @@ fn on_article_submit(siv: &mut Cursive, article_preview: &structs::wiki::Article
     });
 
     siv.focus_name("article");
+}
+
+fn page_left(siv: &mut Cursive) {
+
+}
+
+fn page_right(siv: &mut Cursive) {
+
 }
