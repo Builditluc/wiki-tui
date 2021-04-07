@@ -21,7 +21,6 @@
 *** https://www.markdownguide.org/basic-syntax/#reference-style-links
 -->
 [![Contributors][contributors-shield]][contributors-url]
-[![Forks][forks-shield]][forks-url]
 [![Stargazers][stars-shield]][stars-url]
 [![Issues][issues-shield]][issues-url]
 [![MIT license][license-shield]][license-url]
@@ -56,8 +55,6 @@
 <!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
 [contributors-shield]: https://img.shields.io/github/contributors/Builditluc/wiki-tui.svg?style=for-the-badge
 [contributors-url]: https://github.com/Builditluc/wiki-tui/graphs/contributors
-[forks-shield]: https://img.shields.io/github/forks/Builditluc/wiki-tui.svg?style=for-the-badge
-[forks-url]: https://github.com/Builditluc/wiki-tui/network/members
 [stars-shield]: https://img.shields.io/github/stars/Builditluc/wiki-tui.svg?style=for-the-badge
 [stars-url]: https://github.com/Builditluc/wiki-tui/stargazers
 [issues-shield]: https://img.shields.io/github/issues/Builditluc/wiki-tui.svg?style=for-the-badge
