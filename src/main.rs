@@ -65,7 +65,7 @@ fn on_search(siv: &mut Cursive, search_query: &str) {
         .on_select(|s, item| {on_result_select(s, item)})
         .on_submit(|s, a| {on_article_submit(s, a)});
 
-    let results_preview = TextView::new("Please select an Article")
+    let results_preview = TextView::new("")
         .h_align(cursive::align::HAlign::Left)
         .with_name("results_preview")
         .fixed_width(50);
@@ -74,11 +74,14 @@ fn on_search(siv: &mut Cursive, search_query: &str) {
         results_view.add_item(search_result.title.to_string(), search_result);
     }
 
+    let search_info = TextView::new(format!("Found {} articles matching your search", search_response.query.search_info.total_hits));
     let results_layout = LinearLayout::horizontal()
-        .child(results_view)
-        .child(results_preview);
+        .child(Dialog::around(results_view))
+        .child(Dialog::around(results_preview));
 
-    siv.add_layer(Dialog::around(results_layout)
+    siv.add_layer(Dialog::around(LinearLayout::vertical()
+                                 .child(results_layout)
+                                 .child(search_info))
                   .title(format!("Results for {}", search_query))
                   .dismiss_button("Back")
                   .button("Quit", Cursive::quit));
