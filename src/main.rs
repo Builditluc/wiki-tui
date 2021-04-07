@@ -4,6 +4,9 @@ extern crate ini;
 use cursive::Cursive;
 use cursive::views::*;
 use cursive::traits::*;
+use cursive::theme::*;
+use cursive::utils::*;
+use cursive::event::*;
 use cursive::view::{Scrollable, Resizable};
 
 pub mod tests;
@@ -58,21 +61,69 @@ fn on_search(siv: &mut Cursive, search_query: &str) {
     for search_result in search_response.query.search.into_iter() {
         search_results.push(structs::wiki::ArticleResultPreview::from(search_result));
     }
-
+    
     let mut results_view = SelectView::<structs::wiki::ArticleResultPreview>::new()
+        .on_select(|s, item| {on_result_select(s, item)})
         .on_submit(|s, a| {on_article_submit(s, a)});
+
+    let results_preview = TextView::new("")
+        .h_align(cursive::align::HAlign::Left)
+        .with_name("results_preview")
+        .fixed_width(50);
 
     for search_result in search_results.into_iter() {
         results_view.add_item(search_result.title.to_string(), search_result);
     }
 
-    siv.add_layer(Dialog::around(results_view)
+    let search_info = TextView::new(format!("Found {} articles matching your search", search_response.query.search_info.total_hits));
+    let results_layout = LinearLayout::horizontal()
+        .child(Dialog::around(results_view))
+        .child(Dialog::around(results_preview));
+
+    // paging yay
+    siv.add_global_callback(Key::Left, page_left);
+    siv.add_global_callback(Key::Right, page_right);
+
+    siv.add_layer(Dialog::around(LinearLayout::vertical()
+                                 .child(results_layout)
+                                 .child(search_info))
                   .title(format!("Results for {}", search_query))
                   .dismiss_button("Back")
                   .button("Quit", Cursive::quit));
  }
 
+fn on_result_select(siv: &mut Cursive, item: &structs::wiki::ArticleResultPreview) {
+    let title = &item.title;
+    let snippet = &item.snippet;
+
+    // formatting the snippet for styled text
+    let split_snippet: Vec<&str> = snippet.split(r#"<span class="searchmatch">"#).collect();
+
+    let mut styled_snippet = markup::StyledString::new();
+    styled_snippet.append_plain(format!("{}\n", title));
+
+    for slice in split_snippet {
+        if slice.contains("</span>") {
+            let split_slice: Vec<&str> = slice.split("</span>").collect();
+            
+            styled_snippet.append(markup::StyledString::styled(split_slice[0], Color::Dark(BaseColor::Red)));
+            styled_snippet.append_plain(split_slice[1]);
+        } else {
+            styled_snippet.append_plain(slice);
+        }
+    }
+
+    styled_snippet.append_plain("...");
+    siv.call_on_name("results_preview", |view: &mut TextView| {
+        view.set_content(styled_snippet);
+    });
+}
+
 fn on_article_submit(siv: &mut Cursive, article_preview: &structs::wiki::ArticleResultPreview) {
+    // remoe the results layer and the paging callbacks
+    siv.clear_global_callbacks(Key::Left);
+    siv.clear_global_callbacks(Key::Right);
+
     siv.pop_layer();
 
     // get the article
@@ -87,4 +138,12 @@ fn on_article_submit(siv: &mut Cursive, article_preview: &structs::wiki::Article
     });
 
     siv.focus_name("article");
+}
+
+fn page_left(siv: &mut Cursive) {
+
+}
+
+fn page_right(siv: &mut Cursive) {
+
 }
