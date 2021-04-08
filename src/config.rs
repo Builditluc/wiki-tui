@@ -51,8 +51,36 @@ impl Config {
             }
         }
     }
+
+    fn load_config(&mut self) -> Ini {
+        match &self.config_path {
+            Some(config_path) => {
+                Ini::load_from_file(config_path).unwrap()
+            }
+
+            None => {
+                panic!("Idk mate, your config file doesn't exist 4Shrug")
+            }
+        }
+    }
     
     pub fn load(&mut self) {
         self.get_or_create_config_paths();
+
+        let loaded_config = self.load_config();
+        
+        // load the theme config from the file
+        // if the format isn't correct, use the defaults
+        let theme_config = match loaded_config.section(Some("Theme")) {
+            Some(theme_section) => theme_section,
+            None(error) => Theme::default()
+        }; 
+
     } 
+}
+
+impl Default for Config {
+    fn default() -> Self {
+        Config::new()
+    }
 }
