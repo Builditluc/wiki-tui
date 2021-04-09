@@ -80,10 +80,6 @@ impl Config {
             Some(base_url) => base_url.to_string(),
             None => "https://en.wikipedia.org/w/api.php".to_string()
         };
-
-        self.api_config = Some(ApiConfig {
-            base_url
-        });
     }
 
     fn load_logging(&mut self, config: &Ini) {
@@ -122,19 +118,11 @@ impl Config {
     fn load(&mut self) {
         let config = Ini::load_from_file(&self.config_path.clone().unwrap()).unwrap();
         self.load_logging(&config);
-        self.load_api(&config);
     }
 
     pub fn get_logging_config(&self) -> &LoggingConfig {
         match self.logging_config {
             Some(ref logging_config) => logging_config,
-            None => panic!("Holy Shit! What happened here!")
-        }
-    }
-
-    pub fn get_api_config(&self) -> &ApiConfig {
-        match self.api_config {
-            Some(ref api_config) => api_config,
             None => panic!("Holy Shit! What happened here!")
         }
     }
