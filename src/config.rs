@@ -21,7 +21,7 @@ impl Config {
 
         let config_file_valid = config.is_config_valid();
         if !config_file_valid {
-            config.create_config_file();
+
         }
 
         config.load();
@@ -77,7 +77,7 @@ impl Config {
 impl Default for Config {
     fn default() -> Self {
         Config {
-            config_path: None
+           config_path: None
         }
     }
 }
