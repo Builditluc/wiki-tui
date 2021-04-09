@@ -16,7 +16,8 @@ pub mod structs;
 pub mod config;
 
 fn main() {
-    logging::Logger::new();
+    let config = config::Config::new();
+    logging::Logger::new(config.get_logging_config());
 
     let mut siv = cursive::default();
     siv.add_global_callback('q', Cursive::quit);

@@ -100,7 +100,7 @@ impl Config {
         self.load_logging(&config);
     }
 
-    pub fn get_logging_config(&mut self) -> &LoggingConfig {
+    pub fn get_logging_config(&self) -> &LoggingConfig {
         match self.logging_config {
             Some(ref logging_config) => logging_config,
             None => panic!("Holy Shit! What happened here!")
