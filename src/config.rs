@@ -43,4 +43,10 @@ impl Config {
 
         fs::write(&self.config_path.clone().unwrap(), file_content);
     }
+
+    fn is_config_valid(&mut self) -> bool {
+        let config = Ini::load_from_file(&self.config_path.clone().unwrap());
+
+        true 
+    }
 }
