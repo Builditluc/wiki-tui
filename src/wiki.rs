@@ -1,20 +1,18 @@
 use crate::structs::wiki::search::*;
 use crate::structs::wiki::article::*;
 
-use ini::{Properties, Ini};
+use crate::config::ApiConfig;
 
-pub struct Wiki {
+pub struct Wiki<'a> {
     client: reqwest::blocking::Client,
-    api_config: Properties
+    api_config: &'a ApiConfig,
 }
 
-impl Wiki {
-    pub fn new() -> Self {
-        let config = Ini::load_from_file("config.ini").unwrap();
-        let config = config.clone();
+impl<'a> Wiki<'a> {
+    pub fn new(config: &'a ApiConfig) -> Self {
         Wiki {
             client: reqwest::blocking::Client::new(),
-            api_config: config.section(Some("Api")).unwrap().clone()
+            api_config: config
         }
     }
 
@@ -23,9 +21,7 @@ impl Wiki {
     }
 
     pub fn get_article(&self, page_id: &i32) -> ArticleResponse {
-        let base_url = &self.api_config
-            .get("BASE_URL");
-        let url = format!("{}?action=query&prop=extracts&pageids={}&formatversion=2&explaintext=true&exsectionformat=plain&format=json", base_url.unwrap(), page_id);
+        let url = format!("{}?action=query&prop=extracts&pageids={}&formatversion=2&explaintext=true&exsectionformat=plain&format=json", self.api_config.base_url.clone(), page_id);
         println!("{}", &url);
         self.client.get(&url)
             .send()
@@ -35,14 +31,12 @@ impl Wiki {
     }
     
     fn search_articles(&self, title: &str, continue_code: Option<&ContinueCode>) -> SearchResponse {
-        let base_url = &self.api_config
-            .get("BASE_URL");
-        let url = format!("{}?action=query&list=search&srwhat=text&srsearch={}&format=json", base_url.unwrap(), title);
+        let url = format!("{}?action=query&list=search&srwhat=text&srsearch={}&format=json", self.api_config.base_url.clone(), title);
         if continue_code.is_some() {
             let continue_unwrapped = continue_code.unwrap();
             let continue_code_unwrapped = &continue_unwrapped.continue_code;
             let continue_scroll_offset_unwrapped = continue_unwrapped.scroll_offset;
-            let _url = format!("{}?action=query&list=search&srwhat=text&srsearch={}&format=json&continue={}&sroffset={}", base_url.unwrap(), title, continue_code_unwrapped, continue_scroll_offset_unwrapped);
+            let _url = format!("{}?action=query&list=search&srwhat=text&srsearch={}&format=json&continue={}&sroffset={}", self.api_config.base_url.clone(), title, continue_code_unwrapped, continue_scroll_offset_unwrapped);
         }
 
         self.client.get(&url)
