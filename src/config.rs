@@ -6,7 +6,13 @@ use reqwest;
 const CONFIG_FILE_NAME: &str = "config.ini";
 const APP_CONFIG_DIR: &str = "wiki-tui";
 
+pub struct LoggingConfig {
+    pub log_output: String,
+    pub log_level: log::LevelFilter,
+}
+
 pub struct Config {
+    pub logging_config: Option<LoggingConfig>,
     pub config_path: Option<std::path::PathBuf>,
 }
 
@@ -17,11 +23,6 @@ impl Config {
         let config_file_exists = config.get_config_file();
         if !config_file_exists {
             config.create_config_file();
-        }
-
-        let config_file_valid = config.is_config_valid();
-        if !config_file_valid {
-
         }
 
         config.load();
@@ -61,23 +62,57 @@ impl Config {
         fs::write(&self.config_path.clone().unwrap(), file_content);
     }
 
-    fn is_config_valid(&mut self) -> bool {
-        let config = Ini::load_from_file(&self.config_path.clone().unwrap());
+    fn load_logging(&mut self, config: &Ini) {
+        // try to load the section
+        let section = match config.section(Some("Logging")) {
+            Some(section) => section,
+            None => return
+        };
+        
+        // load every variable and if it doesn't exist,
+        // use the default
+        let log_output = match section.get("LOG_OUTPUT") {
+            Some(log_output) => log_output.to_string(),
+            None => "wiki_tui.log".to_string() 
+        };
 
-        true 
+        let log_level = match section.get("LOG_LEVEL") {
+            Some(log_level) => match log_level {
+                "OFF" => log::LevelFilter::Off,
+                "TRACE" => log::LevelFilter::Trace,
+                "DEBUG" => log::LevelFilter::Debug,
+                "INFO" => log::LevelFilter::Info,
+                "WARN" => log::LevelFilter::Warn,
+                "ERROR" => log::LevelFilter::Error,
+                _ => log::LevelFilter::Off,
+            },
+            None => log::LevelFilter::Off
+        };
+
+        self.logging_config = Some(LoggingConfig {
+            log_output,
+            log_level
+        }); 
     }
 
     fn load(&mut self) {
-        let config = Ini::load_from_file(&self.config_path.clone().unwrap());
+        let config = Ini::load_from_file(&self.config_path.clone().unwrap()).unwrap();
+        self.load_logging(&config);
+    }
 
-        // ...
+    pub fn get_logging_config(&mut self) -> &LoggingConfig {
+        match self.logging_config {
+            Some(ref logging_config) => logging_config,
+            None => panic!("Holy Shit! What happened here!")
+        }
     }
 }
 
 impl Default for Config {
     fn default() -> Self {
         Config {
-           config_path: None
+            logging_config: None,
+            config_path: None,
         }
     }
 }
