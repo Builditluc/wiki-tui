@@ -11,6 +11,23 @@ pub struct Config {
 }
 
 impl Config {
+    pub fn new() -> Self {
+        let mut config: Config = Default::default();
+        
+        let config_file_exists = config.get_config_file();
+        if !config_file_exists {
+            config.create_config_file();
+        }
+
+        let config_file_valid = config.is_config_valid();
+        if !config_file_valid {
+            config.create_config_file();
+        }
+
+        config.load();
+        config
+    }
+
     fn get_config_file(&mut self) -> bool {
         match dirs::config_dir() {
             Some(config_path) => {
@@ -48,5 +65,19 @@ impl Config {
         let config = Ini::load_from_file(&self.config_path.clone().unwrap());
 
         true 
+    }
+
+    fn load(&mut self) {
+        let config = Ini::load_from_file(&self.config_path.clone().unwrap());
+
+        // ...
+    }
+}
+
+impl Default for Config {
+    fn default() -> Self {
+        Config {
+            config_path: None
+        }
     }
 }
