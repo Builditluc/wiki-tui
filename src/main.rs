@@ -17,7 +17,6 @@ pub mod config;
 
 fn main() {
     logging::Logger::new();
-    let user_config = config::Config::new().load();
 
     let mut siv = cursive::default();
     siv.add_global_callback('q', Cursive::quit);
