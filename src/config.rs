@@ -17,6 +17,8 @@ impl Config {
                 let app_dir_path = config_path.join(APP_CONFIG_DIR);
                 let config_file_path = app_dir_path.join(CONFIG_FILE_NAME);
 
+                self.config_path = Some(config_file_path.clone());
+
                 if !app_dir_path.exists() {
                     fs::create_dir(app_dir_path);
                     return false
@@ -26,7 +28,6 @@ impl Config {
                     return false
                 }
 
-                self.config_path = Some(config_file_path);
                 true
             }
 
@@ -34,5 +35,12 @@ impl Config {
                 panic!("Couldn't find your config directory")
             }
         }
+    }
+
+    fn create_config_file(&mut self) {
+        let file_url = "https://raw.githubusercontent.com/Builditluc/wiki-tui/stable/config.ini";
+        let file_content = reqwest::blocking::get(file_url).unwrap().text().unwrap();
+
+        fs::write(&self.config_path.clone().unwrap(), file_content);
     }
 }
