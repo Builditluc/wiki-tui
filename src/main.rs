@@ -16,14 +16,18 @@ pub mod structs;
 pub mod config;
 
 fn main() {
-    let config = config::Config::new();
+    let config: config::Config = config::Config::new();
+    let wiki = wiki::Wiki::new(config.get_api_config()); 
     logging::Logger::new(config.get_logging_config());
 
     let mut siv = cursive::default();
     siv.add_global_callback('q', Cursive::quit);
 
+    let rc_wiki: std::rc::Rc<wiki::Wiki> = std::rc::Rc::new(wiki);
     let search_bar = EditView::new()
-        .on_submit(on_search)
+        .on_submit(|s, q| { 
+            on_search(s, q, rc_wiki)
+        })
         .with_name("search")
         .full_width();
     let search_layout = Dialog::around(LinearLayout::horizontal()
@@ -45,7 +49,7 @@ fn main() {
     siv.run();
 }
 
-fn on_search(siv: &mut Cursive, search_query: &str) {
+fn on_search(siv: &mut Cursive, search_query: &str, wiki: std::rc::Rc<wiki::Wiki>) {
     log::trace!("on_search was called");
 
     if search_query.is_empty() {
@@ -55,7 +59,6 @@ fn on_search(siv: &mut Cursive, search_query: &str) {
 
     log::trace!("The Search Query is {}", search_query);
 
-    let wiki = wiki::Wiki::new();
     let search_response = wiki.search(&search_query);
     let mut search_results: Vec<structs::wiki::ArticleResultPreview> = Vec::new();
 
@@ -66,7 +69,7 @@ fn on_search(siv: &mut Cursive, search_query: &str) {
     
     let mut results_view = SelectView::<structs::wiki::ArticleResultPreview>::new()
         .on_select(|s, item| {on_result_select(s, item)})
-        .on_submit(|s, a| {on_article_submit(s, a)});
+        .on_submit(|s, a| {on_article_submit(s, a, &wiki)});
 
     let results_preview = TextView::new("")
         .h_align(cursive::align::HAlign::Left)
@@ -121,7 +124,7 @@ fn on_result_select(siv: &mut Cursive, item: &structs::wiki::ArticleResultPrevie
     });
 }
 
-fn on_article_submit(siv: &mut Cursive, article_preview: &structs::wiki::ArticleResultPreview) {
+fn on_article_submit(siv: &mut Cursive, article_preview: &structs::wiki::ArticleResultPreview, wiki: &wiki::Wiki) {
     // remoe the results layer and the paging callbacks
     siv.clear_global_callbacks(Key::Left);
     siv.clear_global_callbacks(Key::Right);
@@ -129,7 +132,6 @@ fn on_article_submit(siv: &mut Cursive, article_preview: &structs::wiki::Article
     siv.pop_layer();
 
     // get the article
-    let wiki = wiki::Wiki::new();
     let article_response = wiki.get_article(&article_preview.page_id);
 
     // convert the article into the right format
