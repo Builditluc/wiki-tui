@@ -16,17 +16,18 @@ pub mod structs;
 pub mod config;
 
 fn main() {
-    let config: config::Config = config::Config::new();
-    let wiki = wiki::Wiki::new(config.get_api_config()); 
+    let mut config: config::Config = config::Config::new();
+    let wiki = wiki::Wiki::new(config.get_api_config());
     logging::Logger::new(config.get_logging_config());
 
     let mut siv = cursive::default();
     siv.add_global_callback('q', Cursive::quit);
 
-    let rc_wiki: std::rc::Rc<wiki::Wiki> = std::rc::Rc::new(wiki);
+    siv.set_user_data(wiki);
+    
     let search_bar = EditView::new()
         .on_submit(|s, q| { 
-            on_search(s, q, rc_wiki)
+            on_search(s, q)
         })
         .with_name("search")
         .full_width();
@@ -49,8 +50,9 @@ fn main() {
     siv.run();
 }
 
-fn on_search(siv: &mut Cursive, search_query: &str, wiki: std::rc::Rc<wiki::Wiki>) {
+fn on_search(siv: &mut Cursive, search_query: &str) {
     log::trace!("on_search was called");
+    let wiki: wiki::Wiki = siv.take_user_data().unwrap();
 
     if search_query.is_empty() {
         log::warn!("No Search Query, aborting Search");
@@ -69,7 +71,7 @@ fn on_search(siv: &mut Cursive, search_query: &str, wiki: std::rc::Rc<wiki::Wiki
     
     let mut results_view = SelectView::<structs::wiki::ArticleResultPreview>::new()
         .on_select(|s, item| {on_result_select(s, item)})
-        .on_submit(|s, a| {on_article_submit(s, a, &wiki)});
+        .on_submit(move |s, a| {on_article_submit(s, a, &wiki)});
 
     let results_preview = TextView::new("")
         .h_align(cursive::align::HAlign::Left)

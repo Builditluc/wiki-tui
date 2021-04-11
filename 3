@@ -132,13 +132,8 @@ impl Config {
         }
     }
 
-    pub fn get_api_config(&mut self) -> ApiConfig {
+    pub fn get_api_config(&mut self) -> std::rc::Rc<ApiConfig> {
         let api_config = std::mem::replace(&mut self.api_config, None);
-        if api_config.is_some() {
-            return api_config.unwrap();
-        } else {
-            panic!("Holy Shit! What happened here!");
-        }
     }
 }
 

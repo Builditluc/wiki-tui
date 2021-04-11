@@ -3,13 +3,13 @@ use crate::structs::wiki::article::*;
 
 use crate::config::ApiConfig;
 
-pub struct Wiki<'a> {
+pub struct Wiki {
     client: reqwest::blocking::Client,
-    api_config: &'a ApiConfig,
+    api_config: ApiConfig,
 }
 
-impl<'a> Wiki<'a> {
-    pub fn new(config: &'a ApiConfig) -> Self {
+impl Wiki {
+    pub fn new(config: ApiConfig) -> Self {
         Wiki {
             client: reqwest::blocking::Client::new(),
             api_config: config
