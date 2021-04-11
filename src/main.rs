@@ -82,6 +82,11 @@ fn on_search(siv: &mut Cursive, search_query: &str) {
         results_view.add_item(search_result.title.to_string(), search_result);
     }
 
+    let query = search_query.to_string();
+    let continue_button = Button::new("Show more results...", |s| {
+        continue_search(s, &query, &search_response.continue_code)
+    });
+
     let search_info = TextView::new(format!("Found {} articles matching your search", search_response.query.search_info.total_hits));
     let results_layout = LinearLayout::horizontal()
         .child(Dialog::around(results_view))
@@ -152,5 +157,9 @@ fn page_left(siv: &mut Cursive) {
 }
 
 fn page_right(siv: &mut Cursive) {
+
+}
+
+fn continue_search(siv: &mut Cursive, search_query: &str, continue_code: &structs::wiki::search::ContinueCode) {
 
 }
