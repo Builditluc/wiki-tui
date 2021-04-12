@@ -83,17 +83,15 @@ fn on_search(siv: &mut Cursive, search_query: String) {
     let query = search_query.to_string();
 
     let search_info = TextView::new(format!("Found {} articles matching your search", &search_response.clone().query.search_info.total_hits));
-    let results_layout = LinearLayout::horizontal()
-        .child(Dialog::around(results_view))
-        .child(Dialog::around(results_preview));
-
     let continue_button = Button::new("Show more results...", move |s| {
         continue_search(s, &query, &search_response.continue_code)
     });
 
-    // paging yay
-    siv.add_global_callback(Key::Left, page_left);
-    siv.add_global_callback(Key::Right, page_right);
+    let results_layout = LinearLayout::horizontal()
+        .child(Dialog::around(LinearLayout::vertical()
+                              .child(results_view.with_name("results_view"))
+                              .child(continue_button)))
+        .child(Dialog::around(results_preview));
 
     siv.add_layer(Dialog::around(LinearLayout::vertical()
                                  .child(results_layout)
@@ -151,14 +149,13 @@ fn on_article_submit(siv: &mut Cursive, article_preview: &structs::wiki::Article
     siv.focus_name("article");
 }
 
-fn page_left(siv: &mut Cursive) {
-
-}
-
-fn page_right(siv: &mut Cursive) {
-
-}
-
 fn continue_search(siv: &mut Cursive, search_query: &str, continue_code: &structs::wiki::search::ContinueCode) {
+    let wiki: &wiki::Wiki = siv.user_data().unwrap();
+    let search_response = wiki.continue_search(search_query, continue_code);
 
+    let mut results_view = siv.find_name::<SelectView::<structs::wiki::ArticleResultPreview>>("results_view").unwrap();
+    for search_result in search_response.query.search.clone() {
+        let search_result = structs::wiki::ArticleResultPreview::from(search_result);
+        results_view.add_item(search_result.title.clone(), search_result);
+    }
 }
