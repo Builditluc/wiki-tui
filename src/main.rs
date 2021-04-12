@@ -27,7 +27,7 @@ fn main() {
     
     let search_bar = EditView::new()
         .on_submit(|s, q| { 
-            on_search(s, q)
+            on_search(s, q.to_string())
         })
         .with_name("search")
         .full_width();
@@ -50,9 +50,9 @@ fn main() {
     siv.run();
 }
 
-fn on_search(siv: &mut Cursive, search_query: &str) {
+fn on_search(siv: &mut Cursive, search_query: String) {
     log::trace!("on_search was called");
-    let wiki: wiki::Wiki = siv.take_user_data().unwrap();
+    let wiki: &wiki::Wiki = siv.user_data().unwrap();
 
     if search_query.is_empty() {
         log::warn!("No Search Query, aborting Search");
@@ -62,41 +62,44 @@ fn on_search(siv: &mut Cursive, search_query: &str) {
     log::trace!("The Search Query is {}", search_query);
 
     let search_response = wiki.search(&search_query);
-    let mut search_results: Vec<structs::wiki::ArticleResultPreview> = Vec::new();
 
-    // convert the search results into Article Result Previews
-    for search_result in search_response.query.search.into_iter() {
-        search_results.push(structs::wiki::ArticleResultPreview::from(search_result));
-    }
-    
     let mut results_view = SelectView::<structs::wiki::ArticleResultPreview>::new()
         .on_select(|s, item| {on_result_select(s, item)})
-        .on_submit(move |s, a| {on_article_submit(s, a, &wiki)});
+        .on_submit(|s, a| {on_article_submit(s, a)});
 
     let results_preview = TextView::new("")
         .h_align(cursive::align::HAlign::Left)
         .with_name("results_preview")
         .fixed_width(50);
 
-    for search_result in search_results.into_iter() {
+
+    // convert the search results into Article Result Previews
+    // and then add them to the results_view
+    for search_result in search_response.query.search.clone() {
+        let search_result = structs::wiki::ArticleResultPreview::from(search_result);
         results_view.add_item(search_result.title.to_string(), search_result);
     }
 
-    let search_info = TextView::new(format!("Found {} articles matching your search", search_response.query.search_info.total_hits));
-    let results_layout = LinearLayout::horizontal()
-        .child(Dialog::around(results_view))
-        .child(Dialog::around(results_preview));
+    let query = search_query.to_string();
 
-    // paging yay
-    siv.add_global_callback(Key::Left, page_left);
-    siv.add_global_callback(Key::Right, page_right);
+    let search_info = TextView::new(format!("Found {} articles matching your search", &search_response.clone().query.search_info.total_hits));
+    let continue_button = Button::new("Show more results...", move |s| {
+        continue_search(s, &query, &search_response.continue_code)
+    });
+
+    let results_layout = LinearLayout::horizontal()
+        .child(Dialog::around(LinearLayout::vertical()
+                              .child(results_view.with_name("results_view").scrollable())
+                              .child(continue_button)))
+        .child(Dialog::around(results_preview));
 
     siv.add_layer(Dialog::around(LinearLayout::vertical()
                                  .child(results_layout)
                                  .child(search_info))
                   .title(format!("Results for {}", search_query))
                   .dismiss_button("Back")
-                  .button("Quit", Cursive::quit));
+                  .button("Quit", Cursive::quit)
+                  .max_height(20));
  }
 
 fn on_result_select(siv: &mut Cursive, item: &structs::wiki::ArticleResultPreview) {
@@ -126,7 +129,7 @@ fn on_result_select(siv: &mut Cursive, item: &structs::wiki::ArticleResultPrevie
     });
 }
 
-fn on_article_submit(siv: &mut Cursive, article_preview: &structs::wiki::ArticleResultPreview, wiki: &wiki::Wiki) {
+fn on_article_submit(siv: &mut Cursive, article_preview: &structs::wiki::ArticleResultPreview) {
     // remoe the results layer and the paging callbacks
     siv.clear_global_callbacks(Key::Left);
     siv.clear_global_callbacks(Key::Right);
@@ -134,6 +137,7 @@ fn on_article_submit(siv: &mut Cursive, article_preview: &structs::wiki::Article
     siv.pop_layer();
 
     // get the article
+    let wiki: &wiki::Wiki = siv.user_data().unwrap();
     let article_response = wiki.get_article(&article_preview.page_id);
 
     // convert the article into the right format
@@ -146,10 +150,15 @@ fn on_article_submit(siv: &mut Cursive, article_preview: &structs::wiki::Article
     siv.focus_name("article");
 }
 
-fn page_left(siv: &mut Cursive) {
+fn continue_search(siv: &mut Cursive, search_query: &str, continue_code: &structs::wiki::search::ContinueCode) {
+    let wiki: &wiki::Wiki = siv.user_data().unwrap();
+    let search_response = wiki.continue_search(search_query, continue_code);
 
-}
+    let mut results_view = siv.find_name::<SelectView::<structs::wiki::ArticleResultPreview>>("results_view").unwrap();
+    for search_result in search_response.query.search.clone() {
+        let search_result = structs::wiki::ArticleResultPreview::from(search_result);
+        results_view.add_item(search_result.title.clone(), search_result);
+    }
 
-fn page_right(siv: &mut Cursive) {
-
+    siv.focus_name("results_view");
 }
