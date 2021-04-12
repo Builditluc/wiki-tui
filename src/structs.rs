@@ -2,14 +2,14 @@ pub mod wiki {
     pub mod search {
     	use serde::*;
 
-        #[derive(Deserialize, Debug)]
+        #[derive(Deserialize, Debug, Clone)]
         pub struct SearchResponse {
             #[serde(rename="continue")]
             pub continue_code: ContinueCode,
             pub query: QuerySearch
         }
 
-        #[derive(Deserialize, Debug)]
+        #[derive(Deserialize, Debug, Clone)]
         pub struct ContinueCode {
             #[serde(rename="continue")]
             pub continue_code: String,
@@ -17,14 +17,14 @@ pub mod wiki {
             pub scroll_offset: i32
         }
 
-        #[derive(Deserialize, Debug)]
+        #[derive(Deserialize, Debug, Clone)]
         pub struct QuerySearch {
             pub search: Vec<SearchResult>,
             #[serde(rename="searchinfo")]
             pub search_info: SearchInfo
         }
 
-        #[derive(Deserialize, Debug)]
+        #[derive(Deserialize, Debug, Clone)]
         pub struct SearchResult {
             #[serde(rename="pageid")]
             pub page_id: i32,
@@ -36,7 +36,7 @@ pub mod wiki {
             pub word_count: i32
         }
 
-        #[derive(Deserialize, Debug)]
+        #[derive(Deserialize, Debug, Clone)]
         pub struct SearchInfo {
             #[serde(rename="totalhits")]
             pub total_hits: i32

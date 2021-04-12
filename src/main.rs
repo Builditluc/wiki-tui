@@ -27,7 +27,7 @@ fn main() {
     
     let search_bar = EditView::new()
         .on_submit(|s, q| { 
-            on_search(s, q)
+            on_search(s, q.to_string())
         })
         .with_name("search")
         .full_width();
@@ -50,7 +50,7 @@ fn main() {
     siv.run();
 }
 
-fn on_search(siv: &mut Cursive, search_query: &str) {
+fn on_search(siv: &mut Cursive, search_query: String) {
     log::trace!("on_search was called");
     let wiki: &wiki::Wiki = siv.user_data().unwrap();
 
@@ -65,7 +65,7 @@ fn on_search(siv: &mut Cursive, search_query: &str) {
     let mut search_results: Vec<structs::wiki::ArticleResultPreview> = Vec::new();
 
     // convert the search results into Article Result Previews
-    for search_result in search_response.query.search.into_iter() {
+    for search_result in search_response.query.search.clone() {
         search_results.push(structs::wiki::ArticleResultPreview::from(search_result));
     }
     
@@ -78,19 +78,20 @@ fn on_search(siv: &mut Cursive, search_query: &str) {
         .with_name("results_preview")
         .fixed_width(50);
 
-    for search_result in search_results.into_iter() {
+    for search_result in search_results {
         results_view.add_item(search_result.title.to_string(), search_result);
     }
 
     let query = search_query.to_string();
-    let continue_button = Button::new("Show more results...", |s| {
-        continue_search(s, &query, &search_response.continue_code)
-    });
 
-    let search_info = TextView::new(format!("Found {} articles matching your search", search_response.query.search_info.total_hits));
+    let search_info = TextView::new(format!("Found {} articles matching your search", &search_response.clone().query.search_info.total_hits));
     let results_layout = LinearLayout::horizontal()
         .child(Dialog::around(results_view))
         .child(Dialog::around(results_preview));
+
+    let continue_button = Button::new("Show more results...", move |s| {
+        continue_search(s, &query, &search_response.continue_code)
+    });
 
     // paging yay
     siv.add_global_callback(Key::Left, page_left);
