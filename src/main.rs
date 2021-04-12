@@ -89,7 +89,7 @@ fn on_search(siv: &mut Cursive, search_query: String) {
 
     let results_layout = LinearLayout::horizontal()
         .child(Dialog::around(LinearLayout::vertical()
-                              .child(results_view.with_name("results_view"))
+                              .child(results_view.with_name("results_view").scrollable())
                               .child(continue_button)))
         .child(Dialog::around(results_preview));
 
@@ -98,7 +98,8 @@ fn on_search(siv: &mut Cursive, search_query: String) {
                                  .child(search_info))
                   .title(format!("Results for {}", search_query))
                   .dismiss_button("Back")
-                  .button("Quit", Cursive::quit));
+                  .button("Quit", Cursive::quit)
+                  .max_height(20));
  }
 
 fn on_result_select(siv: &mut Cursive, item: &structs::wiki::ArticleResultPreview) {
@@ -158,4 +159,6 @@ fn continue_search(siv: &mut Cursive, search_query: &str, continue_code: &struct
         let search_result = structs::wiki::ArticleResultPreview::from(search_result);
         results_view.add_item(search_result.title.clone(), search_result);
     }
+
+    siv.focus_name("results_view");
 }
