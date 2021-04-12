@@ -62,13 +62,7 @@ fn on_search(siv: &mut Cursive, search_query: String) {
     log::trace!("The Search Query is {}", search_query);
 
     let search_response = wiki.search(&search_query);
-    let mut search_results: Vec<structs::wiki::ArticleResultPreview> = Vec::new();
 
-    // convert the search results into Article Result Previews
-    for search_result in search_response.query.search.clone() {
-        search_results.push(structs::wiki::ArticleResultPreview::from(search_result));
-    }
-    
     let mut results_view = SelectView::<structs::wiki::ArticleResultPreview>::new()
         .on_select(|s, item| {on_result_select(s, item)})
         .on_submit(|s, a| {on_article_submit(s, a)});
@@ -78,7 +72,11 @@ fn on_search(siv: &mut Cursive, search_query: String) {
         .with_name("results_preview")
         .fixed_width(50);
 
-    for search_result in search_results {
+
+    // convert the search results into Article Result Previews
+    // and then add them to the results_view
+    for search_result in search_response.query.search.clone() {
+        let search_result = structs::wiki::ArticleResultPreview::from(search_result);
         results_view.add_item(search_result.title.to_string(), search_result);
     }
 
