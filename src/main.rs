@@ -84,8 +84,8 @@ fn on_search(siv: &mut Cursive, search_query: String) {
 
     let search_info = TextView::new(format!("Found {} articles matching your search", &search_response.clone().query.search_info.total_hits));
     let continue_button = Button::new("Show more results...", move |s| {
-        continue_search(s, &query, &search_response.continue_code)
-    });
+        continue_search(s, query.clone(), &search_response.continue_code)
+    }).with_name("continue_button");
 
     let results_layout = LinearLayout::horizontal()
         .child(Dialog::around(LinearLayout::vertical()
@@ -150,15 +150,20 @@ fn on_article_submit(siv: &mut Cursive, article_preview: &structs::wiki::Article
     siv.focus_name("article");
 }
 
-fn continue_search(siv: &mut Cursive, search_query: &str, continue_code: &structs::wiki::search::ContinueCode) {
+fn continue_search(siv: &mut Cursive, search_query: String, continue_code: &structs::wiki::search::ContinueCode) {
     let wiki: &wiki::Wiki = siv.user_data().unwrap();
-    let search_response = wiki.continue_search(search_query, continue_code);
+    let search_response = wiki.continue_search(&search_query, continue_code);
 
     let mut results_view = siv.find_name::<SelectView::<structs::wiki::ArticleResultPreview>>("results_view").unwrap();
     for search_result in search_response.query.search.clone() {
         let search_result = structs::wiki::ArticleResultPreview::from(search_result);
         results_view.add_item(search_result.title.clone(), search_result);
     }
+
+    let mut continue_button = siv.find_name::<Button>("continue_button").unwrap();
+    continue_button.set_callback(move |s| {
+        continue_search(s, search_query.clone(), &search_response.continue_code);
+    });
 
     siv.focus_name("results_view");
 }
