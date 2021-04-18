@@ -1,5 +1,6 @@
 #[macro_use] extern crate log;
 extern crate ini;
+extern crate anyhow;
 
 use cursive::Cursive;
 use cursive::views::*;
@@ -8,6 +9,7 @@ use cursive::theme::*;
 use cursive::utils::*;
 use cursive::event::*;
 use cursive::view::{Scrollable, Resizable};
+use anyhow::*;
 
 pub mod tests;
 pub mod logging;
@@ -141,13 +143,18 @@ fn on_article_submit(siv: &mut Cursive, article_preview: &structs::wiki::Article
     let article_response = wiki.get_article(&article_preview.page_id);
 
     // convert the article into the right format
-    let mut article = structs::wiki::Article::from(article_response); 
+    let article = structs::wiki::Article::from(article_response); 
 
     siv.call_on_name("article", |view: &mut TextView| {
         view.set_content(article.content);
     });
 
-    siv.focus_name("article");
+    let result = siv.focus_name("article").context("Failed to focus the article view");
+    match result {
+        Ok(_) => log::info!("Successfully focussed the article view"),
+        Err(error) => log::warn!("{:?}", error),
+    }
+
 }
 
 fn continue_search(siv: &mut Cursive, search_query: String, continue_code: &structs::wiki::search::ContinueCode) {
@@ -165,5 +172,9 @@ fn continue_search(siv: &mut Cursive, search_query: String, continue_code: &stru
         continue_search(s, search_query.clone(), &search_response.continue_code);
     });
 
-    siv.focus_name("results_view");
+    let result = siv.focus_name("results_view").context("Failed to focus the results view");
+    match result {
+        Ok(_) => log::info!("Successfully focussed the results view"),
+        Err(error) => log::warn!("{:?}", error),
+    }
 }

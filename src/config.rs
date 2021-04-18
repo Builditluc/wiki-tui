@@ -2,6 +2,7 @@ use dirs;
 use ini::Ini;
 use std::fs;
 use reqwest;
+use anyhow::*;
 
 const CONFIG_FILE_NAME: &str = "config.ini";
 const APP_CONFIG_DIR: &str = "wiki-tui";
@@ -25,7 +26,7 @@ impl Config {
     pub fn new() -> Self {
         let mut config: Config = Default::default();
         
-        let config_file_exists = config.get_config_file();
+        let config_file_exists = config.config_file_exists();
         if !config_file_exists {
             config.create_config_file();
         }
@@ -34,7 +35,7 @@ impl Config {
         config
     }
 
-    fn get_config_file(&mut self) -> bool {
+    fn config_file_exists(&mut self) -> bool {
         match dirs::config_dir() {
             Some(config_path) => {
                 let app_dir_path = config_path.join(APP_CONFIG_DIR);
@@ -43,7 +44,11 @@ impl Config {
                 self.config_path = Some(config_file_path.clone());
 
                 if !app_dir_path.exists() {
-                    fs::create_dir(app_dir_path);
+                    let result = fs::create_dir(app_dir_path).context("Failed to create the app config directory");
+                    match result {
+                        Ok(_) => log::info!("Created the app config directory"),
+                        Err(error) => panic!("{:?}", error),
+                    }
                     return false
                 }
 
