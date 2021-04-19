@@ -69,7 +69,11 @@ impl Config {
         let file_url = "https://raw.githubusercontent.com/Builditluc/wiki-tui/stable/config.ini";
         let file_content = reqwest::blocking::get(file_url).unwrap().text().unwrap();
 
-        fs::write(&self.config_path.clone().unwrap(), file_content);
+        let result = fs::write(&self.config_path.clone().unwrap(), file_content).context("Failed to create the config file");
+        match result {
+            Ok(_) => log::info!("Sucessfully created the config file"),
+            Err(error) => panic!("{:?}", error),
+        }
     }
 
     fn load_api(&mut self, config: &Ini) {
