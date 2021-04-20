@@ -20,6 +20,21 @@
 
 ## Preview
 
+### Features
+`wiki-tui` currently has these features:
+<ul>
+  <li>Search through Wikipedia (currently english only!) and read articles in the terminal</li>
+  <li>Load more search results</li>
+  <li>Preview the search results with highlighting of the search query</li>
+</ul>
+
+### How it looks
+
+![image](https://user-images.githubusercontent.com/37375448/115359389-ebfcbf00-a1be-11eb-91c5-b1effd4be575.png)
+![image](https://user-images.githubusercontent.com/37375448/115359852-5e6d9f00-a1bf-11eb-9d3c-be4f5066ba66.png)
+![image](https://user-images.githubusercontent.com/37375448/115359932-6f1e1500-a1bf-11eb-858b-a6fa72b53449.png) <br>
+Note: These Screenshots were taken on MacOS inside of the default terminal
+
 ## Installation
 
 ## How to use
