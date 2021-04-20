@@ -37,6 +37,16 @@ Note: These Screenshots were taken on MacOS inside of the default terminal
 
 ## Installation
 
+Currently, you can install `wiki-tui` only by compiling it manually.
+Just clone the repository and compile the stable branch.
+
 ## How to use
 
 ## Configuration
+
+You can find the config file in your config directory. <br>
+On MacOS, it's ```$HOME/Library/Application Support/wiki-tui/``` <br>
+On Linux, it's ```$HOME/.config/wiki-tui``` <br>
+On Windows, just do [this](https://wiki.archlinux.org/index.php/Installation_guide)
+
+In `config.ini`, you can then customize `wiki-tui`
