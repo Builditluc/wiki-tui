@@ -44,7 +44,7 @@ pub mod wiki {
     }
     pub mod article {
     	use serde::*;
-
+        use cursive::utils::*;
 
         #[derive(Deserialize, Debug)]
         pub struct ArticleResponse {
@@ -63,6 +63,15 @@ pub mod wiki {
             pub title: String,
             #[serde(rename="extract")]
             pub content: String
+        }
+
+        pub struct Article {
+            pub paragraphs: [Paragraph]
+        }
+
+        pub struct Paragraph {
+            pub title: Option<String>,
+            pub content: markup::StyledString
         }
     }
     pub struct ArticleResultPreview {
