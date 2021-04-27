@@ -64,27 +64,28 @@ pub mod wiki {
             #[serde(rename="extract")]
             pub content: String
         }
-
+        
+        #[derive(Clone)]
         pub struct Article {
-            pub paragraphs: [Paragraph]
+            pub title: String,
+            pub paragraphs: Vec::<markup::StyledString>
         }
-
-        pub struct Paragraph {
-            pub title: Option<String>,
-            pub content: markup::StyledString
-        }
+    }
+    
+    pub mod parser {
+        pub struct Default;
     }
     pub struct ArticleResultPreview {
         pub page_id: i32,
         pub snippet: String,
-        pub title: String
-    }
+        pub title: String,
+   }
 
     pub struct Article {
         pub page_id: i32,
         pub title: String,
         pub content: String
-    }
+   }
 }
 
 impl From<wiki::search::SearchResult> for wiki::ArticleResultPreview {
@@ -97,12 +98,25 @@ impl From<wiki::search::SearchResult> for wiki::ArticleResultPreview {
     }
 }
 
-impl From<wiki::article::ArticleResponse> for wiki::Article {
-    fn from(article_response: wiki::article::ArticleResponse) -> Self {
-        wiki::Article {
-            page_id: article_response.query.pages[0].page_id,
-            title: article_response.query.pages[0].title.to_string(),
-            content: article_response.query.pages[0].content.to_string()
+//impl From<wiki::article::ArticleResponse> for wiki::article::Article {
+//    fn from(article_response: wiki::article::ArticleResponse) -> Self {
+//        wiki::article::Article {
+//            page_id: article_response.query.pages[0].page_id,
+//            title: article_response.query.pages[0].title.to_string(),
+//            content: article_response.query.pages[0].content.to_string()
+//        }
+//    }
+//}
+
+impl Parser for wiki::parser::Default {
+    fn parse(&self, html: String) -> wiki::article::Article {
+        wiki::article::Article {
+            title: String::new(),
+            paragraphs: Vec::new(),
         }
     }
+}
+
+pub trait Parser {
+    fn parse(&self, html: String) -> wiki::article::Article;
 }

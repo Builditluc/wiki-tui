@@ -141,13 +141,10 @@ fn on_article_submit(siv: &mut Cursive, article_preview: &structs::wiki::Article
 
     // get the article
     let wiki: &wiki::Wiki = siv.user_data().unwrap();
-    let article_response = wiki.get_article(&article_preview.page_id);
-
-    // convert the article into the right format
-    let article = structs::wiki::Article::from(article_response); 
+    let article = wiki.get_article(&article_preview.page_id);
 
     siv.call_on_name("article", |view: &mut TextView| {
-        view.set_content(article.content);
+        view.set_content(article.paragraphs[0].clone());
     });
 
     let result = siv.focus_name("article").context("Failed to focus the article view");
