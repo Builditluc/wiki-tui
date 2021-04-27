@@ -110,9 +110,12 @@ impl From<wiki::search::SearchResult> for wiki::ArticleResultPreview {
 
 impl Parser for wiki::parser::Default {
     fn parse(&self, html: String) -> wiki::article::Article {
+        use cursive::utils::*;
+        let mut paragraphs: Vec::<markup::StyledString> = Vec::new();
+        paragraphs.push(markup::StyledString::plain("This is just a Test"));
         wiki::article::Article {
             title: String::new(),
-            paragraphs: Vec::new(),
+            paragraphs,
         }
     }
 }

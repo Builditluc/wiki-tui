@@ -144,7 +144,9 @@ fn on_article_submit(siv: &mut Cursive, article_preview: &structs::wiki::Article
     let article = wiki.get_article(&article_preview.page_id);
 
     siv.call_on_name("article", |view: &mut TextView| {
+        log::info!("Begin setting the content for the article view");
         view.set_content(article.paragraphs[0].clone());
+        log::info!("Completed setting the content for the article view");
     });
 
     let result = siv.focus_name("article").context("Failed to focus the article view");
