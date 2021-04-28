@@ -39,9 +39,8 @@ fn main() {
         .title("Search")
         .title_position(cursive::align::HAlign::Left);
 
-    let article_view = LinearLayout::vertical()
-        .child(TextView::new("Welcome to wiki-tui!"))
-        .with_name("articles")
+    let article_view = TextView::new("Welcome to wiki-tui")
+        .with_name("article")
         .full_screen()
         .scrollable();
 
@@ -143,24 +142,12 @@ fn on_article_submit(siv: &mut Cursive, article_preview: &structs::wiki::Article
     // get the article
     let wiki: &wiki::Wiki = siv.user_data().unwrap();
     let article = wiki.get_article(&article_preview.page_id);
-    let number_of_paragraphs = article.paragraphs.len().clone();
 
-    siv.call_on_name("articles", |view: &mut LinearLayout| {
-        log::info!("Begin setting the content for the article view");
+    siv.call_on_name("article", |view: &mut TextView| {
+        log::info!("Setting the content for the article view");
 
-        // remove all children
-        let mut i = 0;
-        while i < view.len() {
-            view.remove_child(i);
-            i+=1;
-        }
+        view.set_content(article.content);
 
-        // temp a, b, c
-        for paragraph in article.paragraphs {
-            view.add_child(TextView::new(paragraph));
-        }
-
-        log::info!("Added {} paragraphs to the article view", number_of_paragraphs);
         log::info!("Completed setting the content for the article view");
     });
 

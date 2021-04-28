@@ -68,7 +68,7 @@ pub mod wiki {
         #[derive(Clone)]
         pub struct Article {
             pub title: String,
-            pub paragraphs: Vec::<markup::StyledString>
+            pub content: markup::StyledString,
         }
     }
     
@@ -115,10 +115,10 @@ impl Parser for wiki::parser::Default {
         use select::document::Document;
         use select::predicate::Class;
 
-        log::info!("{:?}", html); 
-        let mut paragraphs: Vec::<markup::StyledString> = Vec::new();
+        let mut content = markup::StyledString::new();
         let document = Document::from_read(html).unwrap();
         log::info!("Loaded the HTML document");
+
         // now iterate over all of the elements inside of the article
         for node in document.find(Class("mw-parser-output")) {
             log::info!("Iterating now over the node {:?}", node.name());
@@ -127,43 +127,35 @@ impl Parser for wiki::parser::Default {
                 if children.name().is_some() {
                     // match the name of the children
                     match children.name().unwrap() {
-                        // if it's a header, make a new paragraph and add the header to it
+                        // if it's a header, add it to the article content in BOLD and with two
+                        // Linebreaks at the end
                         "h2" | "h3" | "h4" | "h5" => {
                             let text = children.find(Class("mw-headline")).next().unwrap().text();
                             let mut styled_content = markup::StyledString::plain("\n");
                             styled_content.append_styled(text, Style::from(Color::Dark(BaseColor::Black)).combine(Effect::Bold));
                             styled_content.append_plain("\n\n");
-                
-                            paragraphs.push(styled_content);
-                            log::info!("Added a headline to a new paragraph, there are now a total of {} paragraphs", paragraphs.len());
+                            
+                            content.append(styled_content);
+                            log::info!("Added a headline to the article content");
                         },
-                        // if it's a paragraph, add it to the current paragraph
+                        // if it's a paragraph, add it to the context with only ONE Linebreak at
+                        // the end
                         "p" => {
                             let text = children.text();
 
-                            // get the current paragraph
-                            let mut current_paragraph = match paragraphs.pop() {
-                                Some(content) => content,
-                                None => markup::StyledString::new()
-                            }; 
-
-                            current_paragraph.append_styled(text, Style::from(Color::Dark(BaseColor::Black)));
-                            paragraphs.push(current_paragraph);
-                            log::info!("Added some more text to the current paragraph, there are now a total of {} paragraphs", paragraphs.len());
+                            let styled_text = markup::StyledString::plain(text);
+                            
+                            content.append(styled_text);
+                            log::info!("Added a paragraph to the article content");
                         },
                         // if it's a div with the class "reflist", add it to the current paragraph
                         // in form of a list
                         "div" if children.is(Class("reflist")) => {
                             let text = children.text();
-
-                            // get the current paragraph
-                            let mut current_paragraph = match paragraphs.pop() {
-                                Some(content) => content,
-                                None => markup::StyledString::new()
-                            }; 
-
-                            current_paragraph.append_styled(text, Style::from(Color::Dark(BaseColor::Black)));
-                            paragraphs.push(current_paragraph);
+                            let styled_text = markup::StyledString::plain(text);
+    
+                            content.append(styled_text);
+                            log::info!("Added the Reference List to the article content");
                         },
                         // if it's any other html element, skip it
                         _ => continue
@@ -171,10 +163,10 @@ impl Parser for wiki::parser::Default {
                 }
             }
         }
-        log::info!("a total of {} paragraphs were found", paragraphs.len());
+        log::info!("Finished parsing the article");
         wiki::article::Article {
             title: String::new(),
-            paragraphs,
+            content,
         }
     }
 }
