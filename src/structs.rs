@@ -113,6 +113,8 @@ impl Parser for wiki::parser::Default {
         use cursive::utils::*;
         let mut paragraphs: Vec::<markup::StyledString> = Vec::new();
         paragraphs.push(markup::StyledString::plain("This is just a Test"));
+        paragraphs.push(markup::StyledString::plain("This is just another Test"));
+        paragraphs.push(markup::StyledString::plain("When I'm finished testing, there will be cake"));
         wiki::article::Article {
             title: String::new(),
             paragraphs,

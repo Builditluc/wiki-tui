@@ -39,8 +39,9 @@ fn main() {
         .title("Search")
         .title_position(cursive::align::HAlign::Left);
 
-    let article_view = TextView::new("Welcome to wiki-tui!")
-        .with_name("article")
+    let article_view = LinearLayout::vertical()
+        .child(TextView::new("Welcome to wiki-tui!"))
+        .with_name("articles")
         .full_screen()
         .scrollable();
 
@@ -133,7 +134,7 @@ fn on_result_select(siv: &mut Cursive, item: &structs::wiki::ArticleResultPrevie
 }
 
 fn on_article_submit(siv: &mut Cursive, article_preview: &structs::wiki::ArticleResultPreview) {
-    // remoe the results layer and the paging callbacks
+    // remove the results layer and the paging callbacks
     siv.clear_global_callbacks(Key::Left);
     siv.clear_global_callbacks(Key::Right);
 
@@ -143,13 +144,25 @@ fn on_article_submit(siv: &mut Cursive, article_preview: &structs::wiki::Article
     let wiki: &wiki::Wiki = siv.user_data().unwrap();
     let article = wiki.get_article(&article_preview.page_id);
 
-    siv.call_on_name("article", |view: &mut TextView| {
+    siv.call_on_name("articles", |view: &mut LinearLayout| {
         log::info!("Begin setting the content for the article view");
-        view.set_content(article.paragraphs[0].clone());
+
+        // remove all children
+        let mut i = 0;
+        while i < view.len() {
+            view.remove_child(i);
+            i+=1;
+        }
+
+        // temp a, b, c
+        for paragraph in article.paragraphs {
+            view.add_child(TextView::new(paragraph));
+        }
+
         log::info!("Completed setting the content for the article view");
     });
 
-    let result = siv.focus_name("article").context("Failed to focus the article view");
+    let result = siv.focus_name("articles").context("Failed to focus the article view");
     match result {
         Ok(_) => log::info!("Successfully focussed the article view"),
         Err(error) => log::warn!("{:?}", error),
