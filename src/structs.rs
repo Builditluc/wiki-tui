@@ -131,10 +131,11 @@ impl Parser for wiki::parser::Default {
                         // Linebreaks at the end
                         "h2" | "h3" | "h4" | "h5" => {
                             let text = children.find(Class("mw-headline")).next().unwrap().text();
-                            let mut styled_content = markup::StyledString::plain("\n");
+                            let mut styled_content = markup::StyledString::new();
+                            styled_content.append_plain("\n");
                             styled_content.append_styled(text, Style::from(Color::Dark(BaseColor::Black)).combine(Effect::Bold));
                             styled_content.append_plain("\n\n");
-                            
+
                             content.append(styled_content);
                             log::info!("Added a headline to the article content");
                         },

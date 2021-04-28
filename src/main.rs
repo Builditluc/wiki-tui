@@ -50,6 +50,17 @@ fn main() {
                              .title("wiki-tui")
                              .button("Quit", Cursive::quit)
                              .full_screen());
+//  // This is just for testing    
+//    siv.cb_sink().send(Box::new(|s| {
+//        let test_preview = structs::wiki::ArticleResultPreview {
+//            page_id: 18630637,
+//            snippet: String::new(),
+//            title: String::new(),
+//        };
+//        s.add_layer(TextView::new("Test"));
+//        on_article_submit(s, &test_preview);
+//    }));
+//
     siv.run();
 }
 
@@ -151,7 +162,7 @@ fn on_article_submit(siv: &mut Cursive, article_preview: &structs::wiki::Article
         log::info!("Completed setting the content for the article view");
     });
 
-    let result = siv.focus_name("articles").context("Failed to focus the article view");
+    let result = siv.focus_name("article").context("Failed to focus the article view");
     match result {
         Ok(_) => log::info!("Successfully focussed the article view"),
         Err(error) => log::warn!("{:?}", error),
