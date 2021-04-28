@@ -54,7 +54,7 @@ impl Wiki {
     }
 
     pub fn get_article(&self, page_id: &i32) -> Article {
-        let url = format!("{}?curid={}", self.api_config.base_url.clone(), page_id);
+        let url = format!("http://en.wikipedia.org/?curid={}", page_id);
         let article_html = self.client.get(&url)
             .send()
             .unwrap();

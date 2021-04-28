@@ -115,11 +115,13 @@ impl Parser for wiki::parser::Default {
         use select::document::Document;
         use select::predicate::Class;
 
+        log::info!("{:?}", html); 
         let mut paragraphs: Vec::<markup::StyledString> = Vec::new();
         let document = Document::from_read(html).unwrap();
-       
+        log::info!("Loaded the HTML document");
         // now iterate over all of the elements inside of the article
         for node in document.find(Class("mw-parser-output")) {
+            log::info!("Iterating now over the node {:?}", node.name());
             for children in node.children() {
                 // check, if the children is a html element
                 if children.name().is_some() {
@@ -133,6 +135,7 @@ impl Parser for wiki::parser::Default {
                             styled_content.append_plain("\n\n");
                 
                             paragraphs.push(styled_content);
+                            log::info!("Added a headline to a new paragraph, there are now a total of {} paragraphs", paragraphs.len());
                         },
                         // if it's a paragraph, add it to the current paragraph
                         "p" => {
@@ -146,6 +149,7 @@ impl Parser for wiki::parser::Default {
 
                             current_paragraph.append_styled(text, Style::from(Color::Dark(BaseColor::Black)));
                             paragraphs.push(current_paragraph);
+                            log::info!("Added some more text to the current paragraph, there are now a total of {} paragraphs", paragraphs.len());
                         },
                         // if it's a div with the class "reflist", add it to the current paragraph
                         // in form of a list
@@ -167,6 +171,7 @@ impl Parser for wiki::parser::Default {
                 }
             }
         }
+        log::info!("a total of {} paragraphs were found", paragraphs.len());
         wiki::article::Article {
             title: String::new(),
             paragraphs,
