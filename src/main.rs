@@ -39,7 +39,7 @@ fn main() {
         .title("Search")
         .title_position(cursive::align::HAlign::Left);
 
-    let article_view = TextView::new("Welcome to wiki-tui!")
+    let article_view = TextView::new("Welcome to wiki-tui")
         .with_name("article")
         .full_screen()
         .scrollable();
@@ -50,6 +50,17 @@ fn main() {
                              .title("wiki-tui")
                              .button("Quit", Cursive::quit)
                              .full_screen());
+//  // This is just for testing    
+//    siv.cb_sink().send(Box::new(|s| {
+//        let test_preview = structs::wiki::ArticleResultPreview {
+//            page_id: 18630637,
+//            snippet: String::new(),
+//            title: String::new(),
+//        };
+//        s.add_layer(TextView::new("Test"));
+//        on_article_submit(s, &test_preview);
+//    }));
+//
     siv.run();
 }
 
@@ -133,7 +144,7 @@ fn on_result_select(siv: &mut Cursive, item: &structs::wiki::ArticleResultPrevie
 }
 
 fn on_article_submit(siv: &mut Cursive, article_preview: &structs::wiki::ArticleResultPreview) {
-    // remoe the results layer and the paging callbacks
+    // remove the results layer and the paging callbacks
     siv.clear_global_callbacks(Key::Left);
     siv.clear_global_callbacks(Key::Right);
 
@@ -141,13 +152,14 @@ fn on_article_submit(siv: &mut Cursive, article_preview: &structs::wiki::Article
 
     // get the article
     let wiki: &wiki::Wiki = siv.user_data().unwrap();
-    let article_response = wiki.get_article(&article_preview.page_id);
-
-    // convert the article into the right format
-    let article = structs::wiki::Article::from(article_response); 
+    let article = wiki.get_article(&article_preview.page_id);
 
     siv.call_on_name("article", |view: &mut TextView| {
+        log::info!("Setting the content for the article view");
+
         view.set_content(article.content);
+
+        log::info!("Completed setting the content for the article view");
     });
 
     let result = siv.focus_name("article").context("Failed to focus the article view");

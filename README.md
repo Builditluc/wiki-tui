@@ -30,10 +30,10 @@
 
 ### How it looks
 
-![image](https://user-images.githubusercontent.com/37375448/115359389-ebfcbf00-a1be-11eb-91c5-b1effd4be575.png)
-![image](https://user-images.githubusercontent.com/37375448/115359852-5e6d9f00-a1bf-11eb-9d3c-be4f5066ba66.png)
-![image](https://user-images.githubusercontent.com/37375448/115359932-6f1e1500-a1bf-11eb-858b-a6fa72b53449.png) <br>
-Note: These Screenshots were taken on MacOS inside of the default terminal
+![image](https://user-images.githubusercontent.com/37375448/116461454-8ec0d780-a868-11eb-8725-a503bce4828c.png)
+![image](https://user-images.githubusercontent.com/37375448/116461510-a0a27a80-a868-11eb-950b-f804ffa4ad3b.png)
+![image](https://user-images.githubusercontent.com/37375448/116461593-bb74ef00-a868-11eb-9280-cf64eaa4e11f.png) <br>
+Note: These Screenshots were taken on iTerm2 (MacOS) with the [spaceduck](https://github.com/pineapplegiant/spaceduck-terminal) theme and the SF Mono Font
 
 ## Installation
 

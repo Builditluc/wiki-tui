@@ -1,18 +1,22 @@
 use crate::structs::wiki::search::*;
 use crate::structs::wiki::article::*;
-
+use crate::structs::wiki::parser::*;
+use crate::structs::Parser;
 use crate::config::ApiConfig;
 
 pub struct Wiki {
     client: reqwest::blocking::Client,
     api_config: ApiConfig,
+    parser: Box<dyn Parser>
 }
 
 impl Wiki {
     pub fn new(config: ApiConfig) -> Self {
+        let default_parser = Default{};
         Wiki {
             client: reqwest::blocking::Client::new(),
-            api_config: config
+            api_config: config,
+            parser: Box::new(default_parser),
         }
     }
 
@@ -20,7 +24,7 @@ impl Wiki {
         self.search_articles(title, None)
     }
 
-    pub fn get_article(&self, page_id: &i32) -> ArticleResponse {
+    pub fn _get_article(&self, page_id: &i32) -> ArticleResponse {
         let url = format!("{}?action=query&prop=extracts&pageids={}&formatversion=2&explaintext=true&exsectionformat=plain&format=json", self.api_config.base_url.clone(), page_id);
         println!("{}", &url);
         self.client.get(&url)
@@ -47,5 +51,14 @@ impl Wiki {
     }
     pub fn continue_search(&self, title: &str, continue_code: &ContinueCode) -> SearchResponse {
         self.search_articles(title, Some(continue_code))
+    }
+
+    pub fn get_article(&self, page_id: &i32) -> Article {
+        let url = format!("http://en.wikipedia.org/?curid={}", page_id);
+        let article_html = self.client.get(&url)
+            .send()
+            .unwrap();
+
+        self.parser.parse(article_html)
     }
 }
