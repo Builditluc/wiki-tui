@@ -59,6 +59,6 @@ impl Wiki {
             .send()
             .unwrap();
 
-        self.parser.parse(article_html.text().unwrap())
+        self.parser.parse(article_html)
     }
 }

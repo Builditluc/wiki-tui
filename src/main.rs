@@ -143,6 +143,7 @@ fn on_article_submit(siv: &mut Cursive, article_preview: &structs::wiki::Article
     // get the article
     let wiki: &wiki::Wiki = siv.user_data().unwrap();
     let article = wiki.get_article(&article_preview.page_id);
+    let number_of_paragraphs = article.paragraphs.len().clone();
 
     siv.call_on_name("articles", |view: &mut LinearLayout| {
         log::info!("Begin setting the content for the article view");
@@ -159,6 +160,7 @@ fn on_article_submit(siv: &mut Cursive, article_preview: &structs::wiki::Article
             view.add_child(TextView::new(paragraph));
         }
 
+        log::info!("Added {} paragraphs to the article view", number_of_paragraphs);
         log::info!("Completed setting the content for the article view");
     });
 

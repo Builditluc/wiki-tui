@@ -109,12 +109,64 @@ impl From<wiki::search::SearchResult> for wiki::ArticleResultPreview {
 //}
 
 impl Parser for wiki::parser::Default {
-    fn parse(&self, html: String) -> wiki::article::Article {
+    fn parse(&self, html: reqwest::blocking::Response) -> wiki::article::Article {
+        use cursive::theme::*;
         use cursive::utils::*;
+        use select::document::Document;
+        use select::predicate::Class;
+
         let mut paragraphs: Vec::<markup::StyledString> = Vec::new();
-        paragraphs.push(markup::StyledString::plain("This is just a Test"));
-        paragraphs.push(markup::StyledString::plain("This is just another Test"));
-        paragraphs.push(markup::StyledString::plain("When I'm finished testing, there will be cake"));
+        let document = Document::from_read(html).unwrap();
+       
+        // now iterate over all of the elements inside of the article
+        for node in document.find(Class("mw-parser-output")) {
+            for children in node.children() {
+                // check, if the children is a html element
+                if children.name().is_some() {
+                    // match the name of the children
+                    match children.name().unwrap() {
+                        // if it's a header, make a new paragraph and add the header to it
+                        "h2" | "h3" | "h4" | "h5" => {
+                            let text = children.find(Class("mw-headline")).next().unwrap().text();
+                            let mut styled_content = markup::StyledString::plain("\n");
+                            styled_content.append_styled(text, Style::from(Color::Dark(BaseColor::Black)).combine(Effect::Bold));
+                            styled_content.append_plain("\n\n");
+                
+                            paragraphs.push(styled_content);
+                        },
+                        // if it's a paragraph, add it to the current paragraph
+                        "p" => {
+                            let text = children.text();
+
+                            // get the current paragraph
+                            let mut current_paragraph = match paragraphs.pop() {
+                                Some(content) => content,
+                                None => markup::StyledString::new()
+                            }; 
+
+                            current_paragraph.append_styled(text, Style::from(Color::Dark(BaseColor::Black)));
+                            paragraphs.push(current_paragraph);
+                        },
+                        // if it's a div with the class "reflist", add it to the current paragraph
+                        // in form of a list
+                        "div" if children.is(Class("reflist")) => {
+                            let text = children.text();
+
+                            // get the current paragraph
+                            let mut current_paragraph = match paragraphs.pop() {
+                                Some(content) => content,
+                                None => markup::StyledString::new()
+                            }; 
+
+                            current_paragraph.append_styled(text, Style::from(Color::Dark(BaseColor::Black)));
+                            paragraphs.push(current_paragraph);
+                        },
+                        // if it's any other html element, skip it
+                        _ => continue
+                    }
+                }
+            }
+        }
         wiki::article::Article {
             title: String::new(),
             paragraphs,
@@ -123,5 +175,5 @@ impl Parser for wiki::parser::Default {
 }
 
 pub trait Parser {
-    fn parse(&self, html: String) -> wiki::article::Article;
+    fn parse(&self, html: reqwest::blocking::Response) -> wiki::article::Article;
 }
