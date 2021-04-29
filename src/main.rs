@@ -18,6 +18,18 @@ pub mod wiki;
 pub mod structs;
 pub mod config;
 
+pub const LOGO: &str = "
+              __ __       __          __              __
+             |  \\  \\     |  \\        |\\            |  \\
+ __   __   __ \\▓▓ ▓▓   __ \\▓▓       _| ▓▓_   __    __ \\▓▓
+|  \\ |  \\ |  \\  \\ ▓▓  /  \\  \\______|   ▓▓ \\ |  \\  |  \\  \\
+| ▓▓ | ▓▓ | ▓▓ ▓▓ ▓▓_/  ▓▓ ▓▓      \\▓▓▓▓▓▓ | ▓▓  | ▓▓ ▓▓
+| ▓▓ | ▓▓ | ▓▓ ▓▓ ▓▓   ▓▓| ▓▓\\▓▓▓▓▓▓ | ▓▓ __| ▓▓  | ▓▓ ▓▓
+| ▓▓_/ ▓▓_/ ▓▓ ▓▓ ▓▓▓▓▓▓\\| ▓▓        | ▓▓|  \\ ▓▓__/ ▓▓ ▓▓
+ \\▓▓   ▓▓   ▓▓ ▓▓ ▓▓  \\▓▓\\ ▓▓         \\▓▓  ▓▓\\▓▓    ▓▓ ▓▓
+  \\▓▓▓▓▓\\▓▓▓▓ \\▓▓\\▓▓   \\▓▓\\▓▓          \\▓▓▓▓  \\▓▓▓▓▓▓ \\▓▓
+";
+
 fn main() {
     let mut config: config::Config = config::Config::new();
     let wiki = wiki::Wiki::new(config.get_api_config());
@@ -39,7 +51,7 @@ fn main() {
         .title("Search")
         .title_position(cursive::align::HAlign::Left);
 
-    let article_view = TextView::new("Welcome to wiki-tui")
+    let article_view = TextView::new(LOGO)
         .with_name("article")
         .full_screen()
         .scrollable();
