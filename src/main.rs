@@ -59,17 +59,7 @@ fn main() {
         .button("Quit", Cursive::quit)
         .full_screen(),
     );
-    //  // This is just for testing
-    //    siv.cb_sink().send(Box::new(|s| {
-    //        let test_preview = structs::wiki::ArticleResultPreview {
-    //            page_id: 18630637,
-    //            snippet: String::new(),
-    //            title: String::new(),
-    //        };
-    //        s.add_layer(TextView::new("Test"));
-    //        on_article_submit(s, &test_preview);
-    //    }));
-    //
+
     siv.run();
 }
 
@@ -81,11 +71,12 @@ fn on_search(siv: &mut Cursive, search_query: String) {
         log::warn!("No Search Query, aborting Search");
         return;
     }
-
     log::trace!("The Search Query is {}", search_query);
 
+    // Search wikipedia for the search query and the response
     let search_response = wiki.search(&search_query);
 
+    // Create the views
     let mut search_results_view = SelectView::<structs::wiki::ArticleResultPreview>::new()
         .on_select(|s, item| on_result_select(s, item))
         .on_submit(|s, a| on_article_submit(s, a));
@@ -95,6 +86,11 @@ fn on_search(siv: &mut Cursive, search_query: String) {
         .with_name("results_preview")
         .fixed_width(50);
 
+    let search_details_view = TextView::new(format!(
+        "Found {} articles matching your search",
+        &search_response.clone().query.search_info.total_hits
+    ));
+
     // convert the search results into Article Result Previews
     // and then add them to the results_view
     for search_result in search_response.query.search.clone() {
@@ -102,17 +98,14 @@ fn on_search(siv: &mut Cursive, search_query: String) {
         search_results_view.add_item(search_result.title.to_string(), search_result);
     }
 
-    let search_details_view = TextView::new(format!(
-        "Found {} articles matching your search",
-        &search_response.clone().query.search_info.total_hits
-    ));
-
+    // create the button which continues the search when clicked
     let query = search_query.to_string();
     let search_continue_button = Button::new("Show more results...", move |s| {
         continue_search(s, query.clone(), &search_response.continue_code)
     })
     .with_name("continue_button");
 
+    // create the search results layout and add it as a new layer to the application
     let search_results_layout = LinearLayout::horizontal()
         .child(Dialog::around(
             LinearLayout::vertical()
@@ -138,13 +131,15 @@ fn on_result_select(siv: &mut Cursive, item: &structs::wiki::ArticleResultPrevie
     let title = &item.title;
     let snippet = &item.snippet;
 
-    // formatting the snippet for styled text
-    let split_snippet: Vec<&str> = snippet.split(r#"<span class="searchmatch">"#).collect();
+    // format the snippet for styled text
+    let splitted_snippet: Vec<&str> = snippet.split(r#"<span class="searchmatch">"#).collect();
 
     let mut styled_snippet = markup::StyledString::new();
     styled_snippet.append_plain(format!("{}\n", title));
 
-    for slice in split_snippet {
+    // go through every slice of the splitted_snippet and if it contains </span>,
+    // split the slice again and make the first split red
+    for slice in splitted_snippet {
         if slice.contains("</span>") {
             let split_slice: Vec<&str> = slice.split("</span>").collect();
 
@@ -159,6 +154,8 @@ fn on_result_select(siv: &mut Cursive, item: &structs::wiki::ArticleResultPrevie
     }
 
     styled_snippet.append_plain("...");
+
+    // set the content of the result_preview view to the generated styled snippet
     siv.call_on_name("results_preview", |view: &mut TextView| {
         view.set_content(styled_snippet);
     });
