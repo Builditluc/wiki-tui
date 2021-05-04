@@ -5,7 +5,6 @@ extern crate anyhow;
 extern crate ini;
 
 use anyhow::*;
-use cursive::event::*;
 use cursive::theme::*;
 use cursive::traits::*;
 use cursive::utils::*;
@@ -20,35 +19,40 @@ pub mod tests;
 pub mod wiki;
 
 pub const LOGO: &str = "
-   _      __   (_)   / /__   (_)         / /_  __  __   (_)
+ _      __   (_)   / /__   (_)         / /_  __  __   (_)
 | | /| / /  / /   / //_/  / /  ______ / __/ / / / /  / /
 | |/ |/ /  / /   / ,<    / /  /_____// /_  / /_/ /  / /
 |__/|__/  /_/   /_/|_|  /_/          \\__/  \\__,_/  /_/ 
 ";
 
 fn main() {
+    // Load the config and initialize the logging module
     let mut config: config::Config = config::Config::new();
-    let wiki = wiki::Wiki::new(config.get_api_config());
     logging::Logger::new(config.get_logging_config());
+
+    // Create the wiki struct, used for interaction with the wikipedia website/api
+    let wiki = wiki::Wiki::new(config.get_api_config());
 
     let mut siv = cursive::default();
     siv.add_global_callback('q', Cursive::quit);
-
     siv.set_user_data(wiki);
+
+    // Create the views
     let search_bar = EditView::new()
         .on_submit(|s, q| on_search(s, q.to_string()))
-        .with_name("search")
+        .with_name("search_bar")
         .full_width();
+
     let search_layout = Dialog::around(LinearLayout::horizontal().child(search_bar))
         .title("Search")
         .title_position(cursive::align::HAlign::Left);
 
     let article_view = TextView::new(LOGO)
-        .h_align(cursive::align::HAlign::Center)
-        .with_name("article")
+        .with_name("article_view")
         .full_screen()
         .scrollable();
 
+    // Add a fullscreen layer, containing the search bar and the article view
     siv.add_fullscreen_layer(
         Dialog::around(
             LinearLayout::vertical()
@@ -60,18 +64,19 @@ fn main() {
         .full_screen(),
     );
 
+    // Start the application
     siv.run();
 }
 
 fn on_search(siv: &mut Cursive, search_query: String) {
-    log::trace!("on_search was called");
+    log::info!("on_search was called");
     let wiki: &wiki::Wiki = siv.user_data().unwrap();
 
     if search_query.is_empty() {
-        log::warn!("No Search Query, aborting Search");
+        log::warn!("Empty Search Query, aborting Search");
         return;
     }
-    log::trace!("The Search Query is {}", search_query);
+    log::info!("The Search Query is \"{}\"", search_query);
 
     // Search wikipedia for the search query and the response
     let search_response = wiki.search(&search_query);
@@ -83,7 +88,7 @@ fn on_search(siv: &mut Cursive, search_query: String) {
 
     let search_results_preview = TextView::new("")
         .h_align(cursive::align::HAlign::Left)
-        .with_name("results_preview")
+        .with_name("search_results_preview")
         .fixed_width(50);
 
     let search_details_view = TextView::new(format!(
@@ -103,13 +108,17 @@ fn on_search(siv: &mut Cursive, search_query: String) {
     let search_continue_button = Button::new("Show more results...", move |s| {
         continue_search(s, query.clone(), &search_response.continue_code)
     })
-    .with_name("continue_button");
+    .with_name("search_continue_button");
 
     // create the search results layout and add it as a new layer to the application
     let search_results_layout = LinearLayout::horizontal()
         .child(Dialog::around(
             LinearLayout::vertical()
-                .child(search_results_view.with_name("results_view").scrollable())
+                .child(
+                    search_results_view
+                        .with_name("search_results_view")
+                        .scrollable(),
+                )
                 .child(search_continue_button),
         ))
         .child(Dialog::around(search_results_preview));
@@ -120,7 +129,7 @@ fn on_search(siv: &mut Cursive, search_query: String) {
                 .child(search_results_layout)
                 .child(search_details_view),
         )
-        .title(format!("Results for {}", search_query))
+        .title(format!("Results for \"{}\"", search_query))
         .dismiss_button("Back")
         .button("Quit", Cursive::quit)
         .max_height(20),
@@ -128,6 +137,7 @@ fn on_search(siv: &mut Cursive, search_query: String) {
 }
 
 fn on_result_select(siv: &mut Cursive, item: &structs::wiki::ArticleResultPreview) {
+    // create references for the item title and snippet
     let title = &item.title;
     let snippet = &item.snippet;
 
@@ -152,37 +162,33 @@ fn on_result_select(siv: &mut Cursive, item: &structs::wiki::ArticleResultPrevie
             styled_snippet.append_plain(slice);
         }
     }
-
     styled_snippet.append_plain("...");
 
     // set the content of the result_preview view to the generated styled snippet
-    siv.call_on_name("results_preview", |view: &mut TextView| {
+    siv.call_on_name("search_results_preview", |view: &mut TextView| {
         view.set_content(styled_snippet);
     });
 }
 
 fn on_article_submit(siv: &mut Cursive, article_preview: &structs::wiki::ArticleResultPreview) {
-    // remove the results layer and the paging callbacks
-    siv.clear_global_callbacks(Key::Left);
-    siv.clear_global_callbacks(Key::Right);
-
+    // remove the results layer
     siv.pop_layer();
 
-    // get the article
+    // get the article from wikipedia
+    // and set the contents of the article_view to the article
     let wiki: &wiki::Wiki = siv.user_data().unwrap();
     let article = wiki.get_article(&article_preview.page_id);
 
-    siv.call_on_name("article", |view: &mut TextView| {
-        log::info!("Setting the content for the article view");
-
+    siv.call_on_name("article_view", |view: &mut TextView| {
+        log::info!("Setting the content of the article view");
         view.set_content(article.content);
-
-        log::info!("Completed setting the content for the article view");
     });
 
+    // focus the article view
     let result = siv
-        .focus_name("article")
+        .focus_name("article_view")
         .context("Failed to focus the article view");
+
     match result {
         Ok(_) => log::info!("Successfully focussed the article view"),
         Err(error) => log::warn!("{:?}", error),
@@ -194,27 +200,32 @@ fn continue_search(
     search_query: String,
     continue_code: &structs::wiki::search::ContinueCode,
 ) {
+    // get more search results from wikipedia and find the search_results_view
     let wiki: &wiki::Wiki = siv.user_data().unwrap();
     let search_response = wiki.continue_search(&search_query, continue_code);
-
-    let mut results_view = siv
-        .find_name::<SelectView<structs::wiki::ArticleResultPreview>>("results_view")
+    let mut search_results_views = siv
+        .find_name::<SelectView<structs::wiki::ArticleResultPreview>>("search_results_view")
         .unwrap();
+
+    // add every new search result to the search results view
     for search_result in search_response.query.search.clone() {
         let search_result = structs::wiki::ArticleResultPreview::from(search_result);
-        results_view.add_item(search_result.title.clone(), search_result);
+        search_results_views.add_item(search_result.title.clone(), search_result);
     }
 
-    let mut continue_button = siv.find_name::<Button>("continue_button").unwrap();
-    continue_button.set_callback(move |s| {
+    // change the continue code of the search continue button for the next search
+    let mut search_continue_button = siv.find_name::<Button>("search_continue_button").unwrap();
+    search_continue_button.set_callback(move |s| {
         continue_search(s, search_query.clone(), &search_response.continue_code);
     });
 
+    // focus the search results view
     let result = siv
-        .focus_name("results_view")
-        .context("Failed to focus the results view");
+        .focus_name("search_results_view")
+        .context("Failed to focus the search results view");
+
     match result {
-        Ok(_) => log::info!("Successfully focussed the results view"),
+        Ok(_) => log::info!("Successfully focussed the search results view"),
         Err(error) => log::warn!("{:?}", error),
     }
 }
