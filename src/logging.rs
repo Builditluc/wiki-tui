@@ -10,6 +10,7 @@ impl Logger {
         use log4rs::encode::pattern::PatternEncoder;
 
         let wiki_tui = FileAppender::builder()
+            .append(false)
             .encoder(Box::new(PatternEncoder::new(
                 "[{d(%Y-%m-%d %H:%M:%S)}] (({I})) [{h({l})}]  {m}\n",
             )))
