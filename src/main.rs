@@ -14,8 +14,8 @@ use cursive::Cursive;
 
 pub mod config;
 pub mod logging;
-pub mod structs;
 pub mod tests;
+pub mod ui;
 pub mod wiki;
 
 pub const LOGO: &str = "
@@ -31,7 +31,7 @@ fn main() {
     logging::Logger::new(config.get_logging_config());
 
     // Create the wiki struct, used for interaction with the wikipedia website/api
-    let wiki = wiki::Wiki::new(config.get_api_config());
+    let wiki = wiki::WikiApi::new(config.get_api_config());
 
     let mut siv = cursive::default();
     siv.add_global_callback('q', Cursive::quit);
@@ -70,7 +70,7 @@ fn main() {
 
 fn on_search(siv: &mut Cursive, search_query: String) {
     log::info!("on_search was called");
-    let wiki: &wiki::Wiki = siv.user_data().unwrap();
+    let wiki: &wiki::WikiApi = siv.user_data().unwrap();
 
     if search_query.is_empty() {
         log::warn!("Empty Search Query, aborting Search");
@@ -82,7 +82,7 @@ fn on_search(siv: &mut Cursive, search_query: String) {
     let search_response = wiki.search(&search_query);
 
     // Create the views
-    let mut search_results_view = SelectView::<structs::wiki::ArticleResultPreview>::new()
+    let mut search_results_view = SelectView::<ui::models::ArticleResultPreview>::new()
         .on_select(|s, item| on_result_select(s, item))
         .on_submit(|s, a| on_article_submit(s, a));
 
@@ -99,7 +99,7 @@ fn on_search(siv: &mut Cursive, search_query: String) {
     // convert the search results into Article Result Previews
     // and then add them to the results_view
     for search_result in search_response.query.search.clone() {
-        let search_result = structs::wiki::ArticleResultPreview::from(search_result);
+        let search_result = ui::models::ArticleResultPreview::from(search_result);
         search_results_view.add_item(search_result.title.to_string(), search_result);
     }
 
@@ -136,7 +136,7 @@ fn on_search(siv: &mut Cursive, search_query: String) {
     );
 }
 
-fn on_result_select(siv: &mut Cursive, item: &structs::wiki::ArticleResultPreview) {
+fn on_result_select(siv: &mut Cursive, item: &ui::models::ArticleResultPreview) {
     // create references for the item title and snippet
     let title = &item.title;
     let snippet = &item.snippet;
@@ -170,13 +170,13 @@ fn on_result_select(siv: &mut Cursive, item: &structs::wiki::ArticleResultPrevie
     });
 }
 
-fn on_article_submit(siv: &mut Cursive, article_preview: &structs::wiki::ArticleResultPreview) {
+fn on_article_submit(siv: &mut Cursive, article_preview: &ui::models::ArticleResultPreview) {
     // remove the results layer
     siv.pop_layer();
 
     // get the article from wikipedia
     // and set the contents of the article_view to the article
-    let wiki: &wiki::Wiki = siv.user_data().unwrap();
+    let wiki: &wiki::WikiApi = siv.user_data().unwrap();
     let article = wiki.get_article(&article_preview.page_id);
 
     siv.call_on_name("article_view", |view: &mut TextView| {
@@ -198,18 +198,18 @@ fn on_article_submit(siv: &mut Cursive, article_preview: &structs::wiki::Article
 fn continue_search(
     siv: &mut Cursive,
     search_query: String,
-    continue_code: &structs::wiki::search::ContinueCode,
+    continue_code: &wiki::search::ContinueCode,
 ) {
     // get more search results from wikipedia and find the search_results_view
-    let wiki: &wiki::Wiki = siv.user_data().unwrap();
+    let wiki: &wiki::WikiApi = siv.user_data().unwrap();
     let search_response = wiki.continue_search(&search_query, continue_code);
     let mut search_results_views = siv
-        .find_name::<SelectView<structs::wiki::ArticleResultPreview>>("search_results_view")
+        .find_name::<SelectView<ui::models::ArticleResultPreview>>("search_results_view")
         .unwrap();
 
     // add every new search result to the search results view
     for search_result in search_response.query.search.clone() {
-        let search_result = structs::wiki::ArticleResultPreview::from(search_result);
+        let search_result = ui::models::ArticleResultPreview::from(search_result);
         search_results_views.add_item(search_result.title.clone(), search_result);
     }
 

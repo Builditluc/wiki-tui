@@ -1,14 +1,14 @@
+use anyhow::*;
 use dirs;
 use ini::Ini;
-use std::fs;
 use reqwest;
-use anyhow::*;
+use std::fs;
 
 const CONFIG_FILE_NAME: &str = "config.ini";
 const APP_CONFIG_DIR: &str = "wiki-tui";
 
 pub struct ApiConfig {
-    pub base_url: String
+    pub base_url: String,
 }
 
 pub struct LoggingConfig {
@@ -21,11 +21,10 @@ pub struct Config {
     pub logging_config: Option<LoggingConfig>,
     pub config_path: Option<std::path::PathBuf>,
 }
-
 impl Config {
     pub fn new() -> Self {
         let mut config: Config = Default::default();
-        
+
         let config_file_exists = config.config_file_exists();
         if !config_file_exists {
             config.create_config_file();
@@ -44,16 +43,17 @@ impl Config {
                 self.config_path = Some(config_file_path.clone());
 
                 if !app_dir_path.exists() {
-                    let result = fs::create_dir(app_dir_path).context("Failed to create the app config directory");
+                    let result = fs::create_dir(app_dir_path)
+                        .context("Failed to create the app config directory");
                     match result {
                         Ok(_) => log::info!("Created the app config directory"),
                         Err(error) => panic!("{:?}", error),
                     }
-                    return false
+                    return false;
                 }
 
                 if !config_file_path.exists() {
-                    return false
+                    return false;
                 }
 
                 true
@@ -69,7 +69,8 @@ impl Config {
         let file_url = "https://raw.githubusercontent.com/Builditluc/wiki-tui/stable/config.ini";
         let file_content = reqwest::blocking::get(file_url).unwrap().text().unwrap();
 
-        let result = fs::write(&self.config_path.clone().unwrap(), file_content).context("Failed to create the config file");
+        let result = fs::write(&self.config_path.clone().unwrap(), file_content)
+            .context("Failed to create the config file");
         match result {
             Ok(_) => log::info!("Sucessfully created the config file"),
             Err(error) => panic!("{:?}", error),
@@ -80,33 +81,31 @@ impl Config {
         // try to load the section
         let section = match config.section(Some("Api")) {
             Some(section) => section,
-            None => return
+            None => return,
         };
 
         // load every variable and if it doesn't exist,
         // use the default
         let base_url = match section.get("BASE_URL") {
             Some(base_url) => base_url.to_string(),
-            None => "https://en.wikipedia.org/w/api.php".to_string()
+            None => "https://en.wikipedia.org/w/api.php".to_string(),
         };
 
-        self.api_config = Some(ApiConfig {
-            base_url
-        });
+        self.api_config = Some(ApiConfig { base_url });
     }
 
     fn load_logging(&mut self, config: &Ini) {
         // try to load the section
         let section = match config.section(Some("Logging")) {
             Some(section) => section,
-            None => return
+            None => return,
         };
-        
+
         // load every variable and if it doesn't exist,
         // use the default
         let log_output = match section.get("LOG_OUTPUT") {
             Some(log_output) => log_output.to_string(),
-            None => "wiki_tui.log".to_string() 
+            None => "wiki_tui.log".to_string(),
         };
 
         let log_level = match section.get("LOG_LEVEL") {
@@ -119,13 +118,13 @@ impl Config {
                 "ERROR" => log::LevelFilter::Error,
                 _ => log::LevelFilter::Off,
             },
-            None => log::LevelFilter::Off
+            None => log::LevelFilter::Off,
         };
 
         self.logging_config = Some(LoggingConfig {
             log_output,
-            log_level
-        }); 
+            log_level,
+        });
     }
 
     fn load(&mut self) {
@@ -137,7 +136,7 @@ impl Config {
     pub fn get_logging_config(&self) -> &LoggingConfig {
         match self.logging_config {
             Some(ref logging_config) => logging_config,
-            None => panic!("Holy Shit! What happened here!")
+            None => panic!("Holy Shit! What happened here!"),
         }
     }
 

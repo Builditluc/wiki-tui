@@ -1,8 +1,6 @@
 use crate::config::LoggingConfig;
-use anyhow::*;
 
 pub struct Logger;
-
 impl Logger {
     pub fn new(logging_config: &LoggingConfig) {
         use log4rs::append::file::FileAppender;

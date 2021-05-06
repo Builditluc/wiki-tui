@@ -1,35 +1,43 @@
 use crate::config::ApiConfig;
-use crate::structs::wiki::article::*;
-use crate::structs::wiki::parser::*;
-use crate::structs::wiki::search::*;
-use crate::structs::Parser;
 use anyhow::*;
 
-pub struct Wiki {
+pub mod article;
+pub mod parser;
+pub mod search;
+
+pub struct WikiApi {
     client: reqwest::blocking::Client,
     api_config: ApiConfig,
-    parser: Box<dyn Parser>,
+    parser: Box<dyn parser::Parser>,
 }
 
-impl Wiki {
+impl WikiApi {
     pub fn new(config: ApiConfig) -> Self {
         log::info!("Creating a instance of Wiki");
-        let default_parser = Default {};
-        Wiki {
+        let default_parser = parser::Default {};
+        WikiApi {
             client: reqwest::blocking::Client::new(),
             api_config: config,
             parser: Box::new(default_parser),
         }
     }
 
-    pub fn search(&self, title: &str) -> SearchResponse {
+    pub fn search(&self, title: &str) -> search::SearchResponse {
         self.search_articles(title, None)
     }
-    pub fn continue_search(&self, title: &str, continue_code: &ContinueCode) -> SearchResponse {
+    pub fn continue_search(
+        &self,
+        title: &str,
+        continue_code: &search::ContinueCode,
+    ) -> search::SearchResponse {
         self.search_articles(title, Some(continue_code))
     }
 
-    fn search_articles(&self, title: &str, continue_code: Option<&ContinueCode>) -> SearchResponse {
+    fn search_articles(
+        &self,
+        title: &str,
+        continue_code: Option<&search::ContinueCode>,
+    ) -> search::SearchResponse {
         // creating the url for the request
         let mut url = format!(
             "{}?action=query&list=search&srwhat=text&srsearch={}&format=json",
@@ -63,7 +71,7 @@ impl Wiki {
 
         // serializing the response
         let serde_result = response
-            .json::<SearchResponse>()
+            .json::<search::SearchResponse>()
             .context("Failed serializing the response");
 
         match serde_result {
@@ -78,7 +86,7 @@ impl Wiki {
         }
     }
 
-    pub fn get_article(&self, page_id: &i32) -> Article {
+    pub fn get_article(&self, page_id: &i32) -> article::Article {
         // creating the url and making the request
         let url = format!("http://en.wikipedia.org/?curid={}", page_id);
         let article_html = self.client.get(&url).send().unwrap();
