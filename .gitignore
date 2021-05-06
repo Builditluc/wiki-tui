@@ -1,6 +1,7 @@
 target/
 .idea/
 .gradle/
+.vim/
 Cargo.lock
 .DS_Store
 wiki_tui.log
