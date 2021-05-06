@@ -1,12 +1,13 @@
-use crate::config::LoggingConfig;
+use crate::config::CONFIG;
 
 pub struct Logger;
 impl Logger {
-    pub fn new(logging_config: &LoggingConfig) {
+    pub fn new() {
         use log4rs::append::file::FileAppender;
         use log4rs::config::{Appender, Config, Root};
         use log4rs::encode::pattern::PatternEncoder;
 
+        let logging_config = CONFIG.get_logging_config();
         let wiki_tui = FileAppender::builder()
             .append(false)
             .encoder(Box::new(PatternEncoder::new(

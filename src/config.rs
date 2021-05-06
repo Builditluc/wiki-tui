@@ -1,11 +1,16 @@
 use anyhow::*;
 use dirs;
 use ini::Ini;
+use lazy_static::lazy_static;
 use reqwest;
 use std::fs;
 
 const CONFIG_FILE_NAME: &str = "config.ini";
 const APP_CONFIG_DIR: &str = "wiki-tui";
+
+lazy_static! {
+    pub static ref CONFIG: Config = Config::new();
+}
 
 pub struct ApiConfig {
     pub base_url: String,

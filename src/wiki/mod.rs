@@ -1,6 +1,6 @@
 use crate::config::ApiConfig;
+use crate::config::CONFIG;
 use anyhow::*;
-
 pub mod article;
 pub mod parser;
 pub mod search;

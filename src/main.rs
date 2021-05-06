@@ -3,6 +3,7 @@
 extern crate log;
 extern crate anyhow;
 extern crate ini;
+extern crate lazy_static;
 
 use anyhow::*;
 use cursive::theme::*;
@@ -26,11 +27,11 @@ pub const LOGO: &str = "
 ";
 
 fn main() {
-    // Load the config and initialize the logging module
-    let mut config: config::Config = config::Config::new();
-    logging::Logger::new(config.get_logging_config());
+    // Initialize the logging module
+    logging::Logger::new();
 
     // Create the wiki struct, used for interaction with the wikipedia website/api
+    let mut config = config::Config::new(); // This will be removed after recoding the config system
     let wiki = wiki::WikiApi::new(config.get_api_config());
 
     let mut siv = cursive::default();
