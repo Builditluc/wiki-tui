@@ -69,7 +69,7 @@ impl Config {
 
         // if the config file exists, then load it
         if config_exists.unwrap() {
-            info!("Loading the Api Config");
+            info!("Loading the Config");
             self.load_api_config(&config);
         }
     }
@@ -77,8 +77,14 @@ impl Config {
     fn load_or_create_config_paths(&mut self) -> Result<bool> {
         // get the platform specific config directory
         let config_dir = match dirs::config_dir() {
-            Some(config_dir) => config_dir,
-            None => panic!("Couldn't find your config directory"),
+            Some(config_dir) => {
+                info!("The config directory is {}", config_dir.to_str().unwrap());
+                config_dir
+            }
+            None => {
+                error!("Couldn't find the config directory");
+                panic!("Something weird happened while loading the config, please check your logs for more information")
+            }
         };
 
         // build the app config path and the config file path
