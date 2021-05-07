@@ -1,4 +1,3 @@
-use crate::config::ApiConfig;
 use crate::config::CONFIG;
 use anyhow::*;
 pub mod article;
@@ -7,7 +6,6 @@ pub mod search;
 
 pub struct WikiApi {
     client: reqwest::blocking::Client,
-    api_config: ApiConfig,
     parser: Box<dyn parser::Parser>,
 }
 
@@ -17,7 +15,6 @@ impl WikiApi {
         let default_parser = parser::Default {};
         WikiApi {
             client: reqwest::blocking::Client::new(),
-            api_config: CONFIG.api_config.clone(),
             parser: Box::new(default_parser),
         }
     }
@@ -41,7 +38,7 @@ impl WikiApi {
         // creating the url for the request
         let mut url = format!(
             "{}?action=query&list=search&srwhat=text&srsearch={}&format=json",
-            self.api_config.base_url.clone(),
+            CONFIG.api_config.base_url.clone(),
             title
         );
 
@@ -49,7 +46,7 @@ impl WikiApi {
             let continue_unwrapped = continue_code.unwrap();
             let continue_code_unwrapped = &continue_unwrapped.continue_code;
             let continue_scroll_offset_unwrapped = continue_unwrapped.scroll_offset;
-            url = format!("{}?action=query&list=search&srwhat=text&srsearch={}&format=json&continue={}&sroffset={}", self.api_config.base_url.clone(), title, continue_code_unwrapped, continue_scroll_offset_unwrapped);
+            url = format!("{}?action=query&list=search&srwhat=text&srsearch={}&format=json&continue={}&sroffset={}", CONFIG.api_config.base_url.clone(), title, continue_code_unwrapped, continue_scroll_offset_unwrapped);
         }
 
         // making the request

@@ -21,6 +21,8 @@ impl Logger {
                     .build(log::LevelFilter::Info),
             )
             .unwrap();
+
         log4rs::init_config(config).unwrap();
+        log::info!("Successfully initialized the logging system");
     }
 }
