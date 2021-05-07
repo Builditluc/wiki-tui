@@ -11,7 +11,7 @@ pub struct WikiApi {
 
 impl WikiApi {
     pub fn new() -> Self {
-        log::info!("Creating a instance of Wiki");
+        log::info!("[wiki::WikiApi::new] Creating a instance of Wiki");
         let default_parser = parser::Default {};
         WikiApi {
             client: reqwest::blocking::Client::new(),
@@ -57,11 +57,11 @@ impl WikiApi {
             .context("Failed to send the request")
         {
             Ok(response) => {
-                log::info!("Successfully sent the request");
+                log::info!("[wiki::WikiApi::search_articles] Successfully sent the request");
                 response
             }
             Err(error) => {
-                log::error!("Failed sending the request, {:?}", error);
+                log::error!("[wiki::WikiApi::search_articles], {:?}", error);
                 panic!("Something happened, please check your logs")
             }
         };
@@ -73,11 +73,11 @@ impl WikiApi {
 
         match serde_result {
             Ok(result) => {
-                log::info!("Successfully serialized the response");
+                log::info!("[wiki::WikiApi::search_articles] Successfully serialized the response");
                 result
             }
             Err(error) => {
-                log::error!("Failed serializing the response, {:?}", error);
+                log::error!("[wiki::WikiApi::search_articles] {:?}", error);
                 panic!("Something weird happened, please check your logs");
             }
         }

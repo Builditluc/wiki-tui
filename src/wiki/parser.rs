@@ -14,11 +14,14 @@ impl Parser for Default {
 
         let mut content = markup::StyledString::new();
         let document = Document::from_read(html).unwrap();
-        log::info!("Loaded the HTML document");
+        log::info!("[wiki::parser::Default::parse] Loaded the HTML document");
 
         // now iterate over all of the elements inside of the article
         for node in document.find(Class("mw-parser-output")) {
-            log::info!("Iterating now over the node {:?}", node.name());
+            log::info!(
+                "[wiki::parser::Default::parse] Iterating now over the node {:?}",
+                node.name()
+            );
             for children in node.children() {
                 // check, if the children is a html element
                 if children.name().is_some() {
@@ -37,7 +40,7 @@ impl Parser for Default {
                             styled_content.append_plain("\n\n");
 
                             content.append(styled_content);
-                            log::info!("Added a headline to the article content");
+                            log::info!("[wiki::parser::Default::parse] Added a headline to the article content");
                         }
                         // if it's a paragraph, add it to the context with only ONE Linebreak at
                         // the end
@@ -47,7 +50,7 @@ impl Parser for Default {
                             let styled_text = markup::StyledString::plain(text);
 
                             content.append(styled_text);
-                            log::info!("Added a paragraph to the article content");
+                            log::info!("[wiki::parser::Default::parse] Added a paragraph to the article content");
                         }
                         // if it's a div with the class "reflist", add it to the current paragraph
                         // in form of a list
@@ -56,7 +59,7 @@ impl Parser for Default {
                             let styled_text = markup::StyledString::plain(text);
 
                             content.append(styled_text);
-                            log::info!("Added the Reference List to the article content");
+                            log::info!("[wiki::parser::Default::parse] Added the Reference List to the article content");
                         }
                         // if it's any other html element, skip it
                         _ => continue,
@@ -64,11 +67,10 @@ impl Parser for Default {
                 }
             }
         }
-        log::info!("Finished parsing the article");
+        log::info!("[wiki::parser::Default::parse] Finished parsing the article");
         Article {
             title: String::new(),
             content,
         }
     }
 }
-

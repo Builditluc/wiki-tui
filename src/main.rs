@@ -69,14 +69,14 @@ fn main() {
 }
 
 fn on_search(siv: &mut Cursive, search_query: String) {
-    log::info!("on_search was called");
+    log::info!("[main::on_search] on_search was called");
     let wiki: &wiki::WikiApi = siv.user_data().unwrap();
 
     if search_query.is_empty() {
-        log::warn!("Empty Search Query, aborting Search");
+        log::warn!("[main::on_search] Empty Search Query, aborting Search");
         return;
     }
-    log::info!("The Search Query is \"{}\"", search_query);
+    log::info!("[main::on_search] The Search Query is \"{}\"", search_query);
 
     // Search wikipedia for the search query and the response
     let search_response = wiki.search(&search_query);
@@ -180,7 +180,7 @@ fn on_article_submit(siv: &mut Cursive, article_preview: &ui::models::ArticleRes
     let article = wiki.get_article(&article_preview.page_id);
 
     siv.call_on_name("article_view", |view: &mut TextView| {
-        log::info!("Setting the content of the article view");
+        log::info!("[main::on_article_submit] Setting the content of the article view");
         view.set_content(article.content);
     });
 
@@ -190,8 +190,8 @@ fn on_article_submit(siv: &mut Cursive, article_preview: &ui::models::ArticleRes
         .context("Failed to focus the article view");
 
     match result {
-        Ok(_) => log::info!("Successfully focussed the article view"),
-        Err(error) => log::warn!("{:?}", error),
+        Ok(_) => log::info!("[main::on_article_submit] Successfully focussed the article view"),
+        Err(error) => log::warn!("[main::on_article_submit] {:?}", error),
     }
 }
 

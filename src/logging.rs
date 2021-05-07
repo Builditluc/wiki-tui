@@ -8,7 +8,7 @@ impl Logger {
         let wiki_tui = FileAppender::builder()
             .append(false)
             .encoder(Box::new(PatternEncoder::new(
-                "[{d(%Y-%m-%d %H:%M:%S)}] (({I})) [{h({l})}]  {m}\n",
+                "[{d(%Y-%m-%d %H:%M:%S)}] (({I})) [{h({l})}] {m}\n",
             )))
             .build("wiki_tui.log")
             .unwrap();
@@ -23,6 +23,6 @@ impl Logger {
             .unwrap();
 
         log4rs::init_config(config).unwrap();
-        log::info!("Successfully initialized the logging system");
+        log::info!("[logging::Logger::new] Successfully initialized the logging system");
     }
 }
