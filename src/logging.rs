@@ -1,5 +1,3 @@
-use crate::config::CONFIG;
-
 pub struct Logger;
 impl Logger {
     pub fn new() {
@@ -7,13 +5,12 @@ impl Logger {
         use log4rs::config::{Appender, Config, Root};
         use log4rs::encode::pattern::PatternEncoder;
 
-        let logging_config = CONFIG.get_logging_config();
         let wiki_tui = FileAppender::builder()
             .append(false)
             .encoder(Box::new(PatternEncoder::new(
                 "[{d(%Y-%m-%d %H:%M:%S)}] (({I})) [{h({l})}]  {m}\n",
             )))
-            .build(logging_config.log_output.clone())
+            .build("wiki_tui.log")
             .unwrap();
 
         let config = Config::builder()
@@ -21,7 +18,7 @@ impl Logger {
             .build(
                 Root::builder()
                     .appender("wiki_tui")
-                    .build(logging_config.log_level.clone()),
+                    .build(log::LevelFilter::Info),
             )
             .unwrap();
         log4rs::init_config(config).unwrap();

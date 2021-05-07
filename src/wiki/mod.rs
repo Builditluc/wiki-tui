@@ -12,12 +12,12 @@ pub struct WikiApi {
 }
 
 impl WikiApi {
-    pub fn new(config: ApiConfig) -> Self {
+    pub fn new() -> Self {
         log::info!("Creating a instance of Wiki");
         let default_parser = parser::Default {};
         WikiApi {
             client: reqwest::blocking::Client::new(),
-            api_config: config,
+            api_config: CONFIG.api_config.clone(),
             parser: Box::new(default_parser),
         }
     }

@@ -31,8 +31,7 @@ fn main() {
     logging::Logger::new();
 
     // Create the wiki struct, used for interaction with the wikipedia website/api
-    let mut config = config::Config::new(); // This will be removed after rewriting the config system
-    let wiki = wiki::WikiApi::new(config.get_api_config());
+    let wiki = wiki::WikiApi::new();
 
     let mut siv = cursive::default();
     siv.add_global_callback('q', Cursive::quit);
