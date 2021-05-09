@@ -174,10 +174,16 @@ fn on_article_submit(siv: &mut Cursive, article_preview: &ui::models::ArticleRes
     // remove the results layer
     siv.pop_layer();
 
+    // show the loading box
+    siv.add_layer(message_box("Loading", "Loading the article"));
+
     // get the article from wikipedia
     // and set the contents of the article_view to the article
     let wiki: &wiki::WikiApi = siv.user_data().unwrap();
     let article = wiki.get_article(&article_preview.page_id);
+
+    // after the loading, remove the box
+    siv.pop_layer();
 
     siv.call_on_name("article_view", |view: &mut TextView| {
         log::info!("[main::on_article_submit] Setting the content of the article view");
@@ -228,4 +234,10 @@ fn continue_search(
         Ok(_) => log::info!("Successfully focussed the search results view"),
         Err(error) => log::warn!("{:?}", error),
     }
+}
+
+fn message_box(title: &str, message: &str) -> Dialog {
+    Dialog::around(TextView::new(message))
+        .title(title)
+        .title_position(cursive::align::HAlign::Center)
 }
