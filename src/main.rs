@@ -37,6 +37,11 @@ fn main() {
     siv.add_global_callback('q', Cursive::quit);
     siv.set_user_data(wiki);
 
+    // get and apply the color theme
+    let mut new_theme = Theme::default();
+    new_theme.palette = get_color_palette();
+    siv.set_theme(new_theme);
+
     // Create the views
     let search_bar = EditView::new()
         .on_submit(|s, q| on_search(s, q.to_string()))
@@ -240,4 +245,17 @@ fn message_box(title: &str, message: &str) -> Dialog {
     Dialog::around(TextView::new(message))
         .title(title)
         .title_position(cursive::align::HAlign::Center)
+}
+
+fn get_color_palette() -> Palette {
+    let mut custom_palette = Palette::default();
+
+    custom_palette.set_color("View", config::CONFIG.theme.background);
+    custom_palette.set_color("Primary", config::CONFIG.theme.text);
+    custom_palette.set_color("TitlePrimary", config::CONFIG.theme.title);
+    custom_palette.set_color("Highlight", config::CONFIG.theme.highlight);
+    custom_palette.set_color("HighlightInactive", config::CONFIG.theme.highlight_inactive);
+    custom_palette.set_color("HighlightText", config::CONFIG.theme.highlight_text);
+
+    custom_palette
 }

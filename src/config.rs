@@ -15,16 +15,14 @@ lazy_static! {
 }
 
 pub struct Theme {
-    pub background: Color,
-    pub shadow: Color,
-    pub view: Color,
-    pub primary: Color,
-    pub secondary: Color,
-    pub title_primary: Color,
-    pub title_secondary: Color,
+    pub text: Color,
+    pub title: Color,
+    pub borders: Color,
     pub highlight: Color,
-    pub highlight_inactive: Color,
+    pub background: Color,
+    pub search_match: Color,
     pub highlight_text: Color,
+    pub highlight_inactive: Color,
 }
 
 #[derive(Clone, Debug)]
@@ -47,15 +45,13 @@ impl Config {
             },
             theme: Theme {
                 background: Color::Dark(BaseColor::Blue),
-                shadow: Color::Dark(BaseColor::Black),
-                view: Color::Dark(BaseColor::White),
-                primary: Color::Dark(BaseColor::Black),
-                secondary: Color::Dark(BaseColor::Blue),
-                title_primary: Color::Dark(BaseColor::Red),
-                title_secondary: Color::Dark(BaseColor::Yellow),
+                title: Color::Dark(BaseColor::Red),
                 highlight: Color::Dark(BaseColor::Red),
                 highlight_inactive: Color::Dark(BaseColor::Blue),
                 highlight_text: Color::Dark(BaseColor::White),
+                text: Color::Dark(BaseColor::Black),
+                borders: Color::Dark(BaseColor::Black),
+                search_match: Color::Dark(BaseColor::Red),
             },
             config_path: PathBuf::new(),
         };
@@ -194,21 +190,30 @@ impl Config {
                 );
                 if theme.get($color).is_some() {
                     match parse_color(theme.get($color).unwrap().to_string()) {
-                        Ok(color) => self.theme.background = color,
+                        Ok(color) => {
+                            self.theme.background = color;
+                            info!(
+                                "[config::Config::load_theme] Loaded the setting '{}'",
+                                $color
+                            );
+                        }
                         Err(error) => {
                             warn!("[config::Config::load_theme] {}", error);
                         }
                     };
-                    info!(
-                        "[config::Config::load_theme] Loaded the setting '{}'",
-                        $color
-                    );
                 }
             };
         }
 
         // now load the settings
+        to_theme_color!("text");
+        to_theme_color!("title");
+        to_theme_color!("borders");
+        to_theme_color!("highlight");
         to_theme_color!("background");
+        to_theme_color!("search_match");
+        to_theme_color!("highlight_text");
+        to_theme_color!("highlight_inactive");
     }
 }
 
