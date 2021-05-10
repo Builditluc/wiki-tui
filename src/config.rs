@@ -1,4 +1,6 @@
 use anyhow::*;
+use cursive::theme::BaseColor;
+use cursive::theme::Color;
 use dirs;
 use ini::Ini;
 use lazy_static::*;
@@ -12,6 +14,19 @@ lazy_static! {
     pub static ref CONFIG: Config = Config::new();
 }
 
+pub struct Theme {
+    pub background: Color,
+    pub shadow: Color,
+    pub view: Color,
+    pub primary: Color,
+    pub secondary: Color,
+    pub title_primary: Color,
+    pub title_secondary: Color,
+    pub highlight: Color,
+    pub highlight_inactive: Color,
+    pub highlight_text: Color,
+}
+
 #[derive(Clone, Debug)]
 pub struct ApiConfig {
     pub base_url: String,
@@ -19,6 +34,7 @@ pub struct ApiConfig {
 
 pub struct Config {
     pub api_config: ApiConfig,
+    pub theme: Theme,
     config_path: PathBuf,
 }
 
@@ -28,6 +44,18 @@ impl Config {
         let mut config = Config {
             api_config: ApiConfig {
                 base_url: "https://en.wikipedia.org/w/api.php".to_string(),
+            },
+            theme: Theme {
+                background: Color::Dark(BaseColor::Blue),
+                shadow: Color::Dark(BaseColor::Black),
+                view: Color::Dark(BaseColor::White),
+                primary: Color::Dark(BaseColor::Black),
+                secondary: Color::Dark(BaseColor::Blue),
+                title_primary: Color::Dark(BaseColor::Red),
+                title_secondary: Color::Dark(BaseColor::Yellow),
+                highlight: Color::Dark(BaseColor::Red),
+                highlight_inactive: Color::Dark(BaseColor::Blue),
+                highlight_text: Color::Dark(BaseColor::White),
             },
             config_path: PathBuf::new(),
         };
@@ -74,6 +102,7 @@ impl Config {
         if config_exists.unwrap() {
             info!("[config::Config::load_config] Loading the Config");
             self.load_api_config(&config);
+            self.load_theme(&config);
         }
     }
 
@@ -142,4 +171,47 @@ impl Config {
             info!("[config::Config::load_api_config] Loaded the BASE_URL");
         }
     }
+
+    fn load_theme(&mut self, config: &Ini) {
+        // get the theme section
+        let theme = match config.section(Some("Theme")) {
+            Some(theme) => {
+                info!("[config::Config::load_theme] Found the Theme Config");
+                theme
+            }
+            None => {
+                info!("[config::Config::load_theme] Theme Config not found");
+                return;
+            }
+        };
+
+        // define the macro for loading individual color settings
+        macro_rules! to_theme_color {
+            ($color: expr) => {
+                info!(
+                    "[config::Config::load_theme] Trying to load the setting '{}'",
+                    $color
+                );
+                if theme.get($color).is_some() {
+                    match parse_color(theme.get($color).unwrap().to_string()) {
+                        Ok(color) => self.theme.background = color,
+                        Err(error) => {
+                            warn!("[config::Config::load_theme] {}", error);
+                        }
+                    };
+                    info!(
+                        "[config::Config::load_theme] Loaded the setting '{}'",
+                        $color
+                    );
+                }
+            };
+        }
+
+        // now load the settings
+        to_theme_color!("background");
+    }
+}
+
+fn parse_color(color: String) -> Result<Color> {
+    Color::parse(&color.to_lowercase()).context("Failed loading the color")
 }
