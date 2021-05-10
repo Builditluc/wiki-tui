@@ -52,8 +52,7 @@ fn main() {
         .title("Search")
         .title_position(cursive::align::HAlign::Left);
 
-    let article_view = TextView::new(LOGO)
-        .with_name("article_view")
+    let article_view = ui::article::ArticleView::new(LOGO)
         .full_screen()
         .scrollable();
 
