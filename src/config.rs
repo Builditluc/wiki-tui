@@ -43,7 +43,7 @@ impl Config {
                 base_url: "https://en.wikipedia.org/w/api.php".to_string(),
             },
             theme: Theme {
-                background: Color::Dark(BaseColor::Blue),
+                background: Color::Dark(BaseColor::White),
                 title: Color::Dark(BaseColor::Red),
                 highlight: Color::Dark(BaseColor::Red),
                 highlight_inactive: Color::Dark(BaseColor::Blue),
@@ -181,18 +181,18 @@ impl Config {
 
         // define the macro for loading individual color settings
         macro_rules! to_theme_color {
-            ($color: expr) => {
+            ($color: ident) => {
                 info!(
                     "[config::Config::load_theme] Trying to load the setting '{}'",
-                    $color
+                    stringify!($color)
                 );
-                if theme.get($color).is_some() {
-                    match parse_color(theme.get($color).unwrap().to_string()) {
+                if theme.get(stringify!($color)).is_some() {
+                    match parse_color(theme.get(stringify!($color)).unwrap().to_string()) {
                         Ok(color) => {
-                            self.theme.background = color;
+                            self.theme.$color = color;
                             info!(
                                 "[config::Config::load_theme] Loaded the setting '{}'",
-                                $color
+                                stringify!($color)
                             );
                         }
                         Err(error) => {
@@ -204,13 +204,13 @@ impl Config {
         }
 
         // now load the settings
-        to_theme_color!("text");
-        to_theme_color!("title");
-        to_theme_color!("highlight");
-        to_theme_color!("background");
-        to_theme_color!("search_match");
-        to_theme_color!("highlight_text");
-        to_theme_color!("highlight_inactive");
+        to_theme_color!(text);
+        to_theme_color!(title);
+        to_theme_color!(highlight);
+        to_theme_color!(background);
+        to_theme_color!(search_match);
+        to_theme_color!(highlight_text);
+        to_theme_color!(highlight_inactive);
     }
 }
 
