@@ -31,12 +31,16 @@ fn main() {
     logging::Logger::new();
 
     // Create the wiki struct, used for interaction with the wikipedia website/api
-    let mut config = config::Config::new(); // This will be removed after recoding the config system
-    let wiki = wiki::WikiApi::new(config.get_api_config());
+    let wiki = wiki::WikiApi::new();
 
     let mut siv = cursive::default();
     siv.add_global_callback('q', Cursive::quit);
     siv.set_user_data(wiki);
+
+    // get and apply the color theme
+    let mut new_theme = Theme::default();
+    new_theme.palette = get_color_palette();
+    siv.set_theme(new_theme);
 
     // Create the views
     let search_bar = EditView::new()
@@ -70,14 +74,14 @@ fn main() {
 }
 
 fn on_search(siv: &mut Cursive, search_query: String) {
-    log::info!("on_search was called");
+    log::info!("[main::on_search] on_search was called");
     let wiki: &wiki::WikiApi = siv.user_data().unwrap();
 
     if search_query.is_empty() {
-        log::warn!("Empty Search Query, aborting Search");
+        log::warn!("[main::on_search] Empty Search Query, aborting Search");
         return;
     }
-    log::info!("The Search Query is \"{}\"", search_query);
+    log::info!("[main::on_search] The Search Query is \"{}\"", search_query);
 
     // Search wikipedia for the search query and the response
     let search_response = wiki.search(&search_query);
@@ -156,7 +160,7 @@ fn on_result_select(siv: &mut Cursive, item: &ui::models::ArticleResultPreview) 
 
             styled_snippet.append(markup::StyledString::styled(
                 split_slice[0],
-                Color::Dark(BaseColor::Red),
+                config::CONFIG.theme.search_match,
             ));
             styled_snippet.append_plain(split_slice[1]);
         } else {
@@ -175,13 +179,19 @@ fn on_article_submit(siv: &mut Cursive, article_preview: &ui::models::ArticleRes
     // remove the results layer
     siv.pop_layer();
 
+    // show the loading box
+    siv.add_layer(message_box("Loading", "Loading the article"));
+
     // get the article from wikipedia
     // and set the contents of the article_view to the article
     let wiki: &wiki::WikiApi = siv.user_data().unwrap();
     let article = wiki.get_article(&article_preview.page_id);
 
+    // after the loading, remove the box
+    siv.pop_layer();
+
     siv.call_on_name("article_view", |view: &mut TextView| {
-        log::info!("Setting the content of the article view");
+        log::info!("[main::on_article_submit] Setting the content of the article view");
         view.set_content(article.content);
     });
 
@@ -191,8 +201,8 @@ fn on_article_submit(siv: &mut Cursive, article_preview: &ui::models::ArticleRes
         .context("Failed to focus the article view");
 
     match result {
-        Ok(_) => log::info!("Successfully focussed the article view"),
-        Err(error) => log::warn!("{:?}", error),
+        Ok(_) => log::info!("[main::on_article_submit] Successfully focussed the article view"),
+        Err(error) => log::warn!("[main::on_article_submit] {:?}", error),
     }
 }
 
@@ -229,4 +239,23 @@ fn continue_search(
         Ok(_) => log::info!("Successfully focussed the search results view"),
         Err(error) => log::warn!("{:?}", error),
     }
+}
+
+fn message_box(title: &str, message: &str) -> Dialog {
+    Dialog::around(TextView::new(message))
+        .title(title)
+        .title_position(cursive::align::HAlign::Center)
+}
+
+fn get_color_palette() -> Palette {
+    let mut custom_palette = Palette::default();
+
+    custom_palette.set_color("View", config::CONFIG.theme.background);
+    custom_palette.set_color("Primary", config::CONFIG.theme.text);
+    custom_palette.set_color("TitlePrimary", config::CONFIG.theme.title);
+    custom_palette.set_color("Highlight", config::CONFIG.theme.highlight);
+    custom_palette.set_color("HighlightInactive", config::CONFIG.theme.highlight_inactive);
+    custom_palette.set_color("HighlightText", config::CONFIG.theme.highlight_text);
+
+    custom_palette
 }

@@ -1,9 +1,11 @@
 use anyhow::*;
+use cursive::theme::BaseColor;
+use cursive::theme::Color;
 use dirs;
 use ini::Ini;
-use lazy_static::lazy_static;
-use reqwest;
+use lazy_static::*;
 use std::fs;
+use std::path::PathBuf;
 
 const CONFIG_FILE_NAME: &str = "config.ini";
 const APP_CONFIG_DIR: &str = "wiki-tui";
@@ -12,155 +14,206 @@ lazy_static! {
     pub static ref CONFIG: Config = Config::new();
 }
 
+pub struct Theme {
+    pub text: Color,
+    pub title: Color,
+    pub highlight: Color,
+    pub background: Color,
+    pub search_match: Color,
+    pub highlight_text: Color,
+    pub highlight_inactive: Color,
+}
+
+#[derive(Clone, Debug)]
 pub struct ApiConfig {
     pub base_url: String,
 }
 
-pub struct LoggingConfig {
-    pub log_output: String,
-    pub log_level: log::LevelFilter,
-}
-
 pub struct Config {
-    pub api_config: Option<ApiConfig>,
-    pub logging_config: Option<LoggingConfig>,
-    pub config_path: Option<std::path::PathBuf>,
+    pub api_config: ApiConfig,
+    pub theme: Theme,
+    config_path: PathBuf,
 }
+
 impl Config {
-    pub fn new() -> Self {
-        let mut config: Config = Default::default();
+    pub fn new() -> Config {
+        // initialize the struct with the defaults
+        let mut config = Config {
+            api_config: ApiConfig {
+                base_url: "https://en.wikipedia.org/w/api.php".to_string(),
+            },
+            theme: Theme {
+                background: Color::Dark(BaseColor::White),
+                title: Color::Dark(BaseColor::Red),
+                highlight: Color::Dark(BaseColor::Red),
+                highlight_inactive: Color::Dark(BaseColor::Blue),
+                highlight_text: Color::Dark(BaseColor::White),
+                text: Color::Dark(BaseColor::Black),
+                search_match: Color::Dark(BaseColor::Red),
+            },
+            config_path: PathBuf::new(),
+        };
 
-        let config_file_exists = config.config_file_exists();
-        if !config_file_exists {
-            config.create_config_file();
-        }
+        // do the loading stuff here
+        info!("[config::Config::new] Loading the config");
+        config.load_config();
 
-        config.load();
+        // return the config
         config
     }
 
-    fn config_file_exists(&mut self) -> bool {
-        match dirs::config_dir() {
-            Some(config_path) => {
-                let app_dir_path = config_path.join(APP_CONFIG_DIR);
-                let config_file_path = app_dir_path.join(CONFIG_FILE_NAME);
+    fn load_config(&mut self) {
+        // load (or create if they not exist) the config path(s)
+        // this function returns true if the config file exists and false if not
+        let config_exists = self.load_or_create_config_paths();
 
-                self.config_path = Some(config_file_path.clone());
+        // check, if any errors occured during loading
+        if config_exists.is_err() {
+            // Abort the loading
+            warn!(
+                "[config::Config::load_config] Failed loading the config paths, {:?}",
+                config_exists.err()
+            );
+            return;
+        }
 
-                if !app_dir_path.exists() {
-                    let result = fs::create_dir(app_dir_path)
-                        .context("Failed to create the app config directory");
-                    match result {
-                        Ok(_) => log::info!("Created the app config directory"),
-                        Err(error) => panic!("{:?}", error),
-                    }
-                    return false;
-                }
-
-                if !config_file_path.exists() {
-                    return false;
-                }
-
-                true
+        // read the config file and check if there were any errors
+        let config = match Ini::load_from_file(&self.config_path).context(format!(
+            "Failed loading the config file at the location: {}",
+            &self.config_path.to_str().unwrap_or("NONE")
+        )) {
+            Ok(config) => {
+                info!("[config::Config::load_config] Successfully loaded the config file");
+                config
             }
+            Err(error) => {
+                warn!("[config::Config::load_config] {:?}", error);
+                return;
+            }
+        };
 
+        // if the config file exists, then load it
+        if config_exists.unwrap() {
+            info!("[config::Config::load_config] Loading the Config");
+            self.load_api_config(&config);
+            self.load_theme(&config);
+        }
+    }
+
+    fn load_or_create_config_paths(&mut self) -> Result<bool> {
+        // get the platform specific config directory
+        let config_dir = match dirs::config_dir() {
+            Some(config_dir) => {
+                info!(
+                    "[config::Config::load_or_create_config_paths] The config directory is {}",
+                    config_dir.to_str().unwrap()
+                );
+                config_dir
+            }
             None => {
-                panic!("Couldn't find your config directory")
+                error!("[config::Config::load_or_create_config_paths] Couldn't find the config directory");
+                panic!("Something weird happened while loading the config, please check your logs for more information")
             }
+        };
+
+        // build the app config path and the config file path
+        let app_config_dir = config_dir.join(APP_CONFIG_DIR);
+        let config_file_dir = app_config_dir.join(CONFIG_FILE_NAME);
+
+        // create the app config folder if it doesn't exist
+        if !app_config_dir.exists() {
+            info!("[config::Config::load_or_create_config_paths] The app config directory doesn't exist, creating it now");
+            match fs::create_dir(app_config_dir).context("Couldn't create the app config directory")
+            {
+                Ok(_) => {
+                    info!("[config::Config::load_or_create_config_paths] Successfully created the app config directory");
+                }
+                Err(error) => return Err(error),
+            };
+        }
+
+        // check, if the config file exists
+        if !config_file_dir.exists() {
+            info!("[config::Config::load_or_create_config_paths] The config file doesn't exist");
+            return Ok(false);
+        }
+
+        // if the config file exists,
+        // return true and store the path to it
+        info!("[config::Config::load_or_create_config_paths] The config file exists");
+        self.config_path = config_file_dir;
+        Ok(true)
+    }
+
+    fn load_api_config(&mut self, config: &Ini) {
+        // get the api_config section
+        let api_config = match config.section(Some("Api")) {
+            Some(api_config) => {
+                info!("[config::Config::load_api_config] Found the Api Config");
+                api_config
+            }
+            None => {
+                info!("[config::Config::load_api_config] Api Config not found");
+                return;
+            }
+        };
+
+        // now load the settings
+        info!("[config::Config::load_api_config] Trying to load the BASE_URL");
+        if api_config.get("BASE_URL").is_some() {
+            self.api_config.base_url = api_config.get("BASE_URL").unwrap().to_string();
+            info!("[config::Config::load_api_config] Loaded the BASE_URL");
         }
     }
 
-    fn create_config_file(&mut self) {
-        let file_url = "https://raw.githubusercontent.com/Builditluc/wiki-tui/stable/config.ini";
-        let file_content = reqwest::blocking::get(file_url).unwrap().text().unwrap();
+    fn load_theme(&mut self, config: &Ini) {
+        // get the theme section
+        let theme = match config.section(Some("Theme")) {
+            Some(theme) => {
+                info!("[config::Config::load_theme] Found the Theme Config");
+                theme
+            }
+            None => {
+                info!("[config::Config::load_theme] Theme Config not found");
+                return;
+            }
+        };
 
-        let result = fs::write(&self.config_path.clone().unwrap(), file_content)
-            .context("Failed to create the config file");
-        match result {
-            Ok(_) => log::info!("Sucessfully created the config file"),
-            Err(error) => panic!("{:?}", error),
+        // define the macro for loading individual color settings
+        macro_rules! to_theme_color {
+            ($color: ident) => {
+                info!(
+                    "[config::Config::load_theme] Trying to load the setting '{}'",
+                    stringify!($color)
+                );
+                if theme.get(stringify!($color)).is_some() {
+                    match parse_color(theme.get(stringify!($color)).unwrap().to_string()) {
+                        Ok(color) => {
+                            self.theme.$color = color;
+                            info!(
+                                "[config::Config::load_theme] Loaded the setting '{}'",
+                                stringify!($color)
+                            );
+                        }
+                        Err(error) => {
+                            warn!("[config::Config::load_theme] {}", error);
+                        }
+                    };
+                }
+            };
         }
-    }
 
-    fn load_api(&mut self, config: &Ini) {
-        // try to load the section
-        let section = match config.section(Some("Api")) {
-            Some(section) => section,
-            None => return,
-        };
-
-        // load every variable and if it doesn't exist,
-        // use the default
-        let base_url = match section.get("BASE_URL") {
-            Some(base_url) => base_url.to_string(),
-            None => "https://en.wikipedia.org/w/api.php".to_string(),
-        };
-
-        self.api_config = Some(ApiConfig { base_url });
-    }
-
-    fn load_logging(&mut self, config: &Ini) {
-        // try to load the section
-        let section = match config.section(Some("Logging")) {
-            Some(section) => section,
-            None => return,
-        };
-
-        // load every variable and if it doesn't exist,
-        // use the default
-        let log_output = match section.get("LOG_OUTPUT") {
-            Some(log_output) => log_output.to_string(),
-            None => "wiki_tui.log".to_string(),
-        };
-
-        let log_level = match section.get("LOG_LEVEL") {
-            Some(log_level) => match log_level {
-                "OFF" => log::LevelFilter::Off,
-                "TRACE" => log::LevelFilter::Trace,
-                "DEBUG" => log::LevelFilter::Debug,
-                "INFO" => log::LevelFilter::Info,
-                "WARN" => log::LevelFilter::Warn,
-                "ERROR" => log::LevelFilter::Error,
-                _ => log::LevelFilter::Off,
-            },
-            None => log::LevelFilter::Off,
-        };
-
-        self.logging_config = Some(LoggingConfig {
-            log_output,
-            log_level,
-        });
-    }
-
-    fn load(&mut self) {
-        let config = Ini::load_from_file(&self.config_path.clone().unwrap()).unwrap();
-        self.load_logging(&config);
-        self.load_api(&config);
-    }
-
-    pub fn get_logging_config(&self) -> &LoggingConfig {
-        match self.logging_config {
-            Some(ref logging_config) => logging_config,
-            None => panic!("Holy Shit! What happened here!"),
-        }
-    }
-
-    pub fn get_api_config(&mut self) -> ApiConfig {
-        let api_config = std::mem::replace(&mut self.api_config, None);
-        if api_config.is_some() {
-            return api_config.unwrap();
-        } else {
-            panic!("Holy Shit! What happened here!");
-        }
+        // now load the settings
+        to_theme_color!(text);
+        to_theme_color!(title);
+        to_theme_color!(highlight);
+        to_theme_color!(background);
+        to_theme_color!(search_match);
+        to_theme_color!(highlight_text);
+        to_theme_color!(highlight_inactive);
     }
 }
 
-impl Default for Config {
-    fn default() -> Self {
-        Config {
-            api_config: None,
-            logging_config: None,
-            config_path: None,
-        }
-    }
+fn parse_color(color: String) -> Result<Color> {
+    Color::parse(&color.to_lowercase()).context("Failed loading the color")
 }

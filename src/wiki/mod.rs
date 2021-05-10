@@ -1,4 +1,3 @@
-use crate::config::ApiConfig;
 use crate::config::CONFIG;
 use anyhow::*;
 pub mod article;
@@ -7,17 +6,15 @@ pub mod search;
 
 pub struct WikiApi {
     client: reqwest::blocking::Client,
-    api_config: ApiConfig,
     parser: Box<dyn parser::Parser>,
 }
 
 impl WikiApi {
-    pub fn new(config: ApiConfig) -> Self {
-        log::info!("Creating a instance of Wiki");
+    pub fn new() -> Self {
+        log::info!("[wiki::WikiApi::new] Creating a instance of Wiki");
         let default_parser = parser::Default {};
         WikiApi {
             client: reqwest::blocking::Client::new(),
-            api_config: config,
             parser: Box::new(default_parser),
         }
     }
@@ -41,7 +38,7 @@ impl WikiApi {
         // creating the url for the request
         let mut url = format!(
             "{}?action=query&list=search&srwhat=text&srsearch={}&format=json",
-            self.api_config.base_url.clone(),
+            CONFIG.api_config.base_url.clone(),
             title
         );
 
@@ -49,7 +46,7 @@ impl WikiApi {
             let continue_unwrapped = continue_code.unwrap();
             let continue_code_unwrapped = &continue_unwrapped.continue_code;
             let continue_scroll_offset_unwrapped = continue_unwrapped.scroll_offset;
-            url = format!("{}?action=query&list=search&srwhat=text&srsearch={}&format=json&continue={}&sroffset={}", self.api_config.base_url.clone(), title, continue_code_unwrapped, continue_scroll_offset_unwrapped);
+            url = format!("{}?action=query&list=search&srwhat=text&srsearch={}&format=json&continue={}&sroffset={}", CONFIG.api_config.base_url.clone(), title, continue_code_unwrapped, continue_scroll_offset_unwrapped);
         }
 
         // making the request
@@ -60,11 +57,11 @@ impl WikiApi {
             .context("Failed to send the request")
         {
             Ok(response) => {
-                log::info!("Successfully sent the request");
+                log::info!("[wiki::WikiApi::search_articles] Successfully sent the request");
                 response
             }
             Err(error) => {
-                log::error!("Failed sending the request, {:?}", error);
+                log::error!("[wiki::WikiApi::search_articles], {:?}", error);
                 panic!("Something happened, please check your logs")
             }
         };
@@ -76,11 +73,11 @@ impl WikiApi {
 
         match serde_result {
             Ok(result) => {
-                log::info!("Successfully serialized the response");
+                log::info!("[wiki::WikiApi::search_articles] Successfully serialized the response");
                 result
             }
             Err(error) => {
-                log::error!("Failed serializing the response, {:?}", error);
+                log::error!("[wiki::WikiApi::search_articles] {:?}", error);
                 panic!("Something weird happened, please check your logs");
             }
         }
