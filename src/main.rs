@@ -52,7 +52,7 @@ fn main() {
         .title("Search")
         .title_position(cursive::align::HAlign::Left);
 
-    let article_view = TextView::new(LOGO)
+    let article_view = ui::article::ArticleView::new(LOGO)
         .with_name("article_view")
         .full_screen()
         .scrollable();
@@ -190,7 +190,7 @@ fn on_article_submit(siv: &mut Cursive, article_preview: &ui::models::ArticleRes
     // after the loading, remove the box
     siv.pop_layer();
 
-    siv.call_on_name("article_view", |view: &mut TextView| {
+    siv.call_on_name("article_view", |view: &mut ui::article::ArticleView| {
         log::info!("[main::on_article_submit] Setting the content of the article view");
         view.set_content(article.content);
     });
