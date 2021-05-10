@@ -1,3 +1,4 @@
+use crate::config::CONFIG;
 use crate::wiki::article::Article;
 
 pub trait Parser {
@@ -15,6 +16,11 @@ impl Parser for Default {
         let mut content = markup::StyledString::new();
         let document = Document::from_read(html).unwrap();
         log::info!("[wiki::parser::Default::parse] Loaded the HTML document");
+
+        // add the title to the article content
+        let title = document.find(Class("firstHeading")).next().unwrap().text();
+        content.append_styled(title, Style::from(CONFIG.theme.title).combine(Effect::Bold));
+        content.append_plain("\n\n\n");
 
         // now iterate over all of the elements inside of the article
         for node in document.find(Class("mw-parser-output")) {
