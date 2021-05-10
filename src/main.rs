@@ -160,7 +160,7 @@ fn on_result_select(siv: &mut Cursive, item: &ui::models::ArticleResultPreview) 
 
             styled_snippet.append(markup::StyledString::styled(
                 split_slice[0],
-                Color::Dark(BaseColor::Red),
+                config::CONFIG.theme.search_match,
             ));
             styled_snippet.append_plain(split_slice[1]);
         } else {
