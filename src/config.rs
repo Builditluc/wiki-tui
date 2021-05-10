@@ -17,7 +17,6 @@ lazy_static! {
 pub struct Theme {
     pub text: Color,
     pub title: Color,
-    pub borders: Color,
     pub highlight: Color,
     pub background: Color,
     pub search_match: Color,
@@ -50,7 +49,6 @@ impl Config {
                 highlight_inactive: Color::Dark(BaseColor::Blue),
                 highlight_text: Color::Dark(BaseColor::White),
                 text: Color::Dark(BaseColor::Black),
-                borders: Color::Dark(BaseColor::Black),
                 search_match: Color::Dark(BaseColor::Red),
             },
             config_path: PathBuf::new(),
@@ -208,7 +206,6 @@ impl Config {
         // now load the settings
         to_theme_color!("text");
         to_theme_color!("title");
-        to_theme_color!("borders");
         to_theme_color!("highlight");
         to_theme_color!("background");
         to_theme_color!("search_match");
