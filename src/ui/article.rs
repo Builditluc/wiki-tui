@@ -1,3 +1,5 @@
+use crate::config::CONFIG;
+use cursive::event::*;
 use cursive::utils::lines::spans::*;
 use cursive::utils::markup::StyledString;
 use cursive::view::*;
@@ -7,6 +9,7 @@ use cursive::Vec2;
 pub struct ArticleView {
     content: StyledString,
     rows: Vec<Row>,
+    selected: usize,
     width: usize,
 }
 
@@ -19,6 +22,7 @@ impl ArticleView {
             content: content.into(),
             rows: Vec::new(),
             width: 0,
+            selected: 0,
         }
     }
 
@@ -38,16 +42,26 @@ impl ArticleView {
 
 impl View for ArticleView {
     fn draw(&self, printer: &Printer) {
+        let mut current_element = 0;
+
         // got through every row and print it to the screen
         for (y, row) in self.rows.iter().enumerate() {
             let mut x = 0;
             for span in row.resolve(&self.content) {
                 // print every span in a line with it's style and increase the x
                 // value by the width of the span to prevent overwriting a previous span
-                printer.with_style(*span.attr, |printer| {
+                let mut style = *span.attr;
+
+                if current_element == self.selected {
+                    style = style.combine(CONFIG.theme.highlight);
+                }
+
+                printer.with_style(style, |printer| {
                     printer.print((x, y), span.content);
                     x += span.width;
-                })
+                });
+
+                current_element += 1;
             }
         }
     }
@@ -63,5 +77,19 @@ impl View for ArticleView {
         self.calculate_rows(size);
 
         Vec2::new(self.width, self.rows.len())
+    }
+
+    fn on_event(&mut self, event: Event) -> EventResult {
+        if event == Event::Key(Key::Left) && self.selected > 0 {
+            self.selected -= 1;
+            return EventResult::Consumed(None);
+        }
+
+        if event == Event::Key(Key::Right) {
+            self.selected += 1;
+            return EventResult::Consumed(None);
+        }
+
+        EventResult::Ignored
     }
 }
