@@ -192,7 +192,7 @@ fn on_article_submit(siv: &mut Cursive, article_preview: &ui::models::ArticleRes
 
     siv.call_on_name("article_view", |view: &mut ui::article::ArticleView| {
         log::info!("[main::on_article_submit] Setting the content of the article view");
-        view.set_content(article.content);
+        view.set_article(article);
     });
 
     // focus the article view

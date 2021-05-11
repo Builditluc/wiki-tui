@@ -25,4 +25,3 @@ pub struct Article {
     pub title: String,
     pub content: markup::StyledString,
 }
-

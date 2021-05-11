@@ -1,5 +1,7 @@
 use crate::config::CONFIG;
+use crate::wiki::article::Article;
 use cursive::event::*;
+use cursive::theme::Style;
 use cursive::utils::lines::spans::*;
 use cursive::utils::markup::StyledString;
 use cursive::view::*;
@@ -7,10 +9,50 @@ use cursive::Printer;
 use cursive::Vec2;
 
 pub struct ArticleView {
-    content: StyledString,
-    rows: Vec<Row>,
+    content: ArticleContent,
     selected: usize,
     width: usize,
+}
+
+pub struct ArticleContent {
+    content: StyledString,
+    lines: Vec<Vec<Element>>,
+}
+
+struct Element {
+    content: String,
+    style: Style,
+    width: usize,
+    selectable: bool,
+}
+
+impl ArticleContent {
+    pub fn new(content: StyledString) -> ArticleContent {
+        ArticleContent {
+            content,
+            lines: Vec::new(),
+        }
+    }
+
+    fn calculate_rows(&mut self, size: Vec2) {
+        self.lines.clear();
+
+        // go through every row and convert the spans of the row to elements
+        // and add them to the line
+        for row in LinesIterator::new(&self.content, size.x) {
+            let mut new_row: Vec<Element> = Vec::new();
+
+            for span in row.resolve(&self.content) {
+                new_row.push(Element {
+                    content: span.content.to_string(),
+                    style: *span.attr,
+                    width: span.width,
+                    selectable: false,
+                })
+            }
+            self.lines.push(new_row);
+        }
+    }
 }
 
 impl ArticleView {
@@ -19,8 +61,7 @@ impl ArticleView {
         S: Into<StyledString>,
     {
         ArticleView {
-            content: content.into(),
-            rows: Vec::new(),
+            content: ArticleContent::new(content.into()),
             width: 0,
             selected: 0,
         }
@@ -31,12 +72,11 @@ impl ArticleView {
     where
         S: Into<StyledString>,
     {
-        self.content = content.into();
+        self.content.content = content.into();
     }
 
-    fn calculate_rows(&mut self, size: Vec2) {
-        // calculate the rows with a given size
-        self.rows = LinesIterator::new(&self.content, size.x).collect();
+    pub fn set_article(&mut self, article: Article) {
+        self.set_content(article.content);
     }
 }
 
@@ -45,20 +85,20 @@ impl View for ArticleView {
         let mut current_element = 0;
 
         // got through every row and print it to the screen
-        for (y, row) in self.rows.iter().enumerate() {
+        for (y, line) in self.content.lines.iter().enumerate() {
             let mut x = 0;
-            for span in row.resolve(&self.content) {
+            for element in line {
                 // print every span in a line with it's style and increase the x
                 // value by the width of the span to prevent overwriting a previous span
-                let mut style = *span.attr;
+                let mut style = element.style;
 
-                if current_element == self.selected {
+                if current_element == self.selected && element.selectable {
                     style = style.combine(CONFIG.theme.highlight);
                 }
 
                 printer.with_style(style, |printer| {
-                    printer.print((x, y), span.content);
-                    x += span.width;
+                    printer.print((x, y), &element.content);
+                    x += element.width;
                 });
 
                 current_element += 1;
@@ -69,14 +109,14 @@ impl View for ArticleView {
     fn layout(&mut self, size: Vec2) {
         // set the new width and calculate the rows
         self.width = size.x;
-        self.calculate_rows(size);
+        self.content.calculate_rows(size);
     }
 
     fn required_size(&mut self, size: Vec2) -> Vec2 {
         // calculate the rows with the given size and return the dimensions of the view
-        self.calculate_rows(size);
+        self.content.calculate_rows(size);
 
-        Vec2::new(self.width, self.rows.len())
+        Vec2::new(self.width, self.content.lines.len())
     }
 
     fn on_event(&mut self, event: Event) -> EventResult {
