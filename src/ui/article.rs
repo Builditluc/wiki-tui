@@ -1,7 +1,9 @@
 use crate::config::CONFIG;
-use crate::wiki::article::Article;
+use crate::wiki::article::*;
 use cursive::event::*;
+use cursive::theme::Effect;
 use cursive::theme::Style;
+use cursive::theme::{BaseColor, Color};
 use cursive::utils::lines::spans::*;
 use cursive::utils::markup::StyledString;
 use cursive::view::*;
@@ -10,20 +12,14 @@ use cursive::Vec2;
 
 pub struct ArticleView {
     content: ArticleContent,
-    selected: usize,
     width: usize,
 }
 
-pub struct ArticleContent {
+struct ArticleContent {
     content: StyledString,
-    lines: Vec<Vec<Element>>,
-}
-
-struct Element {
-    content: String,
-    style: Style,
-    width: usize,
-    selectable: bool,
+    lines: Vec<Row>,
+    current: usize,
+    elements_count: usize,
 }
 
 impl ArticleContent {
@@ -31,27 +27,67 @@ impl ArticleContent {
         ArticleContent {
             content,
             lines: Vec::new(),
+            current: 0,
+            elements_count: 0,
         }
     }
 
-    fn calculate_rows(&mut self, size: Vec2) {
-        self.lines.clear();
+    fn render(&mut self, article: Article) {
+        self.elements_count = article.elements.len();
+        let mut rendered_article = StyledString::new();
 
-        // go through every row and convert the spans of the row to elements
-        // and add them to the line
-        for row in LinesIterator::new(&self.content, size.x) {
-            let mut new_row: Vec<Element> = Vec::new();
+        // go trough every element in the article
+        for element in article.elements.into_iter() {
+            match element.element_type {
+                // if its a link, make it underlined
+                ArticleElementType::Link => {
+                    let link_span = StyledString::styled(
+                        element.content,
+                        Style::from(CONFIG.theme.text).combine(Effect::Underline),
+                    );
 
-            for span in row.resolve(&self.content) {
-                new_row.push(Element {
-                    content: span.content.to_string(),
-                    style: *span.attr,
-                    width: span.width,
-                    selectable: false,
-                })
+                    rendered_article.append(link_span);
+                }
+                // if its text, just append it to the rendered article
+                ArticleElementType::Text => {
+                    let text_span =
+                        StyledString::styled(element.content, Style::from(CONFIG.theme.text));
+
+                    rendered_article.append(text_span);
+                }
+                // if its a header, add some linebreaks and make the header bold
+                ArticleElementType::Header => {
+                    let header_span = StyledString::styled(
+                        format!("\n{}\n\n", element.content),
+                        Style::from(Color::Dark(BaseColor::Black)).combine(Effect::Bold),
+                    );
+
+                    rendered_article.append(header_span);
+                }
             }
-            self.lines.push(new_row);
         }
+
+        self.content = rendered_article;
+    }
+
+    fn change_current_element(&mut self, new_element: usize) {
+        for (idx, span) in self.content.spans_raw_attr_mut().enumerate() {
+            if idx == self.current {
+                *span.attr = span.attr.combine(CONFIG.theme.text);
+            } else if idx == new_element {
+                *span.attr = span.attr.combine(CONFIG.theme.highlight);
+            }
+        }
+
+        self.current = new_element;
+    }
+
+    fn calculate_rows(&mut self, size: Vec2) {
+        self.lines = LinesIterator::new(&self.content, size.x).collect();
+    }
+
+    fn set_article(&mut self, article: Article) {
+        self.render(article);
     }
 }
 
@@ -63,45 +99,26 @@ impl ArticleView {
         ArticleView {
             content: ArticleContent::new(content.into()),
             width: 0,
-            selected: 0,
         }
     }
 
-    // Replace the text in this view
-    pub fn set_content<S>(&mut self, content: S)
-    where
-        S: Into<StyledString>,
-    {
-        self.content.content = content.into();
-    }
-
     pub fn set_article(&mut self, article: Article) {
-        self.set_content(article.content);
+        self.content.set_article(article)
     }
 }
 
 impl View for ArticleView {
     fn draw(&self, printer: &Printer) {
-        let mut current_element = 0;
-
         // got through every row and print it to the screen
         for (y, line) in self.content.lines.iter().enumerate() {
             let mut x = 0;
-            for element in line {
+            for span in line.resolve(&self.content.content) {
                 // print every span in a line with it's style and increase the x
                 // value by the width of the span to prevent overwriting a previous span
-                let mut style = element.style;
-
-                if current_element == self.selected && element.selectable {
-                    style = style.combine(CONFIG.theme.highlight);
-                }
-
-                printer.with_style(style, |printer| {
-                    printer.print((x, y), &element.content);
-                    x += element.width;
+                printer.with_style(*span.attr, |printer| {
+                    printer.print((x, y), &span.content);
+                    x += span.width;
                 });
-
-                current_element += 1;
             }
         }
     }
@@ -120,13 +137,15 @@ impl View for ArticleView {
     }
 
     fn on_event(&mut self, event: Event) -> EventResult {
-        if event == Event::Key(Key::Left) && self.selected > 0 {
-            self.selected -= 1;
+        if event == Event::Key(Key::Left) && self.content.current > 0 {
+            self.content
+                .change_current_element(self.content.current - 1);
             return EventResult::Consumed(None);
         }
 
-        if event == Event::Key(Key::Right) {
-            self.selected += 1;
+        if event == Event::Key(Key::Right) && self.content.current < self.content.elements_count {
+            self.content
+                .change_current_element(self.content.current + 1);
             return EventResult::Consumed(None);
         }
 
