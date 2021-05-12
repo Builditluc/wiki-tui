@@ -39,14 +39,43 @@ Note: These Screenshots were taken on iTerm2 (MacOS) with the [spaceduck](https:
 
 Currently, you can install `wiki-tui` only by compiling it manually.
 Just clone the repository and compile the stable branch.
-
-## How to use
-
 ## Configuration
 
-You can find the config file in your config directory. <br>
-On MacOS, it's ```$HOME/Library/Application Support/wiki-tui/``` <br>
-On Linux, it's ```$HOME/.config/wiki-tui``` <br>
-On Windows, just do [this](https://wiki.archlinux.org/index.php/Installation_guide)
+### Location of the config file
+#### MacOS
+```
+$HOME/Library/Application Support/wiki-tui/config.ini
+```
+#### Linux
+```
+$HOME/.config/wiki-tui/config.ini
+```
+#### Windows
+```
+C:\Users\{USERNAME}\wiki-tui\config.ini
+```
 
-In `config.ini`, you can then customize `wiki-tui`
+### Settings
+#### Api
+```ini
+; this is the url of the Api, wiki-tui uses to interact with Wikipedia
+BASE_URL = "https://en.wikipedia.org/w/api.php"
+```
+#### Theme
+The settings here are all colors and can be set by either the name of the color or a hex string (valid formats are: `#ffffff`, `#fff`). If your color wasn't applied, check the logs to find out why.
+```ini
+; color used for View backgrounds
+background = white
+; color used for the title text
+title = red
+; color used for highlighting text
+highlight = red
+; color used for highlighting inactive text
+highlight_inactive = blue
+; color used for highlighted text
+highlight_text = white
+; color used for the text
+text = black
+; color used for a search match in the results view
+search_match = red
+```
