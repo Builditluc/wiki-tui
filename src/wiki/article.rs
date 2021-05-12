@@ -1,4 +1,3 @@
-use cursive::utils::*;
 use serde::*;
 
 #[derive(Deserialize, Debug)]
@@ -20,9 +19,18 @@ pub struct ArticleResult {
     pub content: String,
 }
 
-#[derive(Clone)]
 pub struct Article {
-    pub title: String,
-    pub content: markup::StyledString,
+    pub elements: Vec<ArticleElement>,
 }
 
+pub struct ArticleElement {
+    pub content: String,
+    pub element_type: ArticleElementType,
+    pub link_target: Option<String>,
+}
+
+pub enum ArticleElementType {
+    Link,
+    Text,
+    Header,
+}
