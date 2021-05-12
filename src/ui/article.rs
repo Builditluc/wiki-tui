@@ -1,5 +1,6 @@
 use crate::config::CONFIG;
 use crate::wiki::article::*;
+use cursive::direction::Direction;
 use cursive::event::*;
 use cursive::theme::Effect;
 use cursive::theme::Style;
@@ -134,6 +135,10 @@ impl View for ArticleView {
         self.content.calculate_rows(size);
 
         Vec2::new(self.width, self.content.lines.len())
+    }
+
+    fn take_focus(&mut self, _: Direction) -> bool {
+        true
     }
 
     fn on_event(&mut self, event: Event) -> EventResult {
