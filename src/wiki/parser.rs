@@ -1,4 +1,3 @@
-use crate::config::CONFIG;
 use crate::wiki::article::*;
 
 pub trait Parser {
@@ -8,8 +7,6 @@ pub trait Parser {
 pub struct Default;
 impl Parser for Default {
     fn parse(&self, html: reqwest::blocking::Response) -> Article {
-        use cursive::theme::*;
-        use cursive::utils::*;
         use select::document::Document;
         use select::predicate::Class;
 
@@ -63,8 +60,6 @@ impl Parser for Default {
                         // if it's a div with the class "reflist", add it to the current paragraph
                         // in form of a list
                         "div" if children.is(Class("reflist")) => {
-                            let text = children.text();
-
                             log::info!("[wiki::parser::Default::parse] Added the Reference List to the article content");
                         }
                         // if it's any other html element, skip it
