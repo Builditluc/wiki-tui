@@ -2,14 +2,11 @@ use crate::config::CONFIG;
 use crate::wiki::article::*;
 use cursive::direction::Direction;
 use cursive::event::*;
-use cursive::theme::Effect;
-use cursive::theme::Style;
-use cursive::theme::{BaseColor, Color};
+use cursive::theme::{BaseColor, Color, Effect, Style};
 use cursive::utils::lines::spans::*;
 use cursive::utils::markup::StyledString;
 use cursive::view::*;
-use cursive::Printer;
-use cursive::Vec2;
+use cursive::{Printer, Vec2};
 
 pub struct ArticleView {
     content: ArticleContent,
@@ -72,22 +69,26 @@ impl ArticleContent {
     }
 
     fn change_current_element(&mut self, new_element: usize) {
+        // go through every span in the content
         for (idx, span) in self.content.spans_raw_attr_mut().enumerate() {
             if idx == self.current {
+                // remove the highlight for the previous selected span
                 *span.attr = span.attr.combine(CONFIG.theme.text);
             } else if idx == new_element {
+                // highlight the new selected span
                 *span.attr = span.attr.combine(CONFIG.theme.highlight);
             }
         }
-
         self.current = new_element;
     }
 
-    fn calculate_rows(&mut self, size: Vec2) {
+    fn calculate_lines(&mut self, size: Vec2) {
+        // calculate the lines with the given size
         self.lines = LinesIterator::new(&self.content, size.x).collect();
     }
 
     fn set_article(&mut self, article: Article) {
+        // render the new article
         self.render(article);
     }
 }
@@ -125,14 +126,14 @@ impl View for ArticleView {
     }
 
     fn layout(&mut self, size: Vec2) {
-        // set the new width and calculate the rows
+        // set the new width and calculate the lines
         self.width = size.x;
-        self.content.calculate_rows(size);
+        self.content.calculate_lines(size);
     }
 
     fn required_size(&mut self, size: Vec2) -> Vec2 {
-        // calculate the rows with the given size and return the dimensions of the view
-        self.content.calculate_rows(size);
+        // calculate the lines with the given size and return the dimensions of the view
+        self.content.calculate_lines(size);
 
         Vec2::new(self.width, self.content.lines.len())
     }
