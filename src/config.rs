@@ -40,7 +40,7 @@ impl Config {
         // initialize the struct with the defaults
         let mut config = Config {
             api_config: ApiConfig {
-                base_url: "https://en.wikipedia.org/w/api.php".to_string(),
+                base_url: "https://en.wikipedia.org/".to_string(),
             },
             theme: Theme {
                 background: Color::Dark(BaseColor::White),

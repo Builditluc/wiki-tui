@@ -58,8 +58,8 @@ C:\Users\{USERNAME}\wiki-tui\config.ini
 ### Settings
 #### Api
 ```ini
-; this is the url of the Api, wiki-tui uses to interact with Wikipedia
-BASE_URL = "https://en.wikipedia.org/w/api.php"
+; this is the url of wikipedia, it can be changed to change the language of wikipedia 
+BASE_URL = "https://en.wikipedia.org/"
 ```
 #### Theme
 The settings here are all colors and can be set by either the name of the color or a hex string (valid formats are: `#ffffff`, `#fff`). If your color wasn't applied, check the logs to find out why.

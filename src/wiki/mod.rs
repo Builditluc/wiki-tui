@@ -37,7 +37,7 @@ impl WikiApi {
     ) -> search::SearchResponse {
         // creating the url for the request
         let mut url = format!(
-            "{}?action=query&list=search&srwhat=text&srsearch={}&format=json",
+            "{}/w/api.php?action=query&list=search&srwhat=text&srsearch={}&format=json",
             CONFIG.api_config.base_url.clone(),
             title
         );
@@ -46,7 +46,7 @@ impl WikiApi {
             let continue_unwrapped = continue_code.unwrap();
             let continue_code_unwrapped = &continue_unwrapped.continue_code;
             let continue_scroll_offset_unwrapped = continue_unwrapped.scroll_offset;
-            url = format!("{}?action=query&list=search&srwhat=text&srsearch={}&format=json&continue={}&sroffset={}", CONFIG.api_config.base_url.clone(), title, continue_code_unwrapped, continue_scroll_offset_unwrapped);
+            url = format!("{}/w/api.php?action=query&list=search&srwhat=text&srsearch={}&format=json&continue={}&sroffset={}", CONFIG.api_config.base_url.clone(), title, continue_code_unwrapped, continue_scroll_offset_unwrapped);
         }
 
         // making the request
@@ -85,7 +85,7 @@ impl WikiApi {
 
     pub fn get_article(&self, page_id: &i32) -> article::Article {
         // creating the url and making the request
-        let url = format!("http://en.wikipedia.org/?curid={}", page_id);
+        let url = format!("{}?curid={}", CONFIG.api_config.base_url.clone(), page_id);
         let article_html = self.client.get(&url).send().unwrap();
 
         // parsing the html response into a Article
