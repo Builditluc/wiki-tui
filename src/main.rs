@@ -111,7 +111,7 @@ fn on_search(siv: &mut Cursive, search_query: String) {
     // create the button which continues the search when clicked
     let query = search_query.to_string();
     let search_continue_button = Button::new("Show more results...", move |s| {
-        continue_search(s, query.clone(), &search_response.continue_code)
+        continue_search(s, query.clone(), &search_response.clone().continue_code)
     })
     .with_name("search_continue_button");
 
@@ -122,7 +122,8 @@ fn on_search(siv: &mut Cursive, search_query: String) {
                 .child(
                     search_results_view
                         .with_name("search_results_view")
-                        .scrollable(),
+                        .scrollable()
+                        .min_height(10),
                 )
                 .child(search_continue_button),
         ))
@@ -211,6 +212,12 @@ fn continue_search(
     search_query: String,
     continue_code: &wiki::search::ContinueCode,
 ) {
+    // if there is no valid continue code, abort
+    if continue_code.continue_code == "".to_string() {
+        warn!("[main::continue_search] Invalid continue code, aborting search");
+        return;
+    }
+
     // get more search results from wikipedia and find the search_results_view
     let wiki: &wiki::WikiApi = siv.user_data().unwrap();
     let search_response = wiki.continue_search(&search_query, continue_code);
@@ -236,8 +243,10 @@ fn continue_search(
         .context("Failed to focus the search results view");
 
     match result {
-        Ok(_) => log::info!("Successfully focussed the search results view"),
-        Err(error) => log::warn!("{:?}", error),
+        Ok(_) => {
+            log::info!("[main::continue_search] Successfully focussed the search results view")
+        }
+        Err(error) => log::warn!("[main::continue_search] {:?}", error),
     }
 }
 
