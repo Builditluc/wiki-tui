@@ -3,6 +3,7 @@ use serde::*;
 #[derive(Deserialize, Debug, Clone)]
 pub struct SearchResponse {
     #[serde(rename = "continue")]
+    #[serde(default)]
     pub continue_code: ContinueCode,
     pub query: QuerySearch,
 }
@@ -38,4 +39,13 @@ pub struct SearchResult {
 pub struct SearchInfo {
     #[serde(rename = "totalhits")]
     pub total_hits: i32,
+}
+
+impl Default for ContinueCode {
+    fn default() -> ContinueCode {
+        ContinueCode {
+            continue_code: "".to_string(),
+            scroll_offset: 0,
+        }
+    }
 }
