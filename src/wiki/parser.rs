@@ -1,14 +1,14 @@
 use crate::wiki::article::*;
 
 pub trait Parser {
-    fn parse(&self, html: reqwest::blocking::Response) -> Article;
+    fn parse(&self, html: reqwest::blocking::Response) -> ParsedArticle;
 }
 
 pub struct Default;
 impl Parser for Default {
-    fn parse(&self, html: reqwest::blocking::Response) -> Article {
+    fn parse(&self, html: reqwest::blocking::Response) -> ParsedArticle {
         use select::document::Document;
-        use select::predicate::Class;
+        use select::predicate::{Class, Name, Predicate};
 
         let mut content: Vec<ArticleElement> = Vec::new();
         let document = Document::from_read(html).unwrap();
@@ -68,7 +68,17 @@ impl Parser for Default {
                 }
             }
         }
+
+        // now get the categories of the article
+        let categories_list: Vec<String> = document
+            .find(Class("mw-normal-catlinks").child(Name("ul")))
+            .map(|category| category.text())
+            .collect();
+
         log::info!("[wiki::parser::Default::parse] Finished parsing the article");
-        Article { elements: content }
+        ParsedArticle {
+            article: Article { elements: content },
+            categories: categories_list,
+        }
     }
 }
