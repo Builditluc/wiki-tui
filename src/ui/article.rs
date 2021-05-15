@@ -18,6 +18,7 @@ struct ArticleContent {
     lines: Vec<Row>,
     current: usize,
     elements_count: usize,
+    last_size: Vec2,
 }
 
 impl ArticleContent {
@@ -27,6 +28,7 @@ impl ArticleContent {
             lines: Vec::new(),
             current: 0,
             elements_count: 0,
+            last_size: Vec2::max_value(),
         }
     }
 
@@ -109,6 +111,10 @@ impl ArticleView {
     }
 
     fn calculate_lines(&mut self, size: Vec2) {
+        if self.content.last_size == size {
+            return;
+        }
+
         self.content.calculate_lines(size);
 
         self.width = if self.content.lines.iter().any(|line| line.is_wrapped) {
@@ -120,14 +126,29 @@ impl ArticleView {
                 .map(|line| line.width)
                 .max()
                 .unwrap_or(0)
-        }
+        };
+
+        self.content.last_size = size;
     }
 }
 
 impl View for ArticleView {
     fn draw(&self, printer: &Printer) {
+        let miny = printer.content_offset.y;
+        let maxy = printer.output_size.y + printer.content_offset.y;
+
+        info!("min: {}, max: {}", miny, maxy);
         // got through every row and print it to the screen
         for (y, line) in self.content.lines.iter().enumerate() {
+            if y < miny || y >= maxy {
+                if y >= maxy {
+                    break;
+                }
+                warn!("Outside of bounds, y: {}", y);
+                continue;
+            }
+
+            info!("Inside of bounds, y: {}", y);
             let mut x = 0;
             for span in line.resolve(&self.content.content) {
                 // print every span in a line with it's style and increase the x
