@@ -107,6 +107,21 @@ impl ArticleView {
     pub fn set_article(&mut self, article: Article) {
         self.content.set_article(article)
     }
+
+    fn calculate_lines(&mut self, size: Vec2) {
+        self.content.calculate_lines(size);
+
+        self.width = if self.content.lines.iter().any(|line| line.is_wrapped) {
+            size.x
+        } else {
+            self.content
+                .lines
+                .iter()
+                .map(|line| line.width)
+                .max()
+                .unwrap_or(0)
+        }
+    }
 }
 
 impl View for ArticleView {
@@ -127,13 +142,12 @@ impl View for ArticleView {
 
     fn layout(&mut self, size: Vec2) {
         // set the new width and calculate the lines
-        self.width = size.x;
-        self.content.calculate_lines(size);
+        self.calculate_lines(size);
     }
 
     fn required_size(&mut self, size: Vec2) -> Vec2 {
         // calculate the lines with the given size and return the dimensions of the view
-        self.content.calculate_lines(size);
+        self.calculate_lines(size);
 
         Vec2::new(self.width, self.content.lines.len())
     }

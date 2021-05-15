@@ -57,12 +57,27 @@ fn main() {
         .full_screen()
         .scrollable();
 
+    let article_categories_view = Dialog::around(
+        SelectView::<String>::new()
+            .with_name("article_categories_view")
+            .scrollable(),
+    )
+    .title("Categories")
+    .full_height()
+    .max_width(25)
+    .scrollable();
+
+    let article_layout = LinearLayout::horizontal()
+        .child(article_view)
+        .child(LinearLayout::vertical().child(article_categories_view));
+
     // Add a fullscreen layer, containing the search bar and the article view
+    //
     siv.add_fullscreen_layer(
         Dialog::around(
             LinearLayout::vertical()
                 .child(search_layout)
-                .child(Dialog::around(article_view)),
+                .child(Dialog::around(article_layout)),
         )
         .title("wiki-tui")
         .button("Quit", Cursive::quit)
@@ -111,7 +126,7 @@ fn on_search(siv: &mut Cursive, search_query: String) {
     // create the button which continues the search when clicked
     let query = search_query.to_string();
     let search_continue_button = Button::new("Show more results...", move |s| {
-        continue_search(s, query.clone(), &search_response.continue_code)
+        continue_search(s, query.clone(), &search_response.clone().continue_code)
     })
     .with_name("search_continue_button");
 
@@ -122,7 +137,8 @@ fn on_search(siv: &mut Cursive, search_query: String) {
                 .child(
                     search_results_view
                         .with_name("search_results_view")
-                        .scrollable(),
+                        .scrollable()
+                        .min_height(10),
                 )
                 .child(search_continue_button),
         ))
@@ -179,20 +195,24 @@ fn on_article_submit(siv: &mut Cursive, article_preview: &ui::models::ArticleRes
     // remove the results layer
     siv.pop_layer();
 
-    // show the loading box
-    siv.add_layer(message_box("Loading", "Loading the article"));
-
     // get the article from wikipedia
-    // and set the contents of the article_view to the article
     let wiki: &wiki::WikiApi = siv.user_data().unwrap();
-    let article = wiki.get_article(&article_preview.page_id);
+    let parsed_article = wiki.get_article(&article_preview.page_id);
 
-    // after the loading, remove the box
-    siv.pop_layer();
+    // set the contents of the article_categories_view to the article categories
+    siv.call_on_name(
+        "article_categories_view",
+        |view: &mut SelectView<String>| {
+            log::info!("[main::on_article_submit] Trying to set the contents of the article categories view");
+            view.clear();
+            view.add_all_str(parsed_article.categories.iter());
+        },
+    );
 
+    // set the contents of the article_view to the article
     siv.call_on_name("article_view", |view: &mut ui::article::ArticleView| {
         log::info!("[main::on_article_submit] Setting the content of the article view");
-        view.set_article(article);
+        view.set_article(parsed_article.clone().article);
     });
 
     // focus the article view
@@ -211,6 +231,12 @@ fn continue_search(
     search_query: String,
     continue_code: &wiki::search::ContinueCode,
 ) {
+    // if there is no valid continue code, abort
+    if continue_code.continue_code == "".to_string() {
+        warn!("[main::continue_search] Invalid continue code, aborting search");
+        return;
+    }
+
     // get more search results from wikipedia and find the search_results_view
     let wiki: &wiki::WikiApi = siv.user_data().unwrap();
     let search_response = wiki.continue_search(&search_query, continue_code);
@@ -236,15 +262,11 @@ fn continue_search(
         .context("Failed to focus the search results view");
 
     match result {
-        Ok(_) => log::info!("Successfully focussed the search results view"),
-        Err(error) => log::warn!("{:?}", error),
+        Ok(_) => {
+            log::info!("[main::continue_search] Successfully focussed the search results view")
+        }
+        Err(error) => log::warn!("[main::continue_search] {:?}", error),
     }
-}
-
-fn message_box(title: &str, message: &str) -> Dialog {
-    Dialog::around(TextView::new(message))
-        .title(title)
-        .title_position(cursive::align::HAlign::Center)
 }
 
 fn get_color_palette() -> Palette {

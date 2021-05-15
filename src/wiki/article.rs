@@ -19,18 +19,27 @@ pub struct ArticleResult {
     pub content: String,
 }
 
+#[derive(Clone)]
 pub struct Article {
     pub elements: Vec<ArticleElement>,
 }
 
+#[derive(Clone)]
 pub struct ArticleElement {
     pub content: String,
     pub element_type: ArticleElementType,
     pub link_target: Option<String>,
 }
 
+#[derive(Clone)]
 pub enum ArticleElementType {
     Link,
     Text,
     Header,
+}
+
+#[derive(Clone)]
+pub struct ParsedArticle {
+    pub article: Article,
+    pub categories: Vec<String>,
 }
