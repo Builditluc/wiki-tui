@@ -63,8 +63,9 @@ fn main() {
             .scrollable(),
     )
     .title("Categories")
-    .min_width(20)
-    .full_height();
+    .full_height()
+    .max_width(25)
+    .scrollable();
 
     let article_layout = LinearLayout::horizontal()
         .child(article_view)
