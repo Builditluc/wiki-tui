@@ -128,6 +128,9 @@ fn on_search(siv: &mut Cursive, search_query: String) {
         search_results_view.add_item(search_result.title.to_string(), search_result);
     }
 
+    // store the first search result to preview it
+    let first_search_result = Some(search_results_view.iter().next().unwrap().1.clone());
+
     // create the button which continues the search when clicked
     let query = search_query.to_string();
     let search_continue_button = Button::new("Show more results...", move |s| {
@@ -160,6 +163,12 @@ fn on_search(siv: &mut Cursive, search_query: String) {
         .button("Quit", Cursive::quit)
         .max_height(20),
     );
+
+    siv.cb_sink()
+        .send(Box::new(|s| {
+            on_result_select(s, &first_search_result.unwrap());
+        }))
+        .unwrap();
 }
 
 fn on_result_select(siv: &mut Cursive, item: &ui::models::ArticleResultPreview) {

@@ -1,5 +1,6 @@
 use crate::wiki::search::SearchResult;
 
+#[derive(Clone)]
 pub struct ArticleResultPreview {
     pub page_id: i32,
     pub snippet: String,
