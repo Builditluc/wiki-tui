@@ -138,6 +138,7 @@ impl ArticleView {
             return;
         }
 
+        warn!("Calculating new lines");
         self.lines = LinesIterator::new(&self.content.content.content_value, size.x).collect();
 
         self.width = if self.lines.iter().any(|line| line.is_wrapped) {
