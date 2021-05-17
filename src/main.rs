@@ -101,6 +101,11 @@ fn on_search(siv: &mut Cursive, search_query: String) {
     // Search wikipedia for the search query and the response
     let search_response = wiki.search(&search_query);
 
+    // clear the search bar
+    siv.call_on_name("search_bar", |view: &mut EditView| {
+        view.set_content("");
+    });
+
     // Create the views
     let mut search_results_view = SelectView::<ui::models::ArticleResultPreview>::new()
         .on_select(|s, item| on_result_select(s, item))
