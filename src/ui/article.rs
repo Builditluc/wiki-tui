@@ -138,7 +138,7 @@ impl ArticleView {
             return;
         }
 
-        warn!("Calculating new lines");
+        info!("calculate_rows was called with the size {:?}", size);
         self.lines = LinesIterator::new(&self.content.content.content_value, size.x).collect();
 
         self.width = if self.lines.iter().any(|line| line.is_wrapped) {
@@ -180,8 +180,8 @@ impl View for ArticleView {
     }
 
     fn layout(&mut self, size: Vec2) {
-        warn!("Layout was called");
         // set the new width and calculate the lines
+        info!("layout was called with the size {:?}", size);
         self.last_size = size;
         self.calculate_lines(size);
 
@@ -191,6 +191,7 @@ impl View for ArticleView {
 
     fn required_size(&mut self, size: Vec2) -> Vec2 {
         // calculate the lines with the given size and return the dimensions of the view
+        info!("required_size was called with the size {:?}", size);
         self.calculate_lines(size);
 
         Vec2::new(self.width.unwrap_or(0), self.lines.len())

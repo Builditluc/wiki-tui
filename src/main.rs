@@ -57,22 +57,9 @@ fn main() {
         .full_screen()
         .scrollable();
 
-    let article_categories_view = Dialog::around(
-        SelectView::<String>::new()
-            .with_name("article_categories_view")
-            .scrollable(),
-    )
-    .title("Categories")
-    .full_height()
-    .max_width(25)
-    .scrollable();
-
-    let article_layout = LinearLayout::horizontal()
-        .child(article_view)
-        .child(LinearLayout::vertical().child(article_categories_view));
+    let article_layout = LinearLayout::horizontal().child(article_view);
 
     // Add a fullscreen layer, containing the search bar and the article view
-    //
     siv.add_fullscreen_layer(
         Dialog::around(
             LinearLayout::vertical()
@@ -212,16 +199,6 @@ fn on_article_submit(siv: &mut Cursive, article_preview: &ui::models::ArticleRes
     // get the article from wikipedia
     let wiki: &wiki::WikiApi = siv.user_data().unwrap();
     let parsed_article = wiki.get_article(&article_preview.page_id);
-
-    // set the contents of the article_categories_view to the article categories
-    siv.call_on_name(
-        "article_categories_view",
-        |view: &mut SelectView<String>| {
-            log::info!("[main::on_article_submit] Trying to set the contents of the article categories view");
-            view.clear();
-            view.add_all_str(parsed_article.categories.iter());
-        },
-    );
 
     // set the contents of the article_view to the article
     siv.call_on_name("article_view", |view: &mut ui::article::ArticleView| {
