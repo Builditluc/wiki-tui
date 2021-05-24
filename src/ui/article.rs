@@ -1,8 +1,6 @@
 use crate::config::CONFIG;
 use crate::wiki::article::*;
 use cursive::align::Align;
-use cursive::direction::Direction;
-use cursive::event::*;
 use cursive::theme::{BaseColor, Color, Effect, Style};
 use cursive::utils::lines::spans::*;
 use cursive::utils::markup::StyledString;
@@ -21,13 +19,15 @@ pub struct ArticleView {
 struct ArticleContent {
     content: ArticleContentInner,
 
-    current: usize,
     elements_count: usize,
 }
 
 struct ArticleContentInner {
     content_value: StyledString,
     size_cache: Option<XY<SizeCache>>,
+
+    // cache more values to improve performance
+    historical_caches: Vec<(Vec2, Vec2)>,
 }
 
 impl ArticleContentInner {
@@ -45,9 +45,8 @@ impl ArticleContent {
             content: ArticleContentInner {
                 content_value: content,
                 size_cache: None,
+                historical_caches: Vec::new(),
             },
-
-            current: 0,
             elements_count: 0,
         }
     }
@@ -90,23 +89,12 @@ impl ArticleContent {
         self.content.content_value = rendered_article;
     }
 
-    fn change_current_element(&mut self, new_element: usize) {
-        // go through every span in the content
-        for (idx, span) in self.content.content_value.spans_raw_attr_mut().enumerate() {
-            if idx == self.current {
-                // remove the highlight for the previous selected span
-                *span.attr = span.attr.combine(CONFIG.theme.text);
-            } else if idx == new_element {
-                // highlight the new selected span
-                *span.attr = span.attr.combine(CONFIG.theme.highlight);
-            }
-        }
-        self.current = new_element;
-    }
-
     fn set_article(&mut self, article: Article) {
         // render the new article
         self.render(article);
+
+        // after rendering, flush the caches to prevent crashes
+        self.content.historical_caches.clear();
     }
 }
 
@@ -180,21 +168,46 @@ impl View for ArticleView {
     }
 
     fn layout(&mut self, size: Vec2) {
+        warn!("Layout was called");
+        error!(
+            "historical_caches: {}",
+            self.content.content.historical_caches.len()
+        );
+        // is this the same size as before? stop recalculating things!
+        if self.last_size == size {
+            return;
+        }
+
         // set the new width and calculate the lines
-        info!("layout was called with the size {:?}", size);
         self.last_size = size;
         self.calculate_lines(size);
 
         let my_size = Vec2::new(self.width.unwrap_or(0), self.lines.len());
         self.content.content.size_cache = Some(SizeCache::build(my_size, size));
+        self.content.content.historical_caches.clear();
     }
 
     fn required_size(&mut self, size: Vec2) -> Vec2 {
-        // calculate the lines with the given size and return the dimensions of the view
-        info!("required_size was called with the size {:?}", size);
-        self.calculate_lines(size);
+        info!("RequiredSize was called with the size: {:?}", size);
+        // do we already have the required size calculated and cached?
+        for previous_size in self.content.content.historical_caches.iter() {
+            let req_size = previous_size.0;
+            if req_size == size {
+                return previous_size.1;
+            }
+        }
 
-        Vec2::new(self.width.unwrap_or(0), self.lines.len())
+        info!("Recalculating Size");
+        // if we don't have the size calculated, calculate it and add it to the cache
+        self.calculate_lines(size);
+        let required_size = Vec2::new(self.width.unwrap_or(0), self.lines.len());
+
+        self.content
+            .content
+            .historical_caches
+            .insert(0, (size, required_size));
+
+        required_size
     }
 
     fn needs_relayout(&self) -> bool {
