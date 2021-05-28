@@ -100,6 +100,13 @@ fn on_search(siv: &mut Cursive, search_query: String) {
     // Search wikipedia for the search query and the response
     let search_response = wiki.search(&search_query);
 
+    // are there any results?
+    let mut search_results_exist = true;
+    if search_response.continue_code.continue_code == "".to_string() {
+        search_results_exist = false;
+        log::warn!("[main::on_search] No articles were found with the given query");
+    }
+
     // clear the search bar
     siv.call_on_name("search_bar", |view: &mut EditView| {
         view.set_content("");
@@ -128,7 +135,11 @@ fn on_search(siv: &mut Cursive, search_query: String) {
     }
 
     // store the first search result to preview it
-    let first_search_result = Some(search_results_view.iter().next().unwrap().1.clone());
+    let first_search_result = if search_results_exist {
+        Some(search_results_view.iter().next().unwrap().1.clone())
+    } else {
+        None
+    };
 
     // create the button which continues the search when clicked
     let query = search_query.to_string();
@@ -163,11 +174,13 @@ fn on_search(siv: &mut Cursive, search_query: String) {
         .max_height(20),
     );
 
-    siv.cb_sink()
-        .send(Box::new(|s| {
-            on_result_select(s, &first_search_result.unwrap());
-        }))
-        .unwrap();
+    if search_results_exist {
+        siv.cb_sink()
+            .send(Box::new(|s| {
+                on_result_select(s, &first_search_result.unwrap());
+            }))
+            .unwrap();
+    }
 }
 
 fn on_result_select(siv: &mut Cursive, item: &ui::models::ArticleResultPreview) {
