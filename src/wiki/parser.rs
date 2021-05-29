@@ -8,7 +8,7 @@ pub struct Default;
 impl Parser for Default {
     fn parse(&self, html: reqwest::blocking::Response) -> ParsedArticle {
         use select::document::Document;
-        use select::predicate::{Class, Name, Predicate};
+        use select::predicate::Class;
 
         let mut content: Vec<ArticleElement> = Vec::new();
         let document = Document::from_read(html).unwrap();
@@ -69,16 +69,9 @@ impl Parser for Default {
             }
         }
 
-        // now get the categories of the article
-        let categories_list: Vec<String> = document
-            .find(Class("mw-normal-catlinks").child(Name("ul")))
-            .map(|category| category.text())
-            .collect();
-
         log::info!("[wiki::parser::Default::parse] Finished parsing the article");
         ParsedArticle {
             article: Article { elements: content },
-            categories: categories_list,
         }
     }
 }

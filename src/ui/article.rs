@@ -95,6 +95,7 @@ impl ArticleContent {
 
         // after rendering, flush the caches to prevent crashes
         self.content.historical_caches.clear();
+        self.content.size_cache = None;
     }
 }
 
