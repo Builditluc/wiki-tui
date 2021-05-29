@@ -41,5 +41,4 @@ pub enum ArticleElementType {
 #[derive(Clone)]
 pub struct ParsedArticle {
     pub article: Article,
-    pub categories: Vec<String>,
 }

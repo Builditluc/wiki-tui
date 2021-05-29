@@ -22,6 +22,7 @@ impl WikiApi {
     pub fn search(&self, title: &str) -> search::SearchResponse {
         self.search_articles(title, None)
     }
+
     pub fn continue_search(
         &self,
         title: &str,

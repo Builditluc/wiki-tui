@@ -57,26 +57,12 @@ fn main() {
         .full_screen()
         .scrollable();
 
-    let article_categories_view = Dialog::around(
-        SelectView::<String>::new()
-            .with_name("article_categories_view")
-            .scrollable(),
-    )
-    .title("Categories")
-    .full_height()
-    .max_width(25)
-    .scrollable();
-
-    let article_layout = LinearLayout::horizontal()
-        .child(article_view)
-        .child(LinearLayout::vertical().child(article_categories_view));
-
     // Add a fullscreen layer, containing the search bar and the article view
     siv.add_fullscreen_layer(
         Dialog::around(
             LinearLayout::vertical()
                 .child(search_layout)
-                .child(Dialog::around(article_layout)),
+                .child(Dialog::around(article_view)),
         )
         .title("wiki-tui")
         .button("Quit", Cursive::quit)
@@ -99,6 +85,13 @@ fn on_search(siv: &mut Cursive, search_query: String) {
 
     // Search wikipedia for the search query and the response
     let search_response = wiki.search(&search_query);
+
+    // are there any results?
+    let mut search_results_exist = true;
+    if search_response.continue_code.continue_code == "".to_string() {
+        search_results_exist = false;
+        log::warn!("[main::on_search] No articles were found with the given query");
+    }
 
     // clear the search bar
     siv.call_on_name("search_bar", |view: &mut EditView| {
@@ -128,7 +121,11 @@ fn on_search(siv: &mut Cursive, search_query: String) {
     }
 
     // store the first search result to preview it
-    let first_search_result = Some(search_results_view.iter().next().unwrap().1.clone());
+    let first_search_result = if search_results_exist {
+        Some(search_results_view.iter().next().unwrap().1.clone())
+    } else {
+        None
+    };
 
     // create the button which continues the search when clicked
     let query = search_query.to_string();
@@ -163,11 +160,13 @@ fn on_search(siv: &mut Cursive, search_query: String) {
         .max_height(20),
     );
 
-    siv.cb_sink()
-        .send(Box::new(|s| {
-            on_result_select(s, &first_search_result.unwrap());
-        }))
-        .unwrap();
+    if search_results_exist {
+        siv.cb_sink()
+            .send(Box::new(|s| {
+                on_result_select(s, &first_search_result.unwrap());
+            }))
+            .unwrap();
+    }
 }
 
 fn on_result_select(siv: &mut Cursive, item: &ui::models::ArticleResultPreview) {
@@ -211,16 +210,6 @@ fn on_article_submit(siv: &mut Cursive, article_preview: &ui::models::ArticleRes
     // get the article from wikipedia
     let wiki: &wiki::WikiApi = siv.user_data().unwrap();
     let parsed_article = wiki.get_article(&article_preview.page_id);
-
-    // set the contents of the article_categories_view to the article categories
-    siv.call_on_name(
-        "article_categories_view",
-        |view: &mut SelectView<String>| {
-            log::info!("[main::on_article_submit] Trying to set the contents of the article categories view");
-            view.clear();
-            view.add_all_str(parsed_article.categories.iter());
-        },
-    );
 
     // set the contents of the article_view to the article
     siv.call_on_name("article_view", |view: &mut ui::article::ArticleView| {

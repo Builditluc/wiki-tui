@@ -95,6 +95,7 @@ impl ArticleContent {
 
         // after rendering, flush the caches to prevent crashes
         self.content.historical_caches.clear();
+        self.content.size_cache = None;
     }
 }
 
@@ -116,17 +117,12 @@ impl ArticleView {
     }
 
     fn calculate_lines(&mut self, size: Vec2) {
-        if self.content.content.is_chache_valid(size) {
+        if self.content.content.is_chache_valid(size) || size.x == 0 {
             return;
         }
 
         self.content.content.size_cache = None;
 
-        if size.x == 0 {
-            return;
-        }
-
-        info!("calculate_rows was called with the size {:?}", size);
         self.lines = LinesIterator::new(&self.content.content.content_value, size.x).collect();
 
         self.width = if self.lines.iter().any(|line| line.is_wrapped) {
@@ -168,11 +164,6 @@ impl View for ArticleView {
     }
 
     fn layout(&mut self, size: Vec2) {
-        warn!("Layout was called");
-        error!(
-            "historical_caches: {}",
-            self.content.content.historical_caches.len()
-        );
         // is this the same size as before? stop recalculating things!
         if self.last_size == size {
             return;
@@ -188,7 +179,6 @@ impl View for ArticleView {
     }
 
     fn required_size(&mut self, size: Vec2) -> Vec2 {
-        info!("RequiredSize was called with the size: {:?}", size);
         // do we already have the required size calculated and cached?
         for previous_size in self.content.content.historical_caches.iter() {
             let req_size = previous_size.0;
@@ -197,8 +187,8 @@ impl View for ArticleView {
             }
         }
 
-        info!("Recalculating Size");
         // if we don't have the size calculated, calculate it and add it to the cache
+        info!("[ui::article::AritlceView::required_size] Recalculating Size");
         self.calculate_lines(size);
         let required_size = Vec2::new(self.width.unwrap_or(0), self.lines.len());
 
