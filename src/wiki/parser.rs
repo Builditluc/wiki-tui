@@ -62,6 +62,22 @@ impl Parser for Default {
                         "div" if children.is(Class("reflist")) => {
                             log::info!("[wiki::parser::Default::parse] Added the Reference List to the article content");
                         }
+                        // if it's a list, add every element to the current paragraph
+                        "ul" => {
+                            let mut list_string = "".to_string();
+                            // go through every element in the list and add it
+                            for element in children.children() {
+                                if element.name().unwrap_or("") == "li" {
+                                    list_string = list_string + "\t- " + &element.text() + "\n";
+                                }
+                            }
+                            content.push(ArticleElement {
+                                content: list_string,
+                                element_type: ArticleElementType::Text,
+                                link_target: None,
+                            });
+                            log::info!("[wiki::parser::Default::parse] Added a list to the article content");
+                        }
                         // if it's any other html element, skip it
                         _ => continue,
                     }
