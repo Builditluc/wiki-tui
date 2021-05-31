@@ -22,11 +22,14 @@
 
 ### Features
 `wiki-tui` currently has these features:
-<ul>
-  <li>Search through Wikipedia (currently english only!) and read articles in the terminal</li>
-  <li>Load more search results</li>
-  <li>Preview the search results with highlighting of the search query</li>
-</ul>
+- Browse through Wikipedia (Set the language by changing the url in the config)
+- With webscraping and a custom made view the article is shown almost as perfect as on the wikipedia website
+
+
+`wiki-tui` currently has these features planned:
+- View more elements of wikipedia articles (like tables, images, etc.) and display them
+- Use links to show another article
+- And many more...
 
 ### How it looks
 
