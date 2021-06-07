@@ -23,13 +23,12 @@
 ### Features
 `wiki-tui` currently has these features:
 - Browse through Wikipedia (Set the language by changing the url in the config)
-- With webscraping and a custom made view the article is shown almost as perfect as on the wikipedia website
+- Uses webscraping and a custom view to display wikipedia articles in the terminal
 
 
-`wiki-tui` currently has these features planned:
-- View more elements of wikipedia articles (like tables, images, etc.) and display them
-- Use links to show another article
-- And many more...
+These features are planned:
+- View and interact with more elements of wikipedia articles (like tables, images, etc.)
+- Use links to open other articles
 
 ### How it looks
 
