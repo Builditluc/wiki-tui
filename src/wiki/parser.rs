@@ -1,4 +1,7 @@
 use crate::wiki::article::*;
+use select::document::Document;
+use select::node::Node;
+use select::predicate::Class;
 
 pub trait Parser {
     fn parse(&self, html: reqwest::blocking::Response) -> ParsedArticle;
@@ -7,9 +10,6 @@ pub trait Parser {
 pub struct Default;
 impl Parser for Default {
     fn parse(&self, html: reqwest::blocking::Response) -> ParsedArticle {
-        use select::document::Document;
-        use select::predicate::Class;
-
         let mut content: Vec<ArticleElement> = Vec::new();
         let document = Document::from_read(html).unwrap();
         log::info!("[wiki::parser::Default::parse] Loaded the HTML document");
@@ -48,13 +48,7 @@ impl Parser for Default {
                         // if it's a paragraph, add it to the context with only ONE Linebreak at
                         // the end
                         "p" => {
-                            let text = children.text();
-
-                            content.push(ArticleElement {
-                                content: text,
-                                element_type: ArticleElementType::Text,
-                                link_target: None,
-                            });
+                            content.append(&mut self.parse_child(children));
                             log::info!("[wiki::parser::Default::parse] Added a paragraph to the article content");
                         }
                         // if it's a div with the class "reflist", add it to the current paragraph
@@ -89,5 +83,45 @@ impl Parser for Default {
         ParsedArticle {
             article: Article { elements: content },
         }
+    }
+}
+
+impl Default {
+    fn parse_child(&self, element: Node) -> Vec<ArticleElement> {
+        let mut content: Vec<ArticleElement> = Vec::new();
+
+        // go through every elements inside of the element
+        for children in element.children() {
+            log::info!(
+                "[wiki::parser::Default::parse_child] Iterating now over the node {:?}",
+                element.name()
+            );
+
+            match children.name().unwrap_or_else(|| "") {
+                "a" => content.push(ArticleElement {
+                    content: children.text(),
+                    element_type: ArticleElementType::Link,
+                    link_target: None,
+                }),
+                "b" => content.push(ArticleElement {
+                    content: children.text(),
+                    element_type: ArticleElementType::Bold,
+                    link_target: None,
+                }),
+                "i" => content.push(ArticleElement {
+                    content: children.text(),
+                    element_type: ArticleElementType::Italic,
+                    link_target: None,
+                }),
+                "" => content.push(ArticleElement {
+                    content: children.text(),
+                    element_type: ArticleElementType::Text,
+                    link_target: None,
+                }),
+                _ => continue,
+            }
+        }
+
+        content
     }
 }

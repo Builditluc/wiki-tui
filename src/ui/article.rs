@@ -83,6 +83,24 @@ impl ArticleContent {
 
                     rendered_article.append(header_span);
                 }
+                // if its bold text, make it bold
+                ArticleElementType::Bold => {
+                    let bold_span = StyledString::styled(
+                        element.content,
+                        Style::from(CONFIG.theme.text).combine(Effect::Bold),
+                    );
+
+                    rendered_article.append(bold_span);
+                }
+                // if its italic text, make it italic
+                ArticleElementType::Italic => {
+                    let bold_span = StyledString::styled(
+                        element.content,
+                        Style::from(CONFIG.theme.text).combine(Effect::Italic),
+                    );
+
+                    rendered_article.append(bold_span);
+                }
             }
         }
 
