@@ -4,6 +4,7 @@
 [![MIT license](https://img.shields.io/github/license/Builditluc/wiki-tui?style=for-the-badge)](https://github.com/Builditluc/wiki-tui/blob/stable/LICENSE.txt)
 ![GitHub Workflow Status](https://img.shields.io/github/workflow/status/Builditluc/wiki-tui/Rust?style=for-the-badge)
 ![Lines of code](https://img.shields.io/tokei/lines/github/Builditluc/wiki-tui?style=for-the-badge)
+![wakatime](https://wakatime.com/badge/github/Builditluc/wiki-tui.svg?style=for-the-badge)
 
 <br />
 <p align="center">
