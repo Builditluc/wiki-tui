@@ -17,37 +17,21 @@ pub struct ArticleView {
 }
 
 struct ArticleContent {
-    content: ArticleContentInner,
-
-    elements_count: usize,
-}
-
-struct ArticleContentInner {
     content_value: StyledString,
+    elements_count: usize,
+
     size_cache: Option<XY<SizeCache>>,
-
-    // cache more values to improve performance
     historical_caches: Vec<(Vec2, Vec2)>,
-}
-
-impl ArticleContentInner {
-    fn is_chache_valid(&self, size: Vec2) -> bool {
-        match self.size_cache {
-            None => false,
-            Some(ref last) => last.x.accept(size.x) && last.y.accept(size.y),
-        }
-    }
 }
 
 impl ArticleContent {
     pub fn new(content: StyledString) -> ArticleContent {
         ArticleContent {
-            content: ArticleContentInner {
-                content_value: content,
-                size_cache: None,
-                historical_caches: Vec::new(),
-            },
+            content_value: content,
             elements_count: 0,
+
+            size_cache: None,
+            historical_caches: Vec::new(),
         }
     }
 
@@ -104,7 +88,7 @@ impl ArticleContent {
             }
         }
 
-        self.content.content_value = rendered_article;
+        self.content_value = rendered_article;
     }
 
     fn set_article(&mut self, article: Article) {
@@ -112,8 +96,15 @@ impl ArticleContent {
         self.render(article);
 
         // after rendering, flush the caches to prevent crashes
-        self.content.historical_caches.clear();
-        self.content.size_cache = None;
+        self.historical_caches.clear();
+        self.size_cache = None;
+    }
+
+    fn is_chache_valid(&self, size: Vec2) -> bool {
+        match self.size_cache {
+            None => false,
+            Some(ref last) => last.x.accept(size.x) && last.y.accept(size.y),
+        }
     }
 }
 
@@ -135,13 +126,13 @@ impl ArticleView {
     }
 
     fn calculate_lines(&mut self, size: Vec2) {
-        if self.content.content.is_chache_valid(size) || size.x == 0 {
+        if self.content.is_chache_valid(size) || size.x == 0 {
             return;
         }
 
-        self.content.content.size_cache = None;
+        self.content.size_cache = None;
 
-        self.lines = LinesIterator::new(&self.content.content.content_value, size.x).collect();
+        self.lines = LinesIterator::new(&self.content.content_value, size.x).collect();
 
         self.width = if self.lines.iter().any(|line| line.is_wrapped) {
             Some(size.x)
@@ -170,7 +161,7 @@ impl View for ArticleView {
             let l = line.width;
             let mut x = Align::top_left().h.get_offset(l, printer.size.x);
 
-            for span in line.resolve(&self.content.content.content_value) {
+            for span in line.resolve(&self.content.content_value) {
                 // print every span in a line with it's style and increase the x
                 // value by the width of the span to prevent overwriting a previous span
                 printer.with_style(*span.attr, |printer| {
@@ -192,13 +183,13 @@ impl View for ArticleView {
         self.calculate_lines(size);
 
         let my_size = Vec2::new(self.width.unwrap_or(0), self.lines.len());
-        self.content.content.size_cache = Some(SizeCache::build(my_size, size));
-        self.content.content.historical_caches.clear();
+        self.content.size_cache = Some(SizeCache::build(my_size, size));
+        self.content.historical_caches.clear();
     }
 
     fn required_size(&mut self, size: Vec2) -> Vec2 {
         // do we already have the required size calculated and cached?
-        for previous_size in self.content.content.historical_caches.iter() {
+        for previous_size in self.content.historical_caches.iter() {
             let req_size = previous_size.0;
             if req_size == size {
                 return previous_size.1;
@@ -211,7 +202,6 @@ impl View for ArticleView {
         let required_size = Vec2::new(self.width.unwrap_or(0), self.lines.len());
 
         self.content
-            .content
             .historical_caches
             .insert(0, (size, required_size));
 
@@ -219,6 +209,6 @@ impl View for ArticleView {
     }
 
     fn needs_relayout(&self) -> bool {
-        self.content.content.size_cache.is_none()
+        self.content.size_cache.is_none()
     }
 }
