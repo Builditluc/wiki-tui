@@ -2,33 +2,60 @@ use crate::config::CONFIG;
 use crate::wiki::article::*;
 use cursive::align::Align;
 use cursive::theme::{BaseColor, Color, Effect, Style};
-use cursive::utils::lines::spans::*;
 use cursive::utils::markup::StyledString;
 use cursive::view::*;
 use cursive::XY;
 use cursive::{Printer, Vec2};
 
+use crate::ui::article::links::*;
+
 pub struct ArticleView {
     content: ArticleContent,
-    lines: Vec<Row>,
 
     last_size: Vec2,
     width: Option<usize>,
 }
 
 struct ArticleContent {
-    content_value: StyledString,
+    elements: Vec<Element>,
+    elements_rendered: Vec<RenderedElement>,
     elements_count: usize,
+
+    lines: Vec<Line>,
+    link_handler: LinkHandler,
 
     size_cache: Option<XY<SizeCache>>,
     historical_caches: Vec<(Vec2, Vec2)>,
 }
 
+#[derive(Debug)]
+struct Element {
+    text: String,
+    style: Style,
+    width: usize,
+    link_index: Option<usize>,
+}
+
+struct RenderedElement {
+    text: String,
+    style: Style,
+    newline: bool,
+    link_destination: Option<String>,
+}
+
+type Line = Vec<Element>;
+
 impl ArticleContent {
     pub fn new(content: StyledString) -> ArticleContent {
+        // TODO: use the content somehow
+
         ArticleContent {
-            content_value: content,
+            elements: Vec::new(),
+            elements_rendered: Vec::new(),
             elements_count: 0,
+
+            lines: Vec::new(),
+            link_handler: LinkHandler::new(),
 
             size_cache: None,
             historical_caches: Vec::new(),
@@ -37,65 +64,144 @@ impl ArticleContent {
 
     fn render(&mut self, article: Article) {
         self.elements_count = article.elements.len();
-        let mut rendered_article = StyledString::new();
 
+        let mut rendered_article = Vec::new();
         // go trough every element in the article
         for element in article.elements.into_iter() {
             match element.element_type {
                 // if its a link, make it underlined
-                ArticleElementType::Link => {
-                    let link_span = StyledString::styled(
-                        element.content,
-                        Style::from(CONFIG.theme.text).combine(Effect::Underline),
-                    );
-
-                    rendered_article.append(link_span);
-                }
+                ArticleElementType::Link => rendered_article.push(RenderedElement {
+                    text: element.content,
+                    newline: false,
+                    style: Style::from(CONFIG.theme.text).combine(Effect::Underline),
+                    link_destination: element.link_target,
+                }),
                 // if its text, just append it to the rendered article
                 ArticleElementType::Text => {
-                    let text_span =
-                        StyledString::styled(element.content, Style::from(CONFIG.theme.text));
-
-                    rendered_article.append(text_span);
+                    for (idx, content) in element.content.split("\n").enumerate() {
+                        rendered_article.push(RenderedElement {
+                            text: content.to_string(),
+                            newline: if idx >= 1 { true } else { false },
+                            style: Style::from(CONFIG.theme.text),
+                            link_destination: element.link_target.clone(),
+                        })
+                    }
                 }
                 // if its a header, add some linebreaks and make the header bold
                 ArticleElementType::Header => {
-                    let header_span = StyledString::styled(
-                        format!("\n{}\n\n", element.content),
-                        Style::from(Color::Dark(BaseColor::Black)).combine(Effect::Bold),
-                    );
-
-                    rendered_article.append(header_span);
+                    for (idx, content) in
+                        format!("\n{}\n\n", element.content).split("\n").enumerate()
+                    {
+                        rendered_article.push(RenderedElement {
+                            text: content.to_string(),
+                            newline: if idx >= 1 { true } else { false },
+                            style: Style::from(Color::Dark(BaseColor::Black)).combine(Effect::Bold),
+                            link_destination: element.link_target.clone(),
+                        })
+                    }
                 }
                 // if its bold text, make it bold
                 ArticleElementType::Bold => {
-                    let bold_span = StyledString::styled(
-                        element.content,
-                        Style::from(CONFIG.theme.text).combine(Effect::Bold),
-                    );
-
-                    rendered_article.append(bold_span);
+                    for (idx, content) in element.content.split("\n").enumerate() {
+                        rendered_article.push(RenderedElement {
+                            text: content.to_string(),
+                            newline: if idx >= 1 { true } else { false },
+                            style: Style::from(CONFIG.theme.text).combine(Effect::Bold),
+                            link_destination: element.link_target.clone(),
+                        })
+                    }
                 }
                 // if its italic text, make it italic
                 ArticleElementType::Italic => {
-                    let bold_span = StyledString::styled(
-                        element.content,
-                        Style::from(CONFIG.theme.text).combine(Effect::Italic),
-                    );
-
-                    rendered_article.append(bold_span);
+                    for (idx, content) in element.content.split("\n").enumerate() {
+                        rendered_article.push(RenderedElement {
+                            text: content.to_string(),
+                            newline: if idx >= 1 { true } else { false },
+                            style: Style::from(CONFIG.theme.text).combine(Effect::Italic),
+                            link_destination: element.link_target.clone(),
+                        })
+                    }
                 }
             }
         }
 
-        self.content_value = rendered_article;
+        self.elements_rendered = rendered_article;
+    }
+
+    fn calculate_lines(&mut self, max_width: usize) -> Vec<Line> {
+        // the width of the line that is currently calculated
+        let mut line_width: usize = 0;
+
+        let mut lines: Vec<Line> = Vec::new();
+        let mut current_line: Vec<Element> = Vec::new();
+
+        // go through every rendered element
+        for element in self.elements_rendered.iter() {
+            // does the element fit inside of the current line?
+            if (line_width + element.text.chars().count()) < max_width && element.newline == false {
+                // add it to the current line
+                current_line.push(self.create_element(element, lines.len(), line_width));
+                line_width += element.text.chars().count();
+            } else {
+                // if not, add it to a new line
+                // TODO: add the element to the line
+
+                current_line.push(Element {
+                    text: " ".repeat(max_width - line_width).to_string(),
+                    style: Style::from(CONFIG.theme.text),
+                    width: 0,
+                    link_index: None,
+                });
+
+                log::info!("New line: {:?}", current_line);
+                line_width = 0;
+                lines.push(std::mem::replace(
+                    &mut current_line,
+                    vec![self.create_element(element, lines.len(), line_width)],
+                ));
+            }
+        }
+
+        lines.push(current_line);
+        lines
+    }
+
+    fn create_element(
+        &self,
+        element: &RenderedElement,
+        lines: usize,
+        line_width: usize,
+    ) -> Element {
+        let link_index = self.get_link_index(element, lines, line_width);
+
+        Element {
+            text: element.text.to_string(),
+            style: element.style,
+            width: element.text.chars().count(),
+            link_index,
+        }
+    }
+
+    fn get_link_index(
+        &self,
+        element: &RenderedElement,
+        lines: usize,
+        line_width: usize,
+    ) -> Option<usize> {
+        match element.link_destination {
+            Some(ref destination) => Some(self.link_handler.push(Link {
+                position: (line_width, lines).into(),
+                destination: destination.to_string(),
+            })),
+            None => None,
+        }
     }
 
     fn set_article(&mut self, article: Article) {
         // render the new article
         self.render(article);
 
-        // after rendering, flush the caches to prevent crashes
+        // after rendering, flush the caches
         self.historical_caches.clear();
         self.size_cache = None;
     }
@@ -115,7 +221,6 @@ impl ArticleView {
     {
         ArticleView {
             content: ArticleContent::new(content.into()),
-            lines: Vec::new(),
             last_size: Vec2::zero(),
             width: None,
         }
@@ -132,19 +237,19 @@ impl ArticleView {
 
         self.content.size_cache = None;
 
-        self.lines = LinesIterator::new(&self.content.content_value, size.x).collect();
-
-        self.width = if self.lines.iter().any(|line| line.is_wrapped) {
-            Some(size.x)
-        } else {
-            self.lines.iter().map(|line| line.width).max()
-        };
+        self.content.lines = self.content.calculate_lines(size.x - 1);
+        self.width = self
+            .content
+            .lines
+            .iter()
+            .map(|line| line.iter().map(|element| element.width).max().unwrap_or(0))
+            .max();
     }
 }
 
 impl View for ArticleView {
     fn draw(&self, printer: &Printer) {
-        let h = self.lines.len();
+        let h = self.content.lines.len();
 
         let offset = Align::top_left().v.get_offset(h, printer.size.y);
         let printer = &printer.offset((0, offset));
@@ -153,19 +258,19 @@ impl View for ArticleView {
         let maxy = printer.output_size.y + printer.content_offset.y;
 
         // got through every row and print it to the screen
-        for (y, line) in self.lines.iter().enumerate() {
+        for (y, line) in self.content.lines.iter().enumerate() {
             if y < miny || y >= maxy {
                 continue;
             }
 
-            let l = line.width;
+            let l = line.iter().map(|element| element.width).max().unwrap_or(0);
             let mut x = Align::top_left().h.get_offset(l, printer.size.x);
 
-            for span in line.resolve(&self.content.content_value) {
+            for span in line {
                 // print every span in a line with it's style and increase the x
                 // value by the width of the span to prevent overwriting a previous span
-                printer.with_style(*span.attr, |printer| {
-                    printer.print((x, y), &span.content);
+                printer.with_style(span.style, |printer| {
+                    printer.print((x, y), &span.text);
                     x += span.width;
                 });
             }
@@ -182,7 +287,7 @@ impl View for ArticleView {
         self.last_size = size;
         self.calculate_lines(size);
 
-        let my_size = Vec2::new(self.width.unwrap_or(0), self.lines.len());
+        let my_size = Vec2::new(self.width.unwrap_or(0), self.content.lines.len());
         self.content.size_cache = Some(SizeCache::build(my_size, size));
         self.content.historical_caches.clear();
     }
@@ -199,7 +304,7 @@ impl View for ArticleView {
         // if we don't have the size calculated, calculate it and add it to the cache
         info!("[ui::article::AritlceView::required_size] Recalculating Size");
         self.calculate_lines(size);
-        let required_size = Vec2::new(self.width.unwrap_or(0), self.lines.len());
+        let required_size = Vec2::new(self.width.unwrap_or(0), self.content.lines.len());
 
         self.content
             .historical_caches
