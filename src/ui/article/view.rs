@@ -129,6 +129,8 @@ impl ArticleContent {
     }
 
     fn calculate_lines(&mut self, max_width: usize) -> Vec<Line> {
+        // TODO This needs some improvemenet
+
         // the width of the line that is currently calculated
         let mut line_width: usize = 0;
 
@@ -140,12 +142,24 @@ impl ArticleContent {
             // does the element fit inside of the current line?
             if (line_width + element.text.chars().count()) < max_width && element.newline == false {
                 // add it to the current line
-                current_line.push(self.create_element(element, lines.len(), line_width));
+                let link_index = match element.link_destination {
+                    Some(ref destination) => Some(self.link_handler.push(Link {
+                        position: (line_width, lines.len()).into(),
+                        width: element.text.chars().count(),
+                        destination: destination.to_string(),
+                    })),
+                    None => None,
+                };
+
+                current_line.push(Element {
+                    text: element.text.to_string(),
+                    style: element.style,
+                    width: element.text.chars().count(),
+                    link_index,
+                });
+
                 line_width += element.text.chars().count();
             } else {
-                // if not, add it to a new line
-                // TODO: add the element to the line
-
                 current_line.push(Element {
                     text: " ".repeat(max_width - line_width).to_string(),
                     style: Style::from(CONFIG.theme.text),
@@ -157,44 +171,29 @@ impl ArticleContent {
                 line_width = 0;
                 lines.push(std::mem::replace(
                     &mut current_line,
-                    vec![self.create_element(element, lines.len(), line_width)],
+                    vec![{
+                        let link_index = match element.link_destination {
+                            Some(ref destination) => Some(self.link_handler.push(Link {
+                                position: (line_width, lines.len()).into(),
+                                width: element.text.chars().count(),
+                                destination: destination.to_string(),
+                            })),
+                            None => None,
+                        };
+
+                        Element {
+                            text: element.text.to_string(),
+                            style: element.style,
+                            width: element.text.chars().count(),
+                            link_index,
+                        }
+                    }],
                 ));
             }
         }
 
         lines.push(current_line);
         lines
-    }
-
-    fn create_element(
-        &self,
-        element: &RenderedElement,
-        lines: usize,
-        line_width: usize,
-    ) -> Element {
-        let link_index = self.get_link_index(element, lines, line_width);
-
-        Element {
-            text: element.text.to_string(),
-            style: element.style,
-            width: element.text.chars().count(),
-            link_index,
-        }
-    }
-
-    fn get_link_index(
-        &self,
-        element: &RenderedElement,
-        lines: usize,
-        line_width: usize,
-    ) -> Option<usize> {
-        match element.link_destination {
-            Some(ref destination) => Some(self.link_handler.push(Link {
-                position: (line_width, lines).into(),
-                destination: destination.to_string(),
-            })),
-            None => None,
-        }
     }
 
     fn set_article(&mut self, article: Article) {
@@ -315,5 +314,14 @@ impl View for ArticleView {
 
     fn needs_relayout(&self) -> bool {
         self.content.size_cache.is_none()
+    }
+
+    fn important_area(&self, view_size: Vec2) -> cursive::Rect {
+        if self.content.link_handler.links.is_empty() {
+            cursive::Rect::from((0, 0))
+        } else {
+            let link = &self.content.link_handler.links[self.content.link_handler.current_link];
+            cursive::Rect::from_size(link.position, (link.width, 1))
+        }
     }
 }

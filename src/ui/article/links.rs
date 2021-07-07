@@ -7,6 +7,7 @@ pub struct LinkHandler {
 
 pub struct Link {
     pub position: Vec2,
+    pub width: usize,
     pub destination: String,
 }
 
@@ -20,8 +21,8 @@ impl LinkHandler {
         }
     }
 
-    pub fn push(&self, link: Link) -> usize {
-        // TODO: implement the push function
-        0
+    pub fn push(&mut self, link: Link) -> usize {
+        self.links.push(link);
+        self.links.len() - 1
     }
 }
