@@ -1,6 +1,7 @@
 use crate::config::CONFIG;
 use crate::wiki::article::*;
 use cursive::align::Align;
+use cursive::event::{Event, EventResult, Key};
 use cursive::theme::{BaseColor, Color, Effect, Style};
 use cursive::utils::markup::StyledString;
 use cursive::view::*;
@@ -17,7 +18,6 @@ pub struct ArticleView {
 }
 
 struct ArticleContent {
-    elements: Vec<Element>,
     elements_rendered: Vec<RenderedElement>,
     elements_count: usize,
 
@@ -50,7 +50,6 @@ impl ArticleContent {
         // TODO: use the content somehow
 
         ArticleContent {
-            elements: Vec::new(),
             elements_rendered: Vec::new(),
             elements_count: 0,
 
@@ -235,6 +234,7 @@ impl ArticleView {
         }
 
         self.content.size_cache = None;
+        self.content.link_handler.links.clear();
 
         self.content.lines = self.content.calculate_lines(size.x - 1);
         self.width = self
@@ -243,6 +243,11 @@ impl ArticleView {
             .iter()
             .map(|line| line.iter().map(|element| element.width).max().unwrap_or(0))
             .max();
+    }
+
+    fn move_current_link(&mut self, direction: Directions) -> EventResult {
+        self.content.link_handler.move_current_link(direction);
+        EventResult::Consumed(None)
     }
 }
 
@@ -266,9 +271,14 @@ impl View for ArticleView {
             let mut x = Align::top_left().h.get_offset(l, printer.size.x);
 
             for span in line {
-                // print every span in a line with it's style and increase the x
-                // value by the width of the span to prevent overwriting a previous span
-                printer.with_style(span.style, |printer| {
+                let style = if span.link_index.unwrap_or(999999)
+                    == self.content.link_handler.current_link
+                {
+                    span.style.combine(CONFIG.theme.highlight)
+                } else {
+                    span.style
+                };
+                printer.with_style(style, |printer| {
                     printer.print((x, y), &span.text);
                     x += span.width;
                 });
@@ -322,6 +332,16 @@ impl View for ArticleView {
         } else {
             let link = &self.content.link_handler.links[self.content.link_handler.current_link];
             cursive::Rect::from_size(link.position, (link.width, 1))
+        }
+    }
+
+    fn on_event(&mut self, event: Event) -> EventResult {
+        match event {
+            Event::Key(Key::Left) => self.move_current_link(Directions::LEFT),
+            Event::Key(Key::Right) => self.move_current_link(Directions::RIGHT),
+            //Event::Key(Key::Down) => self.move_current_link(Directions::DOWN),
+            //Event::Key(Key::Up) => self.move_current_link(Directions::UP),
+            _ => EventResult::Ignored,
         }
     }
 }

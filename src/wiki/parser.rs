@@ -101,7 +101,7 @@ impl Default {
                 "a" => content.push(ArticleElement {
                     content: children.text(),
                     element_type: ArticleElementType::Link,
-                    link_target: None,
+                    link_target: children.attr("href").map(str::to_string),
                 }),
                 "b" => content.push(ArticleElement {
                     content: children.text(),
