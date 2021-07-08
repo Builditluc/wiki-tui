@@ -43,21 +43,34 @@ impl LinkHandler {
     }
 
     fn next_link_horizontal(&mut self, direction: i32) {
-        log::info!(
-            "[ui::article::links::LinkHandler::new_link_horizontal] Moving the current link by {}",
-            direction
-        );
         let new_current_link = (self.current_link as i32) + direction;
         if new_current_link > 0 {
-            self.current_link = new_current_link as usize;
-            log::info!("[ui::article::links::LinkHandler::new_link_horizontal] the new link position is {}", self.current_link);
-            return;
+            self.current_link = new_current_link as usize
         }
-
-        log::warn!("[ui::article::links::LinkHandler::new_link_horizontal] New link position is smaller than 0, aborting");
     }
-    fn next_link_vertical(&self, direction: i32) {
+    fn next_link_vertical(&mut self, direction: i32) {
         // TODO add something here
+
+        //  go through the links until the porgram finds one that is one (or more) lines below the
+        //  current one
+
+        if direction > 0 {
+            let current_position = self.links[self.current_link].position;
+            for (idx, link) in self.links[self.current_link..].into_iter().enumerate() {
+                if link.position.y > current_position.y {
+                    self.current_link += idx;
+                    return;
+                }
+            }
+        } else {
+            let current_position = self.links[self.current_link].position;
+            for i in self.current_link..0 {
+                if self.links[i].position.y < current_position.y {
+                    self.current_link = i;
+                    return;
+                }
+            }
+        }
     }
 }
 
