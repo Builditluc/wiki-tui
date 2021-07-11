@@ -239,12 +239,14 @@ impl ArticleView {
         EventResult::Consumed(None)
     }
 
-    fn set_on_link_submit_callback<F>(&mut self, function: F)
+    fn on_link_submit_callback<F>(mut self, function: F) -> Self
     where
         F: 'static + Fn(&mut cursive::Cursive),
     {
         self.content.link_handler.on_link_submit_callback =
             cursive::event::Callback::from_fn(function);
+
+        self
     }
 }
 
