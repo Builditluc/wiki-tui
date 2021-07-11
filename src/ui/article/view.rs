@@ -139,17 +139,16 @@ impl ArticleContent {
         // go through every rendered element
         for element in self.elements_rendered.iter() {
             // does the element fit inside of the current line?
-            if (line_width + element.text.chars().count()) < max_width && element.newline == false {
-                // add it to the current line
-                let link_index = match element.link_destination {
-                    Some(ref destination) => Some(self.link_handler.push(Link {
-                        position: (line_width, lines.len()).into(),
-                        width: element.text.chars().count(),
-                        destination: destination.to_string(),
-                    })),
-                    None => None,
-                };
+            let link_index = match element.link_destination {
+                Some(ref destination) => Some(self.link_handler.push(Link {
+                    position: (line_width, lines.len()).into(),
+                    width: element.text.chars().count(),
+                    destination: destination.to_string(),
+                })),
+                None => None,
+            };
 
+            if (line_width + element.text.chars().count()) < max_width && element.newline == false {
                 current_line.push(Element {
                     text: element.text.to_string(),
                     style: element.style,
@@ -166,20 +165,10 @@ impl ArticleContent {
                     link_index: None,
                 });
 
-                log::info!("New line: {:?}", current_line);
                 line_width = 0;
                 lines.push(std::mem::replace(
                     &mut current_line,
                     vec![{
-                        let link_index = match element.link_destination {
-                            Some(ref destination) => Some(self.link_handler.push(Link {
-                                position: (line_width, lines.len()).into(),
-                                width: element.text.chars().count(),
-                                destination: destination.to_string(),
-                            })),
-                            None => None,
-                        };
-
                         Element {
                             text: element.text.to_string(),
                             style: element.style,
