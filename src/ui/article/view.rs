@@ -238,6 +238,14 @@ impl ArticleView {
         self.content.link_handler.move_current_link(direction);
         EventResult::Consumed(None)
     }
+
+    fn set_on_link_submit_callback<F>(&mut self, function: F)
+    where
+        F: 'static + Fn(&mut cursive::Cursive),
+    {
+        self.content.link_handler.on_link_submit_callback =
+            cursive::event::Callback::from_fn(function);
+    }
 }
 
 impl View for ArticleView {

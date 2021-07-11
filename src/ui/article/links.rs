@@ -3,6 +3,8 @@ use cursive::vec::Vec2;
 pub struct LinkHandler {
     pub links: Vec<Link>,
     pub current_link: usize,
+
+    pub on_link_submit_callback: cursive::event::Callback,
 }
 
 pub struct Link {
@@ -18,6 +20,8 @@ impl LinkHandler {
         LinkHandler {
             links: Vec::new(),
             current_link: 0,
+
+            on_link_submit_callback: cursive::event::Callback::dummy(),
         }
     }
 
