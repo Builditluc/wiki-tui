@@ -239,7 +239,7 @@ impl ArticleView {
         EventResult::Consumed(None)
     }
 
-    fn on_link_submit_callback<F>(mut self, function: F) -> Self
+    pub fn on_link_submit<F>(mut self, function: F) -> Self
     where
         F: 'static + Fn(&mut cursive::Cursive),
     {
@@ -340,6 +340,9 @@ impl View for ArticleView {
             Event::Key(Key::Right) => self.move_current_link(Directions::RIGHT),
             //Event::Key(Key::Down) => self.move_current_link(Directions::DOWN),
             //Event::Key(Key::Up) => self.move_current_link(Directions::UP),
+            Event::Key(Key::Enter) => EventResult::Consumed(Some(
+                self.content.link_handler.on_link_submit_callback.clone(),
+            )),
             _ => EventResult::Ignored,
         }
     }

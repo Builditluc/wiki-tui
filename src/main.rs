@@ -53,6 +53,7 @@ fn main() {
         .title_position(cursive::align::HAlign::Left);
 
     let article_view = ui::article::ArticleView::new(LOGO)
+        .on_link_submit(Cursive::quit)
         .with_name("article_view")
         .full_screen()
         .scrollable();
