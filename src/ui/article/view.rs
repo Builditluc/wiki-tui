@@ -47,9 +47,7 @@ type Line = Vec<Element>;
 
 impl ArticleContent {
     pub fn new(content: StyledString) -> ArticleContent {
-        // TODO: use the content somehow
-
-        ArticleContent {
+        let mut article_content = ArticleContent {
             elements_rendered: Vec::new(),
             elements_count: 0,
 
@@ -58,7 +56,18 @@ impl ArticleContent {
 
             size_cache: None,
             historical_caches: Vec::new(),
-        }
+        };
+
+        // TODO do something better here
+        article_content.render(Article {
+            elements: vec![ArticleElement {
+                content: content.source().to_string(),
+                element_type: ArticleElementType::Text,
+                link_target: None,
+            }],
+        });
+
+        article_content
     }
 
     fn render(&mut self, article: Article) {
