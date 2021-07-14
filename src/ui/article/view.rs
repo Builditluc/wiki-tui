@@ -166,25 +166,61 @@ impl ArticleContent {
 
                 line_width += element.text.chars().count();
             } else {
-                current_line.push(Element {
-                    text: " ".repeat(max_width - line_width).to_string(),
-                    style: Style::from(CONFIG.theme.text),
-                    width: 0,
-                    link_index: None,
-                });
+                if element.newline {
+                    current_line.push(Element {
+                        text: " ".repeat(max_width - line_width).to_string(),
+                        style: Style::from(CONFIG.theme.text),
+                        width: 0,
+                        link_index: None,
+                    });
 
-                line_width = 0;
-                lines.push(std::mem::replace(
-                    &mut current_line,
-                    vec![{
-                        Element {
-                            text: element.text.to_string(),
-                            style: element.style,
-                            width: element.text.chars().count(),
+                    line_width = 0;
+                    lines.push(std::mem::replace(
+                        &mut current_line,
+                        vec![{
+                            Element {
+                                text: element.text.to_string(),
+                                style: element.style,
+                                width: element.text.chars().count(),
+                                link_index,
+                            }
+                        }],
+                    ));
+
+                    continue;
+                }
+
+                // if the next element doesn't fit,
+                // try splitting it and see if these fit
+
+                let splitted_element = element.text.split(" ");
+                for element_part in splitted_element {
+                    // does it fit?
+                    if (line_width + element_part.chars().count()) < max_width {
+                        // add it to the current line
+                        current_line.push(Element {
+                            text: format!(" {}", element_part.to_string()),
+                            style: Style::from(CONFIG.theme.text),
+                            width: element_part.chars().count() + 1,
                             link_index,
-                        }
-                    }],
-                ));
+                        });
+
+                        line_width += element_part.chars().count();
+                    } else {
+                        line_width = 0;
+                        lines.push(std::mem::replace(
+                            &mut current_line,
+                            vec![{
+                                Element {
+                                    text: element_part.to_string(),
+                                    style: element.style,
+                                    width: element_part.chars().count(),
+                                    link_index,
+                                }
+                            }],
+                        ));
+                    }
+                }
             }
         }
 
