@@ -72,8 +72,8 @@ impl ArticleContent {
 
     fn render(&mut self, article: Article) {
         self.elements_count = article.elements.len();
-
         let mut rendered_article = Vec::new();
+
         // go trough every element in the article
         for element in article.elements.into_iter() {
             match element.element_type {
@@ -84,56 +84,55 @@ impl ArticleContent {
                     style: Style::from(CONFIG.theme.text).combine(Effect::Underline),
                     link_destination: element.link_target,
                 }),
+
                 // if its text, just append it to the rendered article
-                ArticleElementType::Text => {
-                    for (idx, content) in element.content.split("\n").enumerate() {
-                        rendered_article.push(RenderedElement {
-                            text: content.to_string(),
-                            newline: if idx >= 1 { true } else { false },
-                            style: Style::from(CONFIG.theme.text),
-                            link_destination: element.link_target.clone(),
-                        })
-                    }
-                }
+                ArticleElementType::Text => rendered_article.append(&mut self.render_element(
+                    element.content.split("\n").enumerate(),
+                    Style::from(CONFIG.theme.text),
+                    &element.link_target,
+                )),
+
                 // if its a header, add some linebreaks and make the header bold
-                ArticleElementType::Header => {
-                    for (idx, content) in
-                        format!("\n{}\n\n", element.content).split("\n").enumerate()
-                    {
-                        rendered_article.push(RenderedElement {
-                            text: content.to_string(),
-                            newline: if idx >= 1 { true } else { false },
-                            style: Style::from(Color::Dark(BaseColor::Black)).combine(Effect::Bold),
-                            link_destination: element.link_target.clone(),
-                        })
-                    }
-                }
+                ArticleElementType::Header => rendered_article.append(&mut self.render_element(
+                    format!("\n{}\n\n", element.content).split("\n").enumerate(),
+                    Style::from(Color::Dark(BaseColor::Black)).combine(Effect::Bold),
+                    &element.link_target,
+                )),
                 // if its bold text, make it bold
-                ArticleElementType::Bold => {
-                    for (idx, content) in element.content.split("\n").enumerate() {
-                        rendered_article.push(RenderedElement {
-                            text: content.to_string(),
-                            newline: if idx >= 1 { true } else { false },
-                            style: Style::from(CONFIG.theme.text).combine(Effect::Bold),
-                            link_destination: element.link_target.clone(),
-                        })
-                    }
-                }
+                ArticleElementType::Bold => rendered_article.append(&mut self.render_element(
+                    element.content.split("\n").enumerate(),
+                    Style::from(CONFIG.theme.text).combine(Effect::Bold),
+                    &element.link_target,
+                )),
                 // if its italic text, make it italic
-                ArticleElementType::Italic => {
-                    for (idx, content) in element.content.split("\n").enumerate() {
-                        rendered_article.push(RenderedElement {
-                            text: content.to_string(),
-                            newline: if idx >= 1 { true } else { false },
-                            style: Style::from(CONFIG.theme.text).combine(Effect::Italic),
-                            link_destination: element.link_target.clone(),
-                        })
-                    }
-                }
+                ArticleElementType::Italic => rendered_article.append(&mut self.render_element(
+                    element.content.split("\n").enumerate(),
+                    Style::from(CONFIG.theme.text).combine(Effect::Italic),
+                    &element.link_target,
+                )),
             }
         }
 
         self.elements_rendered = rendered_article;
+    }
+
+    fn render_element<'a>(
+        &self,
+        element: impl Iterator<Item = (usize, &'a str)>,
+        style: Style,
+        link_target: &'a Option<String>,
+    ) -> Vec<RenderedElement> {
+        let mut rendered_elements: Vec<RenderedElement> = Vec::new();
+        for (idx, content) in element {
+            rendered_elements.push(RenderedElement {
+                text: content.to_string(),
+                newline: if idx >= 1 { true } else { false },
+                style,
+                link_destination: link_target.clone(),
+            })
+        }
+
+        rendered_elements
     }
 
     fn calculate_lines(&mut self, max_width: usize) -> Vec<Line> {
