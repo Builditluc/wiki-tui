@@ -1,12 +1,13 @@
 use crate::config::CONFIG;
 use crate::wiki::article::*;
 use cursive::align::Align;
-use cursive::event::{Event, EventResult, Key};
+use cursive::event::{Callback, Event, EventResult, Key};
 use cursive::theme::{BaseColor, Color, Effect, Style};
 use cursive::utils::markup::StyledString;
 use cursive::view::*;
 use cursive::XY;
 use cursive::{Printer, Vec2};
+use std::rc;
 
 use crate::ui::article::links::*;
 
@@ -283,12 +284,11 @@ impl ArticleView {
         EventResult::Consumed(None)
     }
 
-    pub fn on_link_submit<F>(mut self, function: F) -> Self
-    where
-        F: 'static + Fn(&mut cursive::Cursive),
-    {
-        self.content.link_handler.on_link_submit_callback =
-            cursive::event::Callback::from_fn(function);
+    pub fn on_link_submit<F: Fn(&mut cursive::Cursive, &str) + 'static>(
+        mut self,
+        function: F,
+    ) -> Self {
+        self.content.link_handler.on_link_submit_callback = Some(rc::Rc::new(function));
 
         self
     }
@@ -384,9 +384,19 @@ impl View for ArticleView {
             Event::Key(Key::Right) => self.move_current_link(Directions::RIGHT),
             //Event::Key(Key::Down) => self.move_current_link(Directions::DOWN),
             //Event::Key(Key::Up) => self.move_current_link(Directions::UP),
-            Event::Key(Key::Enter) => EventResult::Consumed(Some(
-                self.content.link_handler.on_link_submit_callback.clone(),
-            )),
+            Event::Key(Key::Enter) => {
+                let target = self.content.link_handler.links
+                    [self.content.link_handler.current_link]
+                    .destination
+                    .clone();
+                EventResult::Consumed(
+                    self.content
+                        .link_handler
+                        .on_link_submit_callback
+                        .clone()
+                        .map(|f| Callback::from_fn(move |s| f(s, &target))),
+                )
+            }
             _ => EventResult::Ignored,
         }
     }

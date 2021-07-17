@@ -1,10 +1,11 @@
 use cursive::vec::Vec2;
+use std::rc;
 
 pub struct LinkHandler {
     pub links: Vec<Link>,
     pub current_link: usize,
 
-    pub on_link_submit_callback: cursive::event::Callback,
+    pub on_link_submit_callback: Option<rc::Rc<dyn Fn(&mut cursive::Cursive, &str) + 'static>>,
 }
 
 pub struct Link {
@@ -21,7 +22,7 @@ impl LinkHandler {
             links: Vec::new(),
             current_link: 0,
 
-            on_link_submit_callback: cursive::event::Callback::dummy(),
+            on_link_submit_callback: None,
         }
     }
 

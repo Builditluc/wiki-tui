@@ -53,7 +53,7 @@ fn main() {
         .title_position(cursive::align::HAlign::Left);
 
     let article_view = ui::article::ArticleView::new(LOGO)
-        .on_link_submit(Cursive::quit)
+        .on_link_submit(|s, target| on_link_submit(s, target))
         .with_name("article_view")
         .full_screen()
         .scrollable();
@@ -283,4 +283,17 @@ fn get_color_palette() -> Palette {
     custom_palette.set_color("HighlightText", config::CONFIG.theme.highlight_text);
 
     custom_palette
+}
+
+fn on_link_submit(siv: &mut Cursive, target: &str) {
+    siv.add_layer(
+        Dialog::around(TextView::new(format!(
+            "Do you want to open the dialog {}?",
+            target
+        )))
+        .button("Yes", |s| {})
+        .button("No", |s| {
+            s.pop_layer();
+        }),
+    )
 }
