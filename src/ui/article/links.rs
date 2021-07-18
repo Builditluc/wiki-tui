@@ -77,6 +77,11 @@ impl LinkHandler {
             }
         }
     }
+
+    pub fn reset(&mut self) {
+        self.links.clear();
+        self.current_link = 0;
+    }
 }
 
 pub enum Directions {

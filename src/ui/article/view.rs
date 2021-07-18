@@ -236,6 +236,9 @@ impl ArticleContent {
         // after rendering, flush the caches
         self.historical_caches.clear();
         self.size_cache = None;
+
+        // also, reset the link_handler
+        self.link_handler.reset();
     }
 
     fn is_chache_valid(&self, size: Vec2) -> bool {

@@ -286,14 +286,39 @@ fn get_color_palette() -> Palette {
 }
 
 fn on_link_submit(siv: &mut Cursive, target: &str) {
+    let target = target.to_string();
+
     siv.add_layer(
         Dialog::around(TextView::new(format!(
             "Do you want to open the dialog {}?",
             target
         )))
-        .button("Yes", |s| {})
+        .button("Yes", move |s| show_article_from_link(s, target.clone()))
         .button("No", |s| {
             s.pop_layer();
         }),
     )
+}
+
+fn show_article_from_link(siv: &mut Cursive, target: String) {
+    siv.pop_layer();
+
+    let wiki: &wiki::WikiApi = siv.user_data().unwrap();
+    let parsed_article = wiki.open_article(&target);
+
+    // set the contents of the article_view to the article
+    siv.call_on_name("article_view", |view: &mut ui::article::ArticleView| {
+        log::info!("[main::on_article_submit] Setting the content of the article view");
+        view.set_article(parsed_article.clone().article);
+    });
+
+    // focus the article view
+    let result = siv
+        .focus_name("article_view")
+        .context("Failed to focus the article view");
+
+    match result {
+        Ok(_) => log::info!("[main::on_article_submit] Successfully focussed the article view"),
+        Err(error) => log::warn!("[main::on_article_submit] {:?}", error),
+    }
 }
