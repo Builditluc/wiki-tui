@@ -86,10 +86,21 @@ impl WikiApi {
 
     pub fn get_article(&self, page_id: &i32) -> article::ParsedArticle {
         // creating the url and making the request
-        let url = format!("{}?curid={}", CONFIG.api_config.base_url.clone(), page_id);
-        let article_html = self.client.get(&url).send().unwrap();
+        self.parse_article(&format!(
+            "{}?curid={}",
+            CONFIG.api_config.base_url.clone(),
+            page_id
+        ))
+    }
+
+    fn parse_article(&self, url: &str) -> article::ParsedArticle {
+        let article_html = self.client.get(url).send().unwrap();
 
         // parsing the html response into a Article
         self.parser.parse(article_html)
+    }
+
+    pub fn open_article(&self, target: &str) -> article::ParsedArticle {
+        self.parse_article(&format!("{}{}", CONFIG.api_config.base_url.clone(), target))
     }
 }

@@ -36,6 +36,8 @@ pub enum ArticleElementType {
     Link,
     Text,
     Header,
+    Bold,
+    Italic,
 }
 
 #[derive(Clone)]

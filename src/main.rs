@@ -53,6 +53,7 @@ fn main() {
         .title_position(cursive::align::HAlign::Left);
 
     let article_view = ui::article::ArticleView::new(LOGO)
+        .on_link_submit(|s, target| on_link_submit(s, target))
         .with_name("article_view")
         .full_screen()
         .scrollable();
@@ -282,4 +283,42 @@ fn get_color_palette() -> Palette {
     custom_palette.set_color("HighlightText", config::CONFIG.theme.highlight_text);
 
     custom_palette
+}
+
+fn on_link_submit(siv: &mut Cursive, target: &str) {
+    let target = target.to_string();
+
+    siv.add_layer(
+        Dialog::around(TextView::new(format!(
+            "Do you want to open the dialog {}?",
+            target
+        )))
+        .button("Yes", move |s| show_article_from_link(s, target.clone()))
+        .button("No", |s| {
+            s.pop_layer();
+        }),
+    )
+}
+
+fn show_article_from_link(siv: &mut Cursive, target: String) {
+    siv.pop_layer();
+
+    let wiki: &wiki::WikiApi = siv.user_data().unwrap();
+    let parsed_article = wiki.open_article(&target);
+
+    // set the contents of the article_view to the article
+    siv.call_on_name("article_view", |view: &mut ui::article::ArticleView| {
+        log::info!("[main::on_article_submit] Setting the content of the article view");
+        view.set_article(parsed_article.clone().article);
+    });
+
+    // focus the article view
+    let result = siv
+        .focus_name("article_view")
+        .context("Failed to focus the article view");
+
+    match result {
+        Ok(_) => log::info!("[main::on_article_submit] Successfully focussed the article view"),
+        Err(error) => log::warn!("[main::on_article_submit] {:?}", error),
+    }
 }

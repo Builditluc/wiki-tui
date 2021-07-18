@@ -22,11 +22,13 @@
 
 ### Features
 `wiki-tui` currently has these features:
-<ul>
-  <li>Search through Wikipedia (currently english only!) and read articles in the terminal</li>
-  <li>Load more search results</li>
-  <li>Preview the search results with highlighting of the search query</li>
-</ul>
+- Browse through Wikipedia (Set the language by changing the url in the config)
+- Uses webscraping and a custom view to display wikipedia articles in the terminal
+
+
+These features are planned:
+- View and interact with more elements of wikipedia articles (like tables, images, etc.)
+- Use links to open other articles
 
 ### How it looks
 
@@ -63,6 +65,8 @@ BASE_URL = "https://en.wikipedia.org/"
 ```
 #### Theme
 The settings here are all colors and can be set by either the name of the color or a hex string (valid formats are: `#ffffff`, `#fff`). If your color wasn't applied, check the logs to find out why.
+
+The actual colors displayed in your terminal can change depending on your terminal settings
 ```ini
 ; color used for View backgrounds
 background = white
