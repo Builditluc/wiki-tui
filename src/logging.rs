@@ -1,20 +1,30 @@
 pub struct Logger;
 impl Logger {
     pub fn new() {
+        use log::LevelFilter;
         use log4rs::append::file::FileAppender;
-        use log4rs::config::{Appender, Config, Root};
+        use log4rs::config::{Appender, Config, Logger, Root};
         use log4rs::encode::pattern::PatternEncoder;
 
         let wiki_tui = FileAppender::builder()
             .append(false)
-            .encoder(Box::new(PatternEncoder::new(
-                "[{d(%Y-%m-%d %H:%M:%S)}] (({I})) [{h({l})}] {m}\n",
-            )))
             .build("wiki_tui.log")
             .unwrap();
 
         let config = Config::builder()
             .appender(Appender::builder().build("wiki_tui", Box::new(wiki_tui)))
+            .logger(
+                Logger::builder()
+                    .appender("wiki_tui")
+                    .additive(false)
+                    .build("wiki_tui::config", LevelFilter::Debug),
+            )
+            .logger(
+                Logger::builder()
+                    .appender("wiki_tui")
+                    .additive(false)
+                    .build("wiki_tui::wiki::parser", LevelFilter::Info),
+            )
             .build(
                 Root::builder()
                     .appender("wiki_tui")
@@ -23,6 +33,6 @@ impl Logger {
             .unwrap();
 
         log4rs::init_config(config).unwrap();
-        log::info!("[logging::Logger::new] Successfully initialized the logging system");
+        log::info!("Successfully initialized the logging system");
     }
 }
