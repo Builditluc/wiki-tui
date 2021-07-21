@@ -4,7 +4,6 @@ impl Logger {
         use log::LevelFilter;
         use log4rs::append::file::FileAppender;
         use log4rs::config::{Appender, Config, Logger, Root};
-        use log4rs::encode::pattern::PatternEncoder;
 
         let wiki_tui = FileAppender::builder()
             .append(false)

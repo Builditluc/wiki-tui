@@ -385,8 +385,6 @@ impl View for ArticleView {
         match event {
             Event::Key(Key::Left) => self.move_current_link(Directions::LEFT),
             Event::Key(Key::Right) => self.move_current_link(Directions::RIGHT),
-            //Event::Key(Key::Down) => self.move_current_link(Directions::DOWN),
-            //Event::Key(Key::Up) => self.move_current_link(Directions::UP),
             Event::Key(Key::Enter) => {
                 let target = self.content.link_handler.links
                     [self.content.link_handler.current_link]

@@ -43,4 +43,5 @@ pub enum ArticleElementType {
 #[derive(Clone)]
 pub struct ParsedArticle {
     pub article: Article,
+    pub toc: Option<crate::ui::models::TableOfContents::Table>,
 }

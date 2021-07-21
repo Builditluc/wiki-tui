@@ -22,3 +22,18 @@ impl From<SearchResult> for ArticleResultPreview {
         }
     }
 }
+
+pub mod TableOfContents {
+    #[derive(Clone)]
+    pub struct Table {
+        pub title: String,
+        pub items: Vec<Item>,
+    }
+
+    #[derive(Clone)]
+    pub struct Item {
+        pub number: i32,
+        pub text: String,
+        pub sub_items: Option<Vec<Item>>,
+    }
+}

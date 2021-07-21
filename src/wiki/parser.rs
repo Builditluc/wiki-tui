@@ -8,6 +8,15 @@ pub trait Parser {
 }
 
 pub struct Default;
+impl Default {
+    fn get_table_of_contents(
+        &self,
+        document: Document,
+    ) -> Option<crate::ui::models::TableOfContents::Table> {
+        None
+    }
+}
+
 impl Parser for Default {
     fn parse(&self, html: reqwest::blocking::Response) -> ParsedArticle {
         let mut content: Vec<ArticleElement> = Vec::new();
@@ -79,9 +88,13 @@ impl Parser for Default {
             }
         }
 
+        // TODO: get the table of contents
+        let toc = self.get_table_of_contents(document);
+
         log::info!("[wiki::parser::Default::parse] Finished parsing the article");
         ParsedArticle {
             article: Article { elements: content },
+            toc,
         }
     }
 }
