@@ -16,13 +16,19 @@ impl Logger {
                 Logger::builder()
                     .appender("wiki_tui")
                     .additive(false)
-                    .build("wiki_tui::config", LevelFilter::Debug),
+                    .build("wiki_tui::config", LevelFilter::Info),
             )
             .logger(
                 Logger::builder()
                     .appender("wiki_tui")
                     .additive(false)
-                    .build("wiki_tui::wiki::parser", LevelFilter::Debug),
+                    .build("wiki_tui::wiki::parser", LevelFilter::Info),
+            )
+            .logger(
+                Logger::builder()
+                    .appender("wiki_tui")
+                    .additive(false)
+                    .build("wiki_tui::ui::article::view", LevelFilter::Info),
             )
             .build(
                 Root::builder()
