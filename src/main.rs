@@ -346,7 +346,12 @@ fn show_article_from_link(siv: &mut Cursive, target: String) {
     siv.call_on_name("article_layout", |view: &mut LinearLayout| {
         view.insert_child(
             0,
-            Dialog::around(article_view.with_name("article_view").scrollable()),
+            Dialog::around(
+                article_view
+                    .with_name("article_view")
+                    .full_height()
+                    .scrollable(),
+            ),
         );
     });
     log::info!("Added the article_view to the article_layout");
@@ -380,12 +385,12 @@ fn add_table_of_contents(siv: &mut Cursive, toc: ui::models::TableOfContents::Ta
     // now go through every item
     log::info!("Adding the table of content to the toc_view");
     for item in toc.items.into_iter() {
-        add_item_to_toc(&mut toc_view, item, 0);
+        add_item_to_toc(&mut toc_view, item);
     }
 
     article_layout.insert_child(
         1,
-        Dialog::around(toc_view.with_name("toc_view")).title(toc.title),
+        Dialog::around(toc_view.with_name("toc_view").full_height()).title(toc.title),
     );
     article_layout.set_weight(1, 10);
     log::info!("Added the toc_view to the article_layout");
@@ -394,10 +399,13 @@ fn add_table_of_contents(siv: &mut Cursive, toc: ui::models::TableOfContents::Ta
 fn add_item_to_toc(
     toc_view: &mut SelectView<ui::models::TableOfContents::Item>,
     item: ui::models::TableOfContents::Item,
-    indent: usize,
 ) {
     // add the item to the select_view
-    let label = " ".repeat(indent) + &item.text;
+    let label = format!(
+        "{}{}",
+        " ".repeat(item.number as usize).to_string(),
+        item.text
+    );
     log::info!("Added the item: {} to the toc_view", label);
     toc_view.add_item(label, item);
 }
