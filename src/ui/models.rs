@@ -24,13 +24,13 @@ impl From<SearchResult> for ArticleResultPreview {
 }
 
 pub mod TableOfContents {
-    #[derive(Clone)]
+    #[derive(Clone, Debug)]
     pub struct Table {
         pub title: String,
         pub items: Vec<Item>,
     }
 
-    #[derive(Clone)]
+    #[derive(Clone, Debug)]
     pub struct Item {
         pub number: i32,
         pub text: String,

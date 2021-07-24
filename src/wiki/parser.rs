@@ -1,7 +1,7 @@
 use crate::wiki::article::*;
 use select::document::Document;
 use select::node::Node;
-use select::predicate::Class;
+use select::predicate::{Attr, Class, Name};
 
 pub trait Parser {
     fn parse(&self, html: reqwest::blocking::Response) -> ParsedArticle;
@@ -13,7 +13,68 @@ impl Default {
         &self,
         document: Document,
     ) -> Option<crate::ui::models::TableOfContents::Table> {
-        None
+        use crate::ui::models::TableOfContents;
+
+        let toc_html: Node;
+        let mut toc_build = TableOfContents::Table {
+            title: String::new(),
+            items: Vec::new(),
+        };
+
+        log::info!("Building the table of contents now");
+        if let Some(_toc_html) = document.find(Attr("id", "toc")).next() {
+            toc_html = _toc_html;
+        } else {
+            log::warn!("Couldn't find the table of contents html element");
+            return None;
+        }
+
+        toc_build.title = toc_html.find(Class("toctitle")).next().unwrap().text();
+
+        if let Some(toc_items) = toc_html.find(Name("ul")).next() {
+            log::info!("Now parsing the content of the table of contents");
+            for toc_item in toc_items.find(Name("li")) {
+                toc_build.items.push(self.parse_toc_item(toc_item, 0));
+            }
+        } else {
+            log::warn!("No content was found in the table of contents");
+            return None;
+        }
+
+        log::info!("Sucessfully build the table of contents");
+        log::debug!("TableOfContents: \n{:?}", toc_build);
+        Some(toc_build)
+    }
+
+    fn parse_toc_item(&self, item: Node, level: i32) -> crate::ui::models::TableOfContents::Item {
+        let mut item_build = crate::ui::models::TableOfContents::Item {
+            number: level,
+            text: String::new(),
+            sub_items: None,
+        };
+
+        let item_number = item.find(Class("tocnumber")).next().unwrap().text();
+        let item_text = item.find(Class("toctext")).next().unwrap().text();
+        item_build.text = format!("{} {}", item_number, item_text);
+
+        if let Some(_sub_items) = item.find(Name("ul")).next() {
+            let mut sub_items = Vec::new();
+            for sub_item in _sub_items.find(Name("li")) {
+                sub_items.push(self.parse_toc_item(sub_item, level + 1));
+            }
+            log::info!(
+                "A total of {} sub items were found in the item {}",
+                sub_items.len(),
+                item_text
+            );
+            item_build.sub_items = Some(sub_items);
+        }
+
+        log::info!(
+            "Sucessfully parsed the table of contents item {}",
+            item_text
+        );
+        item_build
     }
 }
 
@@ -88,7 +149,6 @@ impl Parser for Default {
             }
         }
 
-        // TODO: get the table of contents
         let toc = self.get_table_of_contents(document);
 
         log::info!("[wiki::parser::Default::parse] Finished parsing the article");

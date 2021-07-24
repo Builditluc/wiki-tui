@@ -52,16 +52,11 @@ fn main() {
         .title("Search")
         .title_position(cursive::align::HAlign::Left);
 
-    let article_view = ui::article::ArticleView::new(LOGO)
-        .on_link_submit(|s, target| on_link_submit(s, target))
-        .with_name("article_view")
-        .full_screen()
-        .scrollable();
+    let logo_view = TextView::new(LOGO).with_name("logo_view").full_screen();
 
     let article_layout = LinearLayout::horizontal()
-        .child(Dialog::around(article_view))
-        .with_name("article_layout")
-        .full_screen();
+        .child(Dialog::around(logo_view))
+        .with_name("article_layout");
 
     // Add a fullscreen layer, containing the search bar and the article view
     siv.add_fullscreen_layer(
@@ -213,21 +208,38 @@ fn on_article_submit(siv: &mut Cursive, article_preview: &ui::models::ArticleRes
     // remove the results layer
     siv.pop_layer();
 
+    // remove views
+    remove_view_from_article_layout(siv, "logo_view");
+    remove_view_from_article_layout(siv, "article_view");
+    remove_view_from_article_layout(siv, "toc_view");
+
     // get the article from wikipedia
     let wiki: &wiki::WikiApi = siv.user_data().unwrap();
     let parsed_article = wiki.get_article(&article_preview.page_id);
 
-    // TODO: if given, add a select view to display the table of contents
-    // does this article have a table of contents?
-    if parsed_article.toc.is_some() {
-        add_table_of_contents(siv, parsed_article.clone().toc.unwrap());
-    }
+    let mut article_view =
+        ui::article::ArticleView::new("").on_link_submit(|s, target| on_link_submit(s, target));
 
     // set the contents of the article_view to the article
-    siv.call_on_name("article_view", |view: &mut ui::article::ArticleView| {
-        log::info!("Setting the content of the article view");
-        view.set_article(parsed_article.article);
+    log::info!("Setting the content of the article view");
+    article_view.set_article(parsed_article.clone().article);
+
+    // add the article_view to the article_layout]
+    siv.call_on_name("article_layout", |view: &mut LinearLayout| {
+        view.insert_child(
+            0,
+            Dialog::around(article_view.with_name("article_view").scrollable()),
+        );
     });
+    log::info!("Added the article_view to the article_layout");
+
+    // does this article have a table of contents?
+    if parsed_article.toc.is_some() {
+        log::info!("The article contains a table of contents");
+        add_table_of_contents(siv, parsed_article.toc.unwrap());
+    } else {
+        log::info!("The article doesn't contain a table of contents");
+    }
 
     // focus the article view
     let result = siv
@@ -314,14 +326,38 @@ fn on_link_submit(siv: &mut Cursive, target: &str) {
 fn show_article_from_link(siv: &mut Cursive, target: String) {
     siv.pop_layer();
 
+    // remove views
+    remove_view_from_article_layout(siv, "logo_view");
+    remove_view_from_article_layout(siv, "article_view");
+    remove_view_from_article_layout(siv, "toc_view");
+
+    // get the article from wikipedia
     let wiki: &wiki::WikiApi = siv.user_data().unwrap();
     let parsed_article = wiki.open_article(&target);
 
+    let mut article_view =
+        ui::article::ArticleView::new("").on_link_submit(|s, target| on_link_submit(s, target));
+
     // set the contents of the article_view to the article
-    siv.call_on_name("article_view", |view: &mut ui::article::ArticleView| {
-        log::info!("Setting the content of the article view");
-        view.set_article(parsed_article.clone().article);
+    log::info!("Setting the content of the article view");
+    article_view.set_article(parsed_article.clone().article);
+
+    // add the article_view to the article_layout]
+    siv.call_on_name("article_layout", |view: &mut LinearLayout| {
+        view.insert_child(
+            0,
+            Dialog::around(article_view.with_name("article_view").scrollable()),
+        );
     });
+    log::info!("Added the article_view to the article_layout");
+
+    // does this article have a table of contents?
+    if parsed_article.toc.is_some() {
+        log::info!("The article contains a table of contents");
+        add_table_of_contents(siv, parsed_article.toc.unwrap());
+    } else {
+        log::info!("The article doesn't contain a table of contents");
+    }
 
     // focus the article view
     let result = siv
@@ -342,11 +378,17 @@ fn add_table_of_contents(siv: &mut Cursive, toc: ui::models::TableOfContents::Ta
     let mut toc_view: SelectView<TableOfContents::Item> = SelectView::new();
 
     // now go through every item
+    log::info!("Adding the table of content to the toc_view");
     for item in toc.items.into_iter() {
         add_item_to_toc(&mut toc_view, item, 0);
     }
 
-    article_layout.add_child(Dialog::around(toc_view.with_name("toc_view")));
+    article_layout.insert_child(
+        1,
+        Dialog::around(toc_view.with_name("toc_view")).title(toc.title),
+    );
+    article_layout.set_weight(1, 10);
+    log::info!("Added the toc_view to the article_layout");
 }
 
 fn add_item_to_toc(
@@ -356,15 +398,17 @@ fn add_item_to_toc(
 ) {
     // add the item to the select_view
     let label = " ".repeat(indent) + &item.text;
+    log::info!("Added the item: {} to the toc_view", label);
     toc_view.add_item(label, item);
 }
 
-fn update_table_of_contents(siv: &mut Cursive, toc: ui::models::TableOfContents::Table) {
-    use ui::models::TableOfContents;
-
-    let toc_view = siv
-        .find_name::<SelectView<TableOfContents::Item>>("toc_view")
-        .unwrap();
-
-    // TODO: Add something here
+fn remove_view_from_article_layout(siv: &mut Cursive, view_name: &str) {
+    siv.call_on_name("article_layout", |view: &mut LinearLayout| {
+        if let Some(i) = view.find_child_from_name(view_name) {
+            log::info!("Removing the {} from the article_layout", view_name);
+            view.remove_child(i);
+        } else {
+            log::warn!("Couldn't find the {}", view_name);
+        }
+    });
 }

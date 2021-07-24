@@ -22,7 +22,7 @@ impl Logger {
                 Logger::builder()
                     .appender("wiki_tui")
                     .additive(false)
-                    .build("wiki_tui::wiki::parser", LevelFilter::Info),
+                    .build("wiki_tui::wiki::parser", LevelFilter::Debug),
             )
             .build(
                 Root::builder()
