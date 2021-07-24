@@ -394,13 +394,12 @@ impl ArticleView {
         self.content.link_handler.links.clear();
 
         self.content.lines = self.content.calculate_lines(size.x - 2);
-        //self.width = self
-        //    .content
-        //    .lines
-        //    .iter()
-        //    .map(|line| line.iter().map(|element| element.width).max().unwrap_or(0))
-        //    .max();
-        self.width = Some(size.x);
+        self.width = self
+            .content
+            .lines
+            .iter()
+            .map(|line| line.iter().map(|element| element.width).max().unwrap_or(0))
+            .max();
     }
 
     fn move_current_link(&mut self, direction: Directions) -> EventResult {
