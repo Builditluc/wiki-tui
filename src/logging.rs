@@ -1,6 +1,7 @@
 pub struct Logger;
 impl Logger {
     pub fn new() {
+        use dirs;
         use log::LevelFilter;
         use log4rs::append::file::FileAppender;
         use log4rs::config::{Appender, Config, Logger, Root};
@@ -10,7 +11,7 @@ impl Logger {
             .build("wiki_tui.log")
             .unwrap();
 
-        let config = Config::builder()
+        let default_config = Config::builder()
             .appender(Appender::builder().build("wiki_tui", Box::new(wiki_tui)))
             .logger(
                 Logger::builder()
@@ -37,7 +38,16 @@ impl Logger {
             )
             .unwrap();
 
-        log4rs::init_config(config).unwrap();
+        // try loading the config from a yml file
+        log4rs::init_file(
+            dirs::home_dir()
+                .unwrap()
+                .join(".config/wiki-tui/logging.yml"),
+            Default::default(),
+        )
+        .unwrap_or_else(|_| {
+            log4rs::init_config(default_config).unwrap();
+        });
         log::info!("Successfully initialized the logging system");
     }
 }
