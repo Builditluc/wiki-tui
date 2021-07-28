@@ -523,7 +523,7 @@ impl View for ArticleView {
         self.content.size_cache.is_none()
     }
 
-    fn important_area(&self, view_size: Vec2) -> cursive::Rect {
+    fn important_area(&self, _view_size: Vec2) -> cursive::Rect {
         if self.content.link_handler.links.is_empty() {
             cursive::Rect::from((0, 0))
         } else {

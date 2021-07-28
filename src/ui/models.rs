@@ -23,7 +23,7 @@ impl From<SearchResult> for ArticleResultPreview {
     }
 }
 
-pub mod TableOfContents {
+pub mod table_of_contents {
     #[derive(Clone, Debug)]
     pub struct Table {
         pub title: String,

@@ -1,4 +1,3 @@
-#[allow(unused_imports)]
 #[macro_use]
 extern crate log;
 extern crate anyhow;
@@ -375,12 +374,12 @@ fn show_article_from_link(siv: &mut Cursive, target: String) {
     }
 }
 
-fn add_table_of_contents(siv: &mut Cursive, toc: ui::models::TableOfContents::Table) {
-    use ui::models::TableOfContents;
+fn add_table_of_contents(siv: &mut Cursive, toc: ui::models::table_of_contents::Table) {
+    use ui::models::table_of_contents;
 
     // get the article_layout and create an empty select view
     let mut article_layout = siv.find_name::<LinearLayout>("article_layout").unwrap();
-    let mut toc_view: SelectView<TableOfContents::Item> = SelectView::new();
+    let mut toc_view: SelectView<table_of_contents::Item> = SelectView::new();
 
     // now go through every item
     log::info!("Adding the table of content to the toc_view");
@@ -397,8 +396,8 @@ fn add_table_of_contents(siv: &mut Cursive, toc: ui::models::TableOfContents::Ta
 }
 
 fn add_item_to_toc(
-    toc_view: &mut SelectView<ui::models::TableOfContents::Item>,
-    item: ui::models::TableOfContents::Item,
+    toc_view: &mut SelectView<ui::models::table_of_contents::Item>,
+    item: ui::models::table_of_contents::Item,
 ) {
     // add the item to the select_view
     let label = format!(

@@ -12,11 +12,11 @@ impl Default {
     fn get_table_of_contents(
         &self,
         document: Document,
-    ) -> Option<crate::ui::models::TableOfContents::Table> {
-        use crate::ui::models::TableOfContents;
+    ) -> Option<crate::ui::models::table_of_contents::Table> {
+        use crate::ui::models::table_of_contents;
 
         let toc_html: Node;
-        let mut toc_build = TableOfContents::Table {
+        let mut toc_build = table_of_contents::Table {
             title: String::new(),
             items: Vec::new(),
         };
@@ -46,8 +46,8 @@ impl Default {
         Some(toc_build)
     }
 
-    fn parse_toc_item(&self, item: Node, level: i32) -> crate::ui::models::TableOfContents::Item {
-        let mut item_build = crate::ui::models::TableOfContents::Item {
+    fn parse_toc_item(&self, item: Node, level: i32) -> crate::ui::models::table_of_contents::Item {
+        let mut item_build = crate::ui::models::table_of_contents::Item {
             number: level,
             text: String::new(),
             sub_items: None,

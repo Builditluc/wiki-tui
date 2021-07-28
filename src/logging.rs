@@ -1,7 +1,6 @@
 pub struct Logger;
 impl Logger {
     pub fn new() {
-        use dirs;
         use log::LevelFilter;
         use log4rs::append::file::FileAppender;
         use log4rs::config::{Appender, Config, Logger, Root};
