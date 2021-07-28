@@ -184,12 +184,12 @@ impl ArticleContent {
 
                     // add the current line to the finished ones and add the new element to another
                     // line
-                    log::trace!("current_line: \n{:?}", current_line);
-                    lines.push(std::mem::replace(
+                    self.add_element_to_new_line(
+                        &mut lines,
                         &mut current_line,
-                        vec![self.create_element_from_rendered_element(element, link_index)],
-                    ));
-                    log::trace!("new current line: \n{:?}", current_line);
+                        element,
+                        link_index,
+                    );
 
                     // this element is finished, continue with the next one
                     continue;
@@ -211,6 +211,7 @@ impl ArticleContent {
                 log::debug!("The element no: {} doesn't fit into the current line", idx);
                 if element.newline {
                     if element_width < max_width {
+                        log::debug!("Adding the element to a new line");
                         // reset the line width
                         line_width = 0;
 
@@ -224,12 +225,12 @@ impl ArticleContent {
 
                         // add the current line to the finished ones and add the new element to another
                         // line
-                        log::debug!("Adding the element to a new line");
-                        lines.push(std::mem::replace(
+                        self.add_element_to_new_line(
+                            &mut lines,
                             &mut current_line,
-                            vec![self.create_element_from_rendered_element(element, link_index)],
-                        ));
-                        log::trace!("New current line: \n{:?}", current_line);
+                            element,
+                            link_index,
+                        );
 
                         // this element is finished, continue with the next one
                         continue;
@@ -309,12 +310,13 @@ impl ArticleContent {
         let mut current_line_width = line_width;
 
         // first, split the element into chunks
-        for (idx, chunk) in element
-            .text
-            .split(" ")
-            .map(|chunk| format!(" {}", chunk))
-            .enumerate()
-        {
+        for (idx, chunk) in element.text.split(" ").enumerate().map(|(idx, chunk)| {
+            if idx == 0 {
+                (idx, chunk.to_string())
+            } else {
+                (idx, format!(" {}", chunk))
+            }
+        }) {
             log::debug!("the chunk no: {} will now be added", idx);
             let chunk_width = chunk.chars().count();
             log::trace!("chunk width: {}", chunk_width);
@@ -334,15 +336,19 @@ impl ArticleContent {
 
             // if not, add it to a new line
             current_line_width = 0;
-            lines.push(std::mem::replace(
+            let element_from_chunk = RenderedElement {
+                text: chunk,
+                style: element.style,
+                newline: element.newline,
+                link_destination: element.link_destination.clone(),
+            };
+
+            self.add_element_to_new_line(
+                &mut lines,
                 &mut current_line,
-                vec![Element {
-                    text: chunk,
-                    style: element.style,
-                    width: chunk_width,
-                    link_index,
-                }],
-            ));
+                &element_from_chunk,
+                link_index,
+            );
             log::debug!("Added the chunk no: {} to a new line", idx);
         }
         // add the remaining line to the finished ones, because no chunks are left
@@ -350,6 +356,29 @@ impl ArticleContent {
 
         // return the finished lines
         lines
+    }
+
+    fn add_element_to_new_line(
+        &self,
+        lines: &mut Vec<Line>,
+        current_line: &mut Line,
+        element: &RenderedElement,
+        link_index: Option<usize>,
+    ) {
+        log::trace!("current_line: \n{:?}", current_line);
+        lines.push(std::mem::replace(
+            current_line,
+            vec![{
+                let trimmed_element = RenderedElement {
+                    text: element.text.trim_start().to_string(),
+                    style: element.style,
+                    newline: element.newline,
+                    link_destination: element.link_destination.clone(),
+                };
+                self.create_element_from_rendered_element(&trimmed_element, link_index)
+            }],
+        ));
+        log::trace!("new current line: \n{:?}", current_line);
     }
 
     fn set_article(&mut self, article: Article) {
