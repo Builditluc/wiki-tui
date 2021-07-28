@@ -217,7 +217,7 @@ fn on_article_submit(siv: &mut Cursive, article_preview: &ui::models::ArticleRes
     let parsed_article = wiki.get_article(&article_preview.page_id);
 
     let mut article_view =
-        ui::article::ArticleView::new("").on_link_submit(|s, target| on_link_submit(s, target));
+        ui::article::ArticleView::new().on_link_submit(|s, target| on_link_submit(s, target));
 
     // set the contents of the article_view to the article
     log::info!("Setting the content of the article view");
@@ -335,7 +335,7 @@ fn show_article_from_link(siv: &mut Cursive, target: String) {
     let parsed_article = wiki.open_article(&target);
 
     let mut article_view =
-        ui::article::ArticleView::new("").on_link_submit(|s, target| on_link_submit(s, target));
+        ui::article::ArticleView::new().on_link_submit(|s, target| on_link_submit(s, target));
 
     // set the contents of the article_view to the article
     log::info!("Setting the content of the article view");

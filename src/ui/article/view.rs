@@ -3,7 +3,6 @@ use crate::wiki::article::*;
 use cursive::align::Align;
 use cursive::event::{Callback, Event, EventResult, Key};
 use cursive::theme::{BaseColor, Color, Effect, Style};
-use cursive::utils::markup::StyledString;
 use cursive::view::*;
 use cursive::XY;
 use cursive::{Printer, Vec2};
@@ -47,8 +46,8 @@ struct RenderedElement {
 type Line = Vec<Element>;
 
 impl ArticleContent {
-    pub fn new(content: StyledString) -> ArticleContent {
-        let mut article_content = ArticleContent {
+    pub fn new() -> ArticleContent {
+        ArticleContent {
             elements_rendered: Vec::new(),
             elements_count: 0,
 
@@ -57,18 +56,7 @@ impl ArticleContent {
 
             size_cache: None,
             historical_caches: Vec::new(),
-        };
-
-        // TODO do something better here
-        article_content.render(Article {
-            elements: vec![ArticleElement {
-                content: content.source().to_string(),
-                element_type: ArticleElementType::Text,
-                link_target: None,
-            }],
-        });
-
-        article_content
+        }
     }
 
     fn render(&mut self, article: Article) {
@@ -402,12 +390,9 @@ impl ArticleContent {
 }
 
 impl ArticleView {
-    pub fn new<S>(content: S) -> ArticleView
-    where
-        S: Into<StyledString>,
-    {
+    pub fn new() -> ArticleView {
         ArticleView {
-            content: ArticleContent::new(content.into()),
+            content: ArticleContent::new(),
             last_size: Vec2::zero(),
             width: None,
         }
