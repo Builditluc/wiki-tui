@@ -44,11 +44,7 @@ Just clone the repository and compile the stable branch.
 ## Configuration
 
 ### Location of the config file
-#### MacOS
-```
-$HOME/Library/Application Support/wiki-tui/config.ini
-```
-#### Linux
+#### MacOS and Linux 
 ```
 $HOME/.config/wiki-tui/config.ini
 ```

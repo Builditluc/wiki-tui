@@ -7,8 +7,9 @@ use lazy_static::*;
 use std::fs;
 use std::path::PathBuf;
 
-const CONFIG_FILE_NAME: &str = "config.ini";
-const APP_CONFIG_DIR: &str = "wiki-tui";
+const CONFIG_FILE: &str = "config.ini";
+const CONFIG_DIR: &str = ".config";
+const APP_DIR: &str = "wiki-tui";
 
 lazy_static! {
     pub static ref CONFIG: Config = Config::new();
@@ -99,20 +100,23 @@ impl Config {
 
     fn load_or_create_config_paths(&mut self) -> Result<bool> {
         // get the platform specific config directory
-        let config_dir = match dirs::config_dir() {
+        let config_dir = match dirs::home_dir() {
             Some(config_dir) => {
-                log::info!("The config directory is {}", config_dir.to_str().unwrap());
-                config_dir
+                log::info!(
+                    "The config directory is {}",
+                    config_dir.join(CONFIG_DIR).to_str().unwrap()
+                );
+                config_dir.join(CONFIG_DIR)
             }
             None => {
-                log::error!("Couldn't find the config directory");
+                log::error!("Couldn't find the home directory");
                 panic!()
             }
         };
 
         // build the app config path and the config file path
-        let app_config_dir = config_dir.join(APP_CONFIG_DIR);
-        let config_file_dir = app_config_dir.join(CONFIG_FILE_NAME);
+        let app_config_dir = config_dir.join(APP_DIR);
+        let config_file_dir = app_config_dir.join(CONFIG_FILE);
 
         // create the app config folder if it doesn't exist
         if !app_config_dir.exists() {
