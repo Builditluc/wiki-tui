@@ -61,7 +61,7 @@ impl LinkHandler {
 
         if direction > 0 {
             let current_position = self.links[self.current_link].position;
-            for (idx, link) in self.links[self.current_link..].into_iter().enumerate() {
+            for (idx, link) in self.links[self.current_link..].iter().enumerate() {
                 if link.position.y > current_position.y {
                     self.current_link += idx;
                     return;
@@ -89,4 +89,10 @@ pub enum Directions {
     RIGHT,
     UP,
     DOWN,
+}
+
+impl Default for LinkHandler {
+    fn default() -> Self {
+        Self::new()
+    }
 }
