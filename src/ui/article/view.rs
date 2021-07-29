@@ -76,26 +76,26 @@ impl ArticleContent {
 
                 // if its text, just append it to the rendered article
                 ArticleElementType::Text => rendered_article.append(&mut self.render_element(
-                    element.content.split("\n").enumerate(),
+                    element.content.split('\n').enumerate(),
                     Style::from(CONFIG.theme.text),
                     &element.link_target,
                 )),
 
                 // if its a header, add some linebreaks and make the header bold
                 ArticleElementType::Header => rendered_article.append(&mut self.render_element(
-                    format!("\n{}\n\n", element.content).split("\n").enumerate(),
+                    format!("\n{}\n\n", element.content).split('\n').enumerate(),
                     Style::from(Color::Dark(BaseColor::Black)).combine(Effect::Bold),
                     &element.link_target,
                 )),
                 // if its bold text, make it bold
                 ArticleElementType::Bold => rendered_article.append(&mut self.render_element(
-                    element.content.split("\n").enumerate(),
+                    element.content.split('\n').enumerate(),
                     Style::from(CONFIG.theme.text).combine(Effect::Bold),
                     &element.link_target,
                 )),
                 // if its italic text, make it italic
                 ArticleElementType::Italic => rendered_article.append(&mut self.render_element(
-                    element.content.split("\n").enumerate(),
+                    element.content.split('\n').enumerate(),
                     Style::from(CONFIG.theme.text).combine(Effect::Italic),
                     &element.link_target,
                 )),
@@ -115,7 +115,7 @@ impl ArticleContent {
         for (idx, content) in element {
             rendered_elements.push(RenderedElement {
                 text: content.to_string(),
-                newline: if idx >= 1 { true } else { false },
+                newline: idx >= 1,
                 style,
                 link_destination: link_target.clone(),
             })
@@ -125,7 +125,7 @@ impl ArticleContent {
     }
 
     fn calculate_lines(&mut self, max_width: usize) -> Vec<Line> {
-        log::info!(
+        log::debug!(
             "Calculating the lines with a max line width of: {}",
             max_width
         );
@@ -252,7 +252,7 @@ impl ArticleContent {
                 log::trace!("new_lines after pop(): \n{:?}", new_lines.pop());
                 lines.push(std::mem::replace(
                     &mut current_line,
-                    new_lines.pop().unwrap_or_else(|| Vec::new()),
+                    new_lines.pop().unwrap_or_default(),
                 ));
                 log::debug!("added the other new lines to the finished ones");
 
@@ -298,7 +298,7 @@ impl ArticleContent {
         let mut current_line_width = line_width;
 
         // first, split the element into chunks
-        for (idx, chunk) in element.text.split(" ").enumerate().map(|(idx, chunk)| {
+        for (idx, chunk) in element.text.split(' ').enumerate().map(|(idx, chunk)| {
             if idx == 0 {
                 (idx, chunk.to_string())
             } else {
@@ -536,5 +536,11 @@ impl View for ArticleView {
             }
             _ => EventResult::Ignored,
         }
+    }
+}
+
+impl Default for ArticleView {
+    fn default() -> Self {
+        Self::new()
     }
 }

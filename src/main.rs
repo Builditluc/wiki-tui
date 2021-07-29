@@ -28,7 +28,7 @@ pub const LOGO: &str = "
 
 fn main() {
     // Initialize the logging module
-    logging::Logger::new();
+    logging::Logger::initialize();
 
     // Create the wiki struct, used for interaction with the wikipedia website/api
     let wiki = wiki::WikiApi::new();
@@ -38,9 +38,11 @@ fn main() {
     siv.set_user_data(wiki);
 
     // get and apply the color theme
-    let mut new_theme = Theme::default();
-    new_theme.palette = get_color_palette();
-    siv.set_theme(new_theme);
+    let theme = Theme {
+        palette: get_color_palette(),
+        ..Default::default()
+    };
+    siv.set_theme(theme);
 
     // Create the views
     let search_bar = EditView::new()
@@ -92,7 +94,7 @@ fn on_search(siv: &mut Cursive, search_query: String) {
 
     // are there any results?
     let mut search_results_exist = true;
-    if search_response.continue_code.continue_code == "".to_string() {
+    if search_response.continue_code.continue_code == *"" {
         search_results_exist = false;
         log::warn!("No articles were found with the given query");
     }
@@ -114,7 +116,7 @@ fn on_search(siv: &mut Cursive, search_query: String) {
 
     let search_details_view = TextView::new(format!(
         "Found {} articles matching your search",
-        &search_response.clone().query.search_info.total_hits
+        &search_response.query.search_info.total_hits
     ));
 
     // convert the search results into Article Result Previews
@@ -261,7 +263,7 @@ fn continue_search(
     continue_code: &wiki::search::ContinueCode,
 ) {
     // if there is no valid continue code, abort
-    if continue_code.continue_code == "".to_string() {
+    if continue_code.continue_code == *"" {
         warn!("Invalid continue code, aborting search");
         return;
     }
@@ -404,12 +406,8 @@ fn add_item_to_toc(
     item: ui::models::table_of_contents::Item,
 ) {
     // add the item to the select_view
-    let label = format!(
-        "{}{}",
-        " ".repeat(item.number as usize).to_string(),
-        item.text
-    );
-    log::info!("Added the item: {} to the toc_view", label);
+    let label = format!("{}{}", " ".repeat(item.number as usize), item.text);
+    log::debug!("Added the item: {} to the toc_view", label);
     toc_view.add_item(label, item);
 }
 

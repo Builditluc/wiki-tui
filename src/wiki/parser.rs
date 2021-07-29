@@ -172,7 +172,7 @@ impl Default {
         for children in element.children() {
             log::debug!("Iterating now over the node {:?}", element.name());
 
-            match children.name().unwrap_or_else(|| "") {
+            match children.name().unwrap_or("") {
                 "a" => content.push(ArticleElement {
                     content: children.text(),
                     element_type: ArticleElementType::Link,

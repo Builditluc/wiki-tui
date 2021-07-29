@@ -1,7 +1,6 @@
 use anyhow::*;
 use cursive::theme::BaseColor;
 use cursive::theme::Color;
-use dirs;
 use ini::Ini;
 use lazy_static::*;
 use std::fs;
@@ -208,4 +207,10 @@ impl Config {
 
 fn parse_color(color: String) -> Result<Color> {
     Color::parse(&color.to_lowercase()).context("Failed loading the color")
+}
+
+impl Default for Config {
+    fn default() -> Self {
+        Self::new()
+    }
 }
