@@ -24,18 +24,18 @@
 `wiki-tui` currently has these features:
 - Browse through Wikipedia (Set the language by changing the url in the config)
 - Uses webscraping and a custom view to display wikipedia articles in the terminal
+- Use links to open other articles
 
 
 These features are planned:
 - View and interact with more elements of wikipedia articles (like tables, images, etc.)
-- Use links to open other articles
 
 ### How it looks
 
-![image](https://user-images.githubusercontent.com/37375448/116461454-8ec0d780-a868-11eb-8725-a503bce4828c.png)
-![image](https://user-images.githubusercontent.com/37375448/116461510-a0a27a80-a868-11eb-950b-f804ffa4ad3b.png)
-![image](https://user-images.githubusercontent.com/37375448/116461593-bb74ef00-a868-11eb-9280-cf64eaa4e11f.png) <br>
-Note: These Screenshots were taken on iTerm2 (MacOS) with the [spaceduck](https://github.com/pineapplegiant/spaceduck-terminal) theme and the SF Mono Font
+![image](https://user-images.githubusercontent.com/37375448/127552501-777b1311-93aa-47e0-851e-f89b043118e3.png)
+![image](https://user-images.githubusercontent.com/37375448/127552544-85df82f8-4337-4def-b7b8-f11255c2304d.png)
+![image](https://user-images.githubusercontent.com/37375448/127552750-05dfde74-07fc-4e32-a438-4a68b408162b.png) <br>
+Note: These Screenshots were taken on [alacritty](https://github.com/alacritty/alacritty) (MacOS) with the [spaceduck](https://github.com/pineapplegiant/spaceduck-terminal) theme and the [Sauce Code Pro](https://github.com/ryanoasis/nerd-fonts/tree/master/patched-fonts/SourceCodePro/Regular) font
 
 ## Installation
 
