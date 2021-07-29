@@ -5,6 +5,7 @@ extern crate ini;
 extern crate lazy_static;
 
 use anyhow::*;
+use cursive::align::HAlign;
 use cursive::theme::*;
 use cursive::traits::*;
 use cursive::utils::*;
@@ -19,7 +20,7 @@ pub mod ui;
 pub mod wiki;
 
 pub const LOGO: &str = "
- _      __   (_)   / /__   (_)         / /_  __  __   (_)
+  _      __   (_)   / /__   (_)         / /_  __  __   (_)
 | | /| / /  / /   / //_/  / /  ______ / __/ / / / /  / /
 | |/ |/ /  / /   / ,<    / /  /_____// /_  / /_/ /  / /
 |__/|__/  /_/   /_/|_|  /_/          \\__/  \\__,_/  /_/ 
@@ -51,7 +52,10 @@ fn main() {
         .title("Search")
         .title_position(cursive::align::HAlign::Left);
 
-    let logo_view = TextView::new(LOGO).with_name("logo_view").full_screen();
+    let logo_view = TextView::new(LOGO)
+        .h_align(HAlign::Center)
+        .with_name("logo_view")
+        .full_screen();
 
     let article_layout = LinearLayout::horizontal()
         .child(Dialog::around(logo_view))
