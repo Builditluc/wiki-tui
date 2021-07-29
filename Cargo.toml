@@ -1,6 +1,6 @@
 [package]
 name = "wiki-tui"
-version = "0.1.0"
+version = "0.2.9"
 authors = ["builditluc <37375448+Builditluc@users.noreply.github.com>"]
 edition = "2018"
 

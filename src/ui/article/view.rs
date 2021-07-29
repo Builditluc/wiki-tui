@@ -3,7 +3,6 @@ use crate::wiki::article::*;
 use cursive::align::Align;
 use cursive::event::{Callback, Event, EventResult, Key};
 use cursive::theme::{BaseColor, Color, Effect, Style};
-use cursive::utils::markup::StyledString;
 use cursive::view::*;
 use cursive::XY;
 use cursive::{Printer, Vec2};
@@ -47,8 +46,8 @@ struct RenderedElement {
 type Line = Vec<Element>;
 
 impl ArticleContent {
-    pub fn new(content: StyledString) -> ArticleContent {
-        let mut article_content = ArticleContent {
+    pub fn new() -> ArticleContent {
+        ArticleContent {
             elements_rendered: Vec::new(),
             elements_count: 0,
 
@@ -57,18 +56,7 @@ impl ArticleContent {
 
             size_cache: None,
             historical_caches: Vec::new(),
-        };
-
-        // TODO do something better here
-        article_content.render(Article {
-            elements: vec![ArticleElement {
-                content: content.source().to_string(),
-                element_type: ArticleElementType::Text,
-                link_target: None,
-            }],
-        });
-
-        article_content
+        }
     }
 
     fn render(&mut self, article: Article) {
@@ -137,7 +125,10 @@ impl ArticleContent {
     }
 
     fn calculate_lines(&mut self, max_width: usize) -> Vec<Line> {
-        // TODO This needs some improvemenet
+        log::info!(
+            "Calculating the lines with a max line width of: {}",
+            max_width
+        );
 
         // the width of the line that is currently calculated
         let mut line_width: usize = 0;
@@ -146,8 +137,9 @@ impl ArticleContent {
         let mut current_line: Vec<Element> = Vec::new();
 
         // go through every rendered element
-        for element in self.elements_rendered.iter() {
-            // does the element fit inside of the current line?
+        for (idx, element) in self.elements_rendered.iter().enumerate() {
+            log::debug!("Rendering now the element no: {}", idx);
+            let element_width = element.text.chars().count();
             let link_index = match element.link_destination {
                 Some(ref destination) => Some(self.link_handler.push(Link {
                     position: (line_width, lines.len()).into(),
@@ -156,77 +148,225 @@ impl ArticleContent {
                 })),
                 None => None,
             };
+            log::trace!(
+                "The element has the link_index: {:?}, and a width of: {}",
+                link_index,
+                element_width
+            );
 
-            if (line_width + element.text.chars().count()) < max_width && element.newline == false {
-                current_line.push(Element {
-                    text: element.text.to_string(),
-                    style: element.style,
-                    width: element.text.chars().count(),
-                    link_index,
-                });
-
-                line_width += element.text.chars().count();
-            } else {
+            // does the element fit in the current line?
+            if (line_width + element_width) < max_width {
+                // if it goes into a new line, add it to a new one
                 if element.newline {
+                    log::debug!("Adding the element to a new line");
+                    // reset the line width
+                    line_width = 0;
+
+                    // fill the current line with empty spaces
                     current_line.push(Element {
                         text: " ".repeat(max_width - line_width).to_string(),
                         style: Style::from(CONFIG.theme.text),
-                        width: 0,
+                        width: max_width - line_width,
                         link_index: None,
                     });
 
-                    line_width = 0;
-                    lines.push(std::mem::replace(
+                    // add the current line to the finished ones and add the new element to another
+                    // line
+                    self.add_element_to_new_line(
+                        &mut lines,
                         &mut current_line,
-                        vec![{
-                            Element {
-                                text: element.text.to_string(),
-                                style: element.style,
-                                width: element.text.chars().count(),
-                                link_index,
-                            }
-                        }],
-                    ));
+                        element,
+                        link_index,
+                    );
+
+                    // this element is finished, continue with the next one
+                    continue;
+                }
+
+                // if the element goes to the current line, add it to the line
+                log::debug!("Adding the element to the current line");
+                current_line.push(self.create_element_from_rendered_element(element, link_index));
+
+                // don't forget to increase the line width and continue with the next element
+                line_width += element_width;
+                log::trace!("New line width: {}", line_width);
+
+                continue;
+            } else {
+                // hmm, the element doesn't fit into the current line
+                // however, does the element go into a new line? if so, check if it fits into a
+                // single line and split it if not
+                log::debug!("The element no: {} doesn't fit into the current line", idx);
+                if element.newline {
+                    if element_width < max_width {
+                        log::debug!("Adding the element to a new line");
+                        // reset the line width
+                        line_width = 0;
+
+                        // fill the current line with empty spaces
+                        current_line.push(Element {
+                            text: " ".repeat(max_width - line_width).to_string(),
+                            style: Style::from(CONFIG.theme.text),
+                            width: max_width - line_width,
+                            link_index: None,
+                        });
+
+                        // add the current line to the finished ones and add the new element to another
+                        // line
+                        self.add_element_to_new_line(
+                            &mut lines,
+                            &mut current_line,
+                            element,
+                            link_index,
+                        );
+
+                        // this element is finished, continue with the next one
+                        continue;
+                    }
+
+                    // so.. the element goes into a new line, but it doesn't fit into a single one
+                    // well, then split it and add it to a new line
+
+                    log::debug!("The element no: {} must be splitted", idx);
+                    let mut new_lines = self.split_element(element, link_index, 0, max_width);
+                    log::trace!("splitted lines: \n{:?}", new_lines);
+
+                    line_width = 0;
+
+                    lines.push(std::mem::replace(&mut current_line, Vec::new()));
+                    lines.append(&mut new_lines);
+                    log::debug!("Added the current line and the new lines to the finished lines");
 
                     continue;
                 }
 
-                // if the next element doesn't fit,
-                // try splitting it and see if these fit
+                // split the element
+                log::debug!("The element will now be splitted");
+                let mut new_lines = self.split_element(element, link_index, line_width, max_width);
+                log::trace!("splitted lines: \n{:?}", new_lines);
 
-                let splitted_element = element.text.split(" ");
-                for element_part in splitted_element {
-                    // does it fit?
-                    if (line_width + element_part.chars().count()) < max_width {
-                        // add it to the current line
-                        current_line.push(Element {
-                            text: format!(" {}", element_part.to_string()),
-                            style: Style::from(CONFIG.theme.text),
-                            width: element_part.chars().count() + 1,
-                            link_index,
-                        });
+                // the first line of these new lines is merged with the current line
+                current_line.append(&mut new_lines.remove(0));
+                log::debug!("merged the first of these new lines with the current one");
+                log::trace!("new_lines: \n{:?}", new_lines);
+                log::trace!("new_lines after pop(): \n{:?}", new_lines.pop());
+                lines.push(std::mem::replace(
+                    &mut current_line,
+                    new_lines.pop().unwrap_or_else(|| Vec::new()),
+                ));
+                log::debug!("added the other new lines to the finished ones");
 
-                        line_width += element_part.chars().count();
-                    } else {
-                        line_width = 0;
-                        lines.push(std::mem::replace(
-                            &mut current_line,
-                            vec![{
-                                Element {
-                                    text: element_part.to_string(),
-                                    style: element.style,
-                                    width: element_part.chars().count(),
-                                    link_index,
-                                }
-                            }],
-                        ));
-                    }
-                }
+                // all the other lines will be added to the finished lines
+                lines.append(&mut new_lines);
+
+                line_width = current_line.iter().map(|element| element.width).sum();
+                log::debug!("new line width: {}", line_width);
+
+                continue;
             }
         }
 
+        // add the remaining line to the finished ones, because no elements are left
         lines.push(current_line);
+
+        // return the finished lines
         lines
+    }
+
+    fn create_element_from_rendered_element(
+        &self,
+        element: &RenderedElement,
+        link_index: Option<usize>,
+    ) -> Element {
+        Element {
+            text: element.text.to_string(),
+            style: element.style,
+            width: element.text.chars().count(),
+            link_index,
+        }
+    }
+
+    fn split_element(
+        &self,
+        element: &RenderedElement,
+        link_index: Option<usize>,
+        line_width: usize,
+        max_width: usize,
+    ) -> Vec<Line> {
+        let mut lines: Vec<Line> = Vec::new();
+        let mut current_line: Line = Vec::new();
+        let mut current_line_width = line_width;
+
+        // first, split the element into chunks
+        for (idx, chunk) in element.text.split(" ").enumerate().map(|(idx, chunk)| {
+            if idx == 0 {
+                (idx, chunk.to_string())
+            } else {
+                (idx, format!(" {}", chunk))
+            }
+        }) {
+            log::debug!("the chunk no: {} will now be added", idx);
+            let chunk_width = chunk.chars().count();
+            log::trace!("chunk width: {}", chunk_width);
+
+            // does the cunk fit into the current line? then add it and continue with the next one
+            if (current_line_width + chunk_width) < max_width {
+                current_line.push(Element {
+                    text: chunk,
+                    style: element.style,
+                    width: chunk_width,
+                    link_index,
+                });
+                log::debug!("Added the chunk to the current line");
+
+                continue;
+            }
+
+            // if not, add it to a new line
+            current_line_width = 0;
+            let element_from_chunk = RenderedElement {
+                text: chunk,
+                style: element.style,
+                newline: element.newline,
+                link_destination: element.link_destination.clone(),
+            };
+
+            self.add_element_to_new_line(
+                &mut lines,
+                &mut current_line,
+                &element_from_chunk,
+                link_index,
+            );
+            log::debug!("Added the chunk no: {} to a new line", idx);
+        }
+        // add the remaining line to the finished ones, because no chunks are left
+        lines.push(current_line);
+
+        // return the finished lines
+        lines
+    }
+
+    fn add_element_to_new_line(
+        &self,
+        lines: &mut Vec<Line>,
+        current_line: &mut Line,
+        element: &RenderedElement,
+        link_index: Option<usize>,
+    ) {
+        log::trace!("current_line: \n{:?}", current_line);
+        lines.push(std::mem::replace(
+            current_line,
+            vec![{
+                let trimmed_element = RenderedElement {
+                    text: element.text.trim_start().to_string(),
+                    style: element.style,
+                    newline: element.newline,
+                    link_destination: element.link_destination.clone(),
+                };
+                self.create_element_from_rendered_element(&trimmed_element, link_index)
+            }],
+        ));
+        log::trace!("new current line: \n{:?}", current_line);
     }
 
     fn set_article(&mut self, article: Article) {
@@ -250,12 +390,9 @@ impl ArticleContent {
 }
 
 impl ArticleView {
-    pub fn new<S>(content: S) -> ArticleView
-    where
-        S: Into<StyledString>,
-    {
+    pub fn new() -> ArticleView {
         ArticleView {
-            content: ArticleContent::new(content.into()),
+            content: ArticleContent::new(),
             last_size: Vec2::zero(),
             width: None,
         }
@@ -273,7 +410,7 @@ impl ArticleView {
         self.content.size_cache = None;
         self.content.link_handler.links.clear();
 
-        self.content.lines = self.content.calculate_lines(size.x - 1);
+        self.content.lines = self.content.calculate_lines(size.x);
         self.width = self
             .content
             .lines
@@ -357,7 +494,6 @@ impl View for ArticleView {
         }
 
         // if we don't have the size calculated, calculate it and add it to the cache
-        info!("[ui::article::AritlceView::required_size] Recalculating Size");
         self.calculate_lines(size);
         let required_size = Vec2::new(self.width.unwrap_or(0), self.content.lines.len());
 
@@ -372,7 +508,7 @@ impl View for ArticleView {
         self.content.size_cache.is_none()
     }
 
-    fn important_area(&self, view_size: Vec2) -> cursive::Rect {
+    fn important_area(&self, _view_size: Vec2) -> cursive::Rect {
         if self.content.link_handler.links.is_empty() {
             cursive::Rect::from((0, 0))
         } else {
@@ -385,8 +521,6 @@ impl View for ArticleView {
         match event {
             Event::Key(Key::Left) => self.move_current_link(Directions::LEFT),
             Event::Key(Key::Right) => self.move_current_link(Directions::RIGHT),
-            //Event::Key(Key::Down) => self.move_current_link(Directions::DOWN),
-            //Event::Key(Key::Up) => self.move_current_link(Directions::UP),
             Event::Key(Key::Enter) => {
                 let target = self.content.link_handler.links
                     [self.content.link_handler.current_link]

@@ -44,11 +44,7 @@ Just clone the repository and compile the stable branch.
 ## Configuration
 
 ### Location of the config file
-#### MacOS
-```
-$HOME/Library/Application Support/wiki-tui/config.ini
-```
-#### Linux
+#### MacOS and Linux 
 ```
 $HOME/.config/wiki-tui/config.ini
 ```
@@ -83,3 +79,8 @@ text = black
 ; color used for a search match in the results view
 search_match = red
 ```
+
+### Logging
+If you want to configure the logging, you can configure it in `logging.yml` (you have to create it in the config directory). 
+
+In this file you can configure the logger accordingly to the [docs](https://docs.rs/log4rs/1.0.0/log4rs/#configuration-via-a-yaml-file) of the logging crate
