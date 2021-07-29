@@ -86,7 +86,14 @@ impl Parser for Default {
         log::info!("The Article will now be parsed");
 
         // add the title to the article content
-        let title = document.find(Class("firstHeading")).next().unwrap().text();
+        let mut title = String::new();
+        if let Some(title_node) = document.find(Class("firstHeading")).next() {
+            title = title_node.text();
+            log::info!("Found the title");
+        } else {
+            log::warn!("Couldn't find the title");
+        }
+
         content.push(ArticleElement {
             content: title,
             element_type: ArticleElementType::Header,

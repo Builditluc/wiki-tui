@@ -14,7 +14,7 @@ impl WikiApi {
         log::info!("[wiki::WikiApi::new] Creating a instance of Wiki");
         let default_parser = parser::Default {};
         WikiApi {
-            client: reqwest::blocking::Client::new(),
+            client: reqwest::blocking::ClientBuilder::new().user_agent("Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:90.0) Gecko/20100101 Firefox/90.0").build().unwrap(),
             parser: Box::new(default_parser),
         }
     }
