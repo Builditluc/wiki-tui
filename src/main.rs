@@ -11,6 +11,7 @@ use cursive::utils::*;
 use cursive::view::{Resizable, Scrollable};
 use cursive::views::*;
 use cursive::Cursive;
+use std::{thread, time};
 
 pub mod config;
 pub mod logging;
@@ -25,12 +26,31 @@ pub const LOGO: &str = "
 ";
 
 fn main() {
-    // Initialize the logging module
-    logging::Logger::initialize();
+    let initializing_thread = thread::spawn(move || {
+        println!("{}", LOGO);
 
-    // Create the wiki struct, used for interaction with the wikipedia website/api
-    let wiki = wiki::WikiApi::new();
+        // Initialize the logging module
+        logging::Logger::initialize();
 
+        // Create the wiki struct, used for interaction with the wikipedia website/api
+        let wiki = wiki::WikiApi::new();
+
+        thread::sleep(time::Duration::from_millis(250));
+        return wiki;
+    });
+
+    let wiki = match initializing_thread.join() {
+        Ok(wiki) => wiki,
+        Err(error) => {
+            println!("Something happend during initialization:\n{:?}", error);
+            std::process::exit(1);
+        }
+    };
+
+    start_application(wiki);
+}
+
+fn start_application(wiki: wiki::WikiApi) {
     let mut siv = cursive::default();
     siv.add_global_callback('q', Cursive::quit);
     siv.set_user_data(wiki);

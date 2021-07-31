@@ -92,3 +92,6 @@ impl Default for WikiApi {
         Self::new()
     }
 }
+
+unsafe impl Send for WikiApi {}
+unsafe impl Sync for WikiApi {}
