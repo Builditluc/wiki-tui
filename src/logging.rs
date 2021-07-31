@@ -28,7 +28,7 @@ impl Logger {
                 Logger::builder()
                     .appender("wiki_tui")
                     .additive(false)
-                    .build("wiki_tui::ui::article::view", LevelFilter::Info),
+                    .build("wiki_tui::ui::article::view", LevelFilter::Debug),
             )
             .build(
                 Root::builder()

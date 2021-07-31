@@ -22,6 +22,7 @@ struct ArticleContent {
     elements_count: usize,
 
     lines: Vec<Line>,
+    lines_wrapped: bool,
     link_handler: LinkHandler,
 
     size_cache: Option<XY<SizeCache>>,
@@ -52,6 +53,7 @@ impl ArticleContent {
             elements_count: 0,
 
             lines: Vec::new(),
+            lines_wrapped: false,
             link_handler: LinkHandler::new(),
 
             size_cache: None,
@@ -136,6 +138,8 @@ impl ArticleContent {
         let mut lines: Vec<Line> = Vec::new();
         let mut current_line: Vec<Element> = Vec::new();
 
+        let mut lines_wrapped = false;
+
         // go through every rendered element
         for (idx, element) in self.elements_rendered.iter().enumerate() {
             log::debug!("Rendering now the element no: {}", idx);
@@ -154,14 +158,19 @@ impl ArticleContent {
                 element_width
             );
 
+            if element.newline && element_width.eq(&0) {
+                log::debug!("Created a new line");
+                lines.push(std::mem::replace(&mut current_line, Vec::new()));
+                line_width = 0;
+
+                continue;
+            }
+
             // does the element fit in the current line?
             if (line_width + element_width) < max_width {
                 // if it goes into a new line, add it to a new one
                 if element.newline {
                     log::debug!("Adding the element to a new line");
-                    // reset the line width
-                    line_width = 0;
-
                     // fill the current line with empty spaces
                     current_line.push(Element {
                         text: " ".repeat(max_width - line_width).to_string(),
@@ -172,7 +181,7 @@ impl ArticleContent {
 
                     // add the current line to the finished ones and add the new element to another
                     // line
-                    self.add_element_to_new_line(
+                    line_width = self.add_element_to_new_line(
                         &mut lines,
                         &mut current_line,
                         element,
@@ -200,9 +209,6 @@ impl ArticleContent {
                 if element.newline {
                     if element_width < max_width {
                         log::debug!("Adding the element to a new line");
-                        // reset the line width
-                        line_width = 0;
-
                         // fill the current line with empty spaces
                         current_line.push(Element {
                             text: " ".repeat(max_width - line_width).to_string(),
@@ -213,7 +219,7 @@ impl ArticleContent {
 
                         // add the current line to the finished ones and add the new element to another
                         // line
-                        self.add_element_to_new_line(
+                        line_width = self.add_element_to_new_line(
                             &mut lines,
                             &mut current_line,
                             element,
@@ -232,6 +238,7 @@ impl ArticleContent {
                     log::trace!("splitted lines: \n{:?}", new_lines);
 
                     line_width = 0;
+                    lines_wrapped = true;
 
                     lines.push(std::mem::replace(&mut current_line, Vec::new()));
                     lines.append(&mut new_lines);
@@ -242,6 +249,7 @@ impl ArticleContent {
 
                 // split the element
                 log::debug!("The element will now be splitted");
+                lines_wrapped = true;
                 let mut new_lines = self.split_element(element, link_index, line_width, max_width);
                 log::trace!("splitted lines: \n{:?}", new_lines);
 
@@ -265,6 +273,7 @@ impl ArticleContent {
                 continue;
             }
         }
+        self.lines_wrapped = lines_wrapped;
 
         // add the remaining line to the finished ones, because no elements are left
         lines.push(current_line);
@@ -319,11 +328,11 @@ impl ArticleContent {
                 });
                 log::debug!("Added the chunk to the current line");
 
+                current_line_width += chunk_width;
                 continue;
             }
 
             // if not, add it to a new line
-            current_line_width = 0;
             let element_from_chunk = RenderedElement {
                 text: chunk,
                 style: element.style,
@@ -331,7 +340,7 @@ impl ArticleContent {
                 link_destination: element.link_destination.clone(),
             };
 
-            self.add_element_to_new_line(
+            current_line_width = self.add_element_to_new_line(
                 &mut lines,
                 &mut current_line,
                 &element_from_chunk,
@@ -352,8 +361,9 @@ impl ArticleContent {
         current_line: &mut Line,
         element: &RenderedElement,
         link_index: Option<usize>,
-    ) {
+    ) -> usize {
         log::trace!("current_line: \n{:?}", current_line);
+        let mut element_width: usize = 0;
         lines.push(std::mem::replace(
             current_line,
             vec![{
@@ -363,10 +373,14 @@ impl ArticleContent {
                     newline: element.newline,
                     link_destination: element.link_destination.clone(),
                 };
-                self.create_element_from_rendered_element(&trimmed_element, link_index)
+                let element =
+                    self.create_element_from_rendered_element(&trimmed_element, link_index);
+                element_width = element.width;
+                element
             }],
         ));
         log::trace!("new current line: \n{:?}", current_line);
+        element_width
     }
 
     fn set_article(&mut self, article: Article) {
@@ -410,13 +424,26 @@ impl ArticleView {
         self.content.size_cache = None;
         self.content.link_handler.links.clear();
 
+        self.content.lines_wrapped = false;
         self.content.lines = self.content.calculate_lines(size.x);
-        self.width = self
-            .content
-            .lines
-            .iter()
-            .map(|line| line.iter().map(|element| element.width).max().unwrap_or(0))
-            .max();
+
+        // Desired width
+        self.width = if self.content.lines_wrapped {
+            log::warn!("Rows are wrapped, requiring the full width of '{}'", size.x);
+            // if any rows are wrapped, then require the full width
+            Some(size.x)
+        } else {
+            log::info!("Rows aren't wrapped");
+            let size_x = self
+                .content
+                .lines
+                .iter()
+                .map(|line| line.iter().map(|element| element.width).max().unwrap_or(0))
+                .max();
+
+            log::info!("Required size: '{:?}'", size_x);
+            size_x
+        }
     }
 
     fn move_current_link(&mut self, direction: Directions) -> EventResult {
@@ -482,6 +509,10 @@ impl View for ArticleView {
         let my_size = Vec2::new(self.width.unwrap_or(0), self.content.lines.len());
         self.content.size_cache = Some(SizeCache::build(my_size, size));
         self.content.historical_caches.clear();
+
+        log::info!("size of view: {:?}", size);
+        log::debug!("view width is: '{}'", size.x);
+        log::debug!("lines: \n{:#?}", self.content.lines);
     }
 
     fn required_size(&mut self, size: Vec2) -> Vec2 {
@@ -497,6 +528,11 @@ impl View for ArticleView {
         self.calculate_lines(size);
         let required_size = Vec2::new(self.width.unwrap_or(0), self.content.lines.len());
 
+        log::info!(
+            "The required size for '{:?}' is '{:?}'",
+            size,
+            required_size
+        );
         self.content
             .historical_caches
             .insert(0, (size, required_size));
