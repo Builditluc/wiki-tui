@@ -66,7 +66,7 @@ impl WikiApi {
             .context("Failed serializing the search response")
     }
 
-    pub fn get_article(&self, page_id: &i32) -> article::ParsedArticle {
+    pub fn get_article(&self, page_id: &i32) -> Result<article::ParsedArticle> {
         // creating the url and making the request
         self.parse_article(&format!(
             "{}?curid={}",
@@ -75,14 +75,14 @@ impl WikiApi {
         ))
     }
 
-    fn parse_article(&self, url: &str) -> article::ParsedArticle {
+    fn parse_article(&self, url: &str) -> Result<article::ParsedArticle> {
         let article_html = self.client.get(url).send().unwrap();
 
         // parsing the html response into a Article
         self.parser.parse(article_html)
     }
 
-    pub fn open_article(&self, target: &str) -> article::ParsedArticle {
+    pub fn open_article(&self, target: &str) -> Result<article::ParsedArticle> {
         self.parse_article(&format!("{}{}", CONFIG.api_config.base_url.clone(), target))
     }
 }
