@@ -1,8 +1,7 @@
-#[macro_use]
-extern crate log;
 extern crate anyhow;
 extern crate ini;
 extern crate lazy_static;
+extern crate log;
 
 use anyhow::*;
 use cursive::align::HAlign;
@@ -15,7 +14,6 @@ use cursive::Cursive;
 
 pub mod config;
 pub mod logging;
-pub mod tests;
 pub mod ui;
 pub mod wiki;
 
@@ -90,7 +88,21 @@ fn on_search(siv: &mut Cursive, search_query: String) {
     log::info!("The Search Query is \"{}\"", search_query);
 
     // Search wikipedia for the search query and the response
-    let search_response = wiki.search(&search_query);
+    let search_response = match wiki.search(&search_query) {
+        Ok(response) => response,
+        Err(error) => {
+            log::warn!("{:?}", error);
+            // display an error_message
+            siv.add_layer(
+                Dialog::info(
+                    "A Problem occurred while searching.\nCheck the logs for further information",
+                )
+                .title("Error")
+                .title_position(HAlign::Center),
+            );
+            return;
+        }
+    };
 
     // are there any results?
     let mut search_results_exist = true;
@@ -264,13 +276,30 @@ fn continue_search(
 ) {
     // if there is no valid continue code, abort
     if continue_code.continue_code == *"" {
-        warn!("Invalid continue code, aborting search");
+        log::warn!("Invalid continue code, aborting search");
         return;
     }
 
     // get more search results from wikipedia and find the search_results_view
     let wiki: &wiki::WikiApi = siv.user_data().unwrap();
-    let search_response = wiki.continue_search(&search_query, continue_code);
+    let search_response = match wiki.continue_search(&search_query, continue_code) {
+        Ok(response) => response,
+        Err(error) => {
+            // display an error_message
+            log::warn!("{:?}", error);
+
+            // display an error_message
+            siv.add_layer(
+                Dialog::info(
+                    "A Problem occurred while continuing the search.\nCheck the logs for further information",
+                )
+                .title("Error")
+                .title_position(HAlign::Center),
+            );
+            return;
+        }
+    };
+
     let mut search_results_views = siv
         .find_name::<SelectView<ui::models::ArticleResultPreview>>("search_results_view")
         .unwrap();

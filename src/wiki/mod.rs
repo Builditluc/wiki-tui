@@ -1,5 +1,5 @@
 use crate::config::CONFIG;
-use anyhow::*;
+use anyhow::{Context, Result};
 pub mod article;
 pub mod parser;
 pub mod search;
@@ -18,68 +18,52 @@ impl WikiApi {
         }
     }
 
-    pub fn search(&self, title: &str) -> search::SearchResponse {
-        self.search_articles(title, None)
+    pub fn search(&self, query: &str) -> Result<search::SearchResponse> {
+        self.search_articles(query, None)
     }
 
     pub fn continue_search(
         &self,
-        title: &str,
+        query: &str,
         continue_code: &search::ContinueCode,
-    ) -> search::SearchResponse {
-        self.search_articles(title, Some(continue_code))
+    ) -> Result<search::SearchResponse> {
+        self.search_articles(query, Some(continue_code))
     }
 
     fn search_articles(
         &self,
-        title: &str,
+        query: &str,
         continue_code: Option<&search::ContinueCode>,
-    ) -> search::SearchResponse {
+    ) -> Result<search::SearchResponse> {
         // creating the url for the request
         let mut url = format!(
             "{}/w/api.php?action=query&list=search&srwhat=text&srsearch={}&format=json",
-            CONFIG.api_config.base_url.clone(),
-            title
+            CONFIG.api_config.base_url, 
+            query
         );
 
         if let Some(_continue) = continue_code {
             let continue_code = &_continue.continue_code;
             let continue_scroll_offset = _continue.scroll_offset;
-            url = format!("{}/w/api.php?action=query&list=search&srwhat=text&srsearch={}&format=json&continue={}&sroffset={}", CONFIG.api_config.base_url.clone(), title, continue_code, continue_scroll_offset);
+            url = format!(
+                "{}/w/api.php?action=query&list=search&srwhat=text&srsearch={}&format=json&continue={}&sroffset={}",
+                CONFIG.api_config.base_url, 
+                query, 
+                continue_code, 
+                continue_scroll_offset
+            );
         }
 
-        // making the request
-        let response = match self
+        let response = self
             .client
             .get(&url)
             .send()
-            .context("Failed to send the request")
-        {
-            Ok(response) => {
-                log::info!("Successfully sent the request");
-                response
-            }
-            Err(error) => {
-                log::error!("{:?}", error);
-                panic!("Something happened, please check your logs")
-            }
-        };
-
+            .context("Failed sending the search request")?;
+        
         // serializing the response
-        let serde_result = response
+        response
             .json::<search::SearchResponse>()
-            .context("Failed serializing the response");
-
-        match serde_result {
-            Ok(result) => {
-                log::info!("Successfully serialized the response");
-                result
-            }
-            Err(error) => {
-                log::error!("{:?}", error);
-                panic!("Something weird happened, please check your logs");
-            }
-        }
+            .context("Failed serializing the search response")
     }
 
     pub fn get_article(&self, page_id: &i32) -> article::ParsedArticle {

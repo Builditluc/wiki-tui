@@ -84,3 +84,17 @@ search_match = red
 If you want to configure the logging, you can configure it in `logging.yml` (you have to create it in the config directory). 
 
 In this file you can configure the logger accordingly to the [docs](https://docs.rs/log4rs/1.0.0/log4rs/#configuration-via-a-yaml-file) of the logging crate
+
+## Contributing
+
+Any contributions you make are greatyle appreciated.
+
+1. Fork the Project
+2. Switch to the experimental branch
+3. Commit your Changes
+4. Push to the branch
+5. Open a Pull Request
+
+## Acknowledgements
+
+* Some parts of [Best-README-Template](https://github.com/0fakhri/Best-README-Template)
