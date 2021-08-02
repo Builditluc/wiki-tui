@@ -1,3 +1,5 @@
+use crate::config::CONFIG;
+
 pub struct Logger;
 impl Logger {
     pub fn initialize() {
@@ -7,7 +9,7 @@ impl Logger {
 
         let wiki_tui = FileAppender::builder()
             .append(false)
-            .build("wiki_tui.log")
+            .build(CONFIG.logging.log_dir.as_path())
             .unwrap();
 
         let default_config = Config::builder()
@@ -38,15 +40,11 @@ impl Logger {
             .unwrap();
 
         // try loading the config from a yml file
-        log4rs::init_file(
-            dirs::home_dir()
-                .unwrap()
-                .join(".config/wiki-tui/logging.yml"),
-            Default::default(),
-        )
-        .unwrap_or_else(|_| {
-            log4rs::init_config(default_config).unwrap();
-        });
+        log4rs::init_file(&CONFIG.logging.log_config_dir, Default::default()).unwrap_or_else(
+            |_| {
+                log4rs::init_config(default_config).unwrap();
+            },
+        );
         log::info!("Successfully initialized the logging system");
     }
 }
