@@ -6,12 +6,16 @@ use cursive::theme::{BaseColor, Color, Effect, Style};
 use cursive::view::*;
 use cursive::XY;
 use cursive::{Printer, Vec2};
-use std::rc;
+use std::cell::Cell;
+use std::cmp::min;
+use std::rc::Rc;
 
 use crate::ui::article::links::*;
 
 pub struct ArticleView {
     content: ArticleContent,
+    focus: Rc<Cell<usize>>,
+    output_size: Cell<Vec2>,
 
     last_size: Vec2,
     width: Option<usize>,
@@ -407,6 +411,8 @@ impl ArticleView {
     pub fn new() -> ArticleView {
         ArticleView {
             content: ArticleContent::new(),
+            focus: Rc::new(Cell::new(0)),
+            output_size: Cell::new(Vec2::zero()),
             last_size: Vec2::zero(),
             width: None,
         }
@@ -446,8 +452,15 @@ impl ArticleView {
         }
     }
 
-    fn move_current_link(&mut self, direction: Directions) -> EventResult {
-        self.content.link_handler.move_current_link(direction);
+    fn move_link(&mut self, direction: Directions) -> EventResult {
+        let link_pos_y = self.content.link_handler.move_current_link(direction);
+        if link_pos_y < self.focus.get() {
+            self.move_focus_up(self.focus.get().saturating_sub(link_pos_y));
+        } else if (self.output_size.get().y + self.focus.get()) < link_pos_y {
+            self.move_focus_down(
+                link_pos_y.saturating_sub(self.output_size.get().y + self.focus.get()),
+            );
+        }
         EventResult::Consumed(None)
     }
 
@@ -455,9 +468,38 @@ impl ArticleView {
         mut self,
         function: F,
     ) -> Self {
-        self.content.link_handler.on_link_submit_callback = Some(rc::Rc::new(function));
+        self.content.link_handler.on_link_submit_callback = Some(Rc::new(function));
 
         self
+    }
+
+    fn move_focus_up(&mut self, n: usize) -> EventResult {
+        let focus = self.focus.get().saturating_sub(n);
+        self.focus.set(focus);
+        let link_pos_y = self.content.link_handler.links[self.content.link_handler.current_link]
+            .position
+            .y;
+        if self.output_size.get().y < link_pos_y {
+            self.content.link_handler.move_current_link(Directions::UP);
+        }
+        EventResult::Consumed(None)
+    }
+
+    fn move_focus_down(&mut self, n: usize) -> EventResult {
+        let focus = min(
+            self.focus.get() + n,
+            self.content.lines.len().saturating_sub(1),
+        );
+        self.focus.set(focus);
+        let link_pos_y = self.content.link_handler.links[self.content.link_handler.current_link]
+            .position
+            .y;
+        if self.focus.get() > link_pos_y {
+            self.content
+                .link_handler
+                .move_current_link(Directions::DOWN);
+        }
+        EventResult::Consumed(None)
     }
 }
 
@@ -470,6 +512,8 @@ impl View for ArticleView {
 
         let miny = printer.content_offset.y;
         let maxy = printer.output_size.y + printer.content_offset.y;
+
+        self.output_size.set(printer.output_size);
 
         // got through every row and print it to the screen
         for (y, line) in self.content.lines.iter().enumerate() {
@@ -544,19 +588,23 @@ impl View for ArticleView {
         self.content.size_cache.is_none()
     }
 
-    fn important_area(&self, _view_size: Vec2) -> cursive::Rect {
-        if self.content.link_handler.links.is_empty() {
-            cursive::Rect::from((0, 0))
-        } else {
-            let link = &self.content.link_handler.links[self.content.link_handler.current_link];
-            cursive::Rect::from_size(link.position, (link.width, 1))
-        }
+    fn important_area(&self, _: Vec2) -> cursive::Rect {
+        Some(self.focus.get())
+            .map(|i| {
+                cursive::Rect::from_size(
+                    (0, i),
+                    (self.output_size.get().x, self.output_size.get().y),
+                )
+            })
+            .unwrap_or_else(|| cursive::Rect::from((0, 1)))
     }
 
     fn on_event(&mut self, event: Event) -> EventResult {
         match event {
-            Event::Key(Key::Left) => self.move_current_link(Directions::LEFT),
-            Event::Key(Key::Right) => self.move_current_link(Directions::RIGHT),
+            Event::Key(Key::Left) => self.move_link(Directions::LEFT),
+            Event::Key(Key::Right) => self.move_link(Directions::RIGHT),
+            Event::Key(Key::Up) => self.move_focus_up(1),
+            Event::Key(Key::Down) => self.move_focus_down(1),
             Event::Key(Key::Enter) => {
                 let target = self.content.link_handler.links
                     [self.content.link_handler.current_link]
