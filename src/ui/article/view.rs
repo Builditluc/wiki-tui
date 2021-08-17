@@ -29,6 +29,9 @@ struct ArticleContent {
     lines_wrapped: bool,
     link_handler: LinkHandler,
 
+    headers: Vec<String>,
+    headers_coords: Vec<usize>,
+
     size_cache: Option<XY<SizeCache>>,
     historical_caches: Vec<(Vec2, Vec2)>,
 }
@@ -60,6 +63,9 @@ impl ArticleContent {
             lines_wrapped: false,
             link_handler: LinkHandler::new(),
 
+            headers: Vec::new(),
+            headers_coords: Vec::new(),
+
             size_cache: None,
             historical_caches: Vec::new(),
         }
@@ -88,11 +94,14 @@ impl ArticleContent {
                 )),
 
                 // if its a header, add some linebreaks and make the header bold
-                ArticleElementType::Header => rendered_article.append(&mut self.render_element(
-                    format!("\n{}\n\n", element.content).split('\n').enumerate(),
-                    Style::from(Color::Dark(BaseColor::Black)).combine(Effect::Bold),
-                    &element.link_target,
-                )),
+                ArticleElementType::Header => {
+                    rendered_article.append(&mut self.render_element(
+                        format!("\n{}\n\n", element.content).split('\n').enumerate(),
+                        Style::from(Color::Dark(BaseColor::Black)).combine(Effect::Bold),
+                        &element.link_target,
+                    ));
+                    self.headers.push(element.content);
+                }
                 // if its bold text, make it bold
                 ArticleElementType::Bold => rendered_article.append(&mut self.render_element(
                     element.content.split('\n').enumerate(),
@@ -144,6 +153,10 @@ impl ArticleContent {
 
         let mut lines_wrapped = false;
 
+        // this is to prevent the program to add more headers of the same name
+        let mut headers = self.headers.clone();
+        self.headers_coords.clear();
+
         // go through every rendered element
         for (idx, element) in self.elements_rendered.iter().enumerate() {
             log::debug!("Rendering now the element no: {}", idx);
@@ -170,6 +183,8 @@ impl ArticleContent {
                 continue;
             }
 
+            let is_header = headers.contains(&element.text);
+
             // does the element fit in the current line?
             if (line_width + element_width) < max_width {
                 // if it goes into a new line, add it to a new one
@@ -192,6 +207,11 @@ impl ArticleContent {
                         link_index,
                     );
 
+                    if is_header {
+                        headers.remove(0);
+                        self.headers_coords.push(lines.len());
+                    }
+
                     // this element is finished, continue with the next one
                     continue;
                 }
@@ -199,6 +219,11 @@ impl ArticleContent {
                 // if the element goes to the current line, add it to the line
                 log::debug!("Adding the element to the current line");
                 current_line.push(self.create_element_from_rendered_element(element, link_index));
+
+                if is_header {
+                    headers.remove(0);
+                    self.headers_coords.push(lines.len())
+                }
 
                 // don't forget to increase the line width and continue with the next element
                 line_width += element_width;
@@ -230,6 +255,11 @@ impl ArticleContent {
                             link_index,
                         );
 
+                        if is_header {
+                            headers.remove(0);
+                            self.headers_coords.push(lines.len())
+                        }
+
                         // this element is finished, continue with the next one
                         continue;
                     }
@@ -247,6 +277,11 @@ impl ArticleContent {
                     lines.push(std::mem::replace(&mut current_line, Vec::new()));
                     lines.append(&mut new_lines);
                     log::debug!("Added the current line and the new lines to the finished lines");
+
+                    if is_header {
+                        headers.remove(0);
+                        self.headers_coords.push(lines.len())
+                    }
 
                     continue;
                 }
@@ -274,6 +309,11 @@ impl ArticleContent {
                 line_width = current_line.iter().map(|element| element.width).sum();
                 log::debug!("new line width: {}", line_width);
 
+                if is_header {
+                    headers.remove(0);
+                    self.headers_coords.push(lines.len())
+                }
+
                 continue;
             }
         }
@@ -281,6 +321,8 @@ impl ArticleContent {
 
         // add the remaining line to the finished ones, because no elements are left
         lines.push(current_line);
+
+        log::info!("headers_coords: \n{:#?}", self.headers_coords);
 
         // return the finished lines
         lines
@@ -500,6 +542,21 @@ impl ArticleView {
                 .move_current_link(Directions::DOWN);
         }
         EventResult::Consumed(None)
+    }
+
+    pub fn select_header(&mut self, header: usize) {
+        let header_pos = self.content.headers_coords[header];
+        let focus = self.focus.get();
+
+        log::info!("header_pos: {}, focus: {}", header_pos, focus);
+
+        if header_pos > focus {
+            self.move_focus_down(header_pos.saturating_sub(focus));
+        } else {
+            self.move_focus_up(focus.saturating_sub(header_pos));
+        }
+
+        log::info!("current focus: {}", self.focus.get());
     }
 }
 
