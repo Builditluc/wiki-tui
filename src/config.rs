@@ -3,6 +3,7 @@ use cursive::theme::BaseColor;
 use cursive::theme::Color;
 use ini::Ini;
 use lazy_static::*;
+use log::LevelFilter;
 use std::fs;
 use std::path::PathBuf;
 use std::str::FromStr;
@@ -33,7 +34,7 @@ pub struct ApiConfig {
 pub struct Logging {
     pub enabled: bool,
     pub log_dir: PathBuf,
-    pub log_config_dir: PathBuf,
+    pub log_level: LevelFilter,
 }
 
 pub struct Config {
@@ -62,14 +63,7 @@ impl Config {
             logging: Logging {
                 enabled: true,
                 log_dir: PathBuf::from("wiki_tui.log"),
-                log_config_dir: {
-                    let mut path = PathBuf::from(CONFIG_DIR);
-
-                    path.push(APP_DIR);
-                    path.push("logging.yml");
-
-                    path
-                },
+                log_level: LevelFilter::Info,
             },
             config_path: PathBuf::new(),
         };
@@ -261,10 +255,10 @@ impl Config {
             }
         }
 
-        println!("[DEBUG] Trying to load the logging config dir");
-        if let Some(log_config_dir) = logging.get("log_config_dir") {
-            if let Ok(path) = PathBuf::from_str(log_config_dir) {
-                self.logging.log_config_dir = path;
+        println!("[DEBUG] Trying to load the log level");
+        if let Some(log_level) = logging.get("log_level") {
+            if let Ok(level) = LevelFilter::from_str(log_level) {
+                self.logging.log_level = level;
             }
         }
     }

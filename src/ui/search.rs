@@ -1,14 +1,16 @@
 use crate::*;
 
-pub fn on_search(siv: &mut Cursive, search_query: String) {
-    log::info!("on_search was called");
-    let wiki: &wiki::WikiApi = siv.user_data().unwrap();
+pub fn on_search(siv: &mut Cursive, search_query: String) -> Result<()> {
+    log::info!("Beginning search");
+    let wiki: &wiki::WikiApi = siv.user_data().with_context(|| {
+        format!("the user_data is incomplete. Couldn't find the wikipedia interface in it")
+    })?;
 
     if search_query.is_empty() {
-        log::warn!("Empty Search Query, aborting Search");
-        return;
+        log::warn!("Empty search query, aborting Search");
+        return Ok(());
     }
-    log::info!("The Search Query is \"{}\"", search_query);
+    log::info!("The search query is \"{}\"", search_query);
 
     // Search wikipedia for the search query and the response
     let search_response = match wiki.search(&search_query) {
@@ -23,16 +25,17 @@ pub fn on_search(siv: &mut Cursive, search_query: String) {
                 .title("Error")
                 .title_position(HAlign::Center),
             );
-            return;
+            return Ok(());
         }
     };
 
     // are there any results?
-    let mut search_results_exist = true;
-    if search_response.continue_code.continue_code == *"" {
-        search_results_exist = false;
+    let search_results_exist = if search_response.continue_code.continue_code == *"" {
         log::warn!("No articles were found with the given query");
-    }
+        false
+    } else {
+        true
+    };
 
     // clear the search bar
     siv.call_on_name("search_bar", |view: &mut EditView| {
@@ -63,7 +66,16 @@ pub fn on_search(siv: &mut Cursive, search_query: String) {
 
     // store the first search result to preview it
     let first_search_result = if search_results_exist {
-        Some(search_results_view.iter().next().unwrap().1.clone())
+        Some(
+            search_results_view
+                .iter()
+                .next()
+                .with_context(|| {
+                    format!("Couldn't access the first search result. Is it missing?")
+                })?
+                .1
+                .clone(),
+        )
     } else {
         None
     };
@@ -89,6 +101,7 @@ pub fn on_search(siv: &mut Cursive, search_query: String) {
         ))
         .child(Dialog::around(search_results_preview));
 
+    log::info!("Finished the search, displaying the results");
     siv.add_layer(
         Dialog::around(
             LinearLayout::vertical()
@@ -108,6 +121,8 @@ pub fn on_search(siv: &mut Cursive, search_query: String) {
             }))
             .unwrap();
     }
+
+    Ok(())
 }
 
 fn on_result_select(siv: &mut Cursive, item: &ui::models::ArticleResultPreview) {
@@ -190,6 +205,8 @@ fn continue_search(
     search_continue_button.set_callback(move |s| {
         continue_search(s, search_query.clone(), &search_response.continue_code);
     });
+
+    log::info!("Finished the search, displaying the article now");
 
     // focus the search results view
     let result = siv

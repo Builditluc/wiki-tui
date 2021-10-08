@@ -22,7 +22,7 @@ impl Default {
             items: Vec::new(),
         };
 
-        log::info!("Parsing the table of contents now");
+        log::debug!("Parsing the table of contents now");
         if let Some(_toc_html) = document.find(Attr("id", "toc")).next() {
             toc_html = _toc_html;
         } else {
@@ -41,7 +41,7 @@ impl Default {
             .next()
             .context("Couldn't find the items of the table of contents")?;
 
-        log::info!("Now parsing the content of the table of contents");
+        log::debug!("Now parsing the content of the table of contents");
         for toc_item_html in toc_items.find(Name("li")) {
             let toc_item = match self.parse_toc_item(toc_item_html, 0) {
                 Ok(toc_item) => toc_item,
@@ -53,8 +53,8 @@ impl Default {
             toc_build.items.push(toc_item);
         }
 
-        log::info!("Sucessfully build the table of contents");
-        log::debug!("TableOfContents: \n{:?}", toc_build);
+        log::debug!("Sucessfully build the table of contents");
+        log::trace!("TableOfContents: \n{:?}", toc_build);
         Ok(Some(toc_build))
     }
 
@@ -115,8 +115,8 @@ impl Parser for Default {
     fn parse(&self, html: reqwest::blocking::Response) -> Result<ParsedArticle> {
         let mut content: Vec<ArticleElement> = Vec::new();
         let document = Document::from_read(html).unwrap();
-        log::info!("Loaded the HTML document");
-        log::info!("The Article will now be parsed");
+        log::debug!("Loaded the HTML document");
+        log::debug!("The Article will now be parsed");
 
         // add the title to the article content
         let title = document
@@ -134,58 +134,58 @@ impl Parser for Default {
         // TODO: improve this
         // now iterate over all of the elements inside of the article
         for node in document.find(Class("mw-parser-output")) {
-            log::debug!("Iterating now over the node {:?}", node.name());
             for children in node.children() {
-                // check, if the children is a html element
-                if let Some(children_name) = children.name() {
-                    match children_name {
-                        // if it's a header, add it to the article content in BOLD and with two
-                        // Linebreaks at the end
-                        "h2" | "h3" | "h4" | "h5" => {
-                            let text = children
-                                .find(Class("mw-headline"))
-                                .next()
-                                .context(
-                                    format!(
-                                        "Couldn't find the headline in the headline element\nThe Node is: {:#?}", node.html()
-                                    )
-                                )?
-                                .text();
+                if children.name().is_none() {
+                    continue;
+                }
 
-                            content.push(ArticleElement {
-                                content: text,
-                                element_type: ArticleElementType::Header,
-                                link_target: None,
-                            });
-                            log::debug!("Added a headline to the article content");
-                        }
-                        // if it's a paragraph, add it to the context with only ONE Linebreak at
-                        // the end
-                        "p" => {
-                            content.append(&mut self.parse_child(children));
-                            log::debug!("Added a paragraph to the article content");
-                        }
-                        // if it's a div with the class "reflist", add it to the current paragraph
-                        // in form of a list
-                        "div" if children.is(Class("reflist")) => {
-                            log::debug!("Added the Reference List to the article content");
-                        }
-                        // if it's a list, add every element to the current paragraph
-                        "ul" => {
-                            for element in children.children() {
-                                if element.name().unwrap_or("") == "li" {
-                                    content.push(ArticleElement {
-                                        content: format!("\t- {}\n", &element.text()),
-                                        element_type: ArticleElementType::Text,
-                                        link_target: None,
-                                    });
-                                }
-                            }
-                            log::debug!("Added a list to the article content");
-                        }
-                        // if it's any other html element, skip it
-                        _ => continue,
+                match children.name().unwrap() {
+                    // if it's a header, add it to the article content in BOLD and with two
+                    // Linebreaks at the end
+                    "h2" | "h3" | "h4" | "h5" => {
+                        let text = children
+                            .find(Class("mw-headline"))
+                            .next()
+                            .context(
+                                format!(
+                                    "Couldn't find a headline in the current element\nThe Node is: {:#?}", node.html()
+                                )
+                            )?
+                            .text();
+
+                        content.push(ArticleElement {
+                            content: text,
+                            element_type: ArticleElementType::Header,
+                            link_target: None,
+                        });
+                        log::trace!("Added a headline to the article content");
                     }
+                    // if it's a paragraph, add it to the context with only ONE Linebreak at
+                    // the end
+                    "p" => {
+                        content.append(&mut self.parse_child(children));
+                        log::trace!("Added a paragraph to the article content");
+                    }
+                    // if it's a div with the class "reflist", add it to the current paragraph
+                    // in form of a list
+                    "div" if children.is(Class("reflist")) => {
+                        log::trace!("Added the Reference List to the article content");
+                    }
+                    // if it's a list, add every element to the current paragraph
+                    "ul" => {
+                        for element in children.children() {
+                            if element.name().unwrap_or("") == "li" {
+                                content.push(ArticleElement {
+                                    content: format!("\t- {}\n", &element.text()),
+                                    element_type: ArticleElementType::Text,
+                                    link_target: None,
+                                });
+                            }
+                        }
+                        log::trace!("Added a list to the article content");
+                    }
+                    // if it's any other html element, skip it
+                    _ => continue,
                 }
             }
         }
@@ -198,7 +198,7 @@ impl Parser for Default {
             }
         };
 
-        log::info!("Finished parsing the article");
+        log::debug!("Finished parsing the article");
         Ok(ParsedArticle {
             article: Article { elements: content },
             toc,
@@ -212,7 +212,7 @@ impl Default {
 
         // go through every elements inside of the element
         for children in element.children() {
-            log::debug!("Iterating now over the node {:?}", element.name());
+            log::trace!("Iterating now over the node {:?}", element.name());
 
             match children.name().unwrap_or("") {
                 "a" => content.push(ArticleElement {

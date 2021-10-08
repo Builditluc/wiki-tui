@@ -5,6 +5,7 @@ pub mod view;
 pub type ArticleView = view::ArticleView;
 
 pub fn on_article_submit(siv: &mut Cursive, article_preview: &ui::models::ArticleResultPreview) {
+    log::info!("Opening the article '{}'", article_preview.title);
     // remove the results layer
     siv.pop_layer();
 
@@ -37,7 +38,7 @@ pub fn on_article_submit(siv: &mut Cursive, article_preview: &ui::models::Articl
         ui::article::ArticleView::new().on_link_submit(|s, target| on_link_submit(s, target));
 
     // set the contents of the article_view to the article
-    log::info!("Setting the content of the article view");
+    log::debug!("Setting the content of the article view");
     article_view.set_article(article.clone().article);
 
     // add the article_view to the article_layout]
@@ -47,14 +48,14 @@ pub fn on_article_submit(siv: &mut Cursive, article_preview: &ui::models::Articl
             Dialog::around(article_view.with_name("article_view").scrollable()),
         );
     });
-    log::info!("Added the article_view to the article_layout");
+    log::debug!("Added the article_view to the article_layout");
 
     // does this article have a table of contents?
     if article.toc.is_some() {
-        log::info!("The article contains a table of contents");
+        log::debug!("The article contains a table of contents");
         ui::toc::add_table_of_contents(siv, article.toc.unwrap());
     } else {
-        log::info!("The article doesn't contain a table of contents");
+        log::debug!("The article doesn't contain a table of contents");
     }
 
     // focus the article view
@@ -63,7 +64,7 @@ pub fn on_article_submit(siv: &mut Cursive, article_preview: &ui::models::Articl
         .context("Failed to focus the article view");
 
     match result {
-        Ok(_) => log::info!("Successfully focussed the article view"),
+        Ok(_) => log::debug!("Successfully focussed the article view"),
         Err(error) => log::warn!("{:?}", error),
     }
 }
@@ -115,7 +116,7 @@ fn show_article_from_link(siv: &mut Cursive, target: String) {
         ui::article::ArticleView::new().on_link_submit(|s, target| on_link_submit(s, target));
 
     // set the contents of the article_view to the article
-    log::info!("Setting the content of the article view");
+    log::debug!("Setting the content of the article view");
     article_view.set_article(article.clone().article);
 
     // add the article_view to the article_layout]
@@ -130,14 +131,14 @@ fn show_article_from_link(siv: &mut Cursive, target: String) {
             ),
         );
     });
-    log::info!("Added the article_view to the article_layout");
+    log::debug!("Added the article_view to the article_layout");
 
     // does this article have a table of contents?
     if article.toc.is_some() {
-        log::info!("The article contains a table of contents");
+        log::debug!("The article contains a table of contents");
         ui::toc::add_table_of_contents(siv, article.toc.unwrap());
     } else {
-        log::info!("The article doesn't contain a table of contents");
+        log::debug!("The article doesn't contain a table of contents");
     }
 
     // focus the article view

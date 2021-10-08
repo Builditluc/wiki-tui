@@ -322,8 +322,6 @@ impl ArticleContent {
         // add the remaining line to the finished ones, because no elements are left
         lines.push(current_line);
 
-        log::info!("headers_coords: \n{:#?}", self.headers_coords);
-
         // return the finished lines
         lines
     }
@@ -477,11 +475,11 @@ impl ArticleView {
 
         // Desired width
         self.width = if self.content.lines_wrapped {
-            log::warn!("Rows are wrapped, requiring the full width of '{}'", size.x);
+            log::debug!("Rows are wrapped, requiring the full width of '{}'", size.x);
             // if any rows are wrapped, then require the full width
             Some(size.x)
         } else {
-            log::info!("Rows aren't wrapped");
+            log::debug!("Rows aren't wrapped");
             let size_x = self
                 .content
                 .lines
@@ -489,7 +487,6 @@ impl ArticleView {
                 .map(|line| line.iter().map(|element| element.width).max().unwrap_or(0))
                 .max();
 
-            log::info!("Required size: '{:?}'", size_x);
             size_x
         }
     }
@@ -548,7 +545,7 @@ impl ArticleView {
         let header_pos = self.content.headers_coords[header];
         let focus = self.focus.get();
 
-        log::info!("header_pos: {}, focus: {}", header_pos, focus);
+        log::debug!("header_pos: {}, focus: {}", header_pos, focus);
 
         if header_pos > focus {
             self.move_focus_down(header_pos.saturating_sub(focus));
@@ -556,7 +553,7 @@ impl ArticleView {
             self.move_focus_up(focus.saturating_sub(header_pos));
         }
 
-        log::info!("current focus: {}", self.focus.get());
+        log::debug!("current focus: {}", self.focus.get());
     }
 }
 
@@ -611,9 +608,9 @@ impl View for ArticleView {
         self.content.size_cache = Some(SizeCache::build(my_size, size));
         self.content.historical_caches.clear();
 
-        log::info!("size of view: {:?}", size);
-        log::debug!("view width is: '{}'", size.x);
-        log::debug!("lines: \n{:#?}", self.content.lines);
+        log::debug!("size of view: {:?}", size);
+        log::trace!("view width is: '{}'", size.x);
+        log::trace!("lines: \n{:#?}", self.content.lines);
     }
 
     fn required_size(&mut self, size: Vec2) -> Vec2 {
@@ -629,7 +626,7 @@ impl View for ArticleView {
         self.calculate_lines(size);
         let required_size = Vec2::new(self.width.unwrap_or(0), self.content.lines.len());
 
-        log::info!(
+        log::debug!(
             "The required size for '{:?}' is '{:?}'",
             size,
             required_size
@@ -667,6 +664,7 @@ impl View for ArticleView {
                     [self.content.link_handler.current_link]
                     .destination
                     .clone();
+                log::info!("Showing the dialog to open '{}'", target);
                 EventResult::Consumed(
                     self.content
                         .link_handler

@@ -4,6 +4,7 @@ extern crate lazy_static;
 extern crate log;
 
 use anyhow::*;
+use core::panic;
 use cursive::align::HAlign;
 use cursive::theme::*;
 use cursive::traits::*;
@@ -42,8 +43,7 @@ fn main() {
     let wiki = match initializing_thread.join() {
         Ok(wiki) => wiki,
         Err(error) => {
-            println!("Something happend during initialization:\n{:?}", error);
-            std::process::exit(1);
+            panic!("Something happend during initialization:\n{:?}", error);
         }
     };
 
@@ -64,7 +64,10 @@ fn start_application(wiki: wiki::WikiApi) {
 
     // Create the views
     let search_bar = EditView::new()
-        .on_submit(|s, q| ui::search::on_search(s, q.to_string()))
+        .on_submit(|s, q| match ui::search::on_search(s, q.to_string()) {
+            Ok(_) => (),
+            Err(error) => {log::error!("{:?}", error); panic!("Something happened while searching. Please check your logs for further information")},
+        })
         .with_name("search_bar")
         .full_width();
 
@@ -113,7 +116,7 @@ fn get_color_palette() -> Palette {
 fn remove_view_from_article_layout(siv: &mut Cursive, view_name: &str) {
     siv.call_on_name("article_layout", |view: &mut LinearLayout| {
         if let Some(i) = view.find_child_from_name(view_name) {
-            log::info!("Removing the {} from the article_layout", view_name);
+            log::debug!("Removing the {} from the article_layout", view_name);
             view.remove_child(i);
         } else {
             log::warn!("Couldn't find the {}", view_name);

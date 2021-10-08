@@ -85,12 +85,12 @@ search_match = red
 enabled = true
 ; location of the file where the log will be written to
 log_dir = "wiki_tui.log"
-; location of the config file for the logger
-log_config_dir = ".config/wiki-tui/logging.yml"
+; log level to be used, can be Debug, Info, Warn, Error
+log_level = Info
 ```
 ## Contributing
 
-Any contributions you make are greatyle appreciated.
+Any contributions you make are greatly appreciated.
 
 1. Fork the Project
 2. Switch to the experimental branch
@@ -99,10 +99,7 @@ Any contributions you make are greatyle appreciated.
 5. Open a Pull Request
 
 ## Logging
-If you want to configure the logging, you can configure it in `logging.yml` (you have to create it in the config directory). 
-
-In this file you can configure the logger accordingly to the [docs](https://docs.rs/log4rs/1.0.0/log4rs/#configuration-via-a-yaml-file) of the logging crate
-
+As of 0.3.2 you can no longer configure the logger with a .yml file
 
 ## Acknowledgements
 
