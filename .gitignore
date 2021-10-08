@@ -4,4 +4,5 @@ target/
 .vim/
 Cargo.lock
 .DS_Store
-wiki_tui.log
+wiki-tui.iml
+tree

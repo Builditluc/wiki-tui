@@ -3,8 +3,10 @@ use cursive::theme::BaseColor;
 use cursive::theme::Color;
 use ini::Ini;
 use lazy_static::*;
+use log::LevelFilter;
 use std::fs;
 use std::path::PathBuf;
+use std::str::FromStr;
 
 const CONFIG_FILE: &str = "config.ini";
 const CONFIG_DIR: &str = ".config";
@@ -29,9 +31,16 @@ pub struct ApiConfig {
     pub base_url: String,
 }
 
+pub struct Logging {
+    pub enabled: bool,
+    pub log_dir: PathBuf,
+    pub log_level: LevelFilter,
+}
+
 pub struct Config {
     pub api_config: ApiConfig,
     pub theme: Theme,
+    pub logging: Logging,
     config_path: PathBuf,
 }
 
@@ -51,11 +60,16 @@ impl Config {
                 text: Color::Dark(BaseColor::Black),
                 search_match: Color::Dark(BaseColor::Red),
             },
+            logging: Logging {
+                enabled: true,
+                log_dir: PathBuf::from("wiki_tui.log"),
+                log_level: LevelFilter::Info,
+            },
             config_path: PathBuf::new(),
         };
 
         // do the loading stuff here
-        log::info!("Loading the config");
+        println!("[INFO] Loading the config");
         config.load_config();
 
         // return the config
@@ -70,7 +84,10 @@ impl Config {
         // check, if any errors occured during loading
         if config_exists.is_err() {
             // Abort the loading
-            log::warn!("Failed loading the config paths, {:?}", config_exists.err());
+            println!(
+                "[WARN] Failed loading the config paths, {:?}",
+                config_exists.err()
+            );
             return;
         }
 
@@ -80,20 +97,21 @@ impl Config {
             &self.config_path.to_str().unwrap_or("NONE")
         )) {
             Ok(config) => {
-                log::info!("Successfully loaded the config file");
+                println!("[INFO] Successfully loaded the config file");
                 config
             }
             Err(error) => {
-                log::warn!("{:?}", error);
+                println!("[WARN] {:?}", error);
                 return;
             }
         };
 
         // if the config file exists, then load it
         if config_exists.unwrap() {
-            log::debug!("Loading the Config");
+            println!("[DEBUG] Loading the Config");
             self.load_api_config(&config);
             self.load_theme(&config);
+            self.load_logging(&config);
         }
     }
 
@@ -101,14 +119,14 @@ impl Config {
         // get the platform specific config directory
         let config_dir = match dirs::home_dir() {
             Some(config_dir) => {
-                log::info!(
-                    "The config directory is {}",
+                println!(
+                    "[INFO] The config directory is {}",
                     config_dir.join(CONFIG_DIR).to_str().unwrap()
                 );
                 config_dir.join(CONFIG_DIR)
             }
             None => {
-                log::error!("Couldn't find the home directory");
+                println!("[ERROR] Couldn't find the home directory");
                 panic!()
             }
         };
@@ -119,11 +137,11 @@ impl Config {
 
         // create the app config folder if it doesn't exist
         if !app_config_dir.exists() {
-            log::debug!("The app config directory doesn't exist, creating it now");
+            println!("[DEBUG] The app config directory doesn't exist, creating it now");
             match fs::create_dir(app_config_dir).context("Couldn't create the app config directory")
             {
                 Ok(_) => {
-                    log::debug!("Successfully created the app config directory");
+                    println!("[DEBUG] Successfully created the app config directory");
                 }
                 Err(error) => return Err(error),
             };
@@ -131,13 +149,13 @@ impl Config {
 
         // check, if the config file exists
         if !config_file_dir.exists() {
-            log::info!("The config file doesn't exist");
+            println!("[INFO] The config file doesn't exist");
             return Ok(false);
         }
 
         // if the config file exists,
         // return true and store the path to it
-        log::debug!("The config file exists");
+        println!("[INFO] The config file exists");
         self.config_path = config_file_dir;
         Ok(true)
     }
@@ -146,20 +164,20 @@ impl Config {
         // get the api_config section
         let api_config = match config.section(Some("Api")) {
             Some(api_config) => {
-                log::debug!("Found the Api Config");
+                println!("[DEBUG] Found the Api Config");
                 api_config
             }
             None => {
-                log::debug!("Api Config not found");
+                println!("[DEBUG] Api Config not found");
                 return;
             }
         };
 
         // now load the settings
-        log::debug!("Trying to load the BASE_URL");
+        println!("[DEBUG] Trying to load the BASE_URL");
         if api_config.get("BASE_URL").is_some() {
             self.api_config.base_url = api_config.get("BASE_URL").unwrap().to_string();
-            log::debug!("Loaded the BASE_URL");
+            println!("[DEBUG] Loaded the BASE_URL");
         }
     }
 
@@ -167,11 +185,11 @@ impl Config {
         // get the theme section
         let theme = match config.section(Some("Theme")) {
             Some(theme) => {
-                log::debug!("Found the Theme Config");
+                println!("[DEBUG] Found the Theme Config");
                 theme
             }
             None => {
-                log::debug!("Theme Config not found");
+                println!("[DEBUG] Theme Config not found");
                 return;
             }
         };
@@ -179,15 +197,18 @@ impl Config {
         // define the macro for loading individual color settings
         macro_rules! to_theme_color {
             ($color: ident) => {
-                log::debug!("Trying to load the setting '{}'", stringify!($color));
+                println!(
+                    "[DEBUG] Trying to load the setting '{}'",
+                    stringify!($color)
+                );
                 if theme.get(stringify!($color)).is_some() {
                     match parse_color(theme.get(stringify!($color)).unwrap().to_string()) {
                         Ok(color) => {
                             self.theme.$color = color;
-                            log::debug!("Loaded the setting '{}'", stringify!($color));
+                            println!("[DEBUG] Loaded the setting '{}'", stringify!($color));
                         }
                         Err(error) => {
-                            log::warn!("{}", error);
+                            println!("[WARN] {}", error);
                         }
                     };
                 }
@@ -202,6 +223,44 @@ impl Config {
         to_theme_color!(search_match);
         to_theme_color!(highlight_text);
         to_theme_color!(highlight_inactive);
+    }
+
+    fn load_logging(&mut self, config: &Ini) {
+        // get the section
+        let logging = match config.section(Some("Logging")) {
+            Some(logging) => {
+                println!("[DEBUG] Found the Logging Config");
+                logging
+            }
+            None => {
+                println!("[DEBUG] Logging Config not found");
+                return;
+            }
+        };
+
+        // now load the settings
+        println!("[DEBUG] Trying to load the enabled config");
+        if let Some(enabled) = logging.get("enabled") {
+            self.logging.enabled = match &enabled.to_lowercase().as_ref() {
+                &"true" => true,
+                &"false" => false,
+                _ => true,
+            };
+        }
+
+        println!("[DEBUG] Trying to load the logging dir config");
+        if let Some(log_dir) = logging.get("log_dir") {
+            if let Ok(path) = PathBuf::from_str(log_dir) {
+                self.logging.log_dir = path;
+            }
+        }
+
+        println!("[DEBUG] Trying to load the log level");
+        if let Some(log_level) = logging.get("log_level") {
+            if let Ok(level) = LevelFilter::from_str(log_level) {
+                self.logging.log_level = level;
+            }
+        }
     }
 }
 

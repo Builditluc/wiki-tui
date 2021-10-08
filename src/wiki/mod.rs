@@ -4,6 +4,8 @@ pub mod article;
 pub mod parser;
 pub mod search;
 
+const USER_AGENT: &str = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:90.0) Gecko/20100101 Firefox/90.0";
+
 pub struct WikiApi {
     client: reqwest::blocking::Client,
     parser: Box<dyn parser::Parser>,
@@ -13,7 +15,10 @@ impl WikiApi {
     pub fn new() -> Self {
         let default_parser = parser::Default {};
         WikiApi {
-            client: reqwest::blocking::ClientBuilder::new().user_agent("Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:90.0) Gecko/20100101 Firefox/90.0").build().unwrap(),
+            client: reqwest::blocking::ClientBuilder::new()
+                .user_agent(USER_AGENT)
+                .build()
+                .expect(&format!("Could not create a reqwest::blocking::Client with the user agent: {}", USER_AGENT)),
             parser: Box::new(default_parser),
         }
     }
@@ -66,7 +71,7 @@ impl WikiApi {
             .context("Failed serializing the search response")
     }
 
-    pub fn get_article(&self, page_id: &i32) -> article::ParsedArticle {
+    pub fn get_article(&self, page_id: &i32) -> Result<article::ParsedArticle> {
         // creating the url and making the request
         self.parse_article(&format!(
             "{}?curid={}",
@@ -75,14 +80,16 @@ impl WikiApi {
         ))
     }
 
-    fn parse_article(&self, url: &str) -> article::ParsedArticle {
-        let article_html = self.client.get(url).send().unwrap();
+    fn parse_article(&self, url: &str) -> Result<article::ParsedArticle> {
+        let article_html = self.client.get(url).send().with_context(|| {
+            format!("Could not make a request to {}.\nIs your internet connection working?", url)
+        })?;
 
         // parsing the html response into a Article
         self.parser.parse(article_html)
     }
 
-    pub fn open_article(&self, target: &str) -> article::ParsedArticle {
+    pub fn open_article(&self, target: &str) -> Result<article::ParsedArticle> {
         self.parse_article(&format!("{}{}", CONFIG.api_config.base_url.clone(), target))
     }
 }
@@ -92,3 +99,6 @@ impl Default for WikiApi {
         Self::new()
     }
 }
+
+unsafe impl Send for WikiApi {}
+unsafe impl Sync for WikiApi {}

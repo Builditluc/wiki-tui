@@ -31,7 +31,7 @@ impl LinkHandler {
         self.links.len() - 1
     }
 
-    pub fn move_current_link(&mut self, direction: Directions) {
+    pub fn move_current_link(&mut self, direction: Directions) -> usize {
         match direction {
             Directions::LEFT => self.next_link_horizontal(-1),
             Directions::RIGHT => self.next_link_horizontal(1),
@@ -41,41 +41,37 @@ impl LinkHandler {
         }
     }
 
-    pub fn select_current_link(&mut self, link_index: usize) -> bool {
-        // TODO add a check to identify a false link index
-        self.current_link = link_index;
-        true
-    }
-
-    fn next_link_horizontal(&mut self, direction: i32) {
+    fn next_link_horizontal(&mut self, direction: i32) -> usize {
         let new_current_link = (self.current_link as i32) + direction;
         if new_current_link > 0 {
             self.current_link = new_current_link as usize
         }
-    }
-    fn next_link_vertical(&mut self, direction: i32) {
-        // TODO add something here
 
-        //  go through the links until the porgram finds one that is one (or more) lines below the
-        //  current one
+        self.links[self.current_link].position.y
+    }
+    fn next_link_vertical(&mut self, direction: i32) -> usize {
+        //  go through the links until the porgram finds one that is one (or more) lines below
+        //  the current one
 
         if direction > 0 {
             let current_position = self.links[self.current_link].position;
             for (idx, link) in self.links[self.current_link..].iter().enumerate() {
                 if link.position.y > current_position.y {
                     self.current_link += idx;
-                    return;
+                    return self.links[self.current_link].position.y;
                 }
             }
-        } else {
+        } else if direction == -1 {
             let current_position = self.links[self.current_link].position;
-            for i in self.current_link..0 {
+            for i in (0..self.current_link).rev() {
                 if self.links[i].position.y < current_position.y {
                     self.current_link = i;
-                    return;
+                    return self.links[self.current_link].position.y;
                 }
             }
         }
+
+        0
     }
 
     pub fn reset(&mut self) {

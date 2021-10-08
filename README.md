@@ -79,21 +79,27 @@ text = black
 ; color used for a search match in the results view
 search_match = red
 ```
-
-### Logging
-If you want to configure the logging, you can configure it in `logging.yml` (you have to create it in the config directory). 
-
-In this file you can configure the logger accordingly to the [docs](https://docs.rs/log4rs/1.0.0/log4rs/#configuration-via-a-yaml-file) of the logging crate
-
+#### Logging
+```ini
+; can be either true or false. enables/disables logging
+enabled = true
+; location of the file where the log will be written to
+log_dir = "wiki_tui.log"
+; log level to be used, can be Debug, Info, Warn, Error
+log_level = Info
+```
 ## Contributing
 
-Any contributions you make are greatyle appreciated.
+Any contributions you make are greatly appreciated.
 
 1. Fork the Project
 2. Switch to the experimental branch
 3. Commit your Changes
 4. Push to the branch
 5. Open a Pull Request
+
+## Logging
+As of 0.3.2 you can no longer configure the logger with a .yml file
 
 ## Acknowledgements
 
