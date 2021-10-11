@@ -10,7 +10,7 @@ use std::cell::Cell;
 use std::cmp::min;
 use std::rc::Rc;
 
-use crate::ui::article::lines::LinesIterator;
+use crate::ui::article::lines::LinesWrapper;
 use crate::ui::article::links::*;
 
 pub struct ArticleView {
@@ -146,11 +146,15 @@ impl ArticleContent {
             max_width
         );
 
-        let lines = LinesIterator::new(max_width)
-            .calculate_lines(&self.elements_rendered, &mut self.link_handler)
-            .unwrap();
+        let lines_wrapper = LinesWrapper::new(max_width)
+            .calculate_lines(&self.elements_rendered, &mut self.link_handler);
 
-        return lines;
+        self.lines_wrapped = lines_wrapper.lines_wrapped;
+
+        self.headers = lines_wrapper.headers;
+        self.headers_coords = lines_wrapper.header_coords;
+
+        return lines_wrapper.lines;
     }
 
     fn set_article(&mut self, article: Article) {
@@ -268,6 +272,11 @@ impl ArticleView {
     }
 
     pub fn select_header(&mut self, header: usize) {
+        if header > self.content.headers_coords.len() {
+            log::error!("The Header could not be found");
+            panic!("whoops")
+        }
+
         let header_pos = self.content.headers_coords[header];
         let focus = self.focus.get();
 

@@ -1,34 +1,35 @@
 use crate::config::CONFIG;
-use anyhow::Result;
 use cursive::theme::Style;
 
 use crate::ui::article::links::{Link, LinkHandler};
 use crate::ui::article::view::{Element, Line, RenderedElement};
 
-pub struct LinesIterator {
+pub struct LinesWrapper {
     width: usize,
-    lines_wrapped: bool,
+    pub lines_wrapped: bool,
 
-    header_coords: Vec<usize>,
-    links: Vec<Line>,
+    pub headers: Vec<String>,
+    pub header_coords: Vec<usize>,
+    pub lines: Vec<Line>,
 }
 
-impl LinesIterator {
+impl LinesWrapper {
     pub fn new(width: usize) -> Self {
-        return LinesIterator {
+        return LinesWrapper {
             width,
             lines_wrapped: false,
 
+            headers: Vec::new(),
             header_coords: Vec::new(),
-            links: Vec::new(),
+            lines: Vec::new(),
         };
     }
 
     pub fn calculate_lines<'a>(
-        &mut self,
+        mut self,
         content: &'a Vec<RenderedElement>,
         link_handler: &'a mut LinkHandler,
-    ) -> Result<Vec<Line>> {
+    ) -> Self {
         // the width of the line that is currently calculated
         let mut line_width: usize = 0;
 
@@ -38,7 +39,6 @@ impl LinesIterator {
         let mut lines_wrapped = false;
 
         // this is to prevent the program to add more headers of the same name
-        let mut headers: Vec<String> = Vec::new();
         self.header_coords.clear();
 
         // go through every rendered element
@@ -68,7 +68,7 @@ impl LinesIterator {
                 continue;
             }
 
-            let is_header = headers.contains(&element.text);
+            let is_header = self.headers.contains(&element.text);
 
             // does the element fit in the current line?
             if (line_width + element_width) < self.width {
@@ -93,7 +93,7 @@ impl LinesIterator {
                     );
 
                     if is_header {
-                        headers.remove(0);
+                        self.headers.remove(0);
                         self.header_coords.push(lines.len());
                     }
 
@@ -106,7 +106,7 @@ impl LinesIterator {
                 current_line.push(self.create_element_from_rendered_element(element, link_index));
 
                 if is_header {
-                    headers.remove(0);
+                    self.headers.remove(0);
                     self.header_coords.push(lines.len())
                 }
 
@@ -141,7 +141,7 @@ impl LinesIterator {
                         );
 
                         if is_header {
-                            headers.remove(0);
+                            self.headers.remove(0);
                             self.header_coords.push(lines.len())
                         }
 
@@ -164,7 +164,7 @@ impl LinesIterator {
                     log::debug!("Added the current line and the new lines to the finished lines");
 
                     if is_header {
-                        headers.remove(0);
+                        self.headers.remove(0);
                         self.header_coords.push(lines.len())
                     }
 
@@ -195,7 +195,7 @@ impl LinesIterator {
                 log::debug!("new line width: {}", line_width);
 
                 if is_header {
-                    headers.remove(0);
+                    self.headers.remove(0);
                     self.header_coords.push(lines.len())
                 }
 
@@ -207,7 +207,8 @@ impl LinesIterator {
         // add the remaining line to the finished ones, because no elements are left
         lines.push(current_line);
 
-        Ok(lines)
+        self.lines = lines;
+        return self;
     }
 
     fn create_element_from_rendered_element(
@@ -279,7 +280,6 @@ impl LinesIterator {
         // add the remaining line to the finished ones, because no chunks are left
         lines.push(current_line);
 
-        // return the finished lines
         lines
     }
 
