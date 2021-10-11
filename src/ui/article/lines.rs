@@ -14,12 +14,12 @@ pub struct LinesWrapper {
 }
 
 impl LinesWrapper {
-    pub fn new(width: usize) -> Self {
+    pub fn new(width: usize, headers: Vec<String>) -> Self {
         return LinesWrapper {
             width,
             lines_wrapped: false,
 
-            headers: Vec::new(),
+            headers,
             header_coords: Vec::new(),
             lines: Vec::new(),
         };
