@@ -271,6 +271,15 @@ impl ArticleView {
         EventResult::Consumed(None)
     }
 
+    fn move_focus(&mut self, direction: Directions) -> EventResult {
+        match direction {
+            Directions::LEFT => self.move_link(direction),
+            Directions::RIGHT => self.move_link(direction),
+            Directions::UP => self.move_focus_up(1),
+            Directions::DOWN => self.move_focus_down(1),
+        }
+    }
+
     pub fn select_header(&mut self, header: usize) {
         if (header >= self.content.headers_coords.len()) || (header >= self.content.headers.len()) {
             log::error!("The Header could not be found");
@@ -390,10 +399,10 @@ impl View for ArticleView {
 
     fn on_event(&mut self, event: Event) -> EventResult {
         match event {
-            Event::Key(Key::Left) => self.move_link(Directions::LEFT),
-            Event::Key(Key::Right) => self.move_link(Directions::RIGHT),
-            Event::Key(Key::Up) => self.move_focus_up(1),
-            Event::Key(Key::Down) => self.move_focus_down(1),
+            Event::Key(Key::Left) => self.move_focus(Directions::LEFT),
+            Event::Key(Key::Right) => self.move_focus(Directions::RIGHT),
+            Event::Key(Key::Up) => self.move_focus(Directions::UP),
+            Event::Key(Key::Down) => self.move_focus(Directions::DOWN),
             Event::Key(Key::Enter) => {
                 let target = self.content.link_handler.links
                     [self.content.link_handler.current_link]
