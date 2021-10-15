@@ -1,4 +1,5 @@
 extern crate anyhow;
+extern crate human_panic;
 extern crate ini;
 extern crate lazy_static;
 extern crate log;
@@ -97,7 +98,14 @@ fn start_application(wiki: wiki::WikiApi) {
     );
 
     // Start the application
-    siv.run();
+    human_panic::setup_panic!();
+
+    let siv_box = std::sync::Mutex::new(siv);
+    if let Err(err) = std::panic::catch_unwind(|| {
+        siv_box.lock().unwrap().run();
+    }) {
+        panic!(panic_message::panic_message(&err));
+    }
 }
 
 fn get_color_palette() -> Palette {
