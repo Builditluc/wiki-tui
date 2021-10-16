@@ -70,18 +70,18 @@ base_url = "https://en.wikipedia.org/"  # this is the url of wikipedia, it can b
 # The actual colors displayed in your terminal can change depending on your terminal settings
 
 [theme]
-background = white                      # color used for View backgrounds
-title = red                             # color used for the title text
-highlight = red                         # color used for highlighting text
-highlight_inactive = blue               # color used for highlighting inactive text
-highlight_text = white                  # color used for highlighted text
-text = black                            # color used for the text
-search_match = red                      # color used for a search match in the results view
+background = "white"                    # color used for View backgrounds
+title = "red"                           # color used for the title text
+highlight = "red"                       # color used for highlighting text
+highlight_inactive = "blue"             # color used for highlighting inactive text
+highlight_text = "white"                # color used for highlighted text
+text = "black"                          # color used for the text
+search_match = "red"                    # color used for a search match in the results view
 
 [logging]
 enabled = true                          # can be either true or false. enables/disables logging
 log_dir = "wiki_tui.log"                # location of the file where the log will be written to
-log_level = Info                        # log level to be used, can be Debug, Info, Warn, Error
+log_level = "Info"                      # log level to be used, can be Debug, Info, Warn, Error
 ```
 
 ## Contributing
