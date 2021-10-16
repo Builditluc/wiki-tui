@@ -103,4 +103,5 @@ As of 0.3.2 you can no longer configure the logger with a .yml file
 
 ## Acknowledgements
 
+* [cursive](https://github.com/gyscos/cursive)
 * Some parts of [Best-README-Template](https://github.com/0fakhri/Best-README-Template)

@@ -6,3 +6,5 @@ Cargo.lock
 .DS_Store
 wiki-tui.iml
 tree
+
+wiki_tui.log

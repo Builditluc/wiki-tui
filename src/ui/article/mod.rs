@@ -1,5 +1,6 @@
 use crate::*;
 
+pub mod lines;
 pub mod links;
 pub mod view;
 pub type ArticleView = view::ArticleView;
