@@ -1,14 +1,15 @@
 use anyhow::*;
 use cursive::theme::BaseColor;
 use cursive::theme::Color;
-use ini::Ini;
 use lazy_static::*;
 use log::LevelFilter;
+use serde::Deserialize;
 use std::fs;
 use std::path::PathBuf;
 use std::str::FromStr;
+use toml::from_str;
 
-const CONFIG_FILE: &str = "config.ini";
+const CONFIG_FILE: &str = "config.toml";
 const CONFIG_DIR: &str = ".config";
 const APP_DIR: &str = "wiki-tui";
 
@@ -42,6 +43,36 @@ pub struct Config {
     pub theme: Theme,
     pub logging: Logging,
     config_path: PathBuf,
+}
+
+#[derive(Deserialize, Debug)]
+struct UserConfig {
+    api: Option<UserApiConfig>,
+    theme: Option<UserTheme>,
+    logging: Option<UserLogging>,
+}
+
+#[derive(Deserialize, Debug)]
+struct UserTheme {
+    text: Option<String>,
+    title: Option<String>,
+    highlight: Option<String>,
+    background: Option<String>,
+    search_match: Option<String>,
+    highlight_text: Option<String>,
+    highlight_inactive: Option<String>,
+}
+
+#[derive(Deserialize, Debug)]
+struct UserApiConfig {
+    base_url: Option<String>,
+}
+
+#[derive(Deserialize, Debug)]
+struct UserLogging {
+    enabled: Option<bool>,
+    log_dir: Option<String>,
+    log_level: Option<String>,
 }
 
 impl Config {
@@ -92,12 +123,12 @@ impl Config {
         }
 
         // read the config file and check if there were any errors
-        let config = match Ini::load_from_file(&self.config_path).context(format!(
+        let config_str = match fs::read_to_string(&self.config_path).context(format!(
             "Failed loading the config file at the location: {}",
             &self.config_path.to_str().unwrap_or("NONE")
         )) {
             Ok(config) => {
-                println!("[INFO] Successfully loaded the config file");
+                println!("[INFO] Successfully read the config file");
                 config
             }
             Err(error) => {
@@ -106,13 +137,38 @@ impl Config {
             }
         };
 
-        // if the config file exists, then load it
-        if config_exists.unwrap() {
-            println!("[DEBUG] Loading the Config");
-            self.load_api_config(&config);
-            self.load_theme(&config);
-            self.load_logging(&config);
+        let user_config = match from_str::<UserConfig>(&config_str)
+            .context("Failed deserializing the loaded config file")
+        {
+            Ok(config) => {
+                println!("[INFO] Successfully deserialized config");
+                config
+            }
+            Err(error) => {
+                println!("[WARN] {:?}", error);
+                return;
+            }
+        };
+
+        if let Some(user_theme) = user_config.theme {
+            self.load_theme(&user_theme);
         }
+
+        if let Some(user_api_config) = user_config.api {
+            self.load_api_config(&user_api_config);
+        }
+
+        if let Some(user_logging) = user_config.logging {
+            self.load_logging(&user_logging);
+        }
+
+        // if the config file exists, then load it
+        // if config_exists.unwrap() {
+        //     println!("[DEBUG] Loading the Config");
+        //     self.load_api_config(&config_str);
+        //     self.load_theme(&config_str);
+        //     self.load_logging(&config_str);
+        // }
     }
 
     fn load_or_create_config_paths(&mut self) -> Result<bool> {
@@ -160,52 +216,34 @@ impl Config {
         Ok(true)
     }
 
-    fn load_api_config(&mut self, config: &Ini) {
-        // get the api_config section
-        let api_config = match config.section(Some("Api")) {
-            Some(api_config) => {
-                println!("[DEBUG] Found the Api Config");
-                api_config
-            }
-            None => {
-                println!("[DEBUG] Api Config not found");
-                return;
-            }
-        };
-
-        // now load the settings
-        println!("[DEBUG] Trying to load the BASE_URL");
-        if api_config.get("BASE_URL").is_some() {
-            self.api_config.base_url = api_config.get("BASE_URL").unwrap().to_string();
-            println!("[DEBUG] Loaded the BASE_URL");
+    fn load_api_config(&mut self, user_api_config: &UserApiConfig) {
+        // define the macro for loading individual api settings
+        macro_rules! to_api_setting {
+            ($setting: ident) => {
+                println!(
+                    "[DEBUG] Trying to load the setting '{}'",
+                    stringify!($setting)
+                );
+                if user_api_config.$setting.is_some() {
+                    self.api_config.$setting =
+                        user_api_config.$setting.as_ref().unwrap().to_string();
+                }
+            };
         }
+
+        to_api_setting!(base_url);
     }
 
-    fn load_theme(&mut self, config: &Ini) {
-        // get the theme section
-        let theme = match config.section(Some("Theme")) {
-            Some(theme) => {
-                println!("[DEBUG] Found the Theme Config");
-                theme
-            }
-            None => {
-                println!("[DEBUG] Theme Config not found");
-                return;
-            }
-        };
-
+    fn load_theme(&mut self, user_theme: &UserTheme) {
         // define the macro for loading individual color settings
         macro_rules! to_theme_color {
             ($color: ident) => {
-                println!(
-                    "[DEBUG] Trying to load the setting '{}'",
-                    stringify!($color)
-                );
-                if theme.get(stringify!($color)).is_some() {
-                    match parse_color(theme.get(stringify!($color)).unwrap().to_string()) {
+                println!("[DEBUG] Trying to load the color '{}'", stringify!($color));
+                if user_theme.$color.is_some() {
+                    match parse_color(user_theme.$color.as_ref().unwrap().to_string()) {
                         Ok(color) => {
                             self.theme.$color = color;
-                            println!("[DEBUG] Loaded the setting '{}'", stringify!($color));
+                            println!("[DEBUG] Loaded the color '{}'", stringify!($color));
                         }
                         Err(error) => {
                             println!("[WARN] {}", error);
@@ -225,39 +263,23 @@ impl Config {
         to_theme_color!(highlight_inactive);
     }
 
-    fn load_logging(&mut self, config: &Ini) {
-        // get the section
-        let logging = match config.section(Some("Logging")) {
-            Some(logging) => {
-                println!("[DEBUG] Found the Logging Config");
-                logging
-            }
-            None => {
-                println!("[DEBUG] Logging Config not found");
-                return;
-            }
-        };
-
+    fn load_logging(&mut self, user_logging: &UserLogging) {
         // now load the settings
-        println!("[DEBUG] Trying to load the enabled config");
-        if let Some(enabled) = logging.get("enabled") {
-            self.logging.enabled = match &enabled.to_lowercase().as_ref() {
-                &"true" => true,
-                &"false" => false,
-                _ => true,
-            };
+        println!("[DEBUG] Trying to load the enabled setting");
+        if let Some(enabled) = user_logging.enabled {
+            self.logging.enabled = enabled;
         }
 
-        println!("[DEBUG] Trying to load the logging dir config");
-        if let Some(log_dir) = logging.get("log_dir") {
-            if let Ok(path) = PathBuf::from_str(log_dir) {
+        println!("[DEBUG] Trying to load the logging dir setting");
+        if let Some(log_dir) = user_logging.log_dir.as_ref() {
+            if let Ok(path) = PathBuf::from_str(&log_dir) {
                 self.logging.log_dir = path;
             }
         }
 
         println!("[DEBUG] Trying to load the log level");
-        if let Some(log_level) = logging.get("log_level") {
-            if let Ok(level) = LevelFilter::from_str(log_level) {
+        if let Some(log_level) = user_logging.log_level.as_ref() {
+            if let Ok(level) = LevelFilter::from_str(&log_level) {
                 self.logging.log_level = level;
             }
         }
