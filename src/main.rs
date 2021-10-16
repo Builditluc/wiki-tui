@@ -107,9 +107,15 @@ fn start_application(wiki: wiki::WikiApi) {
     error::create_hook(Some(data), |path, data| {
         if let Some(path) = path {
             let mut fs = fs::File::create(path).unwrap();
-            fs.write_all(data.as_bytes());
+            fs.write_all(data.as_bytes())
+                .expect("Unable to generate report");
         };
     });
+
+    let argument_callback = handle_arguments();
+    if let Err(error) = siv.cb_sink().send(argument_callback) {
+        log::error!("{:?}", error);
+    }
 
     let siv_box = std::sync::Mutex::new(siv);
     if let Err(err) = std::panic::catch_unwind(|| {
@@ -117,6 +123,22 @@ fn start_application(wiki: wiki::WikiApi) {
     }) {
         panic!(panic_message::panic_message(&err));
     }
+}
+
+fn handle_arguments() -> Box<dyn FnOnce(&mut Cursive) + Send> {
+    let cli_args = std::env::args().skip(1).collect::<Vec<String>>();
+    if cli_args.len() == 0 {
+        return Box::new(|_: &mut Cursive| {});
+    }
+
+    let search_query = cli_args[0].to_string();
+
+    return Box::new(move |siv: &mut Cursive| {
+        if let Err(error) = ui::search::on_search(siv, search_query) {
+            log::error!("{:?}", error);
+            panic!("Something happened while searching. Please check your logs for further information");
+        };
+    });
 }
 
 fn get_color_palette() -> Palette {
