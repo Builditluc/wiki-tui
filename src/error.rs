@@ -1,4 +1,5 @@
 use backtrace::Backtrace;
+use panic_message::panic_info_message;
 use std::collections::HashMap;
 use std::env;
 use std::panic::{set_hook, PanicInfo};
@@ -63,9 +64,7 @@ where
         payload.push_str(&format!("Version: {}\n", env!("CARGO_PKG_VERSION")));
         payload.push_str(&format!("Operating System: {}\n", os));
 
-        if let Some(inner) = info.payload().downcast_ref::<&str>() {
-            payload.push_str(&format!("Cause: {}.\n", &inner));
-        }
+        payload.push_str(&format!("Cause: {}.\n", panic_info_message(info)));
 
         match info.location() {
             Some(location) => payload.push_str(&format!(

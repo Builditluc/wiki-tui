@@ -38,9 +38,13 @@ These features are planned:
 Note: These Screenshots were taken on [alacritty](https://github.com/alacritty/alacritty) (MacOS) with the [spaceduck](https://github.com/pineapplegiant/spaceduck-terminal) theme and the [Sauce Code Pro](https://github.com/ryanoasis/nerd-fonts/tree/master/patched-fonts/SourceCodePro/Regular) font
 
 ## Installation
+The binary executable is `wiki-tui`
 
-Currently, you can install `wiki-tui` only by compiling it manually.
-Just clone the repository and compile the stable branch.
+### Cargo
+```
+cargo install wiki-tui
+```
+
 ## Configuration
 
 ### Location of the config file
