@@ -1,5 +1,4 @@
 extern crate anyhow;
-extern crate ini;
 extern crate lazy_static;
 extern crate log;
 
@@ -30,6 +29,18 @@ pub const LOGO: &str = "
 ";
 
 fn main() {
+    let mut data = std::collections::HashMap::new();
+    data.insert("%NAME%", env!("CARGO_PKG_NAME"));
+    data.insert("%GITHUB%", env!("CARGO_PKG_REPOSITORY"));
+
+    error::create_hook(Some(data), |path, data| {
+        if let Some(path) = path {
+            let mut fs = fs::File::create(path).unwrap();
+            fs.write_all(data.as_bytes())
+                .expect("Unable to generate report");
+        };
+    });
+
     let initializing_thread = thread::spawn(move || {
         println!("{}", LOGO);
 
@@ -100,18 +111,6 @@ fn start_application(wiki: wiki::WikiApi) {
     );
 
     // Start the application
-    let mut data = std::collections::HashMap::new();
-    data.insert("%NAME%", env!("CARGO_PKG_NAME"));
-    data.insert("%GITHUB%", env!("CARGO_PKG_REPOSITORY"));
-
-    error::create_hook(Some(data), |path, data| {
-        if let Some(path) = path {
-            let mut fs = fs::File::create(path).unwrap();
-            fs.write_all(data.as_bytes())
-                .expect("Unable to generate report");
-        };
-    });
-
     let argument_callback = handle_arguments();
     if let Err(error) = siv.cb_sink().send(argument_callback) {
         log::error!("{:?}", error);

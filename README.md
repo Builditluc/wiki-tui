@@ -18,6 +18,9 @@
   </p>
 </p>
 
+# Breaking Changes
+As of 0.3.4 `wiki-tui` uses the `.toml` format for configuration. `.ini` configs won't work!
+
 ## Preview
 
 ### Features
@@ -50,48 +53,37 @@ cargo install wiki-tui
 ### Location of the config file
 #### MacOS and Linux 
 ```
-$HOME/.config/wiki-tui/config.ini
+$HOME/.config/wiki-tui/config.toml
 ```
 #### Windows
 ```
-C:\Users\{USERNAME}\wiki-tui\config.ini
+C:\Users\{USERNAME}\wiki-tui\config.toml
 ```
 
 ### Settings
-#### Api
-```ini
-; this is the url of wikipedia, it can be changed to change the language of wikipedia 
-BASE_URL = "https://en.wikipedia.org/"
-```
-#### Theme
-The settings here are all colors and can be set by either the name of the color or a hex string (valid formats are: `#ffffff`, `#fff`). If your color wasn't applied, check the logs to find out why.
+Default configuration
+```toml
+[api]
+base_url = "https://en.wikipedia.org/"  # this is the url of wikipedia, it can be changed to change the language of wikipedia 
 
-The actual colors displayed in your terminal can change depending on your terminal settings
-```ini
-; color used for View backgrounds
-background = white
-; color used for the title text
-title = red
-; color used for highlighting text
-highlight = red
-; color used for highlighting inactive text
-highlight_inactive = blue
-; color used for highlighted text
-highlight_text = white
-; color used for the text
-text = black
-; color used for a search match in the results view
-search_match = red
+# The settings here are all colors and can be set by either the name of the color or a hex string (valid formats are: #ffffff, #fff)
+# The actual colors displayed in your terminal can change depending on your terminal settings
+
+[theme]
+background = "white"                    # color used for View backgrounds
+title = "red"                           # color used for the title text
+highlight = "red"                       # color used for highlighting text
+highlight_inactive = "blue"             # color used for highlighting inactive text
+highlight_text = "white"                # color used for highlighted text
+text = "black"                          # color used for the text
+search_match = "red"                    # color used for a search match in the results view
+
+[logging]
+enabled = true                          # can be either true or false. enables/disables logging
+log_dir = "wiki_tui.log"                # location of the file where the log will be written to
+log_level = "Info"                      # log level to be used, can be Debug, Info, Warn, Error
 ```
-#### Logging
-```ini
-; can be either true or false. enables/disables logging
-enabled = true
-; location of the file where the log will be written to
-log_dir = "wiki_tui.log"
-; log level to be used, can be Debug, Info, Warn, Error
-log_level = Info
-```
+
 ## Contributing
 
 Any contributions you make are greatly appreciated.
