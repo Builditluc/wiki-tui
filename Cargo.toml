@@ -3,6 +3,7 @@ name = "wiki-tui"
 version = "0.3.2"
 authors = ["builditluc <37375448+Builditluc@users.noreply.github.com>"]
 edition = "2018"
+repository = "https://github.com/Builditluc/wiki-tui"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -18,8 +19,8 @@ anyhow = "1.0"
 select = "0.5.0"
 log4rs = "1.0.0"
 lazy_static = "1.4.0"
-human-panic = "1.0.3"
 panic-message = "0.3.0"
+backtrace = "0.3"
 
 [dependencies.reqwest]
 version = "0.11"
@@ -28,3 +29,7 @@ features = ["json", "blocking"]
 [dependencies.serde]
 version = "1.0"
 features = ["derive"]
+
+[dependencies.uuid]
+version = "0.8.2"
+features = ["v4"]

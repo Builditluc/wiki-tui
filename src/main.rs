@@ -1,5 +1,4 @@
 extern crate anyhow;
-extern crate human_panic;
 extern crate ini;
 extern crate lazy_static;
 extern crate log;
@@ -13,9 +12,12 @@ use cursive::utils::*;
 use cursive::view::{Resizable, Scrollable};
 use cursive::views::*;
 use cursive::Cursive;
+use std::fs;
+use std::io::Write;
 use std::{thread, time};
 
 pub mod config;
+pub mod error;
 pub mod logging;
 pub mod ui;
 pub mod wiki;
@@ -98,7 +100,16 @@ fn start_application(wiki: wiki::WikiApi) {
     );
 
     // Start the application
-    human_panic::setup_panic!();
+    let mut data = std::collections::HashMap::new();
+    data.insert("%NAME%", env!("CARGO_PKG_NAME"));
+    data.insert("%GITHUB%", env!("CARGO_PKG_REPOSITORY"));
+
+    error::create_hook(Some(data), |path, data| {
+        if let Some(path) = path {
+            let mut fs = fs::File::create(path).unwrap();
+            fs.write_all(data.as_bytes());
+        };
+    });
 
     let siv_box = std::sync::Mutex::new(siv);
     if let Err(err) = std::panic::catch_unwind(|| {
