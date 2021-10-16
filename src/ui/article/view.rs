@@ -145,13 +145,13 @@ impl ArticleContent {
             "Calculating the lines with a max line width of: {}",
             max_width
         );
+        log::trace!("headers: \t{:?}", self.headers);
 
         let lines_wrapper = LinesWrapper::new(max_width, self.headers.clone())
             .calculate_lines(&self.elements_rendered, &mut self.link_handler);
 
         self.lines_wrapped = lines_wrapper.lines_wrapped;
 
-        self.headers = lines_wrapper.headers;
         self.headers_coords = lines_wrapper.header_coords;
 
         return lines_wrapper.lines;
@@ -281,8 +281,10 @@ impl ArticleView {
     }
 
     pub fn select_header(&mut self, header: usize) {
-        if (header >= self.content.headers_coords.len()) || (header >= self.content.headers.len()) {
+        if (header >= self.content.headers_coords.len()) && (header >= self.content.headers.len()) {
             log::error!("The Header could not be found");
+            log::trace!("headers_coords: \t{:?}", self.content.headers_coords);
+            log::trace!("headers: \t{:?}", self.content.headers);
             return;
         }
 
