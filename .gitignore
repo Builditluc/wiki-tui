@@ -2,7 +2,6 @@ target/
 .idea/
 .gradle/
 .vim/
-Cargo.lock
 .DS_Store
 wiki-tui.iml
 tree

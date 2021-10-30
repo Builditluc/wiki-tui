@@ -120,7 +120,7 @@ fn start_application(wiki: wiki::WikiApi) {
     if let Err(err) = std::panic::catch_unwind(|| {
         siv_box.lock().unwrap().run();
     }) {
-        panic!(panic_message::panic_message(&err));
+        panic!("{}", panic_message::panic_message(&err));
     }
 }
 

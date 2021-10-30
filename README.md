@@ -18,9 +18,6 @@
   </p>
 </p>
 
-# Breaking Changes
-As of 0.3.4 `wiki-tui` uses the `.toml` format for configuration. `.ini` configs won't work!
-
 ## Preview
 
 ### Features
@@ -32,6 +29,7 @@ As of 0.3.4 `wiki-tui` uses the `.toml` format for configuration. `.ini` configs
 
 These features are planned:
 - View and interact with more elements of wikipedia articles (like tables, images, etc.)
+- Better error handling
 
 ### How it looks
 
@@ -93,9 +91,6 @@ Any contributions you make are greatly appreciated.
 3. Commit your Changes
 4. Push to the branch
 5. Open a Pull Request
-
-## Logging
-As of 0.3.2 you can no longer configure the logger with a .yml file
 
 ## Acknowledgements
 
