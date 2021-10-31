@@ -74,7 +74,7 @@ fn start_application(wiki: wiki::WikiApi) {
         palette: get_color_palette(),
         ..Default::default()
     };
-    siv.set_theme(theme);
+    siv.set_theme(theme.clone());
 
     // Create the views
     let search_bar = EditView::new()
@@ -102,7 +102,10 @@ fn start_application(wiki: wiki::WikiApi) {
     siv.add_fullscreen_layer(
         Dialog::around(
             LinearLayout::vertical()
-                .child(search_layout)
+                .child(change_theme!(
+                    config::CONFIG.theme.search_bar,
+                    search_layout
+                ))
                 .child(article_layout),
         )
         .title("wiki-tui")

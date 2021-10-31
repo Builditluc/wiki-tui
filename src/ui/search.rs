@@ -91,15 +91,19 @@ pub fn on_search(siv: &mut Cursive, search_query: String) -> Result<()> {
     let search_results_layout = LinearLayout::horizontal()
         .child(Dialog::around(
             LinearLayout::vertical()
-                .child(
+                .child(change_theme!(
+                    config::CONFIG.theme.search_results,
                     search_results_view
                         .with_name("search_results_view")
                         .scrollable()
-                        .min_height(10),
-                )
+                        .min_height(10)
+                ))
                 .child(search_continue_button),
         ))
-        .child(Dialog::around(search_results_preview));
+        .child(change_theme!(
+            config::CONFIG.theme.search_preview,
+            Dialog::around(search_results_preview)
+        ));
 
     log::info!("Finished the search, displaying the results");
     siv.add_layer(

@@ -35,7 +35,10 @@ pub fn add_table_of_contents(siv: &mut Cursive, toc: ui::models::table_of_conten
 
     article_layout.insert_child(
         1,
-        Dialog::around(toc_view.with_name("toc_view").full_height()).title(toc.title),
+        change_theme!(
+            config::CONFIG.theme.toc_view,
+            Dialog::around(toc_view.with_name("toc_view").full_height()).title(toc.title)
+        ),
     );
     article_layout.set_weight(1, 10);
     log::debug!("Added the toc_view to the article_layout");

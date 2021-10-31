@@ -25,6 +25,63 @@ pub struct Theme {
     pub search_match: Color,
     pub highlight_text: Color,
     pub highlight_inactive: Color,
+
+    pub search_bar: Option<ViewTheme>,
+    pub search_results: Option<ViewTheme>,
+    pub search_preview: Option<ViewTheme>,
+
+    pub article_view: Option<ViewTheme>,
+    pub toc_view: Option<ViewTheme>,
+}
+
+impl Theme {
+    pub fn to_theme(&self) -> cursive::theme::Theme {
+        cursive::theme::Theme {
+            palette: {
+                let mut custom_palette = cursive::theme::Palette::default();
+
+                custom_palette.set_color("View", self.background);
+                custom_palette.set_color("Primary", self.text);
+                custom_palette.set_color("TitlePrimary", self.title);
+                custom_palette.set_color("Highlight", self.highlight);
+                custom_palette.set_color("HighlightInactive", self.highlight_inactive);
+                custom_palette.set_color("HighlightText", self.highlight_text);
+
+                custom_palette
+            },
+            ..Default::default()
+        }
+    }
+}
+
+pub struct ViewTheme {
+    // TODO: Add borders
+    pub background: Color,
+    pub text: Color,
+    pub title: Color,
+    pub highlight: Color,
+    pub highlight_text: Color,
+    pub highlight_inactive: Color,
+}
+
+impl ViewTheme {
+    pub fn to_theme(&self) -> cursive::theme::Theme {
+        cursive::theme::Theme {
+            palette: {
+                let mut custom_palette = cursive::theme::Palette::default();
+
+                custom_palette.set_color("View", self.background);
+                custom_palette.set_color("Primary", self.text);
+                custom_palette.set_color("TitlePrimary", self.title);
+                custom_palette.set_color("Highlight", self.highlight);
+                custom_palette.set_color("HighlightInactive", self.highlight_inactive);
+                custom_palette.set_color("HighlightText", self.highlight_text);
+
+                custom_palette
+            },
+            ..Default::default()
+        }
+    }
 }
 
 #[derive(Clone, Debug)]
@@ -61,6 +118,23 @@ struct UserTheme {
     search_match: Option<String>,
     highlight_text: Option<String>,
     highlight_inactive: Option<String>,
+
+    search_bar: Option<UserViewTheme>,
+    search_results: Option<UserViewTheme>,
+    search_preview: Option<UserViewTheme>,
+
+    article_view: Option<UserViewTheme>,
+    toc_view: Option<UserViewTheme>,
+}
+
+#[derive(Deserialize, Debug)]
+struct UserViewTheme {
+    text: Option<String>,
+    title: Option<String>,
+    highlight: Option<String>,
+    background: Option<String>,
+    highlight_text: Option<String>,
+    highlight_inactive: Option<String>,
 }
 
 #[derive(Deserialize, Debug)]
@@ -90,6 +164,13 @@ impl Config {
                 highlight_text: Color::Dark(BaseColor::White),
                 text: Color::Dark(BaseColor::Black),
                 search_match: Color::Dark(BaseColor::Red),
+
+                search_bar: None,
+                search_results: None,
+                search_preview: None,
+
+                article_view: None,
+                toc_view: None,
             },
             logging: Logging {
                 enabled: true,
@@ -161,14 +242,6 @@ impl Config {
         if let Some(user_logging) = user_config.logging {
             self.load_logging(&user_logging);
         }
-
-        // if the config file exists, then load it
-        // if config_exists.unwrap() {
-        //     println!("[DEBUG] Loading the Config");
-        //     self.load_api_config(&config_str);
-        //     self.load_theme(&config_str);
-        //     self.load_logging(&config_str);
-        // }
     }
 
     fn load_or_create_config_paths(&mut self) -> Result<bool> {
@@ -261,6 +334,67 @@ impl Config {
         to_theme_color!(search_match);
         to_theme_color!(highlight_text);
         to_theme_color!(highlight_inactive);
+
+        if let Some(search_bar) = &user_theme.search_bar {
+            self.theme.search_bar = Some(self.load_view_theme(search_bar));
+        }
+
+        if let Some(search_results) = &user_theme.search_results {
+            self.theme.search_results = Some(self.load_view_theme(search_results));
+        }
+
+        if let Some(search_preview) = &user_theme.search_preview {
+            self.theme.search_preview = Some(self.load_view_theme(search_preview));
+        }
+
+        if let Some(article_view) = &user_theme.article_view {
+            self.theme.article_view = Some(self.load_view_theme(article_view));
+        }
+
+        if let Some(toc_view) = &user_theme.toc_view {
+            self.theme.toc_view = Some(self.load_view_theme(toc_view));
+        }
+    }
+
+    fn load_view_theme(&self, user_view_theme: &UserViewTheme) -> ViewTheme {
+        let mut view_theme = self.create_view_theme();
+
+        macro_rules! to_view_theme {
+            ($color: ident) => {
+                println!("[DEBUG] Trying to load the color '{}'", stringify!($color));
+                if user_view_theme.$color.is_some() {
+                    match parse_color(user_view_theme.$color.as_ref().unwrap().to_string()) {
+                        Ok(color) => {
+                            view_theme.$color = color;
+                            println!("[DEBUG] Loaded the color '{}'", stringify!($color));
+                        }
+                        Err(error) => {
+                            println!("[WARN] {}", error);
+                        }
+                    };
+                }
+            };
+        }
+
+        to_view_theme!(text);
+        to_view_theme!(title);
+        to_view_theme!(highlight);
+        to_view_theme!(background);
+        to_view_theme!(highlight_text);
+        to_view_theme!(highlight_inactive);
+
+        view_theme
+    }
+
+    fn create_view_theme(&self) -> ViewTheme {
+        ViewTheme {
+            background: self.theme.background,
+            text: self.theme.text,
+            title: self.theme.title,
+            highlight: self.theme.highlight,
+            highlight_text: self.theme.highlight_text,
+            highlight_inactive: self.theme.highlight_inactive,
+        }
     }
 
     fn load_logging(&mut self, user_logging: &UserLogging) {
