@@ -45,11 +45,21 @@ The binary executable is `wiki-tui`
 ```
 cargo install wiki-tui
 ```
+### NetBSD
+Using the package manager
+```
+pkgin install wiki-tui
+```
+Building from source
+```
+cd /usr/pkgsrc/www/wiki-tui
+make install
+```
 
 ## Configuration
 
 ### Location of the config file
-#### MacOS and Linux 
+#### MacOS, Linux and NetBSD
 ```
 $HOME/.config/wiki-tui/config.toml
 ```
