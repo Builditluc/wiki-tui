@@ -41,6 +41,7 @@ impl Theme {
                 let mut custom_palette = cursive::theme::Palette::default();
 
                 custom_palette.set_color("View", self.background);
+                custom_palette.set_color("Background", self.background);
                 custom_palette.set_color("Primary", self.text);
                 custom_palette.set_color("TitlePrimary", self.title);
                 custom_palette.set_color("Highlight", self.highlight);
@@ -71,6 +72,7 @@ impl ViewTheme {
                 let mut custom_palette = cursive::theme::Palette::default();
 
                 custom_palette.set_color("View", self.background);
+                custom_palette.set_color("Background", self.background);
                 custom_palette.set_color("Primary", self.text);
                 custom_palette.set_color("TitlePrimary", self.title);
                 custom_palette.set_color("Highlight", self.highlight);

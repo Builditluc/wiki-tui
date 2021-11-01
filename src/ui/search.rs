@@ -89,16 +89,18 @@ pub fn on_search(siv: &mut Cursive, search_query: String) -> Result<()> {
 
     // create the search results layout and add it as a new layer to the application
     let search_results_layout = LinearLayout::horizontal()
-        .child(Dialog::around(
-            LinearLayout::vertical()
-                .child(change_theme!(
-                    config::CONFIG.theme.search_results,
-                    search_results_view
-                        .with_name("search_results_view")
-                        .scrollable()
-                        .min_height(10)
-                ))
-                .child(search_continue_button),
+        .child(change_theme!(
+            config::CONFIG.theme.search_results,
+            Dialog::around(
+                LinearLayout::vertical()
+                    .child(
+                        search_results_view
+                            .with_name("search_results_view")
+                            .scrollable()
+                            .min_height(10)
+                    )
+                    .child(search_continue_button),
+            )
         ))
         .child(change_theme!(
             config::CONFIG.theme.search_preview,

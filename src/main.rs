@@ -85,9 +85,12 @@ fn start_application(wiki: wiki::WikiApi) {
         .with_name("search_bar")
         .full_width();
 
-    let search_layout = Dialog::around(LinearLayout::horizontal().child(search_bar))
-        .title("Search")
-        .title_position(cursive::align::HAlign::Left);
+    let search_layout = change_theme!(
+        config::CONFIG.theme.search_bar,
+        Dialog::around(LinearLayout::horizontal().child(search_bar))
+            .title("Search")
+            .title_position(cursive::align::HAlign::Left)
+    );
 
     let logo_view = TextView::new(LOGO)
         .h_align(HAlign::Center)
@@ -102,10 +105,7 @@ fn start_application(wiki: wiki::WikiApi) {
     siv.add_fullscreen_layer(
         Dialog::around(
             LinearLayout::vertical()
-                .child(change_theme!(
-                    config::CONFIG.theme.search_bar,
-                    search_layout
-                ))
+                .child(search_layout)
                 .child(article_layout),
         )
         .title("wiki-tui")

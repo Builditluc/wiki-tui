@@ -86,6 +86,23 @@ highlight_text = "white"                # color used for highlighted text
 text = "black"                          # color used for the text
 search_match = "red"                    # color used for a search match in the results view
 
+# You can also change the theme of specific views
+# These settings are the same for every supported view
+[theme.search_bar]
+background = "white"
+title = "red"
+highlight = "red"
+highlight_inactive = "blue"
+highlight_text = "white"
+text = "black"
+
+# Currently, these views are supported:
+# - search_bar
+# - search_results
+# - search_preview
+# - article_view
+# - toc_view
+
 [logging]
 enabled = true                          # can be either true or false. enables/disables logging
 log_dir = "wiki_tui.log"                # location of the file where the log will be written to

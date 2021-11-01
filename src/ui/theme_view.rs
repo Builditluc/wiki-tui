@@ -19,8 +19,13 @@ impl<T: View> ViewWrapper for ThemedView<T> {
     wrap_impl!(self.view: T);
 
     fn wrap_draw(&self, printer: &cursive::Printer) {
-        printer
-            .theme(&self.theme)
-            .with_style(ColorStyle::primary(), |printer| self.view.draw(printer))
+        printer.with_theme(&self.theme, |printer| {
+            printer.with_color(ColorStyle::background(), |printer| {
+                for y in 0..printer.size.y {
+                    printer.print_hline((0, y), printer.size.x, " ");
+                }
+            });
+            printer.with_style(ColorStyle::primary(), |printer| self.view.draw(printer));
+        });
     }
 }
