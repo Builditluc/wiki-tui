@@ -38,6 +38,22 @@ These features are planned:
 ![image](https://user-images.githubusercontent.com/37375448/127552750-05dfde74-07fc-4e32-a438-4a68b408162b.png) <br>
 Note: These Screenshots were taken on [alacritty](https://github.com/alacritty/alacritty) (MacOS) with the [spaceduck](https://github.com/pineapplegiant/spaceduck-terminal) theme and the [Sauce Code Pro](https://github.com/ryanoasis/nerd-fonts/tree/master/patched-fonts/SourceCodePro/Regular) font
 
+### Usage
+
+If you want to search for an article quickly, you can pass the search term as an argument.
+```
+wiki-tui <ARTICLE>
+```
+wiki-tui then searches for this article automatically. 
+
+#### Controls
+<table>
+  <tr><th>Key</th><th>Function</th></tr>
+  <tr><td>q</td><td>Quit the program (except when inside the search bar)</td></tr>
+  <tr><td>Up and Down</td><td>Scrolling</td></tr>
+  <tr><td>Left and Right</td><td>Select the next link (only in the article view)</td></tr>
+</table>
+
 ## Installation
 The binary executable is `wiki-tui`
 
