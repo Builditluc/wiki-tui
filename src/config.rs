@@ -183,7 +183,7 @@ impl Config {
         };
 
         // do the loading stuff here
-        println!("[INFO] Loading the config");
+        log::info!("Loading the config");
         config.load_config();
 
         // return the config
@@ -198,10 +198,7 @@ impl Config {
         // check, if any errors occured during loading
         if config_exists.is_err() {
             // Abort the loading
-            println!(
-                "[WARN] Failed loading the config paths, {:?}",
-                config_exists.err()
-            );
+            log::warn!("Failed loading the config paths, {:?}", config_exists.err());
             return;
         }
 
@@ -211,11 +208,11 @@ impl Config {
             &self.config_path.to_str().unwrap_or("NONE")
         )) {
             Ok(config) => {
-                println!("[INFO] Successfully read the config file");
+                log::info!("Successfully read the config file");
                 config
             }
             Err(error) => {
-                println!("[WARN] {:?}", error);
+                log::warn!("{:?}", error);
                 return;
             }
         };
@@ -224,11 +221,11 @@ impl Config {
             .context("Failed deserializing the loaded config file")
         {
             Ok(config) => {
-                println!("[INFO] Successfully deserialized config");
+                log::info!("Successfully deserialized config");
                 config
             }
             Err(error) => {
-                println!("[WARN] {:?}", error);
+                log::warn!("{:?}", error);
                 return;
             }
         };
@@ -250,14 +247,14 @@ impl Config {
         // get the platform specific config directory
         let config_dir = match dirs::home_dir() {
             Some(config_dir) => {
-                println!(
-                    "[INFO] The config directory is {}",
+                log::info!(
+                    "The config directory is {}",
                     config_dir.join(CONFIG_DIR).to_str().unwrap()
                 );
                 config_dir.join(CONFIG_DIR)
             }
             None => {
-                println!("[ERROR] Couldn't find the home directory");
+                log::error!("Couldn't find the home directory");
                 panic!()
             }
         };
@@ -268,11 +265,11 @@ impl Config {
 
         // create the app config folder if it doesn't exist
         if !app_config_dir.exists() {
-            println!("[DEBUG] The app config directory doesn't exist, creating it now");
+            log::info!("The app config directory doesn't exist, creating it now");
             match fs::create_dir(app_config_dir).context("Couldn't create the app config directory")
             {
                 Ok(_) => {
-                    println!("[DEBUG] Successfully created the app config directory");
+                    log::info!("Successfully created the app config directory");
                 }
                 Err(error) => return Err(error),
             };
@@ -280,13 +277,13 @@ impl Config {
 
         // check, if the config file exists
         if !config_file_dir.exists() {
-            println!("[INFO] The config file doesn't exist");
+            log::info!("The config file doesn't exist");
             return Ok(false);
         }
 
         // if the config file exists,
         // return true and store the path to it
-        println!("[INFO] The config file exists");
+        log::debug!("The config file exists");
         self.config_path = config_file_dir;
         Ok(true)
     }
@@ -295,10 +292,7 @@ impl Config {
         // define the macro for loading individual api settings
         macro_rules! to_api_setting {
             ($setting: ident) => {
-                println!(
-                    "[DEBUG] Trying to load the setting '{}'",
-                    stringify!($setting)
-                );
+                log::debug!("Trying to load the setting '{}'", stringify!($setting));
                 if user_api_config.$setting.is_some() {
                     self.api_config.$setting =
                         user_api_config.$setting.as_ref().unwrap().to_string();
@@ -313,15 +307,15 @@ impl Config {
         // define the macro for loading individual color settings
         macro_rules! to_theme_color {
             ($color: ident) => {
-                println!("[DEBUG] Trying to load the color '{}'", stringify!($color));
+                log::debug!("Trying to load the color '{}'", stringify!($color));
                 if user_theme.$color.is_some() {
                     match parse_color(user_theme.$color.as_ref().unwrap().to_string()) {
                         Ok(color) => {
                             self.theme.$color = color;
-                            println!("[DEBUG] Loaded the color '{}'", stringify!($color));
+                            log::debug!("Loaded the color '{}'", stringify!($color));
                         }
                         Err(error) => {
-                            println!("[WARN] {}", error);
+                            log::warn!("{}", error);
                         }
                     };
                 }
@@ -363,15 +357,15 @@ impl Config {
 
         macro_rules! to_view_theme {
             ($color: ident) => {
-                println!("[DEBUG] Trying to load the color '{}'", stringify!($color));
+                log::debug!("Trying to load the color '{}'", stringify!($color));
                 if user_view_theme.$color.is_some() {
                     match parse_color(user_view_theme.$color.as_ref().unwrap().to_string()) {
                         Ok(color) => {
                             view_theme.$color = color;
-                            println!("[DEBUG] Loaded the color '{}'", stringify!($color));
+                            log::debug!("Loaded the color '{}'", stringify!($color));
                         }
                         Err(error) => {
-                            println!("[WARN] {}", error);
+                            log::warn!("{}", error);
                         }
                     };
                 }
@@ -401,19 +395,19 @@ impl Config {
 
     fn load_logging(&mut self, user_logging: &UserLogging) {
         // now load the settings
-        println!("[DEBUG] Trying to load the enabled setting");
+        log::debug!("Trying to load the enabled setting");
         if let Some(enabled) = user_logging.enabled {
             self.logging.enabled = enabled;
         }
 
-        println!("[DEBUG] Trying to load the logging dir setting");
+        log::debug!("Trying to load the logging dir setting");
         if let Some(log_dir) = user_logging.log_dir.as_ref() {
             if let Ok(path) = PathBuf::from_str(&log_dir) {
                 self.logging.log_dir = path;
             }
         }
 
-        println!("[DEBUG] Trying to load the log level");
+        log::debug!("Trying to load the log level");
         if let Some(log_level) = user_logging.log_level.as_ref() {
             if let Ok(level) = LevelFilter::from_str(&log_level) {
                 self.logging.log_level = level;

@@ -44,11 +44,14 @@ fn main() {
     let initializing_thread = thread::spawn(move || {
         println!("{}", LOGO);
 
-        // Initialize the logging module
-        logging::Logger::initialize();
+        // create the logger
+        let logger = logging::Logger::new();
 
         // Create the wiki struct, used for interaction with the wikipedia website/api
         let wiki = wiki::WikiApi::new();
+
+        // Initialize the logger
+        logger.initialize();
 
         thread::sleep(time::Duration::from_millis(250));
         return wiki;
