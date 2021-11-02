@@ -272,6 +272,12 @@ impl ArticleView {
     }
 
     fn move_focus(&mut self, direction: Directions) -> EventResult {
+        // check if it's valid
+        if self.content.link_handler.links.len() >= self.content.link_handler.current_link {
+            log::error!("Failed trying to access an invalid link");
+            return EventResult::Consumed(None);
+        }
+
         match direction {
             Directions::LEFT => self.move_link(direction),
             Directions::RIGHT => self.move_link(direction),
