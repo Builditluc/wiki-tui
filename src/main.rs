@@ -44,11 +44,14 @@ fn main() {
     let initializing_thread = thread::spawn(move || {
         println!("{}", LOGO);
 
-        // Initialize the logging module
-        logging::Logger::initialize();
+        // create the logger
+        let logger = logging::Logger::new();
 
         // Create the wiki struct, used for interaction with the wikipedia website/api
         let wiki = wiki::WikiApi::new();
+
+        // Initialize the logger
+        logger.initialize();
 
         thread::sleep(time::Duration::from_millis(250));
         return wiki;
@@ -74,7 +77,7 @@ fn start_application(wiki: wiki::WikiApi) {
         palette: get_color_palette(),
         ..Default::default()
     };
-    siv.set_theme(theme);
+    siv.set_theme(theme.clone());
 
     // Create the views
     let search_bar = EditView::new()
@@ -85,9 +88,12 @@ fn start_application(wiki: wiki::WikiApi) {
         .with_name("search_bar")
         .full_width();
 
-    let search_layout = Dialog::around(LinearLayout::horizontal().child(search_bar))
-        .title("Search")
-        .title_position(cursive::align::HAlign::Left);
+    let search_layout = change_theme!(
+        config::CONFIG.theme.search_bar,
+        Dialog::around(LinearLayout::horizontal().child(search_bar))
+            .title("Search")
+            .title_position(cursive::align::HAlign::Left)
+    );
 
     let logo_view = TextView::new(LOGO)
         .h_align(HAlign::Center)

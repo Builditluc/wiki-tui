@@ -33,10 +33,25 @@ These features are planned:
 
 ### How it looks
 
-![image](https://user-images.githubusercontent.com/37375448/127552501-777b1311-93aa-47e0-851e-f89b043118e3.png)
-![image](https://user-images.githubusercontent.com/37375448/127552544-85df82f8-4337-4def-b7b8-f11255c2304d.png)
-![image](https://user-images.githubusercontent.com/37375448/127552750-05dfde74-07fc-4e32-a438-4a68b408162b.png) <br>
-Note: These Screenshots were taken on [alacritty](https://github.com/alacritty/alacritty) (MacOS) with the [spaceduck](https://github.com/pineapplegiant/spaceduck-terminal) theme and the [Sauce Code Pro](https://github.com/ryanoasis/nerd-fonts/tree/master/patched-fonts/SourceCodePro/Regular) font
+![image](https://user-images.githubusercontent.com/37375448/139769364-46a69dce-f386-4369-a82e-4a45adac3b52.png)
+![image](https://user-images.githubusercontent.com/37375448/139769469-0b2e9f01-f758-4bb2-8227-4186f658cfcc.png) <br>
+Note: These Screenshots were taken on [iTerm2](https://iterm2.com) (MacOS) with the [Fira Code](https://github.com/tonsky/FiraCode) font
+
+### Usage
+
+If you want to search for an article quickly, you can pass the search term as an argument.
+```
+wiki-tui <ARTICLE>
+```
+wiki-tui then searches for this article automatically. 
+
+#### Controls
+<table>
+  <tr><th>Key</th><th>Function</th></tr>
+  <tr><td>q</td><td>Quit the program (except when inside the search bar)</td></tr>
+  <tr><td>Up and Down</td><td>Scrolling</td></tr>
+  <tr><td>Left and Right</td><td>Select the next link (only in the article view)</td></tr>
+</table>
 
 ## Installation
 The binary executable is `wiki-tui`
@@ -45,11 +60,21 @@ The binary executable is `wiki-tui`
 ```
 cargo install wiki-tui
 ```
+### NetBSD
+Using the package manager
+```
+pkgin install wiki-tui
+```
+Building from source
+```
+cd /usr/pkgsrc/www/wiki-tui
+make install
+```
 
 ## Configuration
 
 ### Location of the config file
-#### MacOS and Linux 
+#### MacOS, Linux and NetBSD
 ```
 $HOME/.config/wiki-tui/config.toml
 ```
@@ -75,6 +100,23 @@ highlight_inactive = "blue"             # color used for highlighting inactive t
 highlight_text = "white"                # color used for highlighted text
 text = "black"                          # color used for the text
 search_match = "red"                    # color used for a search match in the results view
+
+# You can also change the theme of specific views
+# These settings are the same for every supported view
+[theme.search_bar]
+background = "white"
+title = "red"
+highlight = "red"
+highlight_inactive = "blue"
+highlight_text = "white"
+text = "black"
+
+# Currently, these views are supported:
+# - search_bar
+# - search_results
+# - search_preview
+# - article_view
+# - toc_view
 
 [logging]
 enabled = true                          # can be either true or false. enables/disables logging

@@ -25,6 +25,65 @@ pub struct Theme {
     pub search_match: Color,
     pub highlight_text: Color,
     pub highlight_inactive: Color,
+
+    pub search_bar: Option<ViewTheme>,
+    pub search_results: Option<ViewTheme>,
+    pub search_preview: Option<ViewTheme>,
+
+    pub article_view: Option<ViewTheme>,
+    pub toc_view: Option<ViewTheme>,
+}
+
+impl Theme {
+    pub fn to_theme(&self) -> cursive::theme::Theme {
+        cursive::theme::Theme {
+            palette: {
+                let mut custom_palette = cursive::theme::Palette::default();
+
+                custom_palette.set_color("View", self.background);
+                custom_palette.set_color("Background", self.background);
+                custom_palette.set_color("Primary", self.text);
+                custom_palette.set_color("TitlePrimary", self.title);
+                custom_palette.set_color("Highlight", self.highlight);
+                custom_palette.set_color("HighlightInactive", self.highlight_inactive);
+                custom_palette.set_color("HighlightText", self.highlight_text);
+
+                custom_palette
+            },
+            ..Default::default()
+        }
+    }
+}
+
+pub struct ViewTheme {
+    // TODO: Add borders
+    pub background: Color,
+    pub text: Color,
+    pub title: Color,
+    pub highlight: Color,
+    pub highlight_text: Color,
+    pub highlight_inactive: Color,
+}
+
+impl ViewTheme {
+    pub fn to_theme(&self) -> cursive::theme::Theme {
+        cursive::theme::Theme {
+            palette: {
+                let mut custom_palette = cursive::theme::Palette::default();
+
+                custom_palette.set_color("View", self.background);
+                custom_palette.set_color("Background", self.background);
+                custom_palette.set_color("Primary", self.text);
+                custom_palette.set_color("TitlePrimary", self.title);
+                custom_palette.set_color("Highlight", self.highlight);
+                custom_palette.set_color("HighlightInactive", self.highlight_inactive);
+                custom_palette.set_color("HighlightText", self.highlight_text);
+
+                custom_palette
+            },
+            ..Default::default()
+        }
+    }
 }
 
 #[derive(Clone, Debug)]
@@ -61,6 +120,23 @@ struct UserTheme {
     search_match: Option<String>,
     highlight_text: Option<String>,
     highlight_inactive: Option<String>,
+
+    search_bar: Option<UserViewTheme>,
+    search_results: Option<UserViewTheme>,
+    search_preview: Option<UserViewTheme>,
+
+    article_view: Option<UserViewTheme>,
+    toc_view: Option<UserViewTheme>,
+}
+
+#[derive(Deserialize, Debug)]
+struct UserViewTheme {
+    text: Option<String>,
+    title: Option<String>,
+    highlight: Option<String>,
+    background: Option<String>,
+    highlight_text: Option<String>,
+    highlight_inactive: Option<String>,
 }
 
 #[derive(Deserialize, Debug)]
@@ -90,6 +166,13 @@ impl Config {
                 highlight_text: Color::Dark(BaseColor::White),
                 text: Color::Dark(BaseColor::Black),
                 search_match: Color::Dark(BaseColor::Red),
+
+                search_bar: None,
+                search_results: None,
+                search_preview: None,
+
+                article_view: None,
+                toc_view: None,
             },
             logging: Logging {
                 enabled: true,
@@ -100,7 +183,7 @@ impl Config {
         };
 
         // do the loading stuff here
-        println!("[INFO] Loading the config");
+        log::info!("Loading the config");
         config.load_config();
 
         // return the config
@@ -115,10 +198,7 @@ impl Config {
         // check, if any errors occured during loading
         if config_exists.is_err() {
             // Abort the loading
-            println!(
-                "[WARN] Failed loading the config paths, {:?}",
-                config_exists.err()
-            );
+            log::warn!("Failed loading the config paths, {:?}", config_exists.err());
             return;
         }
 
@@ -128,11 +208,11 @@ impl Config {
             &self.config_path.to_str().unwrap_or("NONE")
         )) {
             Ok(config) => {
-                println!("[INFO] Successfully read the config file");
+                log::info!("Successfully read the config file");
                 config
             }
             Err(error) => {
-                println!("[WARN] {:?}", error);
+                log::warn!("{:?}", error);
                 return;
             }
         };
@@ -141,11 +221,11 @@ impl Config {
             .context("Failed deserializing the loaded config file")
         {
             Ok(config) => {
-                println!("[INFO] Successfully deserialized config");
+                log::info!("Successfully deserialized config");
                 config
             }
             Err(error) => {
-                println!("[WARN] {:?}", error);
+                log::warn!("{:?}", error);
                 return;
             }
         };
@@ -161,28 +241,20 @@ impl Config {
         if let Some(user_logging) = user_config.logging {
             self.load_logging(&user_logging);
         }
-
-        // if the config file exists, then load it
-        // if config_exists.unwrap() {
-        //     println!("[DEBUG] Loading the Config");
-        //     self.load_api_config(&config_str);
-        //     self.load_theme(&config_str);
-        //     self.load_logging(&config_str);
-        // }
     }
 
     fn load_or_create_config_paths(&mut self) -> Result<bool> {
         // get the platform specific config directory
         let config_dir = match dirs::home_dir() {
             Some(config_dir) => {
-                println!(
-                    "[INFO] The config directory is {}",
+                log::info!(
+                    "The config directory is {}",
                     config_dir.join(CONFIG_DIR).to_str().unwrap()
                 );
                 config_dir.join(CONFIG_DIR)
             }
             None => {
-                println!("[ERROR] Couldn't find the home directory");
+                log::error!("Couldn't find the home directory");
                 panic!()
             }
         };
@@ -193,11 +265,11 @@ impl Config {
 
         // create the app config folder if it doesn't exist
         if !app_config_dir.exists() {
-            println!("[DEBUG] The app config directory doesn't exist, creating it now");
+            log::info!("The app config directory doesn't exist, creating it now");
             match fs::create_dir(app_config_dir).context("Couldn't create the app config directory")
             {
                 Ok(_) => {
-                    println!("[DEBUG] Successfully created the app config directory");
+                    log::info!("Successfully created the app config directory");
                 }
                 Err(error) => return Err(error),
             };
@@ -205,13 +277,13 @@ impl Config {
 
         // check, if the config file exists
         if !config_file_dir.exists() {
-            println!("[INFO] The config file doesn't exist");
+            log::info!("The config file doesn't exist");
             return Ok(false);
         }
 
         // if the config file exists,
         // return true and store the path to it
-        println!("[INFO] The config file exists");
+        log::debug!("The config file exists");
         self.config_path = config_file_dir;
         Ok(true)
     }
@@ -220,10 +292,7 @@ impl Config {
         // define the macro for loading individual api settings
         macro_rules! to_api_setting {
             ($setting: ident) => {
-                println!(
-                    "[DEBUG] Trying to load the setting '{}'",
-                    stringify!($setting)
-                );
+                log::debug!("Trying to load the setting '{}'", stringify!($setting));
                 if user_api_config.$setting.is_some() {
                     self.api_config.$setting =
                         user_api_config.$setting.as_ref().unwrap().to_string();
@@ -238,15 +307,15 @@ impl Config {
         // define the macro for loading individual color settings
         macro_rules! to_theme_color {
             ($color: ident) => {
-                println!("[DEBUG] Trying to load the color '{}'", stringify!($color));
+                log::debug!("Trying to load the color '{}'", stringify!($color));
                 if user_theme.$color.is_some() {
                     match parse_color(user_theme.$color.as_ref().unwrap().to_string()) {
                         Ok(color) => {
                             self.theme.$color = color;
-                            println!("[DEBUG] Loaded the color '{}'", stringify!($color));
+                            log::debug!("Loaded the color '{}'", stringify!($color));
                         }
                         Err(error) => {
-                            println!("[WARN] {}", error);
+                            log::warn!("{}", error);
                         }
                     };
                 }
@@ -261,23 +330,84 @@ impl Config {
         to_theme_color!(search_match);
         to_theme_color!(highlight_text);
         to_theme_color!(highlight_inactive);
+
+        if let Some(search_bar) = &user_theme.search_bar {
+            self.theme.search_bar = Some(self.load_view_theme(search_bar));
+        }
+
+        if let Some(search_results) = &user_theme.search_results {
+            self.theme.search_results = Some(self.load_view_theme(search_results));
+        }
+
+        if let Some(search_preview) = &user_theme.search_preview {
+            self.theme.search_preview = Some(self.load_view_theme(search_preview));
+        }
+
+        if let Some(article_view) = &user_theme.article_view {
+            self.theme.article_view = Some(self.load_view_theme(article_view));
+        }
+
+        if let Some(toc_view) = &user_theme.toc_view {
+            self.theme.toc_view = Some(self.load_view_theme(toc_view));
+        }
+    }
+
+    fn load_view_theme(&self, user_view_theme: &UserViewTheme) -> ViewTheme {
+        let mut view_theme = self.create_view_theme();
+
+        macro_rules! to_view_theme {
+            ($color: ident) => {
+                log::debug!("Trying to load the color '{}'", stringify!($color));
+                if user_view_theme.$color.is_some() {
+                    match parse_color(user_view_theme.$color.as_ref().unwrap().to_string()) {
+                        Ok(color) => {
+                            view_theme.$color = color;
+                            log::debug!("Loaded the color '{}'", stringify!($color));
+                        }
+                        Err(error) => {
+                            log::warn!("{}", error);
+                        }
+                    };
+                }
+            };
+        }
+
+        to_view_theme!(text);
+        to_view_theme!(title);
+        to_view_theme!(highlight);
+        to_view_theme!(background);
+        to_view_theme!(highlight_text);
+        to_view_theme!(highlight_inactive);
+
+        view_theme
+    }
+
+    fn create_view_theme(&self) -> ViewTheme {
+        ViewTheme {
+            background: self.theme.background,
+            text: self.theme.text,
+            title: self.theme.title,
+            highlight: self.theme.highlight,
+            highlight_text: self.theme.highlight_text,
+            highlight_inactive: self.theme.highlight_inactive,
+        }
     }
 
     fn load_logging(&mut self, user_logging: &UserLogging) {
         // now load the settings
-        println!("[DEBUG] Trying to load the enabled setting");
+        log::debug!("Trying to load the enabled setting");
         if let Some(enabled) = user_logging.enabled {
             self.logging.enabled = enabled;
         }
 
-        println!("[DEBUG] Trying to load the logging dir setting");
+        log::debug!("Trying to load the logging dir setting");
         if let Some(log_dir) = user_logging.log_dir.as_ref() {
             if let Ok(path) = PathBuf::from_str(&log_dir) {
                 self.logging.log_dir = path;
             }
         }
 
-        println!("[DEBUG] Trying to load the log level");
+        log::debug!("Trying to load the log level");
         if let Some(log_level) = user_logging.log_level.as_ref() {
             if let Ok(level) = LevelFilter::from_str(&log_level) {
                 self.logging.log_level = level;

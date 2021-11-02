@@ -46,7 +46,10 @@ pub fn on_article_submit(siv: &mut Cursive, article_preview: &ui::models::Articl
     siv.call_on_name("article_layout", |view: &mut LinearLayout| {
         view.insert_child(
             0,
-            Dialog::around(article_view.with_name("article_view").scrollable()),
+            change_theme!(
+                config::CONFIG.theme.article_view,
+                Dialog::around(article_view.with_name("article_view").scrollable())
+            ),
         );
     });
     log::debug!("Added the article_view to the article_layout");
@@ -124,11 +127,9 @@ fn show_article_from_link(siv: &mut Cursive, target: String) {
     siv.call_on_name("article_layout", |view: &mut LinearLayout| {
         view.insert_child(
             0,
-            Dialog::around(
-                article_view
-                    .with_name("article_view")
-                    .full_height()
-                    .scrollable(),
+            change_theme!(
+                config::CONFIG.theme.article_view,
+                Dialog::around(article_view.with_name("article_view").scrollable())
             ),
         );
     });
