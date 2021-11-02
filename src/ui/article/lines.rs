@@ -291,7 +291,7 @@ impl LinesWrapper {
         link_index: Option<usize>,
     ) -> usize {
         log::trace!("current_line: \n{:?}", current_line);
-        let mut element_width: usize = 0;
+        let element_width: usize;
         lines.push(std::mem::replace(
             current_line,
             vec![{
