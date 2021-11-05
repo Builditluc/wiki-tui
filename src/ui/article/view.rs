@@ -412,8 +412,9 @@ impl View for ArticleView {
             Event::Key(Key::Up) => self.move_focus(Directions::UP),
             Event::Key(Key::Down) => self.move_focus(Directions::DOWN),
             Event::Key(Key::Enter) => {
-                if self.content.link_handler.links.len() >= self.content.link_handler.current_link {
+                if self.content.link_handler.current_link >= self.content.link_handler.links.len(){
                     log::error!("Failed trying to access an invalid link");
+                    log::debug!("current_link: {:?}", self.content.link_handler.current_link);
                     return EventResult::Consumed(None);
                 }
 
