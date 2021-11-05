@@ -85,6 +85,13 @@ fn start_application(wiki: wiki::WikiApi) {
             Ok(_) => (),
             Err(error) => {log::error!("{:?}", error); panic!("Something happened while searching. Please check your logs for further information")},
         })
+        .style({
+            if let Some(search_theme) = &config::CONFIG.theme.search_bar {
+                if search_theme.background == search_theme.secondary {
+                    ColorStyle::new(search_theme.background, search_theme.text)
+                } else { ColorStyle::secondary() }
+            } else { ColorStyle::secondary() }
+        })
         .with_name("search_bar")
         .full_width();
 

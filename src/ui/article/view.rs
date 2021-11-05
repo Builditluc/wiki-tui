@@ -2,7 +2,7 @@ use crate::config::CONFIG;
 use crate::wiki::article::*;
 use cursive::align::Align;
 use cursive::event::{Callback, Event, EventResult, Key};
-use cursive::theme::{BaseColor, Color, Effect, Style};
+use cursive::theme::{Effect, Style};
 use cursive::view::*;
 use cursive::XY;
 use cursive::{Printer, Vec2};
@@ -94,11 +94,11 @@ impl ArticleContent {
                     &element.link_target,
                 )),
 
-                // if its a header, add some linebreaks and make the header bold
+                // if its a header, add some linebreaks and change the color
                 ArticleElementType::Header => {
                     rendered_article.append(&mut self.render_element(
                         format!("\n{}\n\n", element.content).split('\n').enumerate(),
-                        Style::from(Color::Dark(BaseColor::Black)).combine(Effect::Bold),
+                        Style::from(CONFIG.theme.title),
                         &element.link_target,
                     ));
                     self.headers.push(element.content);
@@ -222,13 +222,15 @@ impl ArticleView {
     }
 
     fn move_link(&mut self, direction: Directions) -> EventResult {
-        let link_pos_y = self.content.link_handler.move_current_link(direction);
-        if link_pos_y < self.focus.get() {
-            self.move_focus_up(self.focus.get().saturating_sub(link_pos_y));
-        } else if (self.output_size.get().y + self.focus.get()) < link_pos_y {
-            self.move_focus_down(
-                link_pos_y.saturating_sub(self.output_size.get().y + self.focus.get()),
-            );
+        if self.content.link_handler.has_links() {
+            let link_pos_y = self.content.link_handler.move_current_link(direction);
+            if link_pos_y < self.focus.get() {
+                self.move_focus_up(self.focus.get().saturating_sub(link_pos_y));
+            } else if (self.output_size.get().y + self.focus.get()) < link_pos_y {
+                self.move_focus_down(
+                    link_pos_y.saturating_sub(self.output_size.get().y + self.focus.get()),
+                );
+            }
         }
         EventResult::Consumed(None)
     }
@@ -245,11 +247,13 @@ impl ArticleView {
     fn move_focus_up(&mut self, n: usize) -> EventResult {
         let focus = self.focus.get().saturating_sub(n);
         self.focus.set(focus);
-        let link_pos_y = self.content.link_handler.links[self.content.link_handler.current_link]
-            .position
-            .y;
-        if self.output_size.get().y < link_pos_y {
-            self.content.link_handler.move_current_link(Directions::UP);
+        if self.content.link_handler.has_links() {
+            let link_pos_y = self.content.link_handler.links[self.content.link_handler.current_link]
+                .position
+                .y;
+            if self.output_size.get().y < link_pos_y {
+                self.content.link_handler.move_current_link(Directions::UP);
+            }
         }
         EventResult::Consumed(None)
     }
@@ -260,13 +264,15 @@ impl ArticleView {
             self.content.lines.len().saturating_sub(1),
         );
         self.focus.set(focus);
-        let link_pos_y = self.content.link_handler.links[self.content.link_handler.current_link]
-            .position
-            .y;
-        if self.focus.get() > link_pos_y {
-            self.content
-                .link_handler
-                .move_current_link(Directions::DOWN);
+        if self.content.link_handler.has_links() {
+            let link_pos_y = self.content.link_handler.links[self.content.link_handler.current_link]
+                .position
+                .y;
+            if self.focus.get() > link_pos_y {
+                self.content
+                    .link_handler
+                    .move_current_link(Directions::DOWN);
+            }
         }
         EventResult::Consumed(None)
     }
