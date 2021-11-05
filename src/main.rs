@@ -13,7 +13,6 @@ use cursive::views::*;
 use cursive::Cursive;
 use std::fs;
 use std::io::Write;
-use std::{thread, time};
 
 pub mod config;
 pub mod error;
@@ -41,23 +40,7 @@ fn main() {
         };
     });
 
-    let initializing_thread = thread::spawn(move || {
-        println!("{}", LOGO);
-
-        // create the logger
-        let logger = logging::Logger::new();
-
-        // Create the wiki struct, used for interaction with the wikipedia website/api
-        let wiki = wiki::WikiApi::new();
-
-        // Initialize the logger
-        logger.initialize();
-
-        thread::sleep(time::Duration::from_millis(250));
-        return wiki;
-    });
-
-    let wiki = match initializing_thread.join() {
+    let wiki = match initialize() {
         Ok(wiki) => wiki,
         Err(error) => {
             panic!("Something happend during initialization:\n{:?}", error);
@@ -65,6 +48,16 @@ fn main() {
     };
 
     start_application(wiki);
+}
+
+fn initialize() -> Result<wiki::WikiApi> {
+    println!("{}", LOGO);
+
+    // create and initialize the logger
+    logging::Logger::new().initialize();
+
+    // Create the wiki struct, used for interaction with the wikipedia website/api
+    Ok(wiki::WikiApi::new())
 }
 
 fn start_application(wiki: wiki::WikiApi) {
