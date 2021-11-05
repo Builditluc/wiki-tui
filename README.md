@@ -71,6 +71,11 @@ cd /usr/pkgsrc/www/wiki-tui
 make install
 ```
 
+### Nix
+The wiki-tui package is in the [nixpkgs](https://search.nixos.org/packages?channel=unstable&show=wiki-tui&from=0&size=50&sort=relevance&type=packages&query=wiki-tui) package repository.
+
+Either install it with `nix-env -iA wiki-tui`, get it temporarily with `nix-shell -p wiki-tui` or add it to your configuration.
+
 ## Configuration
 
 ### Location of the config file
