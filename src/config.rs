@@ -60,6 +60,7 @@ pub struct ViewTheme {
     pub background: Color,
     pub text: Color,
     pub title: Color,
+    pub secondary: Color,
     pub highlight: Color,
     pub highlight_text: Color,
     pub highlight_inactive: Color,
@@ -332,7 +333,14 @@ impl Config {
         to_theme_color!(highlight_inactive);
 
         if let Some(search_bar) = &user_theme.search_bar {
-            self.theme.search_bar = Some(self.load_view_theme(search_bar));
+            let background_changed: bool = search_bar.background.is_some();
+
+            let mut search_bar_theme = self.load_view_theme(search_bar);
+            if background_changed {
+                search_bar_theme.secondary = search_bar_theme.background;
+            }
+
+            self.theme.search_bar = Some(search_bar_theme);
         }
 
         if let Some(search_results) = &user_theme.search_results {
@@ -387,6 +395,7 @@ impl Config {
             background: self.theme.background,
             text: self.theme.text,
             title: self.theme.title,
+            secondary: Color::parse("blue").unwrap(),
             highlight: self.theme.highlight,
             highlight_text: self.theme.highlight_text,
             highlight_inactive: self.theme.highlight_inactive,
