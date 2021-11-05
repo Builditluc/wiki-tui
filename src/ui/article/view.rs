@@ -2,7 +2,7 @@ use crate::config::CONFIG;
 use crate::wiki::article::*;
 use cursive::align::Align;
 use cursive::event::{Callback, Event, EventResult, Key};
-use cursive::theme::{BaseColor, Color, Effect, Style};
+use cursive::theme::{Effect, Style};
 use cursive::view::*;
 use cursive::XY;
 use cursive::{Printer, Vec2};
@@ -94,11 +94,11 @@ impl ArticleContent {
                     &element.link_target,
                 )),
 
-                // if its a header, add some linebreaks and make the header bold
+                // if its a header, add some linebreaks and change the color
                 ArticleElementType::Header => {
                     rendered_article.append(&mut self.render_element(
                         format!("\n{}\n\n", element.content).split('\n').enumerate(),
-                        Style::from(Color::Dark(BaseColor::Black)).combine(Effect::Bold),
+                        Style::from(CONFIG.theme.title),
                         &element.link_target,
                     ));
                     self.headers.push(element.content);
