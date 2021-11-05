@@ -78,6 +78,9 @@ impl LinkHandler {
         self.links.clear();
         self.current_link = 0;
     }
+    pub fn has_links(&self) -> bool {
+        self.links.len() != 0
+    }
 }
 
 pub enum Directions {

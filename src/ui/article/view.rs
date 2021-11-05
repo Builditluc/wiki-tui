@@ -222,13 +222,15 @@ impl ArticleView {
     }
 
     fn move_link(&mut self, direction: Directions) -> EventResult {
-        let link_pos_y = self.content.link_handler.move_current_link(direction);
-        if link_pos_y < self.focus.get() {
-            self.move_focus_up(self.focus.get().saturating_sub(link_pos_y));
-        } else if (self.output_size.get().y + self.focus.get()) < link_pos_y {
-            self.move_focus_down(
-                link_pos_y.saturating_sub(self.output_size.get().y + self.focus.get()),
-            );
+        if self.content.link_handler.has_links() {
+            let link_pos_y = self.content.link_handler.move_current_link(direction);
+            if link_pos_y < self.focus.get() {
+                self.move_focus_up(self.focus.get().saturating_sub(link_pos_y));
+            } else if (self.output_size.get().y + self.focus.get()) < link_pos_y {
+                self.move_focus_down(
+                    link_pos_y.saturating_sub(self.output_size.get().y + self.focus.get()),
+                );
+            }
         }
         EventResult::Consumed(None)
     }
@@ -245,11 +247,13 @@ impl ArticleView {
     fn move_focus_up(&mut self, n: usize) -> EventResult {
         let focus = self.focus.get().saturating_sub(n);
         self.focus.set(focus);
-        let link_pos_y = self.content.link_handler.links[self.content.link_handler.current_link]
-            .position
-            .y;
-        if self.output_size.get().y < link_pos_y {
-            self.content.link_handler.move_current_link(Directions::UP);
+        if self.content.link_handler.has_links() {
+            let link_pos_y = self.content.link_handler.links[self.content.link_handler.current_link]
+                .position
+                .y;
+            if self.output_size.get().y < link_pos_y {
+                self.content.link_handler.move_current_link(Directions::UP);
+            }
         }
         EventResult::Consumed(None)
     }
@@ -260,24 +264,20 @@ impl ArticleView {
             self.content.lines.len().saturating_sub(1),
         );
         self.focus.set(focus);
-        let link_pos_y = self.content.link_handler.links[self.content.link_handler.current_link]
-            .position
-            .y;
-        if self.focus.get() > link_pos_y {
-            self.content
-                .link_handler
-                .move_current_link(Directions::DOWN);
+        if self.content.link_handler.has_links() {
+            let link_pos_y = self.content.link_handler.links[self.content.link_handler.current_link]
+                .position
+                .y;
+            if self.focus.get() > link_pos_y {
+                self.content
+                    .link_handler
+                    .move_current_link(Directions::DOWN);
+            }
         }
         EventResult::Consumed(None)
     }
 
     fn move_focus(&mut self, direction: Directions) -> EventResult {
-        // check if it's valid
-        if self.content.link_handler.links.len() >= self.content.link_handler.current_link {
-            log::error!("Failed trying to access an invalid link");
-            return EventResult::Consumed(None);
-        }
-
         match direction {
             Directions::LEFT => self.move_link(direction),
             Directions::RIGHT => self.move_link(direction),
