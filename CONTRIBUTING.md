@@ -55,6 +55,7 @@ To contribute code:
 
 * [Set up](#setup-the-project) the project
 * Make any necessary changes to the source code
+* Format your code with `cargo fmt` and `cargo clippy`
 * Write clear, concise commit messages(s) using [commit style guide](#git-commit-messages)
 * Open a new pull request with your changes
 * If your pull request is connected to an open issue, add a line in your PR's description that says `Fixes: #1234`, where `#1234` is the number of the issue you're fixing.
