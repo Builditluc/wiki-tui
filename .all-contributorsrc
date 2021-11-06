@@ -1,0 +1,26 @@
+{
+  "files": [
+    "README.md"
+  ],
+  "imageSize": 100,
+  "commit": false,
+  "contributors": [
+    {
+      "login": "Builditluc",
+      "name": "Builditluc",
+      "avatar_url": "https://avatars.githubusercontent.com/u/37375448?v=4",
+      "profile": "https://github.com/Builditluc",
+      "contributions": [
+        "ideas",
+        "code",
+        "doc"
+      ]
+    }
+  ],
+  "contributorsPerLine": 7,
+  "projectName": "wiki-tui",
+  "projectOwner": "Builditluc",
+  "repoType": "github",
+  "repoHost": "https://github.com",
+  "skipCi": true
+}
