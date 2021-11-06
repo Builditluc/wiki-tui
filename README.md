@@ -139,6 +139,10 @@ Any contributions you make are greatly appreciated.
 4. Push to the branch
 5. Open a Pull Request
 
+## Similar Projects
+
+* [hexrcs/wiki-cli](https://github.com/hexrcs/wiki-cli)
+
 ## Acknowledgements
 
 * [cursive](https://github.com/gyscos/cursive)
