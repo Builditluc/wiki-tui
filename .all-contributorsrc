@@ -25,6 +25,15 @@
         "bug",
         "platform"
       ]
+    },
+    {
+      "login": "legendofmiracles",
+      "name": "legendofmiracles",
+      "avatar_url": "https://avatars.githubusercontent.com/u/30902201?v=4",
+      "profile": "https://github.com/legendofmiracles",
+      "contributions": [
+        "platform"
+      ]
     }
   ],
   "contributorsPerLine": 7,
