@@ -19,18 +19,6 @@
 </p>
 
 ## Preview
-
-### Features
-`wiki-tui` currently has these features:
-- Browse through Wikipedia (Set the language by changing the url in the config)
-- Uses webscraping and a custom view to display wikipedia articles in the terminal
-- Use links to open other articles
-
-
-These features are planned:
-- View and interact with more elements of wikipedia articles (like tables, images, etc.)
-- Better error handling
-
 ### How it looks
 
 ![image](https://user-images.githubusercontent.com/37375448/139769364-46a69dce-f386-4369-a82e-4a45adac3b52.png)
@@ -130,14 +118,8 @@ log_level = "Info"                      # log level to be used, can be Debug, In
 ```
 
 ## Contributing
-
-Any contributions you make are greatly appreciated.
-
-1. Fork the Project
-2. Switch to the experimental branch
-3. Commit your Changes
-4. Push to the branch
-5. Open a Pull Request
+See [contributing guidelines](/CONTRIBUTING.md) for contributing conventions.
+Make sure to change the branch to `experimental` before making any changes to the code.
 
 ## Similar Projects
 
