@@ -1,4 +1,6 @@
 use crate::config::CONFIG;
+
+use log4rs::config::{Appender, Config, Root};
 use log4rs::Handle;
 
 pub struct Logger {
@@ -7,7 +9,6 @@ pub struct Logger {
 impl Logger {
     pub fn new() -> Self {
         use log4rs::append::console::ConsoleAppender;
-        use log4rs::config::{Appender, Config, Root};
 
         let wiki_tui = ConsoleAppender::builder().build();
 
@@ -26,7 +27,6 @@ impl Logger {
     }
     pub fn initialize(&self) {
         use log4rs::append::file::FileAppender;
-        use log4rs::config::{Appender, Config, Root};
 
         let wiki_tui = FileAppender::builder()
             .append(false)
@@ -44,5 +44,11 @@ impl Logger {
 
         self.handle.set_config(default_config);
         log::info!("Successfully initialized the logging system");
+    }
+}
+
+impl Default for Logger {
+    fn default() -> Self {
+        Self::new()
     }
 }

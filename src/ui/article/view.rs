@@ -1,17 +1,18 @@
 use crate::config::CONFIG;
+use crate::ui::article::{
+    lines::LinesWrapper,
+    links::{Directions, LinkHandler},
+};
 use crate::wiki::article::*;
+
 use cursive::align::Align;
 use cursive::event::{Callback, Event, EventResult, Key};
 use cursive::theme::{Effect, Style};
 use cursive::view::*;
-use cursive::XY;
-use cursive::{Printer, Vec2};
+use cursive::{Printer, Vec2, XY};
 use std::cell::Cell;
 use std::cmp::min;
 use std::rc::Rc;
-
-use crate::ui::article::lines::LinesWrapper;
-use crate::ui::article::links::*;
 
 pub struct ArticleView {
     content: ArticleContent,
@@ -151,10 +152,9 @@ impl ArticleContent {
             .calculate_lines(&self.elements_rendered, &mut self.link_handler);
 
         self.lines_wrapped = lines_wrapper.lines_wrapped;
-
         self.headers_coords = lines_wrapper.header_coords;
 
-        return lines_wrapper.lines;
+        lines_wrapper.lines
     }
 
     fn set_article(&mut self, article: Article) {
@@ -248,7 +248,8 @@ impl ArticleView {
         let focus = self.focus.get().saturating_sub(n);
         self.focus.set(focus);
         if self.content.link_handler.has_links() {
-            let link_pos_y = self.content.link_handler.links[self.content.link_handler.current_link]
+            let link_pos_y = self.content.link_handler.links
+                [self.content.link_handler.current_link]
                 .position
                 .y;
             if self.output_size.get().y < link_pos_y {
@@ -265,7 +266,8 @@ impl ArticleView {
         );
         self.focus.set(focus);
         if self.content.link_handler.has_links() {
-            let link_pos_y = self.content.link_handler.links[self.content.link_handler.current_link]
+            let link_pos_y = self.content.link_handler.links
+                [self.content.link_handler.current_link]
                 .position
                 .y;
             if self.focus.get() > link_pos_y {
@@ -412,8 +414,9 @@ impl View for ArticleView {
             Event::Key(Key::Up) => self.move_focus(Directions::UP),
             Event::Key(Key::Down) => self.move_focus(Directions::DOWN),
             Event::Key(Key::Enter) => {
-                if self.content.link_handler.links.len() >= self.content.link_handler.current_link {
+                if self.content.link_handler.current_link >= self.content.link_handler.links.len() {
                     log::error!("Failed trying to access an invalid link");
+                    log::debug!("current_link: {:?}", self.content.link_handler.current_link);
                     return EventResult::Consumed(None);
                 }
 

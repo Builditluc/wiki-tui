@@ -8,6 +8,7 @@ pub struct LinkHandler {
     pub on_link_submit_callback: Option<rc::Rc<dyn Fn(&mut cursive::Cursive, &str) + 'static>>,
 }
 
+#[derive(Debug)]
 pub struct Link {
     pub position: Vec2,
     pub width: usize,
@@ -79,7 +80,7 @@ impl LinkHandler {
         self.current_link = 0;
     }
     pub fn has_links(&self) -> bool {
-        self.links.len() != 0
+        !self.links.is_empty()
     }
 }
 

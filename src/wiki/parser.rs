@@ -1,4 +1,6 @@
+use crate::ui;
 use crate::wiki::article::*;
+
 use anyhow::{Context, Result};
 use select::document::Document;
 use select::node::Node;
@@ -13,11 +15,9 @@ impl Default {
     fn get_table_of_contents(
         &self,
         document: Document,
-    ) -> Result<Option<crate::ui::models::table_of_contents::Table>> {
-        use crate::ui::models::table_of_contents;
-
+    ) -> Result<Option<ui::models::table_of_contents::Table>> {
         let toc_html: Node;
-        let mut toc_build = table_of_contents::Table {
+        let mut toc_build = ui::models::table_of_contents::Table {
             title: String::new(),
             items: Vec::new(),
         };
@@ -62,8 +62,8 @@ impl Default {
         &self,
         item: Node,
         level: i32,
-    ) -> Result<crate::ui::models::table_of_contents::Item> {
-        let mut item_build = crate::ui::models::table_of_contents::Item {
+    ) -> Result<ui::models::table_of_contents::Item> {
+        let mut item_build = ui::models::table_of_contents::Item {
             number: level,
             text: String::new(),
             sub_items: None,

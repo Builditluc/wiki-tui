@@ -1,5 +1,7 @@
 use crate::config::CONFIG;
+
 use anyhow::{Context, Result};
+
 pub mod article;
 pub mod parser;
 pub mod search;
@@ -19,10 +21,12 @@ impl WikiApi {
             client: reqwest::blocking::ClientBuilder::new()
                 .user_agent(USER_AGENT)
                 .build()
-                .expect(&format!(
-                    "Could not create a reqwest::blocking::Client with the user agent: {}",
-                    USER_AGENT
-                )),
+                .unwrap_or_else(|_| {
+                    panic!(
+                        "Could not create a reqwest::blocking::Client with the user agent: {}",
+                        USER_AGENT
+                    )
+                }),
             parser: Box::new(default_parser),
         }
     }
@@ -105,6 +109,3 @@ impl Default for WikiApi {
         Self::new()
     }
 }
-
-unsafe impl Send for WikiApi {}
-unsafe impl Sync for WikiApi {}

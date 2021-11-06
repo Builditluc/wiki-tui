@@ -7,13 +7,11 @@ use core::panic;
 use cursive::align::HAlign;
 use cursive::theme::*;
 use cursive::traits::*;
-use cursive::utils::*;
-use cursive::view::{Resizable, Scrollable};
+use cursive::view::Resizable;
 use cursive::views::*;
 use cursive::Cursive;
 use std::fs;
 use std::io::Write;
-use std::{thread, time};
 
 pub mod config;
 pub mod error;
@@ -22,10 +20,10 @@ pub mod ui;
 pub mod wiki;
 
 pub const LOGO: &str = "
-  _      __   (_)   / /__   (_)         / /_  __  __   (_)
-| | /| / /  / /   / //_/  / /  ______ / __/ / / / /  / /
-| |/ |/ /  / /   / ,<    / /  /_____// /_  / /_/ /  / /
-|__/|__/  /_/   /_/|_|  /_/          \\__/  \\__,_/  /_/ 
+ _      __   (_)   / /__   (_)         / /_  __  __   (_) 
+| | /| / /  / /   / //_/  / /  ______ / __/ / / / /  / /  
+| |/ |/ /  / /   / ,<    / /  /_____// /_  / /_/ /  / /   
+|__/|__/  /_/   /_/|_|  /_/          \\__/  \\__,_/  /_/    
 ";
 
 fn main() {
@@ -41,23 +39,7 @@ fn main() {
         };
     });
 
-    let initializing_thread = thread::spawn(move || {
-        println!("{}", LOGO);
-
-        // create the logger
-        let logger = logging::Logger::new();
-
-        // Create the wiki struct, used for interaction with the wikipedia website/api
-        let wiki = wiki::WikiApi::new();
-
-        // Initialize the logger
-        logger.initialize();
-
-        thread::sleep(time::Duration::from_millis(250));
-        return wiki;
-    });
-
-    let wiki = match initializing_thread.join() {
+    let wiki = match initialize() {
         Ok(wiki) => wiki,
         Err(error) => {
             panic!("Something happend during initialization:\n{:?}", error);
@@ -65,6 +47,16 @@ fn main() {
     };
 
     start_application(wiki);
+}
+
+fn initialize() -> Result<wiki::WikiApi> {
+    println!("{}", LOGO);
+
+    // create and initialize the logger
+    logging::Logger::new().initialize();
+
+    // Create the wiki struct, used for interaction with the wikipedia website/api
+    Ok(wiki::WikiApi::new())
 }
 
 fn start_application(wiki: wiki::WikiApi) {
@@ -77,7 +69,7 @@ fn start_application(wiki: wiki::WikiApi) {
         palette: get_color_palette(),
         ..Default::default()
     };
-    siv.set_theme(theme.clone());
+    siv.set_theme(theme);
 
     // Create the views
     let search_bar = EditView::new()
@@ -139,18 +131,18 @@ fn start_application(wiki: wiki::WikiApi) {
 
 fn handle_arguments() -> Box<dyn FnOnce(&mut Cursive) + Send> {
     let cli_args = std::env::args().skip(1).collect::<Vec<String>>();
-    if cli_args.len() == 0 {
+    if cli_args.is_empty() {
         return Box::new(|_: &mut Cursive| {});
     }
 
     let search_query = cli_args[0].to_string();
 
-    return Box::new(move |siv: &mut Cursive| {
+    Box::new(move |siv: &mut Cursive| {
         if let Err(error) = ui::search::on_search(siv, search_query) {
             log::error!("{:?}", error);
             panic!("Something happened while searching. Please check your logs for further information");
         };
-    });
+    })
 }
 
 fn get_color_palette() -> Palette {

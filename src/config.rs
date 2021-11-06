@@ -411,14 +411,14 @@ impl Config {
 
         log::debug!("Trying to load the logging dir setting");
         if let Some(log_dir) = user_logging.log_dir.as_ref() {
-            if let Ok(path) = PathBuf::from_str(&log_dir) {
+            if let Ok(path) = PathBuf::from_str(log_dir) {
                 self.logging.log_dir = path;
             }
         }
 
         log::debug!("Trying to load the log level");
         if let Some(log_level) = user_logging.log_level.as_ref() {
-            if let Ok(level) = LevelFilter::from_str(&log_level) {
+            if let Ok(level) = LevelFilter::from_str(log_level) {
                 self.logging.log_level = level;
             }
         }

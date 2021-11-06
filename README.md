@@ -19,18 +19,6 @@
 </p>
 
 ## Preview
-
-### Features
-`wiki-tui` currently has these features:
-- Browse through Wikipedia (Set the language by changing the url in the config)
-- Uses webscraping and a custom view to display wikipedia articles in the terminal
-- Use links to open other articles
-
-
-These features are planned:
-- View and interact with more elements of wikipedia articles (like tables, images, etc.)
-- Better error handling
-
 ### How it looks
 
 ![image](https://user-images.githubusercontent.com/37375448/139769364-46a69dce-f386-4369-a82e-4a45adac3b52.png)
@@ -70,6 +58,11 @@ Building from source
 cd /usr/pkgsrc/www/wiki-tui
 make install
 ```
+
+### Nix
+The wiki-tui package is in the [nixpkgs](https://search.nixos.org/packages?channel=unstable&show=wiki-tui&from=0&size=50&sort=relevance&type=packages&query=wiki-tui) package repository.
+
+Either install it with `nix-env -iA wiki-tui`, get it temporarily with `nix-shell -p wiki-tui` or add it to your configuration.
 
 ## Configuration
 
@@ -125,14 +118,12 @@ log_level = "Info"                      # log level to be used, can be Debug, In
 ```
 
 ## Contributing
+See [contributing guidelines](/CONTRIBUTING.md) for contributing conventions.
+Make sure to change the branch to `experimental` before making any changes to the code.
 
-Any contributions you make are greatly appreciated.
+## Similar Projects
 
-1. Fork the Project
-2. Switch to the experimental branch
-3. Commit your Changes
-4. Push to the branch
-5. Open a Pull Request
+* [hexrcs/wiki-cli](https://github.com/hexrcs/wiki-cli)
 
 ## Acknowledgements
 
