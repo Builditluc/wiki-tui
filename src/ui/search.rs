@@ -1,9 +1,16 @@
-use crate::*;
+use crate::{change_theme, config, ui, wiki};
+
+use anyhow::{Context, Result};
+use cursive::align::HAlign;
+use cursive::utils::markup;
+use cursive::view::{Nameable, Resizable, Scrollable};
+use cursive::views::{Button, Dialog, EditView, LinearLayout, SelectView, TextView};
+use cursive::Cursive;
 
 pub fn on_search(siv: &mut Cursive, search_query: String) -> Result<()> {
     log::info!("Beginning search");
     let wiki: &wiki::WikiApi = siv.user_data().with_context(|| {
-        format!("the user_data is incomplete. Couldn't find the wikipedia interface in it")
+        "the user_data is incomplete. Couldn't find the wikipedia interface in it".to_string()
     })?;
 
     if search_query.is_empty() {
@@ -71,7 +78,7 @@ pub fn on_search(siv: &mut Cursive, search_query: String) -> Result<()> {
                 .iter()
                 .next()
                 .with_context(|| {
-                    format!("Couldn't access the first search result. Is it missing?")
+                    "Couldn't access the first search result. Is it missing?".to_string()
                 })?
                 .1
                 .clone(),

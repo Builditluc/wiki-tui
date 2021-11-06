@@ -1,4 +1,10 @@
-use crate::*;
+use crate::{change_theme, config, remove_view_from_article_layout, ui, wiki};
+
+use anyhow::Context;
+use cursive::align::HAlign;
+use cursive::view::{Nameable, Scrollable};
+use cursive::views::{Dialog, LinearLayout, TextView};
+use cursive::Cursive;
 
 pub mod lines;
 pub mod links;

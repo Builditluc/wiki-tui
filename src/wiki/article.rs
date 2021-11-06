@@ -1,4 +1,6 @@
-use serde::*;
+use crate::ui;
+
+use serde::Deserialize;
 
 #[derive(Deserialize, Debug)]
 pub struct ArticleResponse {
@@ -43,5 +45,5 @@ pub enum ArticleElementType {
 #[derive(Clone)]
 pub struct ParsedArticle {
     pub article: Article,
-    pub toc: Option<crate::ui::models::table_of_contents::Table>,
+    pub toc: Option<ui::models::table_of_contents::Table>,
 }

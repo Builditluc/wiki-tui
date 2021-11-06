@@ -80,7 +80,7 @@ impl LinkHandler {
         self.current_link = 0;
     }
     pub fn has_links(&self) -> bool {
-        self.links.len() != 0
+        !self.links.is_empty()
     }
 }
 

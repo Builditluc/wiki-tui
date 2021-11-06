@@ -1,8 +1,8 @@
 use crate::config::CONFIG;
-use cursive::theme::Style;
-
 use crate::ui::article::links::{Link, LinkHandler};
 use crate::ui::article::view::{Element, Line, RenderedElement};
+
+use cursive::theme::Style;
 
 pub struct LinesWrapper {
     width: usize,
@@ -15,20 +15,20 @@ pub struct LinesWrapper {
 
 impl LinesWrapper {
     pub fn new(width: usize, headers: Vec<String>) -> Self {
-        return LinesWrapper {
+        LinesWrapper {
             width,
             lines_wrapped: false,
 
             headers,
             header_coords: Vec::new(),
             lines: Vec::new(),
-        };
+        }
     }
 
-    pub fn calculate_lines<'a>(
+    pub fn calculate_lines(
         mut self,
-        content: &'a Vec<RenderedElement>,
-        link_handler: &'a mut LinkHandler,
+        content: &[RenderedElement],
+        link_handler: &mut LinkHandler,
     ) -> Self {
         // the width of the line that is currently calculated
         let mut line_width: usize = 0;
@@ -45,14 +45,13 @@ impl LinesWrapper {
         for (idx, element) in content.iter().enumerate() {
             log::debug!("Rendering now the element no: {}", idx);
             let element_width = element.text.chars().count();
-            let link_index = match element.link_destination {
-                Some(ref destination) => Some(link_handler.push(Link {
+            let link_index = element.link_destination.as_ref().map(|destination| {
+                link_handler.push(Link {
                     position: (line_width, lines.len()).into(),
                     width: element_width,
                     destination: destination.to_string(),
-                })),
-                None => None,
-            };
+                })
+            });
 
             log::trace!(
                 "The element has the link_index: {:?}, and a width of: {}",
@@ -62,7 +61,7 @@ impl LinesWrapper {
 
             if element.newline && element_width.eq(&0) {
                 log::debug!("Created a new line");
-                lines.push(std::mem::replace(&mut current_line, Vec::new()));
+                lines.push(std::mem::take(&mut current_line));
                 line_width = 0;
 
                 continue;
@@ -159,7 +158,7 @@ impl LinesWrapper {
                     line_width = 0;
                     lines_wrapped = true;
 
-                    lines.push(std::mem::replace(&mut current_line, Vec::new()));
+                    lines.push(std::mem::take(&mut current_line));
                     lines.append(&mut new_lines);
                     log::debug!("Added the current line and the new lines to the finished lines");
 
@@ -198,9 +197,8 @@ impl LinesWrapper {
                     self.headers.remove(0);
                     self.header_coords.push(lines.len())
                 }
-
-                continue;
             }
+            continue;
         }
         self.lines_wrapped = lines_wrapped;
 
@@ -208,7 +206,7 @@ impl LinesWrapper {
         lines.push(current_line);
 
         self.lines = lines;
-        return self;
+        self
     }
 
     fn create_element_from_rendered_element(
