@@ -44,7 +44,7 @@ impl LinkHandler {
 
     fn next_link_horizontal(&mut self, direction: i32) -> usize {
         let new_current_link = (self.current_link as i32) + direction;
-        if new_current_link > 0 {
+        if new_current_link >= 0 {
             self.current_link = new_current_link as usize
         }
 
