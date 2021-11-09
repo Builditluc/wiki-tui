@@ -80,11 +80,14 @@ pub fn on_article_submit(siv: &mut Cursive, article_preview: &ui::models::Articl
 }
 
 fn on_link_submit(siv: &mut Cursive, target: &str) {
-    let target = target.to_string();
+    let target = {
+        let target = target.strip_prefix("/wiki/").unwrap_or(target);
+        target.replace("_", " ")
+    };
 
     siv.add_layer(
         Dialog::around(TextView::new(format!(
-            "Do you want to open the dialog {}?",
+            "Do you want to open the article '{}'?",
             target
         )))
         .button("Yes", move |s| show_article_from_link(s, target.clone()))
