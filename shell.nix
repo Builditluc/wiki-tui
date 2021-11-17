@@ -1,8 +1,8 @@
-{ pkgs ? import <nixpkgs> {}  }:
+{ pkgs ? import <nixpkgs> {} }:
 pkgs.mkShell {
-    nativeBuildInputs = with pkgs; [ rustc cargo gcc pkg-config ];
+    nativeBuildInputs = with pkgs; [ libiconv rustup ];
 
-    buildInputs = with pkgs; [ openssl ncurses ];
+    buildInputs = with pkgs; [ openssl ncurses ] ++ lib.optionals stdenv.isDarwin [ darwin.apple_sdk.frameworks.Security ];
 
     RUST_SRC_PATH = "${pkgs.rust.packages.stable.rustPlatform.rustLibSrc}";
 }
