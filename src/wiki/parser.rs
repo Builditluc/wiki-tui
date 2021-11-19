@@ -184,6 +184,21 @@ impl Parser for Default {
                         }
                         log::trace!("Added a list to the article content");
                     }
+                    "pre" => {
+                        content.push(ArticleElement {
+                            content: "\n".to_string(),
+                            element_type: ArticleElementType::Text,
+                            link_target: None,
+                        });
+                        content.append(&mut self.parse_child(children));
+                        content.push(ArticleElement {
+                            content: "\n".to_string(),
+                            element_type: ArticleElementType::Text,
+                            link_target: None,
+                        });
+
+                        log::trace!("Added a code block to the article content");
+                    }
                     // if it's any other html element, skip it
                     _ => continue,
                 }
