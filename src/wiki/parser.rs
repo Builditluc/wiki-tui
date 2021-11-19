@@ -166,11 +166,6 @@ impl Parser for Default {
                         content.append(&mut self.parse_child(children));
                         log::trace!("Added a paragraph to the article content");
                     }
-                    // if it's a div with the class "reflist", add it to the current paragraph
-                    // in form of a list
-                    "div" if children.is(Class("reflist")) => {
-                        log::trace!("Added the Reference List to the article content");
-                    }
                     // if it's a list, add every element to the current paragraph
                     "ul" => {
                         for element in children.children() {
