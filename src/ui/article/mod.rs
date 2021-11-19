@@ -80,15 +80,16 @@ pub fn on_article_submit(siv: &mut Cursive, article_preview: &ui::models::Articl
 }
 
 fn on_link_submit(siv: &mut Cursive, target: &str) {
-    let target = {
-        let target = target.strip_prefix("/wiki/").unwrap_or(target);
+    let target = target.to_string();
+    let target_title = {
+        let target = target.strip_prefix("/wiki/").unwrap_or(&target);
         target.replace("_", " ")
     };
 
     siv.add_layer(
         Dialog::around(TextView::new(format!(
             "Do you want to open the article '{}'?",
-            target
+            target_title
         )))
         .button("Yes", move |s| show_article_from_link(s, target.clone()))
         .button("No", |s| {
@@ -111,7 +112,7 @@ fn show_article_from_link(siv: &mut Cursive, target: String) {
         Ok(article) => article,
         Err(error) => {
             // log an error_message
-            log::error!("{:?}", error);
+            log::error!("url: {},\t{:?}", &target, error);
 
             // display an error message
             siv.add_layer(
