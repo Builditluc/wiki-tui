@@ -41,8 +41,7 @@ pub fn on_article_submit(siv: &mut Cursive, article_preview: &ui::models::Articl
     remove_view_from_article_layout(siv, "article_view");
     remove_view_from_article_layout(siv, "toc_view");
 
-    let mut article_view =
-        ui::article::ArticleView::new().on_link_submit(|s, target| on_link_submit(s, target));
+    let mut article_view = ui::article::ArticleView::new().on_link_submit(on_link_submit);
 
     // set the contents of the article_view to the article
     log::debug!("Setting the content of the article view");
@@ -126,8 +125,7 @@ fn show_article_from_link(siv: &mut Cursive, target: String) {
         }
     };
 
-    let mut article_view =
-        ui::article::ArticleView::new().on_link_submit(|s, target| on_link_submit(s, target));
+    let mut article_view = ui::article::ArticleView::new().on_link_submit(on_link_submit);
 
     // set the contents of the article_view to the article
     log::debug!("Setting the content of the article view");
