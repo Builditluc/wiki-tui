@@ -130,7 +130,6 @@ log_level = "Info"                      # log level to be used, can be Debug, In
 
 ## Contributing
 See [contributing guidelines](/CONTRIBUTING.md) for contributing conventions.
-Make sure to change the branch to `experimental` before making any changes to the code.
 
 ## Similar Projects
 
