@@ -2,6 +2,7 @@ use crate::change_theme;
 use crate::config;
 use crate::ui;
 
+use cursive::event::{Event, Key};
 use cursive::view::{Nameable, Resizable};
 use cursive::views::{Dialog, LinearLayout, SelectView};
 use cursive::Cursive;
@@ -30,9 +31,25 @@ pub fn add_table_of_contents(siv: &mut Cursive, toc: ui::models::table_of_conten
             };
 
             log::trace!("item_index: {}", item_index);
+
             if let Some(mut view) = siv.find_name::<ArticleView>("article_view") {
                 view.select_header(item_index)
             }
+
+            if let Err(error) = siv.focus_name("article_view") {
+                log::warn!("Failed selecting the article view: {}", error);
+                return;
+            }
+
+            if let Err(error) = siv.cb_sink().send(Box::new(move |siv: &mut Cursive| {
+                siv.on_event(Event::Key(Key::Down));
+                siv.on_event(Event::Key(Key::Up));
+            })) {
+                log::warn!(
+                    "Failed sending the callback to update the article view: {}",
+                    error
+                );
+            };
         });
 
     // now go through every item

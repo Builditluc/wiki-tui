@@ -98,10 +98,20 @@ pub struct Logging {
     pub log_level: LevelFilter,
 }
 
+#[derive(Debug)]
+pub struct ParserConfig {
+    pub toc: bool,
+    pub headers: bool,
+    pub paragraphs: bool,
+    pub lists: bool,
+    pub code_blocks: bool,
+}
+
 pub struct Config {
     pub api_config: ApiConfig,
     pub theme: Theme,
     pub logging: Logging,
+    pub parser: ParserConfig,
     config_path: PathBuf,
 }
 
@@ -110,6 +120,7 @@ struct UserConfig {
     api: Option<UserApiConfig>,
     theme: Option<UserTheme>,
     logging: Option<UserLogging>,
+    parser: Option<UserParserConfig>,
 }
 
 #[derive(Deserialize, Debug)]
@@ -152,6 +163,15 @@ struct UserLogging {
     log_level: Option<String>,
 }
 
+#[derive(Deserialize, Debug)]
+struct UserParserConfig {
+    pub toc: Option<bool>,
+    pub headers: Option<bool>,
+    pub paragraphs: Option<bool>,
+    pub lists: Option<bool>,
+    pub code_blocks: Option<bool>,
+}
+
 impl Config {
     pub fn new() -> Config {
         // initialize the struct with the defaults
@@ -179,6 +199,13 @@ impl Config {
                 enabled: true,
                 log_dir: PathBuf::from("wiki_tui.log"),
                 log_level: LevelFilter::Info,
+            },
+            parser: ParserConfig {
+                toc: true,
+                headers: true,
+                paragraphs: true,
+                lists: true,
+                code_blocks: true,
             },
             config_path: PathBuf::new(),
         };
@@ -241,6 +268,10 @@ impl Config {
 
         if let Some(user_logging) = user_config.logging {
             self.load_logging(&user_logging);
+        }
+
+        if let Some(user_parser) = user_config.parser {
+            self.load_parser(&user_parser);
         }
     }
 
@@ -421,6 +452,24 @@ impl Config {
             if let Ok(level) = LevelFilter::from_str(log_level) {
                 self.logging.log_level = level;
             }
+        }
+    }
+
+    fn load_parser(&mut self, user_parser: &UserParserConfig) {
+        if let Some(toc) = user_parser.toc {
+            self.parser.toc = toc;
+        }
+        if let Some(headers) = user_parser.headers {
+            self.parser.headers = headers;
+        }
+        if let Some(paragraphs) = user_parser.paragraphs {
+            self.parser.paragraphs = paragraphs;
+        }
+        if let Some(lists) = user_parser.lists {
+            self.parser.lists = lists;
+        }
+        if let Some(code_blocks) = user_parser.code_blocks {
+            self.parser.code_blocks = code_blocks;
         }
     }
 }

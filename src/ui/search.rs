@@ -51,8 +51,8 @@ pub fn on_search(siv: &mut Cursive, search_query: String) -> Result<()> {
 
     // Create the views
     let mut search_results_view = SelectView::<ui::models::ArticleResultPreview>::new()
-        .on_select(|s, item| on_result_select(s, item))
-        .on_submit(|s, a| ui::article::on_article_submit(s, a));
+        .on_select(on_result_select)
+        .on_submit(ui::article::on_article_submit);
 
     let search_results_preview = TextView::new("")
         .h_align(cursive::align::HAlign::Left)

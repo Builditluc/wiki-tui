@@ -42,12 +42,13 @@ To run the project locally:
 * Install [rust](https://www.rust-lang.org/tools/install)
 * Fork the project
 * `cd path/to/your/clone`
-* `git checkout experimental`
 * `cargo build`
 
-And you should be ready to go!
+Then, branch off from the `experimental` branch:
 
-> Note: It is very important to change the branch to experimental before making a contribution.
+`git checkout -b myfeature experimental`
+
+And you're good to go!
 
 ### Contribute Code
 Code contributions of just about any size are acceptable!
@@ -57,7 +58,8 @@ To contribute code:
 * Make any necessary changes to the source code
 * Format your code with `cargo fmt` and `cargo clippy`
 * Write clear, concise commit messages(s) using [commit style guide](#git-commit-messages)
-* Open a new pull request with your changes
+* Open a new pull request with your changes (merge with the experimental
+  branch)
 * If your pull request is connected to an open issue, add a line in your PR's description that says `Fixes: #1234`, where `#1234` is the number of the issue you're fixing.
 * If your pull request was merged, feel free to [add yourself as a contributor](https://allcontributors.org/docs/en/bot/usage)
 

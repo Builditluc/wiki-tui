@@ -41,8 +41,7 @@ pub fn on_article_submit(siv: &mut Cursive, article_preview: &ui::models::Articl
     remove_view_from_article_layout(siv, "article_view");
     remove_view_from_article_layout(siv, "toc_view");
 
-    let mut article_view =
-        ui::article::ArticleView::new().on_link_submit(|s, target| on_link_submit(s, target));
+    let mut article_view = ui::article::ArticleView::new().on_link_submit(on_link_submit);
 
     // set the contents of the article_view to the article
     log::debug!("Setting the content of the article view");
@@ -81,11 +80,15 @@ pub fn on_article_submit(siv: &mut Cursive, article_preview: &ui::models::Articl
 
 fn on_link_submit(siv: &mut Cursive, target: &str) {
     let target = target.to_string();
+    let target_title = {
+        let target = target.strip_prefix("/wiki/").unwrap_or(&target);
+        target.replace("_", " ")
+    };
 
     siv.add_layer(
         Dialog::around(TextView::new(format!(
-            "Do you want to open the dialog {}?",
-            target
+            "Do you want to open the article '{}'?",
+            target_title
         )))
         .button("Yes", move |s| show_article_from_link(s, target.clone()))
         .button("No", |s| {
@@ -108,7 +111,7 @@ fn show_article_from_link(siv: &mut Cursive, target: String) {
         Ok(article) => article,
         Err(error) => {
             // log an error_message
-            log::error!("{:?}", error);
+            log::error!("url: {},\t{:?}", &target, error);
 
             // display an error message
             siv.add_layer(
@@ -122,8 +125,7 @@ fn show_article_from_link(siv: &mut Cursive, target: String) {
         }
     };
 
-    let mut article_view =
-        ui::article::ArticleView::new().on_link_submit(|s, target| on_link_submit(s, target));
+    let mut article_view = ui::article::ArticleView::new().on_link_submit(on_link_submit);
 
     // set the contents of the article_view to the article
     log::debug!("Setting the content of the article view");

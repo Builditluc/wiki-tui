@@ -1,3 +1,4 @@
+use crate::config::CONFIG;
 use crate::ui;
 use crate::wiki::article::*;
 
@@ -130,6 +131,7 @@ impl Parser for Default {
             element_type: ArticleElementType::Header,
             link_target: None,
         });
+        log::trace!("Using this configuration: {:?}", CONFIG.parser);
 
         // TODO: improve this
         // now iterate over all of the elements inside of the article
@@ -142,7 +144,7 @@ impl Parser for Default {
                 match children.name().unwrap() {
                     // if it's a header, add it to the article content in BOLD and with two
                     // Linebreaks at the end
-                    "h2" | "h3" | "h4" | "h5" => {
+                    "h2" | "h3" | "h4" | "h5" if CONFIG.parser.headers => {
                         let text = children
                             .find(Class("mw-headline"))
                             .next()
@@ -162,17 +164,12 @@ impl Parser for Default {
                     }
                     // if it's a paragraph, add it to the context with only ONE Linebreak at
                     // the end
-                    "p" => {
+                    "p" if CONFIG.parser.paragraphs => {
                         content.append(&mut self.parse_child(children));
                         log::trace!("Added a paragraph to the article content");
                     }
-                    // if it's a div with the class "reflist", add it to the current paragraph
-                    // in form of a list
-                    "div" if children.is(Class("reflist")) => {
-                        log::trace!("Added the Reference List to the article content");
-                    }
                     // if it's a list, add every element to the current paragraph
-                    "ul" => {
+                    "ul" if CONFIG.parser.lists => {
                         for element in children.children() {
                             if element.name().unwrap_or("") == "li" {
                                 content.push(ArticleElement {
@@ -184,6 +181,21 @@ impl Parser for Default {
                         }
                         log::trace!("Added a list to the article content");
                     }
+                    "pre" if CONFIG.parser.code_blocks => {
+                        content.push(ArticleElement {
+                            content: "\n".to_string(),
+                            element_type: ArticleElementType::Text,
+                            link_target: None,
+                        });
+                        content.append(&mut self.parse_child(children));
+                        content.push(ArticleElement {
+                            content: "\n".to_string(),
+                            element_type: ArticleElementType::Text,
+                            link_target: None,
+                        });
+
+                        log::trace!("Added a code block to the article content");
+                    }
                     // if it's any other html element, skip it
                     _ => continue,
                 }
@@ -191,11 +203,12 @@ impl Parser for Default {
         }
 
         let toc = match self.get_table_of_contents(document) {
-            Ok(toc) => toc,
+            Ok(toc) if CONFIG.parser.toc => toc,
             Err(error) => {
                 log::warn!("{:?}", error);
                 None
             }
+            _ => None,
         };
 
         log::debug!("Finished parsing the article");
