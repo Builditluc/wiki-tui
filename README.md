@@ -113,6 +113,15 @@ text = "black"
 # - article_view
 # - toc_view
 
+# You can disable certain parsing features by setting these values to false
+# All features are enabled by default
+[parser]
+toc = true
+headers = true
+paragraphs = true
+lists = true
+code_blocks = true
+
 [logging]
 enabled = true                          # can be either true or false. enables/disables logging
 log_dir = "wiki_tui.log"                # location of the file where the log will be written to
