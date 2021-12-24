@@ -23,6 +23,16 @@ impl From<SearchResult> for ArticleResultPreview {
     }
 }
 
+impl From<i32> for ArticleResultPreview {
+    fn from(page_id: i32) -> Self {
+        ArticleResultPreview {
+            page_id,
+            snippet: String::new(),
+            title: String::new(),
+        }
+    }
+}
+
 pub mod table_of_contents {
     #[derive(Clone, Debug)]
     pub struct Table {

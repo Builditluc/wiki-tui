@@ -13,6 +13,7 @@ use cursive::Cursive;
 use std::fs;
 use std::io::Write;
 
+pub mod cli;
 pub mod config;
 pub mod error;
 pub mod logging;
@@ -130,19 +131,22 @@ fn start_application(wiki: wiki::WikiApi) {
 }
 
 fn handle_arguments() -> Box<dyn FnOnce(&mut Cursive) + Send> {
-    let cli_args = std::env::args().skip(1).collect::<Vec<String>>();
-    if cli_args.is_empty() {
-        return Box::new(|_: &mut Cursive| {});
+    if let Some(search_query) = config::CONFIG.get_args().search_query.as_ref() {
+        log::info!("Searching for the article: {}", search_query);
+        return Box::new(move |siv: &mut Cursive| {
+            if let Err(error) = ui::search::on_search(siv, search_query.to_string()) {
+                log::error!("{:?}", error);
+                panic!("Something happened while searching. Please check your logs for further information");
+            };
+        });
+    } else if let Some(article_id) = config::CONFIG.get_args().article_id {
+        log::info!("Opening the article: {}", article_id);
+        return Box::new(move |siv: &mut Cursive| {
+            ui::article::on_article_submit(siv, &article_id.into());
+        });
     }
 
-    let search_query = cli_args[0].to_string();
-
-    Box::new(move |siv: &mut Cursive| {
-        if let Err(error) = ui::search::on_search(siv, search_query) {
-            log::error!("{:?}", error);
-            panic!("Something happened while searching. Please check your logs for further information");
-        };
-    })
+    Box::new(|_: &mut Cursive| {})
 }
 
 fn get_color_palette() -> Palette {

@@ -29,11 +29,8 @@ Note: These Screenshots were taken on [iTerm2](https://iterm2.com) (MacOS) with 
 
 ### Usage
 
-If you want to search for an article quickly, you can pass the search term as an argument.
-```
-wiki-tui <ARTICLE>
-```
-wiki-tui then searches for this article automatically. 
+Please refer to `wiki-tui --help` for more information on cli arguments.
+> Note: when searching for an article or opening one, please wait while the program fetches the results
 
 #### Controls
 <table>
