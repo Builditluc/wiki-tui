@@ -13,11 +13,23 @@ pub type ArticleView = view::ArticleView;
 
 pub fn on_article_submit(siv: &mut Cursive, article_preview: &ui::models::ArticleResultPreview) {
     log::info!("Opening the article '{}'", article_preview.title);
-    // remove the results layer
-    siv.pop_layer();
+
+    if siv
+        .find_name::<TextView>("search_results_preview")
+        .is_some()
+    {
+        // remove the results layer
+        log::debug!("Removing the search layer");
+        siv.pop_layer();
+    } else {
+        log::debug!("The search layer doesn't exist ");
+    }
 
     // get the article from wikipedia
-    let wiki: &wiki::WikiApi = siv.user_data().unwrap();
+    let wiki: &wiki::WikiApi = siv
+        .user_data()
+        .context("Couldn't find the api in the user data")
+        .unwrap();
     let article = match wiki.get_article(&article_preview.page_id) {
         Ok(article) => article,
         Err(error) => {

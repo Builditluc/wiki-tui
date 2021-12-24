@@ -12,7 +12,9 @@ use cursive::views::*;
 use cursive::Cursive;
 use std::fs;
 use std::io::Write;
+use structopt::StructOpt;
 
+pub mod cli;
 pub mod config;
 pub mod error;
 pub mod logging;
@@ -27,6 +29,8 @@ pub const LOGO: &str = "
 ";
 
 fn main() {
+    let args = cli::Cli::from_args();
+
     let mut data = std::collections::HashMap::new();
     data.insert("%NAME%", env!("CARGO_PKG_NAME"));
     data.insert("%GITHUB%", env!("CARGO_PKG_REPOSITORY"));
@@ -46,7 +50,7 @@ fn main() {
         }
     };
 
-    start_application(wiki);
+    start_application(wiki, args);
 }
 
 fn initialize() -> Result<wiki::WikiApi> {
@@ -59,7 +63,7 @@ fn initialize() -> Result<wiki::WikiApi> {
     Ok(wiki::WikiApi::new())
 }
 
-fn start_application(wiki: wiki::WikiApi) {
+fn start_application(wiki: wiki::WikiApi, args: cli::Cli) {
     let mut siv = cursive::default();
     siv.add_global_callback('q', Cursive::quit);
     siv.set_user_data(wiki);
@@ -116,7 +120,7 @@ fn start_application(wiki: wiki::WikiApi) {
     );
 
     // Start the application
-    let argument_callback = handle_arguments();
+    let argument_callback = handle_arguments(args);
     if let Err(error) = siv.cb_sink().send(argument_callback) {
         log::error!("{:?}", error);
     }
@@ -129,20 +133,23 @@ fn start_application(wiki: wiki::WikiApi) {
     }
 }
 
-fn handle_arguments() -> Box<dyn FnOnce(&mut Cursive) + Send> {
-    let cli_args = std::env::args().skip(1).collect::<Vec<String>>();
-    if cli_args.is_empty() {
-        return Box::new(|_: &mut Cursive| {});
+fn handle_arguments(args: cli::Cli) -> Box<dyn FnOnce(&mut Cursive) + Send> {
+    if let Some(search_query) = args.search_query {
+        log::info!("Searching for the article: {}", search_query);
+        return Box::new(move |siv: &mut Cursive| {
+            if let Err(error) = ui::search::on_search(siv, search_query) {
+                log::error!("{:?}", error);
+                panic!("Something happened while searching. Please check your logs for further information");
+            };
+        });
+    } else if let Some(article_id) = args.article_id {
+        log::info!("Opening the article: {}", article_id);
+        return Box::new(move |siv: &mut Cursive| {
+            ui::article::on_article_submit(siv, &article_id.into());
+        });
     }
 
-    let search_query = cli_args[0].to_string();
-
-    Box::new(move |siv: &mut Cursive| {
-        if let Err(error) = ui::search::on_search(siv, search_query) {
-            log::error!("{:?}", error);
-            panic!("Something happened while searching. Please check your logs for further information");
-        };
-    })
+    Box::new(|_: &mut Cursive| {})
 }
 
 fn get_color_palette() -> Palette {
