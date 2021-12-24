@@ -7,7 +7,10 @@ use serde::Deserialize;
 use std::fs;
 use std::path::PathBuf;
 use std::str::FromStr;
+use structopt::StructOpt;
 use toml::from_str;
+
+use crate::cli::Cli;
 
 const CONFIG_FILE: &str = "config.toml";
 const CONFIG_DIR: &str = ".config";
@@ -113,6 +116,7 @@ pub struct Config {
     pub logging: Logging,
     pub parser: ParserConfig,
     config_path: PathBuf,
+    args: Cli,
 }
 
 #[derive(Deserialize, Debug)]
@@ -208,6 +212,7 @@ impl Config {
                 code_blocks: true,
             },
             config_path: PathBuf::new(),
+            args: Cli::from_args(),
         };
 
         // do the loading stuff here
@@ -272,6 +277,19 @@ impl Config {
 
         if let Some(user_parser) = user_config.parser {
             self.load_parser(&user_parser);
+        }
+
+        // override the log level
+        if let Some(log_level) = self.args.level.as_ref() {
+            let level = match log_level {
+                0 => LevelFilter::Debug,
+                1 => LevelFilter::Info,
+                2 => LevelFilter::Warn,
+                3 => LevelFilter::Error,
+                _ => self.logging.log_level,
+            };
+            log::info!("Overriding the configured log level to '{}'", level);
+            self.logging.log_level = level;
         }
     }
 
@@ -471,6 +489,10 @@ impl Config {
         if let Some(code_blocks) = user_parser.code_blocks {
             self.parser.code_blocks = code_blocks;
         }
+    }
+
+    pub fn get_args(&self) -> &Cli {
+        &self.args
     }
 }
 
