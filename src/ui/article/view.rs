@@ -9,6 +9,7 @@ use cursive::align::Align;
 use cursive::event::{Callback, Event, EventResult, Key};
 use cursive::theme::{Effect, Style};
 use cursive::view::*;
+use cursive::views::ViewRef;
 use cursive::{Printer, Vec2, XY};
 use std::cell::Cell;
 use std::cmp::min;
@@ -221,9 +222,9 @@ impl ArticleView {
         }
     }
 
-    fn move_link(&mut self, direction: Directions) -> EventResult {
+    fn move_link(&mut self, direction: Directions, amount: i32) -> EventResult {
         if self.content.link_handler.has_links() {
-            let link_pos_y = self.content.link_handler.move_current_link(direction);
+            let link_pos_y = self.content.link_handler.move_link(direction, amount);
             if link_pos_y < self.focus.get() {
                 self.move_focus_up(self.focus.get().saturating_sub(link_pos_y));
             } else if (self.output_size.get().y + self.focus.get()) < link_pos_y {
@@ -253,7 +254,7 @@ impl ArticleView {
                 .position
                 .y;
             if self.output_size.get().y < link_pos_y {
-                self.content.link_handler.move_current_link(Directions::UP);
+                self.content.link_handler.move_link(Directions::VERTICAL, 0 - (n as i32));
             }
         }
         EventResult::Consumed(None)
@@ -265,27 +266,21 @@ impl ArticleView {
             self.content.lines.len().saturating_sub(1),
         );
         self.focus.set(focus);
-        if self.content.link_handler.has_links() {
-            let link_pos_y = self.content.link_handler.links
-                [self.content.link_handler.current_link]
-                .position
-                .y;
-            if self.focus.get() > link_pos_y {
-                self.content
+        EventResult::Consumed(Some(Callback::from_fn(move |siv: &mut cursive::Cursive| {
+            log::debug!("Moving the link focus");
+            let mut view: ViewRef<ArticleView> = siv.find_name("article_view").unwrap();
+            if view.content.link_handler.has_links() {
+                let link_pos_y = view.content.link_handler.links
+                    [view.content.link_handler.current_link]
+                    .position
+                    .y;
+                log::debug!("old link pos: {}", link_pos_y);
+                view.content
                     .link_handler
-                    .move_current_link(Directions::DOWN);
+                    .move_link(Directions::VERTICAL, (focus.saturating_sub(link_pos_y)) as i32);
+                log::debug!("current link: {} at {:?}", view.content.link_handler.current_link, view.content.link_handler.links[view.content.link_handler.current_link]);
             }
-        }
-        EventResult::Consumed(None)
-    }
-
-    fn move_focus(&mut self, direction: Directions) -> EventResult {
-        match direction {
-            Directions::LEFT => self.move_link(direction),
-            Directions::RIGHT => self.move_link(direction),
-            Directions::UP => self.move_focus_up(1),
-            Directions::DOWN => self.move_focus_down(1),
-        }
+        })))
     }
 
     pub fn select_header(&mut self, header: usize) {
@@ -409,10 +404,10 @@ impl View for ArticleView {
 
     fn on_event(&mut self, event: Event) -> EventResult {
         match event {
-            Event::Key(Key::Left) => self.move_focus(Directions::LEFT),
-            Event::Key(Key::Right) => self.move_focus(Directions::RIGHT),
-            Event::Key(Key::Up) => self.move_focus(Directions::UP),
-            Event::Key(Key::Down) => self.move_focus(Directions::DOWN),
+            Event::Key(Key::Left) => self.move_link(Directions::HORIZONTAL, -1),
+            Event::Key(Key::Right) => self.move_link(Directions::HORIZONTAL, 1),
+            Event::Key(Key::Up) => self.move_focus_up(1),
+            Event::Key(Key::Down) => self.move_focus_down(1),
             Event::Key(Key::Enter) => {
                 if self.content.link_handler.current_link >= self.content.link_handler.links.len() {
                     log::error!("Failed trying to access an invalid link");
