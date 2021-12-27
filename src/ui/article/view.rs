@@ -254,7 +254,9 @@ impl ArticleView {
                 .position
                 .y;
             if self.output_size.get().y < link_pos_y {
-                self.content.link_handler.move_link(Directions::VERTICAL, 0 - (n as i32));
+                self.content
+                    .link_handler
+                    .move_link(Directions::VERTICAL, 0 - (n as i32));
             }
         }
         EventResult::Consumed(None)
@@ -266,21 +268,28 @@ impl ArticleView {
             self.content.lines.len().saturating_sub(1),
         );
         self.focus.set(focus);
-        EventResult::Consumed(Some(Callback::from_fn(move |siv: &mut cursive::Cursive| {
-            log::debug!("Moving the link focus");
-            let mut view: ViewRef<ArticleView> = siv.find_name("article_view").unwrap();
-            if view.content.link_handler.has_links() {
-                let link_pos_y = view.content.link_handler.links
-                    [view.content.link_handler.current_link]
-                    .position
-                    .y;
-                log::debug!("old link pos: {}", link_pos_y);
-                view.content
-                    .link_handler
-                    .move_link(Directions::VERTICAL, (focus.saturating_sub(link_pos_y)) as i32);
-                log::debug!("current link: {} at {:?}", view.content.link_handler.current_link, view.content.link_handler.links[view.content.link_handler.current_link]);
-            }
-        })))
+        EventResult::Consumed(Some(Callback::from_fn(
+            move |siv: &mut cursive::Cursive| {
+                log::debug!("Moving the link focus");
+                let mut view: ViewRef<ArticleView> = siv.find_name("article_view").unwrap();
+                if view.content.link_handler.has_links() {
+                    let link_pos_y = view.content.link_handler.links
+                        [view.content.link_handler.current_link]
+                        .position
+                        .y;
+                    log::debug!("old link pos: {}", link_pos_y);
+                    view.content.link_handler.move_link(
+                        Directions::VERTICAL,
+                        (focus.saturating_sub(link_pos_y)) as i32,
+                    );
+                    log::debug!(
+                        "current link: {} at {:?}",
+                        view.content.link_handler.current_link,
+                        view.content.link_handler.links[view.content.link_handler.current_link]
+                    );
+                }
+            },
+        )))
     }
 
     pub fn select_header(&mut self, header: usize) {

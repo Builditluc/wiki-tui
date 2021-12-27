@@ -88,7 +88,7 @@ impl LinkHandler {
 
 pub enum Directions {
     HORIZONTAL,
-    VERTICAL
+    VERTICAL,
 }
 
 impl Default for LinkHandler {
