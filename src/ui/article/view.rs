@@ -400,6 +400,10 @@ impl View for ArticleView {
         self.content.size_cache.is_none()
     }
 
+    fn take_focus(&mut self, _: cursive::direction::Direction) -> bool {
+        true
+    }
+
     fn important_area(&self, _: Vec2) -> cursive::Rect {
         Some(self.focus.get())
             .map(|i| {
