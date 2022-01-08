@@ -68,10 +68,12 @@ impl LinkHandler {
 
     fn move_horizontal(&mut self, amount: i32) -> usize {
         let new_idx = (self.current_link as i32) + amount;
-        if new_idx >= 0 {
-            self.current_link = new_idx as usize;
-        } else {
-            self.current_link = 0;
+        if new_idx < self.links.len() as i32 {
+            if new_idx >= 0 {
+                self.current_link = new_idx as usize;
+            } else {
+                self.current_link = 0;
+            }
         }
 
         self.links[self.current_link].position.y
