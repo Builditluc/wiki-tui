@@ -32,47 +32,51 @@ impl LinkHandler {
         self.links.len() - 1
     }
 
-    pub fn move_current_link(&mut self, direction: Directions) -> usize {
+    pub fn move_link(&mut self, direction: Directions, amount: i32) -> usize {
         match direction {
-            Directions::LEFT => self.next_link_horizontal(-1),
-            Directions::RIGHT => self.next_link_horizontal(1),
-
-            Directions::UP => self.next_link_vertical(-1),
-            Directions::DOWN => self.next_link_vertical(1),
+            Directions::HORIZONTAL => self.move_horizontal(amount),
+            Directions::VERTICAL => self.move_vertical(amount),
         }
     }
 
-    fn next_link_horizontal(&mut self, direction: i32) -> usize {
-        let new_current_link = (self.current_link as i32) + direction;
-        if new_current_link >= 0 {
-            self.current_link = new_current_link as usize
+    fn move_vertical(&mut self, amount: i32) -> usize {
+        log::debug!("Moving {} vertical", amount);
+        if amount > 0 {
+            let current_pos = self.links[self.current_link].position;
+            for (idx, link) in self.links[self.current_link..].iter().enumerate() {
+                log::debug!("Selecting {} {:?}", idx, link);
+                if link.position.y >= current_pos.y + amount as usize {
+                    log::debug!("Found the currect link");
+                    self.current_link += idx;
+                    break;
+                }
+            }
+        } else {
+            let current_pos = self.links[self.current_link].position;
+            for (idx, link) in self.links[0..self.current_link].iter().enumerate().rev() {
+                log::debug!("Selecting {} {:?}", idx, link);
+                if link.position.y < current_pos.y.saturating_sub((0 - amount) as usize) {
+                    self.current_link = idx;
+                    log::debug!("Found the currect link");
+                    break;
+                }
+            }
         }
 
         self.links[self.current_link].position.y
     }
-    fn next_link_vertical(&mut self, direction: i32) -> usize {
-        //  go through the links until the porgram finds one that is one (or more) lines below
-        //  the current one
 
-        if direction > 0 {
-            let current_position = self.links[self.current_link].position;
-            for (idx, link) in self.links[self.current_link..].iter().enumerate() {
-                if link.position.y > current_position.y {
-                    self.current_link += idx;
-                    return self.links[self.current_link].position.y;
-                }
-            }
-        } else if direction == -1 {
-            let current_position = self.links[self.current_link].position;
-            for i in (0..self.current_link).rev() {
-                if self.links[i].position.y < current_position.y {
-                    self.current_link = i;
-                    return self.links[self.current_link].position.y;
-                }
+    fn move_horizontal(&mut self, amount: i32) -> usize {
+        let new_idx = (self.current_link as i32) + amount;
+        if new_idx < self.links.len() as i32 {
+            if new_idx >= 0 {
+                self.current_link = new_idx as usize;
+            } else {
+                self.current_link = 0;
             }
         }
 
-        0
+        self.links[self.current_link].position.y
     }
 
     pub fn reset(&mut self) {
@@ -85,10 +89,8 @@ impl LinkHandler {
 }
 
 pub enum Directions {
-    LEFT,
-    RIGHT,
-    UP,
-    DOWN,
+    HORIZONTAL,
+    VERTICAL,
 }
 
 impl Default for LinkHandler {
