@@ -1,5 +1,34 @@
 # CHANGELOG
 
+## [v0.4.4](https://github.com/Builditluc/wiki-tui/releases/tag/v0.4.4) - 2022-01-11 12:19:39
+
+*No description*
+
+### Feature
+
+- *:
+  - add cli support ([8ed14a2](https://github.com/Builditluc/wiki-tui/commit/8ed14a21c0ec5fd56434aaebcf3d6d35331df17e))
+  - add cli 'level' argument
+- parse cli arguments in the config
+- override log level ([4964e0f](https://github.com/Builditluc/wiki-tui/commit/4964e0fc63d9c67f34fe7974e3b59b47573981a6))
+  - add cli support
+- add structopt crate for parsing cli arguments
+- add cli struct
+- implement search_query argument
+- implement article_id argument ([61f6923](https://github.com/Builditluc/wiki-tui/commit/61f6923956f30ffcb756f8b15cc83403eaab0915))
+
+### Bug Fixes
+
+- ui:
+  - fix horizontal link focus ([1b1e60d](https://github.com/Builditluc/wiki-tui/commit/1b1e60d1cd0431184ae2f3f1381cce1a174f91dc))
+  - fix article view not taking focus ([7fd75a9](https://github.com/Builditluc/wiki-tui/commit/7fd75a95e9166c61093e59e5493e9efaab88e8e8))
+  - fix link focus when selecting an header ([eab4958](https://github.com/Builditluc/wiki-tui/commit/eab495812432c91b4fa8c32a7bedbe38d9f0411b))
+
+### Documentation
+
+- readme:
+  - change usage information ([4689bdb](https://github.com/Builditluc/wiki-tui/commit/4689bdb40a2fcfd35e3753923cdb8f55598bfdfe))
+
 ## [v0.4.3](https://github.com/Builditluc/wiki-tui/releases/tag/v0.4.3) - 2021-12-22 15:04:33
 
 *No description*
