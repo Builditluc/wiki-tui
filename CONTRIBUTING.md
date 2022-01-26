@@ -175,3 +175,15 @@ Label | Apply When | Notes
 `duplicate` | Added to issues or PRs that refer to the exact same issue as another one that's been previously labeled. | Duplicate issues should be marked and closed right away, with a message referencing the issue it's a duplicate of (with `#123`)
 `enhancement` | Added to feature requests, PRs, or documentation issues that are purely additive: the code or docs currently work as expected, but a change is being requested or suggested. | 
 `wontfix` | Labelers may apply this label to issues that clearly have nothing at all to do with the project or are otherwise entirely outside of its scope/sphere of influence. Committers may apply this label and close an issue or PR if they decide to pass on an otherwise relevant issue. | The issue or PR should be closed as soon as the label is applied, and a clear explanation provided of why the label was used. Contributors are free to contest the labeling, but the decision ultimately falls on committers as to whether to accept something or not.
+
+## Release Checklist
+Here are some things that should be done when creating a new release:
+- bump version number in Cargo.toml and Cargo.lock (commit BOTH files)
+- wait for the changelog action to finish
+- merge experimental into stable (commit: "v{VERSION}")
+- create a release with this body:
+```
+<!-- HIDE IN CHANGELOG BEGIN -->
+See CHANGELOG for more details.
+<!-- HIDE IN CHANGELOG END -->
+```
