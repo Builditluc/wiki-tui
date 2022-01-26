@@ -30,11 +30,3 @@ jobs:
         override: true
     - name: Build
       run: cargo build --verbose
-    - run: rustup component add clippy
-      if: matrix.rust == 'beta' || matrix.rust == 'stable'
-    - working-directory: ${{ matrix.conf.name }}
-      name: clippy ${{ matrix.conf.name }}
-      run: cargo clippy --all-targets -- -D warnings
-      if: matrix.rust == 'beta' || matrix.rust == 'stable'
-    - name: Run tests
-      run: cargo test --verbose
