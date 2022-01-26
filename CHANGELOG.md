@@ -1,5 +1,25 @@
 # CHANGELOG
 
+## [v0.4.5](https://github.com/Builditluc/wiki-tui/releases/tag/v0.4.5) - 2022-01-26 16:22:13
+
+*No description*
+
+### Feature
+
+- wiki:
+  - add response error code checking ([abc88db](https://github.com/Builditluc/wiki-tui/commit/abc88db9532d81ac6e02a8973add11a1f23ee314))
+
+- *:
+  - make --search flag default ([8c31751](https://github.com/Builditluc/wiki-tui/commit/8c3175161c1974e74814d97f255bc30ac9426478))
+
+### Documentation
+
+- *:
+  - add class diagram of the code ([995b675](https://github.com/Builditluc/wiki-tui/commit/995b67522c243281251375cda0e3cd5f2c504c22))
+
+- readme:
+  - Add blockquote for note ([69577eb](https://github.com/Builditluc/wiki-tui/commit/69577eb8f3493c9bde3749b2200b6d68f18f2898)) ([#17](https://github.com/Builditluc/wiki-tui/pull/17))
+
 ## [v0.4.4](https://github.com/Builditluc/wiki-tui/releases/tag/v0.4.4) - 2022-01-11 12:19:39
 
 *No description*
