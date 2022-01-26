@@ -1,0 +1,538 @@
+<diagram program="umletino" version="14.4.0-SNAPSHOT"><zoom_level>10</zoom_level><help_text></help_text><element><id>UMLClass</id><coordinates><x>410</x><y>4</y><w>280</w><h>380</h></coordinates><panel_attributes>wiki::api::search::SearchBuilder
+--
+-query: String
+-namespace: usize
+-limit: usize
+-offset: usize
+-info: SearchMetadata
+-prop: SearchProperties
+-sort: SearchSortOrder
+--
++new(): Self
+
++query(&amp;self, String): &amp;self
++namespace(&amp;self, usize): &amp;self
++limit(&amp;self, usize): &amp;self
++offset(&amp;self, usize): &amp;self
++info(&amp;self, SearchMetadata): &amp;self
++prop(&amp;self, SearchProperties): &amp;self
++sort(&amp;self, SearchSortOrder): &amp;self
+
++search(&amp;self): Result&lt;Search&gt;
+-build_url(): &amp;str
+-make_request(&amp;str, Client): Result&lt;Response&gt;
+-deserialize_response(String): Result&lt;Search&gt;
+-.
++default(): Self</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>210</x><y>4</y><w>190</w><h>200</h></coordinates><panel_attributes>wiki::api::search::SearchMetadata
+--
+-total_hits: bool
+-suggestion: bool
+-rewritten_query: bool
+--
++new(): Self
+
++total_hits()
++suggestion()
++rewritten_query()
+
++build(&amp;self): String
+-.
++default(): Self</panel_attributes><additional_attributes></additional_attributes></element><element><id>Relation</id><coordinates><x>290</x><y>194</y><w>140</w><h>60</h></coordinates><panel_attributes>lt=&lt;-</panel_attributes><additional_attributes>120;40;10;40;10;10</additional_attributes></element><element><id>UMLClass</id><coordinates><x>0</x><y>4</y><w>190</w><h>560</h></coordinates><panel_attributes>wiki::api::search::SearchProperties
+--
+-size: bool
+-wordcount: bool
+-timestamp: bool
+
+-snippet: bool
+-title_snippet: bool
+
+-redirect_title: bool
+-redirect_snippet: bool
+
+-section_title: bool
+-section_snippet: bool
+
+-is_file_match: bool
+-category_snippet: bool
+--
++new(): Self
+
++size()
++wordcount()
++timestamp()
+
++snippet()
++title_snippet()
+
++redirect_title()
++redirect_snippet()
+
++section_title()
++section_snippet()
+
++is_file_match()
++category_snippet()
+
++build(&amp;self): String
+-.
++default(): Self</panel_attributes><additional_attributes></additional_attributes></element><element><id>Relation</id><coordinates><x>180</x><y>224</y><w>250</w><h>30</h></coordinates><panel_attributes>lt=&lt;-</panel_attributes><additional_attributes>230;10;10;10</additional_attributes></element><element><id>UMLClass</id><coordinates><x>210</x><y>264</y><w>190</w><h>290</h></coordinates><panel_attributes>&lt;&lt;Enum&gt;&gt;
+wiki::api::search::SearchSortOrder
+--
++CreateTimestampAscending
++CreateTimestampDescending
+
++IncomingLinksAscending
++IncomingLinksDescending
+
++LastEditAscending
++LastEditDescending
+
++JustMatch
++None
++Random
++Relevance
++UserRandom
+-.
++default(): Self
++fmt(fmt::Formatter): fmt::Result</panel_attributes><additional_attributes></additional_attributes></element><element><id>Relation</id><coordinates><x>290</x><y>225</y><w>140</w><h>60</h></coordinates><panel_attributes>lt=&lt;-</panel_attributes><additional_attributes>120;10;10;10;10;40</additional_attributes></element><element><id>UMLClass</id><coordinates><x>710</x><y>190</y><w>200</w><h>160</h></coordinates><panel_attributes>wiki::api::search::Search
+--
+-search_offset: usize
+-info: SearchInfo
+-results: Vec&lt;SearchResult&gt;
+--
++new(): Self
+
++get_search_offset(): usize
++get_info(): &amp;SearchInfo
++get_results(): Vec&lt;SearchResult&gt;
+</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>930</x><y>0</y><w>220</w><h>630</h></coordinates><panel_attributes>wiki::api::search::SearchResult
+--
+-namespace: usize
+-title: String
+-page_id: i32
+-size: Option&lt;i32&gt;
+
+-wordcount: Option&lt;i32&gt;
+-timestamp: Option&lt;String&gt;
+
+-snippet: Option&lt;String&gt;
+-title_snippet: Option&lt;String&gt;
+-category_snippet: Option&lt;String&gt;
+
+-redirect_title: Option&lt;String&gt;
+-redirect_snippet: Option&lt;String&gt;
+
+-section_title: Option&lt;String&gt;
+-section_snippet: Option&lt;String&gt;
+
+-is_file_match: Option&lt;bool&gt;
+--
++new(): Self
+
++get_namespace(): &amp;usize
++get_title(): &amp;str
++get_page_id(): &amp;i32
++get_size(): Option&lt;&amp;i32&gt;
+
++get_wordcount(): Option&lt;&amp;i32&gt;
++get_timestamp(): Option&lt;&amp;str&gt;
+
++get_snippet(): Option&lt;&amp;str&gt;
++get_title_snippet(): Option&lt;&amp;str&gt;
++get_category_snippet(): Option&lt;&amp;str&gt;
+
++get_redirect_title(): Option&lt;&amp;str&gt;
++get_redirect_snippet(): Option&lt;&amp;str&gt;
+
++get_section_title(): Option&lt;&amp;str&gt;
++get_section_snippet(): Option&lt;&amp;str&gt;
+
++is_file_match(): Option&lt;bool&gt;</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>700</x><y>1</y><w>220</w><h>150</h></coordinates><panel_attributes>wiki::api::search::SearchInfo
+--
+-total_hits: Option&lt;i32&gt;
+-suggestion: Option&lt;&amp;str&gt;
+-rewritten_query: Option&lt;&amp;str&gt;
+--
++new(): Self
+
++get_total_hits(): Option&lt;&amp;i32&gt;
++get_suggestion(): Option&lt;&amp;str&gt;
++get_rewritten_query(): Option&lt;&amp;str&gt;</panel_attributes><additional_attributes></additional_attributes></element><element><id>Relation</id><coordinates><x>850</x><y>141</y><w>30</w><h>70</h></coordinates><panel_attributes>lt=&lt;-</panel_attributes><additional_attributes>10;50;10;10</additional_attributes></element><element><id>Relation</id><coordinates><x>850</x><y>161</y><w>100</w><h>50</h></coordinates><panel_attributes>lt=&lt;-</panel_attributes><additional_attributes>10;30;10;10;80;10</additional_attributes></element><element><id>Relation</id><coordinates><x>680</x><y>221</y><w>50</w><h>30</h></coordinates><panel_attributes>lt=&lt;-</panel_attributes><additional_attributes>30;10;10;10</additional_attributes></element><element><id>UMLNote</id><coordinates><x>410</x><y>421</y><w>160</w><h>70</h></coordinates><panel_attributes>Not the whole data will be
+used by wiki-tui but it's
+nice to have</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>640</x><y>391</y><w>280</w><h>280</h></coordinates><panel_attributes>wiki::api::search::tests
+--
+-test_properties_build()
+-test_properties_complete_build()
+-test_properties_some_build()
+--
+-test_metadata_build()
+-test_metadata_complete_build()
+-test_metadata_some_build()
+--
+-test_sort_order_default()
+-test_sort_order_format()
+--
+-test_builder_default()
+-test_builder_set_values()
+-test_builder_correct_url()
+-test_builder_deserialize_correct()
+-test_builder_deserialize_invalid_fields()
+-test_builder_deserialize_missing_fields()
+-test_builder_namespace_invalid()
+-test_builder_limit_invalid()</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>0</x><y>682</y><w>260</w><h>220</h></coordinates><panel_attributes>wiki::api::article::ArticleBuilder
+--
+-parser: Parser
+-page_id: i32
+--
++new(): Self
+
++parser(Parser): &amp;self
++page_id(i32): &amp;self
+
++build(&amp;self): Result&lt;Article&gt;
+-build_url(): &amp;str
+-make_request(&amp;str, Client): Result&lt;Response&gt;
+-parse_response(String): Result&lt;Article&gt;
+-.
++default(): Self</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>371</x><y>590</y><w>170</w><h>60</h></coordinates><panel_attributes>/Parser/
+--
++new(&amp;ParserConfig): Self
++parse(String): Result&lt;Article&gt;</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>321</x><y>680</y><w>270</w><h>120</h></coordinates><panel_attributes>wiki::parser::DefaultParser
+--
+-config: &amp;ParserConfig
+--
+-parse_toc(String): Option&lt;TableOfContents&gt;
+-parse_element(String): Option&lt;ArticleElement&gt;
+-.
++new(&amp;ParserConfig): Self
++parse(String): Result&lt;Article&gt;</panel_attributes><additional_attributes></additional_attributes></element><element><id>Relation</id><coordinates><x>451</x><y>640</y><w>30</w><h>60</h></coordinates><panel_attributes>lt=&lt;-</panel_attributes><additional_attributes>10;40;10;10</additional_attributes></element><element><id>Relation</id><coordinates><x>251</x><y>690</y><w>90</w><h>30</h></coordinates><panel_attributes>lt=&lt;-</panel_attributes><additional_attributes>10;10;70;10</additional_attributes></element><element><id>UMLClass</id><coordinates><x>321</x><y>820</y><w>300</w><h>120</h></coordinates><panel_attributes>wiki::api::article::Article
+--
+-elements: Vec&lt;ArticleElement&gt;
+-toc: Option&lt;TableOfContents&gt;
+--
++new([ArticleElement], Option&lt;TableOfContents&gt;): Self
+
++get_elements(): &amp;Vec&lt;ArticleElemet&gt;
++get_toc(): Option&lt;&amp;TableOfContents&gt;</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>641</x><y>820</y><w>300</w><h>150</h></coordinates><panel_attributes>wiki::api::article::ArticleElement
+--
+- content: String
+- type: ArticleElementType
+- link_target: Option&lt;String&gt;
+--
++new(String, ArticleElementType, Option&lt;String&gt;): Self
+
++get_content(): &amp;str
++get_type(): &amp;ArticleElementType
++get_link_target(): Option&lt;&amp;str&gt;</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>641</x><y>680</y><w>200</w><h>120</h></coordinates><panel_attributes>&lt;&lt;Enum&gt;&gt;
+wiki::api::article::ArticleElementType
+--
++Link
++Text
++Header
++Bold
++Italic</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>321</x><y>970</y><w>240</w><h>120</h></coordinates><panel_attributes>wiki::api::article::TableOfContents
+--
+-title: String
+-items: Vec&lt;TableOfContentsItem&gt;
+--
++new(String, [TableOfContentsItem]): Self
+
++get_title(): &amp;str
++get_items(): &amp;Vec&lt;TableOfContentsItem&gt;
+</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>321</x><y>1120</y><w>320</w><h>150</h></coordinates><panel_attributes>wiki::api::article::TableOfContentsItem
+--
+-number: i32
+-text: String
+-sub_items: Option&lt;Vec&lt;TableOfContentsItem&gt;&gt;
+--
++new(i32, String, Option&lt;Vec&lt;TableOfContentsItem&gt;&gt;): Self
+
++get_number(): &amp;i32
++get_text(): &amp;str
++get_sub_items(): Option&lt;&amp;Vec&lt;TableOfContentsItem&gt;&gt;</panel_attributes><additional_attributes></additional_attributes></element><element><id>Relation</id><coordinates><x>611</x><y>880</y><w>50</w><h>30</h></coordinates><panel_attributes>lt=&lt;-</panel_attributes><additional_attributes>10;10;30;10</additional_attributes></element><element><id>Relation</id><coordinates><x>751</x><y>790</y><w>30</w><h>50</h></coordinates><panel_attributes>lt=&lt;-</panel_attributes><additional_attributes>10;30;10;10</additional_attributes></element><element><id>Relation</id><coordinates><x>451</x><y>790</y><w>30</w><h>50</h></coordinates><panel_attributes>lt=&lt;-</panel_attributes><additional_attributes>10;10;10;30</additional_attributes></element><element><id>Relation</id><coordinates><x>441</x><y>930</y><w>30</w><h>60</h></coordinates><panel_attributes>lt=&lt;-</panel_attributes><additional_attributes>10;10;10;40</additional_attributes></element><element><id>Relation</id><coordinates><x>441</x><y>1080</y><w>30</w><h>60</h></coordinates><panel_attributes>lt=&lt;-</panel_attributes><additional_attributes>10;10;10;40</additional_attributes></element><element><id>UMLClass</id><coordinates><x>0</x><y>931</y><w>280</w><h>400</h></coordinates><panel_attributes>wiki::api::article::tests
+--
+-test_parser_parse_link()
+-test_parser_parse_text()
+-test_parser_parse_header()
+-test_parser_parse_bold()
+-test_parser_parse_italic()
+-test_parser_parse_list()
+-test_parser_parse_code_block()
+
+-test_parser_incorrect_html()
+-test_parser_title_missing()
+
+-test_parser_config_toc()
+-test_parser_config_headers()
+-test_parser_config_paragraphs()
+-test_parser_config_lists()
+-test_parser_config_code_blocks()
+
+-test_parser_toc_missing()
+-test_parser_toc_correct()
+-test_parser_toc_nested()
+--
+-test_builder_default()
+-test_builder_set_values()
+-test_builder_correct_url()
+-test_builder_parse_correct()</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLNote</id><coordinates><x>211</x><y>590</y><w>140</w><h>70</h></coordinates><panel_attributes>ParserConfig is created
+seperately</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>1500</x><y>0</y><w>280</w><h>370</h></coordinates><panel_attributes>config::Config
+--
++api_config: ApiConfig
++theme: Theme
++logging: Logging
++parser: ParserConfig
+-config_path: PathBuf
+-args: Cli
+--
++new(): Self
+
+-load_config()
+-load_or_create_config_paths(): Result&lt;bool&gt;
+
+-load_api_config(&amp;UserApiConfig)
+-load_theme(&amp;UserTheme)
+-load_logging(&amp;UserLogging)
+-load_parser(&amp;UserParserConfig)
+
+-load_view_theme(&amp;UserViewTheme): ViewTheme
+-create_view_theme(): ViewTheme
+-parse_color(String): Result&lt;Color&gt;
+
+-get_args(): &amp;Cli
+-.
++default(): Self </panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>1840</x><y>2</y><w>220</w><h>260</h></coordinates><panel_attributes>config::Theme
+--
++text: Color
++title: Color
++highlight: Color
++background: Color
++search_match: Color
++highlight_text: Color
++highlight_inactive: Color
+
++search_bar: Option&lt;ViewTheme&gt;
++search_results: Option&lt;ViewTheme&gt;
++search_preview: Option&lt;ViewTheme&gt;
+
++article_view: Option&lt;ViewTheme&gt;
++toc_view: Option&lt;ViewTheme&gt;
+--
++to_theme(): cursive::theme::Theme</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>2090</x><y>2</y><w>200</w><h>150</h></coordinates><panel_attributes>config::ViewTheme
+--
++background: Color
++text: Color
++title: Color
++secondary: Color
++highlight: Color
++highlight_text: Color
++highlight_inactive: Color
+--
++to_theme(): cursive::theme::Theme</panel_attributes><additional_attributes></additional_attributes></element><element><id>Relation</id><coordinates><x>2050</x><y>62</y><w>60</w><h>30</h></coordinates><panel_attributes>lt=&lt;-</panel_attributes><additional_attributes>10;10;40;10</additional_attributes></element><element><id>Relation</id><coordinates><x>1770</x><y>162</y><w>90</w><h>140</h></coordinates><panel_attributes>lt=&lt;-</panel_attributes><additional_attributes>10;10;40;10;40;120;70;120</additional_attributes></element><element><id>UMLClass</id><coordinates><x>1840</x><y>272</y><w>220</w><h>50</h></coordinates><panel_attributes>config::ApiConfig
+--
++base_url: String</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>1840</x><y>332</y><w>220</w><h>80</h></coordinates><panel_attributes>config::Logging
+--
++enabled: bool
++log_dir: PathBuf
++log_level: LevelFilter</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>1840</x><y>422</y><w>220</w><h>100</h></coordinates><panel_attributes>config::ParserConfig
+--
++toc: bool
++headers: bool
++paragraphs: bool
++lists: bool
++code_blocks: bool</panel_attributes><additional_attributes></additional_attributes></element><element><id>Relation</id><coordinates><x>1770</x><y>162</y><w>90</w><h>200</h></coordinates><panel_attributes>lt=&lt;-</panel_attributes><additional_attributes>10;10;40;10;40;180;70;180</additional_attributes></element><element><id>Relation</id><coordinates><x>1770</x><y>162</y><w>90</w><h>290</h></coordinates><panel_attributes>lt=&lt;-</panel_attributes><additional_attributes>10;10;40;10;40;270;70;270</additional_attributes></element><element><id>Relation</id><coordinates><x>1770</x><y>162</y><w>90</w><h>30</h></coordinates><panel_attributes>lt=&lt;-</panel_attributes><additional_attributes>10;10;70;10</additional_attributes></element><element><id>UMLClass</id><coordinates><x>1170</x><y>2</y><w>250</w><h>240</h></coordinates><panel_attributes>config::UserTheme
+--
++text: Option&lt;String&gt;
++title: Option&lt;String&gt;
++highlight: Option&lt;String&gt;
++background: Option&lt;String&gt;
++search_match: Option&lt;String&gt;
++highlight_text: Option&lt;String&gt;
++highlight_inactive: Option&lt;String&gt;
+
++search_bar: Option&lt;UserViewTheme&gt;
++search_results: Option&lt;UserViewTheme&gt;
++search_preview: Option&lt;UserViewTheme&gt;
+
++article_view: Option&lt;UserViewTheme&gt;
++toc_view: Option&lt;UserViewTheme&gt;</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>1200</x><y>252</y><w>220</w><h>50</h></coordinates><panel_attributes>config::UserApiConfig
+--
+-base_url: Option&lt;String&gt;</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>1200</x><y>312</y><w>220</w><h>80</h></coordinates><panel_attributes>config::UserLogging
+--
+-enabled: Option&lt;bool&gt;
+-log_dir: Option&lt;String&gt;
+-log_level: Option&lt;String&gt;</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>1200</x><y>402</y><w>220</w><h>100</h></coordinates><panel_attributes>config::UserParserConfig
+--
+-toc: Option&lt;bool&gt;
+-headers: Option&lt;bool&gt;
+-paragraphs: Option&lt;bool&gt;
+-lists: Option&lt;bool&gt;
+-code_blocks: Option&lt;bool&gt;</panel_attributes><additional_attributes></additional_attributes></element><element><id>Relation</id><coordinates><x>1411</x><y>162</y><w>110</w><h>140</h></coordinates><panel_attributes>lt=&lt;-</panel_attributes><additional_attributes>90;10;50;10;50;120;10;120</additional_attributes></element><element><id>Relation</id><coordinates><x>1411</x><y>162</y><w>110</w><h>30</h></coordinates><panel_attributes>lt=&lt;-</panel_attributes><additional_attributes>90;10;10;10</additional_attributes></element><element><id>Relation</id><coordinates><x>1411</x><y>162</y><w>110</w><h>200</h></coordinates><panel_attributes>lt=&lt;-</panel_attributes><additional_attributes>90;10;50;10;50;180;10;180</additional_attributes></element><element><id>Relation</id><coordinates><x>1411</x><y>162</y><w>110</w><h>290</h></coordinates><panel_attributes>lt=&lt;-</panel_attributes><additional_attributes>90;10;50;10;50;270;10;270</additional_attributes></element><element><id>UMLClass</id><coordinates><x>1530</x><y>402</y><w>220</w><h>90</h></coordinates><panel_attributes>config::UserConfig
+--
+-api: Option&lt;UserApiConfig&gt;
+-theme: Option&lt;UserTheme&gt;
+-logging: Option&lt;UserLogging&gt;
+-parser: Option&lt;UserParserConfig&gt;</panel_attributes><additional_attributes></additional_attributes></element><element><id>Relation</id><coordinates><x>1630</x><y>362</y><w>30</w><h>60</h></coordinates><panel_attributes>lt=&lt;-</panel_attributes><additional_attributes>10;10;10;40</additional_attributes></element><element><id>UMLClass</id><coordinates><x>2090</x><y>170</y><w>250</w><h>340</h></coordinates><panel_attributes>config::tests
+--
+-test_load_theme_correct()
+-test_load_theme_format_error()
+
+-test_load_logging_correct()
+-test_load_logging_format_error()
+
+-test_load_parser_correct()
+-test_load_parser_format_error()
+
+-test_load_api_correct()
+-test_load_api_format_error()
+
+-test_load_view_theme_correct()
+-test_create_view_theme_correct()
+
+-test_parse_color_hex()
+-test_parse_color_name()
+-test_parse_color_incorrect()
+--
+-test_config_theme_to_cursive_theme()
+-test_config_view_theme_to_cursive_theme()
+</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>1170</x><y>550</y><w>350</w><h>100</h></coordinates><panel_attributes>ui::article
+--
++on_article_submit(&amp;mut Cursive, &amp;ArticleResultPreview)
++on_link_submit(&amp;mut Cursive, target: &amp;str)
+
+-open_link(&amp;mut Cursive, String): Result&lt;()&gt;
+-display_article(&amp;mut Cursive, wiki::article::Article): Result&lt;()&gt;
+</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>1170</x><y>670</y><w>350</w><h>60</h></coordinates><panel_attributes>ui::utils
+--
++remove_view_from_layout(&amp;mut Cursive, &amp;str, &amp;str): Result&lt;()&gt;
++change_theme(Option&lt;config::Theme&gt;, cursive::view::View)</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>1540</x><y>550</y><w>210</w><h>130</h></coordinates><panel_attributes>ui::theme_view::ThemedView&lt;T&gt;
+--
+-theme: cursive::theme::Theme
+-view: T
+--
++new(cursive::theme::Theme, T): Self
+inner_getters!()
+-.
+wrap_inpl!()
+-wrap_draw(&amp;self, &amp;cursive::Printer)</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>1170</x><y>750</y><w>350</w><h>90</h></coordinates><panel_attributes>ui::search
+--
++on_search(&amp;mut Cursive): Result&lt;()&gt;
++on_result_select(&amp;mut Cursive, wiki::api::search::Search)
+
+-continue_search(&amp;mut Cursive, String, i32)</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>1540</x><y>700</y><w>270</w><h>400</h></coordinates><panel_attributes>ui::article::view::ArticleView
+--
+content: ArticleContent
+focus: Rc&lt;Cell&lt;usize&gt;&gt;
+
+last_size: Vec2
+width: Option&lt;usize&gt;
+--
++new(): Self
++set_article(Article)
+
+-calculate_lines(usize)
++on_link_submit&lt;Fn(&amp;mut Cursive, &amp;str)&gt;(): Self
+
+-move_focus_up(usize): EventResult
+-move_focus_down(usize): EventResult
+
++select_header(usize)
+-.
+-draw(&amp;Printer)
+-layout(Vec2)
+-required_size(Vec2): Vec2
+-needs_relayout(): bool
+-take_focus(cursive::direction::Direction): bool
+-important_area(Vec2): cursive::Rect
+-on_event(Event): EventResult
+
+-default()</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>1860</x><y>550</y><w>250</w><h>410</h></coordinates><panel_attributes>ui::article::content::ArticleContent
+--
+-elements_rendered: Vec&lt;RenderedElement&gt;
+-elements_cound: usize
+
+-lines: Vec&lt;Vec&lt;Element&gt;&gt;
+-lines_wrapped: bool
+-link_handler: LinkHandler
+
+-headers: Vec&lt;String&gt;
+-headers_coords: Vec&lt;usize&gt;
+
+-size_cache: Option&lt;XY&lt;SizeCache&gt;&gt;
+-historical_caches: Vec&lt;(Vec2, Vec2)&gt;
+--
+-render(Article)
+-render_element(impl Iterator&lt;Item = (usize, &amp;'a str)&gt;, Style, &amp;'a Option&lt;String&gt;): Vec&lt;RenderedElement&gt;
+
+-calculate_lines(usize): Vec&lt;Vec&lt;Element&gt;&gt;
++set_article(Article)
++is_cache_valid(Vec2): bool
+
++get_lines: &amp;Vec&lt;Vec&lt;Element&gt;&gt;
++is_wrapped(): bool
++link_handler(): &amp;LinkHandler
+
++get_headers(): &amp;Vec&lt;String&gt;
++get_headers_coords(): &amp;Vec&lt;usize&gt;</panel_attributes><additional_attributes></additional_attributes></element><element><id>Relation</id><coordinates><x>1800</x><y>720</y><w>80</w><h>30</h></coordinates><panel_attributes>lt=&lt;-</panel_attributes><additional_attributes>10;10;60;10</additional_attributes></element><element><id>UMLClass</id><coordinates><x>2140</x><y>550</y><w>210</w><h>90</h></coordinates><panel_attributes>ui::article::content::Element
+--
++text: String
++style: Style
++width: usize
++link_index: Option&lt;usize&gt;</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>2140</x><y>650</y><w>210</w><h>90</h></coordinates><panel_attributes>ui::article::content::RenderedElement
+--
++text: String
++style: Style
++newline: bool
++link_destination: Option&lt;String&gt;</panel_attributes><additional_attributes></additional_attributes></element><element><id>Relation</id><coordinates><x>2100</x><y>590</y><w>60</w><h>80</h></coordinates><panel_attributes>lt=&lt;-</panel_attributes><additional_attributes>10;60;30;60;30;10;40;10</additional_attributes></element><element><id>Relation</id><coordinates><x>2100</x><y>640</y><w>60</w><h>80</h></coordinates><panel_attributes>lt=&lt;-</panel_attributes><additional_attributes>10;10;30;10;30;60;40;60</additional_attributes></element><element><id>UMLClass</id><coordinates><x>2140</x><y>760</y><w>210</w><h>170</h></coordinates><panel_attributes>ui::article::links:LinkHandler
+--
++links: Vec&lt;Link&gt;
++current_link: usize
++on_link_submit_callback: Option&lt;rc::Rc&lt;dyn Fn(&amp;mut cursive::Cusive, &amp;str) + 'static&gt;&gt;
+--
++new():  Self
++move_vertical(y: i32): usize
++move_horizontal(x: i32): usize
+
++has_links(): bool
++reset()</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>2770</x><y>380</y><w>100</w><h>30</h></coordinates><panel_attributes>SimpleClass</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>2380</x><y>760</y><w>130</w><h>80</h></coordinates><panel_attributes>ui::article::links::Link
+--
++position: Vec2
++width: usize
++destination: String</panel_attributes><additional_attributes></additional_attributes></element><element><id>Relation</id><coordinates><x>2100</x><y>770</y><w>60</w><h>30</h></coordinates><panel_attributes>lt=&lt;-</panel_attributes><additional_attributes>10;10;40;10</additional_attributes></element><element><id>Relation</id><coordinates><x>2340</x><y>770</y><w>60</w><h>30</h></coordinates><panel_attributes>lt=&lt;-</panel_attributes><additional_attributes>10;10;40;10</additional_attributes></element><element><id>UMLClass</id><coordinates><x>1860</x><y>980</y><w>620</w><h>200</h></coordinates><panel_attributes>ui::article::lines::LinesWrapper
+--
+-width: usize
++lines_wrapped: bool
++headers: Vec&lt;String&gt;
++header_coords: Vec&lt;usize&gt;
++lines: Vec&lt;Vec&lt;Element&gt;&gt;
+--
++new(usize, Vec&lt;String&gt;): Self
++wrap_lines(&amp;[RenderedElement], &amp;mut LinkHandler): Result&lt;()&gt;
+
+-element_from_rendered_element(&amp;RenderedElement, Option&lt;usize&gt;): Element
+-split_element(&amp;RenderedElement, Option&lt;usize&gt;, usize, usize): Vec&lt;Vec&lt;Element&gt;&gt;
+-element_to_new_line(&amp;mut Vec&lt;Vec&lt;Element&gt;&gt;, &amp;mut Vec&lt;Element&gt;, &amp;RenderedElement, Option&lt;usize&gt;): usize
+</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>980</x><y>860</y><w>180</w><h>70</h></coordinates><panel_attributes>cli::Cli
+--
++search_query: Option&lt;String&gt;
++article_id: Option&lt;i32&gt;
++level: Option&lt;i32&gt;</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>1180</x><y>860</y><w>130</w><h>100</h></coordinates><panel_attributes>logging::Logger
+--
+-handle: log4rs::Handle
+--
++new(): Self
++initialize()
+-.
+-default(): Self</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>980</x><y>950</y><w>180</w><h>60</h></coordinates><panel_attributes>error
+--
++PANIC: &amp;str
++create_hook()
+</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>980</x><y>1030</y><w>180</w><h>120</h></coordinates><panel_attributes>wiki_tui
+--
++LOGO: &amp;str
+-main()
+-initialize()
+-start_application()
+-handle_arguments()
+-get_color_palette(): Palette
+</panel_attributes><additional_attributes></additional_attributes></element></diagram>

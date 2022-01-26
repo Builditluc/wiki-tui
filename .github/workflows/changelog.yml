@@ -1,8 +1,8 @@
 name: Generate changelog
 on:
-  release:
-    types: [created, edited]
-  workflow_dispatch:
+  push:
+    tags:
+      - '*'
 
 jobs:
   generate-changelog:
@@ -16,3 +16,5 @@ jobs:
         ACCESS_TOKEN: ${{secrets.GITHUB_TOKEN}}
         COMMIT_MESSAGE: 'docs(CHANGELOG): update release notes'
         TYPE: 'feat:Feature,fix:Bug Fixes,docs:Documentation,refactor:Refactor,perf:Performance Improvements'
+        BRANCH: 'experimental'
+

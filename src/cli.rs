@@ -2,7 +2,6 @@ use structopt::StructOpt;
 
 #[derive(StructOpt, Debug)]
 pub struct Cli {
-    #[structopt(short = "s", long = "search")]
     /// Search for an article at startup with the given query
     pub search_query: Option<String>,
 

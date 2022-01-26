@@ -1995,7 +1995,7 @@ dependencies = [
 
 [[package]]
 name = "wiki-tui"
-version = "0.4.4"
+version = "0.4.5"
 dependencies = [
  "anyhow",
  "backtrace",

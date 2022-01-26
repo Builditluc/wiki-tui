@@ -2,7 +2,7 @@ use crate::config::CONFIG;
 use crate::ui;
 use crate::wiki::article::*;
 
-use anyhow::{Context, Result};
+use anyhow::{Context, Result, bail};
 use select::document::Document;
 use select::node::Node;
 use select::predicate::{Attr, Class, Name};
@@ -115,6 +115,12 @@ impl Default {
 impl Parser for Default {
     fn parse(&self, html: reqwest::blocking::Response) -> Result<ParsedArticle> {
         let mut content: Vec<ArticleElement> = Vec::new();
+
+        // check for errors in the response
+        if html.status().is_client_error() {
+            bail!("Client Error, Code {:?}", html.status());
+        }
+
         let document = Document::from_read(html).unwrap();
         log::debug!("Loaded the HTML document");
         log::debug!("The Article will now be parsed");

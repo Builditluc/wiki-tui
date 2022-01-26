@@ -25,7 +25,7 @@
 
 ![image](https://user-images.githubusercontent.com/37375448/139769364-46a69dce-f386-4369-a82e-4a45adac3b52.png)
 ![image](https://user-images.githubusercontent.com/37375448/139769469-0b2e9f01-f758-4bb2-8227-4186f658cfcc.png) <br>
-Note: These Screenshots were taken on [iTerm2](https://iterm2.com) (MacOS) with the [Fira Code](https://github.com/tonsky/FiraCode) font
+> Note: These Screenshots were taken on [iTerm2](https://iterm2.com) (MacOS) with the [Fira Code](https://github.com/tonsky/FiraCode) font
 
 ### Usage
 
