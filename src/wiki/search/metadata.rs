@@ -4,6 +4,16 @@ pub struct SearchMetadata {
     rewritten_query: bool,
 }
 
+macro_rules! build_getter {
+    ($value: ident) => {
+        #[must_use]
+        pub fn $value(mut self) -> Self {
+            self.$value = true;
+            self
+        }
+    };
+}
+
 impl SearchMetadata {
     pub fn new() -> SearchMetadata {
         SearchMetadata {
@@ -13,46 +23,29 @@ impl SearchMetadata {
         }
     }
 
-    #[must_use]
-    pub fn total_hits(mut self) -> Self {
-        self.total_hits = true;
-
-        self
-    }
-
-    #[must_use]
-    pub fn suggestion(mut self) -> Self {
-        self.suggestion = true;
-
-        self
-    }
-
-    #[must_use]
-    pub fn rewritten_query(mut self) -> Self {
-        self.rewritten_query = true;
-
-        self
-    }
+    build_getter!(total_hits);
+    build_getter!(suggestion);
+    build_getter!(rewritten_query);
 
     pub fn build(&self) -> String {
         let mut query = "&srinfo=".to_string();
 
-        if self.total_hits {
-            query.push_str("totalhits");
+        macro_rules! build_value {
+            ($value: ident, $value_str: expr) => {
+                if self.$value {
+                    query.push_str($value_str);
+                    query.push('|');
+                }
+            };
         }
 
-        query.push('|');
+        build_value!(total_hits, "totalhits");
+        build_value!(suggestion, "suggestion");
+        build_value!(rewritten_query, "rewrittenquery");
 
-        if self.suggestion {
-            query.push_str("suggestion");
+        if query.ends_with('|') {
+            query.pop();
         }
-
-        query.push('|');
-
-        if self.rewritten_query {
-            query.push_str("rewrittenquery");
-        }
-
         query
     }
 }
@@ -68,7 +61,7 @@ mod tests {
     #[test]
     fn build() {
         use super::SearchMetadata;
-        assert_eq!(SearchMetadata::new().build(), "&srinfo=||".to_string());
+        assert_eq!(SearchMetadata::new().build(), "&srinfo=".to_string());
     }
 
     #[test]
@@ -89,7 +82,7 @@ mod tests {
         use super::SearchMetadata;
         assert_eq!(
             SearchMetadata::new().total_hits().rewritten_query().build(),
-            "&srinfo=totalhits||rewrittenquery".to_string()
+            "&srinfo=totalhits|rewrittenquery".to_string()
         );
     }
 }
