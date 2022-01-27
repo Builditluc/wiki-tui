@@ -25,6 +25,7 @@ impl LinesWrapper {
         }
     }
 
+    #[must_use]
     pub fn calculate_lines(
         mut self,
         content: &[RenderedElement],

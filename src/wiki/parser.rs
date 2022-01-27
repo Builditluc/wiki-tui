@@ -17,19 +17,18 @@ impl Default {
         &self,
         document: Document,
     ) -> Result<Option<ui::models::table_of_contents::Table>> {
-        let toc_html: Node;
         let mut toc_build = ui::models::table_of_contents::Table {
             title: String::new(),
             items: Vec::new(),
         };
 
         log::debug!("Parsing the table of contents now");
-        if let Some(_toc_html) = document.find(Attr("id", "toc")).next() {
-            toc_html = _toc_html;
+        let toc_html: Node = if let Some(_toc_html) = document.find(Attr("id", "toc")).next() {
+            _toc_html
         } else {
             log::warn!("Couldn't find the table of contents");
             return Ok(None);
-        }
+        };
 
         toc_build.title = toc_html
             .find(Class("toctitle"))

@@ -94,7 +94,7 @@ fn on_link_submit(siv: &mut Cursive, target: &str) {
     let target = target.to_string();
     let target_title = {
         let target = target.strip_prefix("/wiki/").unwrap_or(&target);
-        target.replace("_", " ")
+        target.replace('_', " ")
     };
 
     siv.add_layer(

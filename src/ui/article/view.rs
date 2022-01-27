@@ -236,6 +236,7 @@ impl ArticleView {
         EventResult::Consumed(None)
     }
 
+    #[must_use]
     pub fn on_link_submit<F: Fn(&mut cursive::Cursive, &str) + 'static>(
         mut self,
         function: F,
