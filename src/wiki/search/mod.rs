@@ -2,6 +2,9 @@ pub mod metadata;
 pub mod properties;
 pub mod sort_order;
 
+pub mod info;
+pub mod result;
+
 // Temporary
 use serde::Deserialize;
 
