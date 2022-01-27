@@ -4,6 +4,7 @@ pub mod sort_order;
 
 pub mod info;
 pub mod result;
+pub mod compiled_search;
 
 // Temporary
 use serde::Deserialize;
