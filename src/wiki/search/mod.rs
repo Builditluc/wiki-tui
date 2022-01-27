@@ -1,4 +1,5 @@
 pub mod metadata;
+pub mod properties;
 
 // Temporary
 use serde::Deserialize;
