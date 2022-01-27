@@ -2,7 +2,7 @@ use crate::config::CONFIG;
 use crate::ui;
 use crate::wiki::article::*;
 
-use anyhow::{Context, Result, bail};
+use anyhow::{bail, Context, Result};
 use select::document::Document;
 use select::node::Node;
 use select::predicate::{Attr, Class, Name};

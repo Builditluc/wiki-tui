@@ -1,3 +1,6 @@
+pub mod metadata;
+
+// Temporary
 use serde::Deserialize;
 
 #[derive(Deserialize, Debug, Clone)]
