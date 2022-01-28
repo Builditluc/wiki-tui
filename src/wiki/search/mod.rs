@@ -1,10 +1,14 @@
+pub mod builder;
 pub mod metadata;
 pub mod properties;
 pub mod sort_order;
 
+pub mod compiled_search;
 pub mod info;
 pub mod result;
-pub mod compiled_search;
+
+pub type Search = compiled_search::Search;
+pub type SearchBuilder = builder::SearchBuilder;
 
 // Temporary
 use serde::Deserialize;
