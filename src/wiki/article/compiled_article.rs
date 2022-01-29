@@ -1,5 +1,6 @@
 use crate::wiki::article::{element::ArticleElement, toc::TableOfContents};
 
+#[derive(PartialEq, Debug)]
 pub struct Article {
     elements: Vec<ArticleElement>,
     toc: Option<TableOfContents>,

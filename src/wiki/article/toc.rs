@@ -1,3 +1,4 @@
+#[derive(PartialEq, Debug)]
 pub struct TableOfContents {
     title: String,
     items: Vec<TableOfContentsItem>,
@@ -17,6 +18,7 @@ impl TableOfContents {
     }
 }
 
+#[derive(PartialEq, Debug)]
 pub struct TableOfContentsItem {
     number: i32,
     text: String,
