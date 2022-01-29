@@ -1,4 +1,5 @@
 pub mod element;
+pub mod toc;
 
 // Temporary
 use crate::ui;

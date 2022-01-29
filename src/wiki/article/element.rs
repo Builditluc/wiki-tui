@@ -11,12 +11,7 @@ pub struct ArticleElement {
 }
 
 impl ArticleElement {
-    pub fn new(
-        id: i32,
-        width: usize,
-        style: Style,
-        content: String,
-    ) -> Self {
+    pub fn new(id: i32, width: usize, style: Style, content: String) -> Self {
         ArticleElement {
             id,
             width,
@@ -27,24 +22,14 @@ impl ArticleElement {
     }
 
     pub fn newline(id: i32) -> Self {
-        let mut element = ArticleElement::new(
-            id,
-            0,
-            Style::none(),
-            String::new(),
-        );
+        let mut element = ArticleElement::new(id, 0, Style::none(), String::new());
 
         element.set_attribute("newline".to_string(), "1".to_string());
         element
     }
 
     pub fn empty_width(id: i32, width: usize) -> Self {
-        ArticleElement::new(
-            id,
-            width,
-            Style::none(),
-            " ".repeat(width),
-        )
+        ArticleElement::new(id, width, Style::none(), " ".repeat(width))
     }
 
     pub fn set_attribute(&mut self, key: String, value: String) {
@@ -57,5 +42,4 @@ impl ArticleElement {
             None => None,
         }
     }
-
 }
