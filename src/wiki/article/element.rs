@@ -42,4 +42,17 @@ impl ArticleElement {
             None => None,
         }
     }
+
+    pub fn id(&self) -> &i32 {
+        &self.id
+    }
+    pub fn width(&self) -> &usize {
+        &self.width
+    }
+    pub fn style(&self) -> &Style {
+        &self.style
+    }
+    pub fn content(&self) -> &str {
+        &self.content
+    }
 }
