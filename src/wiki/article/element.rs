@@ -40,6 +40,12 @@ impl ArticleElement {
         self.attributes.insert(key.to_string(), value.to_string());
     }
 
+    #[must_use]
+    pub fn attribute<'a>(mut self, key: &'a str, value: &'a str) -> Self {
+        self.attributes.insert(key.to_string(), value.to_string());
+        self
+    }
+
     pub fn get_attribute<'a>(&'a self, key: &str) -> Option<&'a str> {
         match self.attributes.get(key) {
             Some(value) => Some(value),

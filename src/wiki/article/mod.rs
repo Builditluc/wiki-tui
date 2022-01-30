@@ -1,6 +1,10 @@
 pub mod compiled_article;
 pub mod element;
+pub mod parser;
 pub mod toc;
+
+pub type _Article = compiled_article::Article;
+pub type _ArticleElement = element::ArticleElement;
 
 // Temporary
 use crate::ui;
