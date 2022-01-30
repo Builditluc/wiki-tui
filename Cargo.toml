@@ -12,7 +12,6 @@ readme = "README.md"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-dotenv = "0.15.0"
 syn = "=1.0.57"
 serde_json = "1.0.61"
 cursive = "0.16.3"
