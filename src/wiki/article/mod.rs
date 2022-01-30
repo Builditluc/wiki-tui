@@ -1,3 +1,4 @@
+pub mod builder;
 pub mod compiled_article;
 pub mod element;
 pub mod parser;
