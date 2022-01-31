@@ -2,12 +2,14 @@ use cursive::theme::{ColorStyle, Theme};
 use cursive::view::{View, ViewWrapper};
 use cursive::{inner_getters, wrap_impl};
 
+/// This is a wrapper that applies a theme to a view by overriding its draw method
 pub struct ThemedView<T> {
     theme: Theme,
     view: T,
 }
 
 impl<T> ThemedView<T> {
+    /// Creates a new ThemedView with the given theme and view
     pub fn new(theme: Theme, view: T) -> Self {
         ThemedView { theme, view }
     }

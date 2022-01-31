@@ -10,7 +10,7 @@ use cursive::view::{Nameable, Resizable, Scrollable};
 use cursive::views::{Button, Dialog, EditView, LinearLayout, SelectView, TextView};
 use cursive::{align::HAlign, utils::markup::StyledString, Cursive};
 
-/// Returns the default SearchBuilder
+/// Returns the default [`SearchBuilder`]
 fn build_search() -> SearchBuilder {
     SearchBuilder::new()
         .info(SearchMetadata::new().total_hits())
@@ -18,8 +18,7 @@ fn build_search() -> SearchBuilder {
         .sort(SearchSortOrder::JustMatch)
 }
 
-/// Searches for a given query and displays the result
-/// Returns an error if something went wrong
+/// Searches for a given query and displays the results. Returns an error if something went wrong.
 pub fn on_search(siv: &mut Cursive, search_query: String) -> Result<()> {
     // do the search and if something went wrong, display an error message to the user
     let search = match build_search().query(search_query.clone()).search() {
@@ -42,7 +41,7 @@ pub fn on_search(siv: &mut Cursive, search_query: String) -> Result<()> {
     });
 
     // Create the views
-    
+
     // create the results view letting the user select an result
     let mut search_results_view = SelectView::<SearchResult>::new().on_select(on_result_select);
     //.on_submit(ui::article::on_article_submit);
@@ -129,8 +128,8 @@ pub fn on_search(siv: &mut Cursive, search_query: String) -> Result<()> {
     Ok(())
 }
 
-// Takes a search result and shows its formatted snippet in the search preview
-// If the search result doesn't have a snippet, then it'll only show the title
+/// Generates and displays a preview of a given search result. It's used as a callback for the
+/// search results view
 fn on_result_select(siv: &mut Cursive, item: &SearchResult) {
     let mut preview = StyledString::new();
 
@@ -165,9 +164,8 @@ fn on_result_select(siv: &mut Cursive, item: &SearchResult) {
     });
 }
 
-// This is a Callback for the continue button, searching for more results at the given offset and
-// displays them
-// Returns an error if something went wrong
+/// Searches for more results at a given offset and adds them to the results view. It's a callback
+/// for the continue button and returns an error if something went wrong
 fn continue_search(siv: &mut Cursive, search_query: &str, search_offset: &usize) -> Result<()> {
     // fetch more results
     let search = build_search()
