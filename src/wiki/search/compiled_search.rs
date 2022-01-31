@@ -16,9 +16,11 @@ impl Search {
         }
     }
 
+    /// Return the search offset required for the next search
     pub fn search_offset(&self) -> &usize {
         &self.search_offset
     }
+
     pub fn info(&self) -> &SearchInfo {
         &self.info
     }
