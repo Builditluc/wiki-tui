@@ -12,7 +12,7 @@ pub struct SearchProperties {
     section_title: bool,
     section_snippet: bool,
 
-    is_file_match: bool,
+    file_match: bool,
     category_snippet: bool,
 }
 
@@ -42,7 +42,7 @@ impl SearchProperties {
             section_title: false,
             section_snippet: false,
 
-            is_file_match: false,
+            file_match: false,
             category_snippet: false,
         }
     }
@@ -60,7 +60,7 @@ impl SearchProperties {
     build_getter!(section_title);
     build_getter!(section_snippet);
 
-    build_getter!(is_file_match);
+    build_getter!(file_match);
     build_getter!(category_snippet);
 
     pub fn build(&self) -> String {
@@ -88,7 +88,7 @@ impl SearchProperties {
         build_value!(section_title, "sectiontitle");
         build_value!(section_snippet, "sectionsnippet");
 
-        build_value!(is_file_match, "isfilematch");
+        build_value!(file_match, "isfilematch");
         build_value!(category_snippet, "categorysnippet");
 
         if query.ends_with('|') {

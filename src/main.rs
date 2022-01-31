@@ -2,7 +2,6 @@ extern crate anyhow;
 extern crate lazy_static;
 extern crate log;
 
-use anyhow::*;
 use core::panic;
 use cursive::align::HAlign;
 use cursive::theme::*;
@@ -40,30 +39,20 @@ fn main() {
         };
     });
 
-    let wiki = match initialize() {
-        Ok(wiki) => wiki,
-        Err(error) => {
-            panic!("Something happend during initialization:\n{:?}", error);
-        }
-    };
-
-    start_application(wiki);
+    initialize();
+    start_application();
 }
 
-fn initialize() -> Result<wiki::WikiApi> {
+fn initialize() {
     println!("{}", LOGO);
 
     // create and initialize the logger
     logging::Logger::new().initialize();
-
-    // Create the wiki struct, used for interaction with the wikipedia website/api
-    Ok(wiki::WikiApi::new())
 }
 
-fn start_application(wiki: wiki::WikiApi) {
+fn start_application() {
     let mut siv = cursive::default();
     siv.add_global_callback('q', Cursive::quit);
-    siv.set_user_data(wiki);
 
     // get and apply the color theme
     let theme = Theme {
@@ -88,7 +77,7 @@ fn start_application(wiki: wiki::WikiApi) {
         .with_name("search_bar")
         .full_width();
 
-    let search_layout = change_theme!(
+    let search_layout = view_with_theme!(
         config::CONFIG.theme.search_bar,
         Dialog::around(LinearLayout::horizontal().child(search_bar))
             .title("Search")
@@ -160,15 +149,4 @@ fn get_color_palette() -> Palette {
     custom_palette.set_color("HighlightText", config::CONFIG.theme.highlight_text);
 
     custom_palette
-}
-
-fn remove_view_from_article_layout(siv: &mut Cursive, view_name: &str) {
-    siv.call_on_name("article_layout", |view: &mut LinearLayout| {
-        if let Some(i) = view.find_child_from_name(view_name) {
-            log::debug!("Removing the {} from the article_layout", view_name);
-            view.remove_child(i);
-        } else {
-            log::warn!("Couldn't find the {}", view_name);
-        }
-    });
 }

@@ -1,64 +1,17 @@
-pub mod builder;
-pub mod metadata;
-pub mod properties;
-pub mod sort_order;
+mod builder;
+mod metadata;
+mod properties;
+mod sort_order;
 
-pub mod compiled_search;
-pub mod info;
-pub mod result;
+mod compiled_search;
+mod info;
+mod result;
 
 pub type Search = compiled_search::Search;
+pub type SearchInfo = info::SearchInfo;
+pub type SearchResult = result::SearchResult;
+
 pub type SearchBuilder = builder::SearchBuilder;
-
-// Temporary
-use serde::Deserialize;
-
-#[derive(Deserialize, Debug, Clone)]
-pub struct SearchResponse {
-    #[serde(rename = "continue")]
-    #[serde(default)]
-    pub continue_code: ContinueCode,
-    pub query: QuerySearch,
-}
-
-#[derive(Deserialize, Debug, Clone)]
-pub struct ContinueCode {
-    #[serde(rename = "continue")]
-    pub continue_code: String,
-    #[serde(rename = "sroffset")]
-    pub scroll_offset: i32,
-}
-
-#[derive(Deserialize, Debug, Clone)]
-pub struct QuerySearch {
-    pub search: Vec<SearchResult>,
-    #[serde(rename = "searchinfo")]
-    pub search_info: SearchInfo,
-}
-
-#[derive(Deserialize, Debug, Clone)]
-pub struct SearchResult {
-    #[serde(rename = "pageid")]
-    pub page_id: i32,
-    pub size: i32,
-    pub snippet: String,
-    pub timestamp: String,
-    pub title: String,
-    #[serde(rename = "wordcount")]
-    pub word_count: i32,
-}
-
-#[derive(Deserialize, Debug, Clone)]
-pub struct SearchInfo {
-    #[serde(rename = "totalhits")]
-    pub total_hits: i32,
-}
-
-impl Default for ContinueCode {
-    fn default() -> ContinueCode {
-        ContinueCode {
-            continue_code: "".to_string(),
-            scroll_offset: 0,
-        }
-    }
-}
+pub type SearchMetadata = metadata::SearchMetadata;
+pub type SearchSortOrder = sort_order::SearchSortOrder;
+pub type SearchProperties = properties::SearchProperties;

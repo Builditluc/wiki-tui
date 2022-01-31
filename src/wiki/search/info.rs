@@ -1,3 +1,4 @@
+#[derive(Clone)]
 pub struct SearchInfo {
     total_hits: Option<i32>,
     suggestion: Option<String>,

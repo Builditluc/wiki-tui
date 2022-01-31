@@ -29,14 +29,3 @@ impl<T: View> ViewWrapper for ThemedView<T> {
         });
     }
 }
-
-#[macro_export]
-macro_rules! change_theme {
-    ($theme:expr,$view:expr) => {
-        if let Some(theme) = $theme.as_ref() {
-            ui::ThemedView::new(theme.to_theme(), $view)
-        } else {
-            ui::ThemedView::new(config::CONFIG.theme.to_theme(), $view)
-        }
-    };
-}

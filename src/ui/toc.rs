@@ -1,6 +1,6 @@
-use crate::change_theme;
 use crate::config;
 use crate::ui;
+use crate::view_with_theme;
 
 use cursive::event::{Event, Key};
 use cursive::view::{Nameable, Resizable};
@@ -60,7 +60,7 @@ pub fn add_table_of_contents(siv: &mut Cursive, toc: ui::models::table_of_conten
 
     article_layout.insert_child(
         1,
-        change_theme!(
+        view_with_theme!(
             config::CONFIG.theme.toc_view,
             Dialog::around(toc_view.with_name("toc_view").full_height()).title(toc.title)
         ),
