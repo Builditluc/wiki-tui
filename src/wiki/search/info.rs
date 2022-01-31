@@ -38,16 +38,19 @@ impl SearchInfo {
 
     build_getter!(
         /// The total number of search results. This value is optional.
-        total_hits, &i32
+        total_hits,
+        &i32
     );
     build_getter!(
         /// A suggestion of what wikipeida thinks you meant by you search query. These could be
         /// corrections of a spelling mistake. This value is optional.
-        suggestion, &str
+        suggestion,
+        &str
     );
     build_getter!(
         /// When wikipedia rewrites your query, this will be the rewritten query. This value is
-        /// optional 
-        rewritten_query, &str
+        /// optional
+        rewritten_query,
+        &str
     );
 }
