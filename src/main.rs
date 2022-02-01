@@ -65,7 +65,7 @@ fn start_application() {
     let search_bar = EditView::new()
         .on_submit(|s, q| match ui::search::on_search(s, q.to_string()) {
             Ok(_) => (),
-            Err(error) => {log::error!("{:?}", error); panic!("Something happened while searching. Please check your logs for further information")},
+            Err(error) => log::error!("{:?}", error),
         })
         .style({
             if let Some(search_theme) = &config::CONFIG.theme.search_bar {
