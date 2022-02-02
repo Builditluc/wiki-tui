@@ -1,5 +1,5 @@
-use std::collections::HashMap;
 use cursive::theme::Style;
+use std::collections::HashMap;
 
 /// A struct representing an element in an article. The type of the element is defined by the
 /// 'type' attribute

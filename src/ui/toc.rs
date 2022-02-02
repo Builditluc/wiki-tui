@@ -12,7 +12,7 @@ pub fn add_table_of_contents(siv: &mut Cursive, toc: ui::models::table_of_conten
     let mut article_layout = siv.find_name::<LinearLayout>("article_layout").unwrap();
     let mut toc_view =
         SelectView::<ui::models::table_of_contents::Item>::new().on_submit(|siv, item| {
-            use crate::ui::article::ArticleView;
+            // use crate::ui::article::ArticleView;
             log::info!("Jumping to '{}'", item.text);
             let item_index = match siv
                 .find_name::<SelectView<ui::models::table_of_contents::Item>>("toc_view")
@@ -32,9 +32,9 @@ pub fn add_table_of_contents(siv: &mut Cursive, toc: ui::models::table_of_conten
 
             log::trace!("item_index: {}", item_index);
 
-            if let Some(mut view) = siv.find_name::<ArticleView>("article_view") {
-                view.select_header(item_index)
-            }
+            // if let Some(mut view) = siv.find_name::<ArticleView>("article_view") {
+            //     view.select_header(item_index)
+            // }
 
             if let Err(error) = siv.focus_name("article_view") {
                 log::warn!("Failed selecting the article view: {}", error);

@@ -102,7 +102,8 @@ impl SearchResult {
     );
     build_getter!(
         /// The date and time the article was last modified
-        timestamp, &str
+        timestamp,
+        &str
     );
 
     build_getter!(
