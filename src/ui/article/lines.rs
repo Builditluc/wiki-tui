@@ -59,6 +59,43 @@ impl LinesWrapper {
         }
     }
 
+    /// Wraps the lines and returns the required width. This method is way cheaper than wrap_lines
+    /// because it only calculates the required with and nothing else
+    pub fn required_width(mut self) -> usize {
+        for element in self.elements.iter() {
+            // does this element go onto a new line?
+            if element.get_attribute("type").unwrap_or("text") == "newline" {
+                // "add" the element onto a new line
+                self.current_line = Line::new();
+                self.current_width = *element.width();
+
+                // store the width of the element if it is the biggest one yet
+                if element.width() > &self.max_width {
+                    self.max_width = *element.width();
+                    continue;
+                }
+            }
+
+            // does it fit into the current line?
+            if element.width() + self.current_width < self.width {
+                // yay, it fits
+                // add its width to the current line
+                self.current_width += element.width();
+
+                // store the width of the element if it is the biggest one yet
+                if element.width() > &self.max_width {
+                    self.max_width = *element.width();
+                    continue;
+                }
+            }
+
+            // if it doesn't fit, return 0
+            return 0;
+        }
+
+        self.max_width
+    }
+
     /// Starts the wrapping process
     #[must_use]
     pub fn wrap_lines(mut self) -> Self {

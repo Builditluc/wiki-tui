@@ -3,7 +3,7 @@ use std::collections::HashMap;
 
 /// A struct representing an element in an article. The type of the element is defined by the
 /// 'type' attribute
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Clone)]
 pub struct ArticleElement {
     id: i32,
     width: usize,
