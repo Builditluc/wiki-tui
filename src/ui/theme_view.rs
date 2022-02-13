@@ -4,7 +4,9 @@ use cursive::{inner_getters, wrap_impl};
 
 /// This is a wrapper that applies a theme to a view by overriding its draw method
 pub struct ThemedView<T> {
+    /// The theme of the view
     theme: Theme,
+    /// The view
     view: T,
 }
 

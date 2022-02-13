@@ -1,11 +1,17 @@
+/// SearchMetadata can be used to configure what metadata the search should return
 pub struct SearchMetadata {
+    /// The number of results found
     total_hits: bool,
+    /// A suggestion for the search query
     suggestion: bool,
+    /// The rewritten query
     rewritten_query: bool,
 }
 
-macro_rules! build_getter {
-    ($value: ident) => {
+/// A helper macro for generating setter functions in the SearchMetadata struct
+macro_rules! build_setter {
+    ($(#[$meta:meta])* $value: ident) => {
+        $(#[$meta])*
         #[must_use]
         pub fn $value(mut self) -> Self {
             self.$value = true;
@@ -15,6 +21,7 @@ macro_rules! build_getter {
 }
 
 impl SearchMetadata {
+    /// Creates a new SearchMetadata struct with its defaults
     pub fn new() -> SearchMetadata {
         SearchMetadata {
             total_hits: false,
@@ -23,13 +30,24 @@ impl SearchMetadata {
         }
     }
 
-    build_getter!(total_hits);
-    build_getter!(suggestion);
-    build_getter!(rewritten_query);
+    build_setter!(
+        /// The number of results found
+        total_hits
+    );
+    build_setter!(
+        /// A suggestion for the search query
+        suggestion
+    );
+    build_setter!(
+        /// The rewritten query
+        rewritten_query
+    );
 
+    /// This function generates a url parameter for itself
     pub fn build(&self) -> String {
         let mut query = "&srinfo=".to_string();
 
+        // a helper macro used to build values
         macro_rules! build_value {
             ($value: ident, $value_str: expr) => {
                 if self.$value {
@@ -39,10 +57,12 @@ impl SearchMetadata {
             };
         }
 
+        // build the values
         build_value!(total_hits, "totalhits");
         build_value!(suggestion, "suggestion");
         build_value!(rewritten_query, "rewrittenquery");
 
+        // remove any trailing '|' symbols
         if query.ends_with('|') {
             query.pop();
         }

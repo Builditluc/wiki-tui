@@ -43,7 +43,7 @@ impl Logger {
             .unwrap();
 
         self.handle.set_config(default_config);
-        log::info!("Successfully initialized the logging system");
+        log::info!("successfully initialized the logging system");
     }
 }
 

@@ -1,23 +1,37 @@
+/// SearchProperties can be used to configure what properties each search result should contain
 pub struct SearchProperties {
+    /// The size of the article
     size: bool,
+    /// The wordcount of the article
     wordcount: bool,
+    /// The timestamp of its last edit
     timestamp: bool,
 
+    /// A snippet for the article
     snippet: bool,
+    /// A title snippet for the article
     title_snippet: bool,
 
+    /// If it's a redirect, also return the title of the redirect
     redirect_title: bool,
+    /// If it's a redirect, also return the snippet of the redirect
     redirect_snippet: bool,
 
+    /// If it's a section, also return the title of the section
     section_title: bool,
+    /// If it's a section, also return the snippet of the section
     section_snippet: bool,
 
+    /// If it's a file match
     file_match: bool,
+    /// If it's a category, also return the snippet for the category
     category_snippet: bool,
 }
 
-macro_rules! build_getter {
-    ($value: ident) => {
+/// A helper macro for generating setter functions in the SearchProperties struct
+macro_rules! build_setter {
+    ($(#[$meta:meta])* $value: ident) => {
+        $(#[$meta])*
         #[must_use]
         pub fn $value(mut self) -> Self {
             self.$value = true;
@@ -27,6 +41,7 @@ macro_rules! build_getter {
 }
 
 impl SearchProperties {
+    /// Creates a new SearchProperties struct with its defaults
     pub fn new() -> Self {
         SearchProperties {
             size: false,
@@ -47,25 +62,60 @@ impl SearchProperties {
         }
     }
 
-    build_getter!(size);
-    build_getter!(wordcount);
-    build_getter!(timestamp);
+    build_setter!(
+        /// The size of the article
+        size
+    );
+    build_setter!(
+        /// The wordcount of the article
+        wordcount
+    );
+    build_setter!(
+        /// The timestamp of the article
+        timestamp
+    );
 
-    build_getter!(snippet);
-    build_getter!(title_snippet);
+    build_setter!(
+        /// A snippet for the article
+        snippet
+    );
+    build_setter!(
+        /// A title snippet for the article
+        title_snippet
+    );
 
-    build_getter!(redirect_title);
-    build_getter!(redirect_snippet);
+    build_setter!(
+        /// If it's a redirect, also return the title of the redirect
+        redirect_title
+    );
+    build_setter!(
+        /// If it's a redirect, also return the title of the redirect
+        redirect_snippet
+    );
 
-    build_getter!(section_title);
-    build_getter!(section_snippet);
+    build_setter!(
+        /// If it's a section, also return the title of the section
+        section_title
+    );
+    build_setter!(
+        /// If it's a section, also return the title of the section
+        section_snippet
+    );
 
-    build_getter!(file_match);
-    build_getter!(category_snippet);
+    build_setter!(
+        /// If it's a file match
+        file_match
+    );
+    build_setter!(
+        /// If it's a category, also return the snippet for the category
+        category_snippet
+    );
 
+    /// This function generates a url parameter for itself
     pub fn build(&self) -> String {
         let mut query = "&srprop=".to_string();
 
+        // a helper macro used to build values
         macro_rules! build_value {
             ($value: ident, $value_str: expr) => {
                 if self.$value {
@@ -75,6 +125,7 @@ impl SearchProperties {
             };
         }
 
+        // build the values
         build_value!(size, "size");
         build_value!(wordcount, "wordcount");
         build_value!(timestamp, "timestamp");
@@ -91,6 +142,7 @@ impl SearchProperties {
         build_value!(file_match, "isfilematch");
         build_value!(category_snippet, "categorysnippet");
 
+        // remove any trailing '|' symbols
         if query.ends_with('|') {
             query.pop();
         }
@@ -126,7 +178,7 @@ mod tests {
                 .redirect_snippet()
                 .section_title()
                 .section_snippet()
-                .is_file_match()
+                .file_match()
                 .category_snippet()
                 .build(),
             "&srprop=size|wordcount|timestamp|snippet|titlesnippet|redirecttitle|redirectsnippet|sectiontitle|sectionsnippet|isfilematch|categorysnippet".to_string()

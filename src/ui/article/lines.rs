@@ -1,13 +1,18 @@
 use crate::wiki::article::ArticleElement;
 use cursive::theme::Style;
+use std::mem;
 use std::rc::Rc;
 
 /// An element only containing the neccessary information for rendering (and an id so that it can
-/// be linked to an ArticleElement)
+/// be referenced to an article element
 pub struct RenderedElement {
+    /// The id of the ArticleElement this element belongs to
     pub id: i32,
+    /// The content of the element
     pub content: String,
+    /// The style of the element
     pub style: Style,
+    /// The width of the element. Measured by the amount of characters in the content
     pub width: usize,
 }
 
@@ -16,6 +21,12 @@ impl RenderedElement {
     pub fn push_str(&mut self, string: &str) {
         self.width += string.chars().count();
         self.content.push_str(string);
+    }
+
+    /// Appends a character to the content of the element
+    pub fn push(&mut self, char: char) {
+        self.width += 1;
+        self.content.push(char);
     }
 }
 
@@ -45,6 +56,11 @@ pub struct LinesWrapper {
 impl LinesWrapper {
     /// Creates a new LinesWrapper with a content and constraint
     pub fn new(width: usize, elements: Rc<Vec<ArticleElement>>) -> Self {
+        log::debug!(
+            "creating a new LinesWrapper with '{}' elements and a width of '{}'",
+            elements.len(),
+            width
+        );
         LinesWrapper {
             current_line: Line::new(),
             current_width: 0,
@@ -60,8 +76,10 @@ impl LinesWrapper {
     }
 
     /// Wraps the lines and returns the required width. This method is way cheaper than wrap_lines
-    /// because it only calculates the required with and nothing else
+    /// because it only calculates the required width and nothing else
     pub fn required_width(mut self) -> usize {
+        log::debug!("required_width was called");
+        // go through every elment
         for element in self.elements.iter() {
             // does this element go onto a new line?
             if element.get_attribute("type").unwrap_or("text") == "newline" {
@@ -90,28 +108,33 @@ impl LinesWrapper {
             }
 
             // if it doesn't fit, return 0
+            log::debug!("required_width finished successfully with a width of '0'");
             return 0;
         }
 
+        log::debug!(
+            "required_width finished successfully with a width of '{}'",
+            self.max_width
+        );
         self.max_width
     }
 
     /// Starts the wrapping process
     #[must_use]
     pub fn wrap_lines(mut self) -> Self {
-        for element in self.elements.iter() {
+        log::debug!("wrap_lines was called");
+
+        // go through every element
+        for element in self.elements.clone().iter() {
             // does this element go onto a new line?
             if element.get_attribute("type").unwrap_or("text") == "newline" {
-                // fill the current line and add the element onto a new one
+                // fill the current line and make the next one blank
                 self.fill_line();
                 self.newline();
 
-                self.create_rendered_element(
-                    element.id(),
-                    element.style(),
-                    element.content(),
-                    element.width(),
-                );
+                self.fill_line();
+                self.newline();
+
                 continue;
             }
 
@@ -133,23 +156,26 @@ impl LinesWrapper {
             self.split_element(element);
         }
 
+        log::debug!(
+            "wrap_lines finished successfully, wrapping '{}' lines",
+            self.rendered_lines.len()
+        );
         self
     }
 
     /// Adds the current line to the rendered lines and replaces it with a new, empty one
     fn newline(&mut self) {
         // add the current line to the rendered lines
-        self.rendered_lines.push(self.current_line);
+        self.rendered_lines.push(mem::take(&mut self.current_line));
 
         // and reset the current line afterwards
-        self.current_line = Line::new();
         self.current_width = 0;
     }
 
     /// Fills the remaining space of the line with spaces
     fn fill_line(&mut self) {
         // if our current line is wider than allowed, we really messed up
-        assert!(self.current_width < self.width);
+        assert!(self.current_width <= self.width);
 
         // change the max width, if neccessary
         if self.current_width > self.max_width {
@@ -172,7 +198,14 @@ impl LinesWrapper {
         self.current_line.push(RenderedElement {
             id: *id,
             style: *style,
-            content: content.to_string(),
+            content: {
+                // if the line is empty, remove leading whitespace
+                if self.current_line.is_empty() {
+                    content.trim_start().to_string()
+                } else {
+                    content.to_string()
+                }
+            },
             width: *width,
         });
         // don't forget to adjust our line width
@@ -201,6 +234,7 @@ impl LinesWrapper {
             if span.chars().count() + merged_element.width + self.current_width < self.width {
                 // then add it to the merged element
                 merged_element.push_str(span);
+                merged_element.push(' ');
                 continue;
             }
 
@@ -208,6 +242,7 @@ impl LinesWrapper {
             // - add the merged element to the current line
             // - fill the current line and replace it with a new one
             // - add the span to a new merged element
+            self.current_width += merged_element.width;
             self.current_line.push(merged_element);
 
             self.fill_line();
@@ -219,6 +254,12 @@ impl LinesWrapper {
                 content: String::new(),
                 width: 0,
             };
+        }
+
+        // if there are still some spans in the merged_element, add it to the current line
+        if !merged_element.content.is_empty() {
+            self.current_width += merged_element.width;
+            self.current_line.push(merged_element);
         }
     }
 }

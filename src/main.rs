@@ -12,6 +12,8 @@ use cursive::Cursive;
 use std::fs;
 use std::io::Write;
 
+use crate::wiki::search::SearchResult;
+
 pub mod cli;
 pub mod config;
 pub mod error;
@@ -63,10 +65,7 @@ fn start_application() {
 
     // Create the views
     let search_bar = EditView::new()
-        .on_submit(|s, q| match ui::search::on_search(s, q.to_string()) {
-            Ok(_) => (),
-            Err(error) => log::error!("{:?}", error),
-        })
+        .on_submit(|s, q| ui::search::on_search(s, q.to_string()))
         .style({
             if let Some(search_theme) = &config::CONFIG.theme.search_bar {
                 if search_theme.background == search_theme.secondary {
@@ -125,17 +124,32 @@ fn start_application() {
 
 fn handle_arguments() -> Box<dyn FnOnce(&mut Cursive) + Send> {
     if let Some(search_query) = config::CONFIG.get_args().search_query.as_ref() {
-        log::info!("Searching for the article: {}", search_query);
+        log::info!("searching for the article: {}", search_query);
         return Box::new(move |siv: &mut Cursive| {
-            if let Err(error) = ui::search::on_search(siv, search_query.to_string()) {
-                log::error!("{:?}", error);
-                panic!("Something happened while searching. Please check your logs for further information");
-            };
+            ui::search::on_search(siv, search_query.to_string());
         });
     } else if let Some(article_id) = config::CONFIG.get_args().article_id {
-        log::info!("Opening the article: {}", article_id);
+        log::info!("opening the article: {}", article_id);
         return Box::new(move |siv: &mut Cursive| {
-            ui::article::on_article_submit(siv, &article_id.into());
+            ui::article::on_article_submit(
+                siv,
+                &SearchResult::new(
+                    String::new(),
+                    0,
+                    article_id,
+                    None,
+                    None,
+                    None,
+                    None,
+                    None,
+                    None,
+                    None,
+                    None,
+                    None,
+                    None,
+                    None,
+                ),
+            );
         });
     }
 

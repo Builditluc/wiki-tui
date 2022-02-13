@@ -1,26 +1,37 @@
-use crate::{
-    config::CONFIG,
-    wiki::search::{
-        compiled_search::Search, info::SearchInfo, metadata::SearchMetadata,
-        properties::SearchProperties, result::SearchResult, sort_order::SearchSortOrder,
-    },
+use crate::config::CONFIG;
+use crate::wiki::search::{
+    compiled_search::Search, info::SearchInfo, metadata::SearchMetadata,
+    properties::SearchProperties, result::SearchResult, sort_order::SearchSortOrder,
 };
+
 use anyhow::{bail, Context, Result};
 use reqwest::blocking::{get, Response};
 use serde::Deserialize;
 
+/// A SearchBuilder can be used to do a search with custom configuration
 pub struct SearchBuilder {
+    /// Search for this page title or content matching this value
     query: String,
+    /// Search only with these namespaces. Accepted namespaces are:
+    /// 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 100, 101, 118, 119,
+    /// 710, 711, 828, 829, 2300, 2301, 2302, 2303
     namespace: usize,
+    /// How many total pages to return. The value must be between 1 and 500
     limit: usize,
+    /// When more results are available, use this to continue
     offset: usize,
 
+    /// Which metadata to return
     info: SearchMetadata,
+    /// Which properties to return
     prop: SearchProperties,
+    /// Set the sort order of returned results
     sort: SearchSortOrder,
 }
 
+// NOTE: The following structs are only used for deserializing the json response
 #[derive(Deserialize)]
+#[doc(hidden)]
 struct JsonResponse {
     #[serde(rename = "continue")]
     continue_code: JsonResponseContinue,
@@ -29,12 +40,14 @@ struct JsonResponse {
 }
 
 #[derive(Deserialize)]
+#[doc(hidden)]
 struct JsonResponseContinue {
     #[serde(rename = "sroffset")]
     offset: i32,
 }
 
 #[derive(Deserialize)]
+#[doc(hidden)]
 struct JsonResponseQuery {
     #[serde(rename = "searchinfo")]
     info: Option<JsonResponseInfo>,
@@ -42,6 +55,7 @@ struct JsonResponseQuery {
 }
 
 #[derive(Deserialize)]
+#[doc(hidden)]
 struct JsonResponseInfo {
     #[serde(rename = "totalhits")]
     total_hits: Option<i32>,
@@ -51,6 +65,7 @@ struct JsonResponseInfo {
 }
 
 #[derive(Deserialize)]
+#[doc(hidden)]
 struct JsonResponseResult {
     #[serde(rename = "ns")]
     namespace: usize,
@@ -82,9 +97,11 @@ struct JsonResponseResult {
     is_file_match: Option<bool>,
 }
 
+/// A helper macro for building a setter function
 macro_rules! build_setter {
-    ($value: ident, $type: ty) => {
+    ($(#[$meta :meta])* $value: ident, $type: ty) => {
         #[must_use]
+        $(#[$meta])*
         pub fn $value(mut self, value: $type) -> Self {
             self.$value = value;
             self
@@ -93,7 +110,9 @@ macro_rules! build_setter {
 }
 
 impl SearchBuilder {
+    /// Creates a new SearchBuilder
     pub fn new() -> Self {
+        log::debug!("creating a new SearchBuilder");
         SearchBuilder {
             query: String::new(),
             namespace: 0,
@@ -113,28 +132,80 @@ impl SearchBuilder {
         }
     }
 
-    build_setter!(query, String);
-    build_setter!(namespace, usize);
-    build_setter!(limit, usize);
-    build_setter!(offset, usize);
+    build_setter!(
+        /// Search for this page title or content matching this value
+        query,
+        String
+    );
+    build_setter!(
+        /// Search only with these namespaces. Accepted namespaces are:
+        /// 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 100, 101, 118, 119,
+        /// 710, 711, 828, 829, 2300, 2301, 2302, 2303
+        namespace,
+        usize
+    );
+    build_setter!(
+        /// How many total pages to return. The value must be between 1 and 500
+        limit,
+        usize
+    );
+    build_setter!(
+        /// When more results are available, use this to continue
+        offset,
+        usize
+    );
 
-    build_setter!(info, SearchMetadata);
-    build_setter!(prop, SearchProperties);
-    build_setter!(sort, SearchSortOrder);
+    build_setter!(
+        /// Which metadata to return
+        info,
+        SearchMetadata
+    );
+    build_setter!(
+        /// Which properties to return
+        prop,
+        SearchProperties
+    );
+    build_setter!(
+        /// Set the sort order of returned results
+        sort,
+        SearchSortOrder
+    );
 
+    /// Begin the search. This will return either a Search or an error
     pub fn search(&self) -> Result<Search> {
+        log::info!("search was called");
+
+        // check for invalid fields
+        log::debug!("checking for invalid fields");
         self.invalid_fields()?;
-        let url = self.build_url(&CONFIG.api_config.base_url);
+
+        // build the url
+        log::debug!("building the url");
+        let url = self.build_url(&CONFIG.api_config.base_url)?;
+
+        // make the request
+        log::debug!("making the request to '{}'", url);
         let response = self.make_request(&url)?;
 
-        self.deserialize_response(response.text()?)
+        // deserialize the response and return the finished search
+        log::debug!("deserializing the resposne");
+        let search = self.deserialize_response(response.text()?);
+        if search.is_ok() {
+            log::info!("search finished successfully");
+        }
+
+        search
     }
 
-    fn build_url(&self, base_url: &str) -> String {
+    /// A helper function that builds the search url. It fails if the query is empty
+    fn build_url(&self, base_url: &str) -> Result<String> {
+        // if the query is empty, then do nothing
         if self.query.is_empty() {
-            return String::new();
+            bail!("the query is empty. we don't do that here!")
         }
-        format!(
+
+        // just build the url, very simple
+        Ok(format!(
             "{}w/api.php?action=query&format=json&list=search&srsearch={}&srnamespace={}&srlimit={}&sroffset={}{}{}{}",
             base_url,
             self.query,
@@ -144,25 +215,33 @@ impl SearchBuilder {
             self.info.build(),
             self.prop.build(),
             self.sort.to_string(),
-        )
+        ))
     }
 
+    /// A helper function that makes a get request to a given url and returns its response
     fn make_request(&self, url: &str) -> Result<Response> {
+        // just do the request, nothing special here
         Ok(get(url)?.error_for_status()?)
     }
 
+    /// A helper function that deserializes a json string into a Search. Any errors it encounters
+    /// will be returned
     fn deserialize_response(&self, json: String) -> Result<Search> {
+        // deserialize the response into a temporary struct
         let mut deserialized_json: JsonResponse =
-            serde_json::from_str(&json).context("Failed to deserialize the response")?;
+            serde_json::from_str(&json).context("failed to deserialize the response")?;
 
+        // retrieve the values of importance
         let search_offset = deserialized_json.continue_code.offset as usize;
         let search_info = self.deserialize_search_info(deserialized_json.query.info.take());
         let search_results =
             self.deserialize_search_results(std::mem::take(&mut deserialized_json.query.search));
 
+        // return the search
         Ok(Search::new(search_offset, search_info, search_results))
     }
 
+    /// A helper function that converts a JsonResponseInfo into a SearchInfo
     fn deserialize_search_info(&self, search_info: Option<JsonResponseInfo>) -> SearchInfo {
         let mut total_hits: Option<i32> = None;
         let mut suggestion: Option<String> = None;
@@ -177,6 +256,7 @@ impl SearchBuilder {
         SearchInfo::new(total_hits, suggestion, rewritten_query)
     }
 
+    /// A helper function that converts an array of JsonResponseResult into an array of SearchResult
     fn deserialize_search_results(
         &self,
         search_results: Vec<JsonResponseResult>,
@@ -190,6 +270,7 @@ impl SearchBuilder {
         results
     }
 
+    /// A helper function that converts a JsonResponseResult into a SearchResult
     fn deserialize_search_result(&self, search_result: JsonResponseResult) -> SearchResult {
         SearchResult::new(
             search_result.title,
@@ -209,17 +290,26 @@ impl SearchBuilder {
         )
     }
 
+    /// A helper function that checks all fields have correct values. Returns Ok(()) if all fields
+    /// are valid
     fn invalid_fields(&self) -> Result<()> {
+        // validate the limit
         if self.limit < 1 || self.limit > 500 {
             bail!("limit must be between 1 and 500")
         }
-        if ![
+
+        // validate the namespace
+        let valid_namespaces = [
             0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 100, 101, 118, 119, 710, 711,
             828, 829, 2300, 2301, 2302, 2303,
-        ]
-        .contains(&self.namespace)
-        {
-            bail!("namespace invalid")
+        ];
+
+        if !valid_namespaces.contains(&self.namespace) {
+            bail!(
+                "namespace invalid. Expected one of '{:?}', got '{}' instead",
+                valid_namespaces,
+                &self.namespace
+            )
         }
 
         Ok(())
@@ -241,8 +331,8 @@ mod tests {
         use super::SearchBuilder;
         assert!(SearchBuilder::new()
             .build_url("https://en.wikipedia.org/")
-            .is_empty());
-        assert_eq!(SearchBuilder::new().query("meaning".to_string()).build_url("https://en.wikipedia.org/"), "https://en.wikipedia.org/w/api.php?action=query&format=json&list=search&srsearch=meaning&srnamespace=0&srlimit=10&sroffset=0&srinfo=totalhits|suggestion|rewrittenquery&srprop=size|wordcount|timestamp|snippet&srsort=relevance".to_string());
+            .is_err());
+        assert_eq!(SearchBuilder::new().query("meaning".to_string()).build_url("https://en.wikipedia.org/").unwrap(), "https://en.wikipedia.org/w/api.php?action=query&format=json&list=search&srsearch=meaning&srnamespace=0&srlimit=10&sroffset=0&srinfo=totalhits|suggestion|rewrittenquery&srprop=size|wordcount|timestamp|snippet&srsort=relevance".to_string());
     }
 
     #[test]

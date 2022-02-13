@@ -1,3 +1,7 @@
+// TODO: add this as a configuration option
+
+/// SearchSortOrder can be used to configure how the search results should be ordered. The default
+/// one is relevance
 pub enum SearchSortOrder {
     CreateTimestampAscending,
     CreateTimestampDescending,

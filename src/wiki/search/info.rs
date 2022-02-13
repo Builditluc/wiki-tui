@@ -3,8 +3,13 @@
 /// the one the SearchBuilder creates for you
 #[derive(Clone)]
 pub struct SearchInfo {
+    /// The total number of search results. This value is optional
     total_hits: Option<i32>,
+    /// A suggestion of what wikipedia thinks you meant by your search query. These could be
+    /// corrections of a spelling mistake. This value is optional
     suggestion: Option<String>,
+    /// When wikipedia rewrites your query, this will be the rewritten query. This value is
+    /// optional
     rewritten_query: Option<String>,
 }
 

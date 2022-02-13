@@ -5,10 +5,15 @@ use std::collections::HashMap;
 /// 'type' attribute
 #[derive(PartialEq, Debug, Clone)]
 pub struct ArticleElement {
+    /// The id of the element
     id: i32,
+    /// The width of the element. Measured by the amount of characters
     width: usize,
+    /// The style of the element
     style: Style,
+    /// The content of the element
     content: String,
+    /// The attributes of the element
     attributes: HashMap<String, String>,
 }
 
