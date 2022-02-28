@@ -1,8 +1,14 @@
-use cursive::Vec2;
+use cursive::{direction::Absolute, Vec2};
 use std::rc::Rc;
 
-use crate::ui::article::lines::{Line, LinesWrapper};
 use crate::wiki::article::{Article, ArticleElement};
+use crate::{
+    config::CONFIG,
+    ui::article::{
+        lines::{Line, LinesWrapper},
+        links::LinkHandler,
+    },
+};
 
 /// The content of an ArticleView. Handles text formatting
 pub struct ArticleContent {
@@ -10,6 +16,9 @@ pub struct ArticleContent {
     article: Article,
     /// Wrapped lines, ready for drawing
     rendered_lines: Vec<Line>,
+
+    /// The LinkHandler, only created and used when it's enabled in the configuration
+    link_handler: Option<LinkHandler>,
 }
 
 impl ArticleContent {
@@ -19,7 +28,26 @@ impl ArticleContent {
         ArticleContent {
             article,
             rendered_lines: Vec::new(),
+            link_handler: None,
         }
+    }
+
+    /// Returns the ArticleElement from a given id
+    /// Accepts an optional id so it can be easily linked with current_link
+    pub fn element_by_id(&self, id: Option<i32>) -> Option<&ArticleElement> {
+        if let Some(id) = id {
+            // get every element with that id and return the first one
+            return self.article.elements().filter(|e| e.id() == &id).next();
+        }
+        None
+    }
+
+    /// Returns the id of the current link
+    pub fn current_link(&self) -> Option<i32> {
+        if let Some(ref link_handler) = self.link_handler {
+            return Some(link_handler.get_current_link());
+        }
+        None
     }
 
     /// Calculates and returns the required size
@@ -73,7 +101,7 @@ impl ArticleContent {
         );
 
         // render the lines
-        self.rendered_lines = LinesWrapper::new(
+        let lines_wrapper = LinesWrapper::new(
             size.x,
             // we have to clone all the elements
             Rc::new(
@@ -83,8 +111,10 @@ impl ArticleContent {
                     .collect::<Vec<ArticleElement>>(),
             ),
         )
-        .wrap_lines()
-        .rendered_lines;
+        .wrap_lines();
+
+        self.link_handler = lines_wrapper.link_handler;
+        self.rendered_lines = lines_wrapper.rendered_lines;
 
         log::debug!(
             "compute_lines finished successfully, rendering '{}' lines",
@@ -95,5 +125,22 @@ impl ArticleContent {
     /// Returns an iterator over the rendered lines
     pub fn get_rendered_lines(&self) -> impl Iterator<Item = &Line> {
         self.rendered_lines.iter()
+    }
+
+    /// Moves the selected link by in a direction by a given amount
+    pub fn move_selected_link(&mut self, direction: Absolute, amount: usize) {
+        if !CONFIG.features.links {
+            return;
+        }
+
+        if let Some(ref mut link_handler) = self.link_handler {
+            match direction {
+                Absolute::Left => link_handler.move_left(amount),
+                Absolute::Up => link_handler.move_up(amount),
+                Absolute::Right => link_handler.move_right(amount),
+                Absolute::Down => link_handler.move_down(amount),
+                Absolute::None => return,
+            }
+        }
     }
 }

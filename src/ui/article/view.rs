@@ -1,6 +1,12 @@
-use crate::{ui::article::content::ArticleContent, wiki::article::Article};
+use crate::{config::CONFIG, ui::article::content::ArticleContent, wiki::article::Article};
 
-use cursive::{Vec2, View};
+use cursive::{
+    direction::Absolute,
+    event::{Callback, Event, EventResult, Key},
+    Vec2, View,
+};
+
+use super::on_link_submit;
 
 /// A view displaying an article
 pub struct ArticleView {
@@ -38,7 +44,13 @@ impl View for ArticleView {
             // go through every element in the line and print it with its style
             let mut x = 0;
             for element in line {
-                printer.with_style(element.style, |printer| {
+                let mut style = element.style;
+
+                if Some(element.id) == self.content.current_link() {
+                    style = style.combine(CONFIG.theme.highlight);
+                }
+
+                printer.with_style(style, |printer| {
                     printer.print((x, y), &element.content);
                     x += element.width;
                 });
@@ -71,5 +83,45 @@ impl View for ArticleView {
     fn take_focus(&mut self, _: cursive::direction::Direction) -> bool {
         // this view is always focusable
         true
+    }
+
+    fn on_event(&mut self, event: Event) -> EventResult {
+        match event {
+            Event::Key(Key::Left) if CONFIG.features.links => {
+                self.content.move_selected_link(Absolute::Down, 1);
+                EventResult::Consumed(None)
+            }
+            Event::Key(Key::Right) if CONFIG.features.links => {
+                self.content.move_selected_link(Absolute::Right, 1);
+                EventResult::Consumed(None)
+            }
+            Event::Key(Key::Enter) if CONFIG.features.links => {
+                log::info!("opening the link");
+
+                // get current link and retrieve the ArticleElement linked to it
+                let current_link = self.content.current_link();
+                log::debug!("current link is '{:?}'", current_link);
+
+                if let Some(element) = self.content.element_by_id(current_link) {
+                    log::debug!("found the element");
+
+                    // get target link from the article element
+                    let target = match element.get_attribute("target") {
+                        Some(t) => t.to_string(),
+                        None => return EventResult::Ignored,
+                    };
+                    log::info!("target article is '{}'", target);
+
+                    // return the callback
+                    log::debug!("returning the callback to open the link");
+                    return EventResult::Consumed(Some(Callback::from_fn(move |s| {
+                        on_link_submit(s, target.clone())
+                    })));
+                }
+
+                EventResult::Ignored
+            }
+            _ => EventResult::Ignored,
+        }
     }
 }

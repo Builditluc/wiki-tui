@@ -1,4 +1,7 @@
+use crate::config::CONFIG;
+use crate::ui::article::links::LinkHandler;
 use crate::wiki::article::ArticleElement;
+
 use cursive::theme::Style;
 use std::mem;
 use std::rc::Rc;
@@ -51,6 +54,9 @@ pub struct LinesWrapper {
     elements: Rc<Vec<ArticleElement>>,
     /// The rendered lines
     pub rendered_lines: Vec<Line>,
+
+    /// The link handler, it is only created and used when enabled in the config
+    pub link_handler: Option<LinkHandler>,
 }
 
 impl LinesWrapper {
@@ -72,6 +78,14 @@ impl LinesWrapper {
 
             elements,
             rendered_lines: Vec::new(),
+
+            link_handler: {
+                if CONFIG.features.links {
+                    Some(LinkHandler::new())
+                } else {
+                    None
+                }
+            },
         }
     }
 
@@ -126,8 +140,14 @@ impl LinesWrapper {
 
         // go through every element
         for element in self.elements.clone().iter() {
+            // get the type of the element
+            let element_type = element.get_attribute("type").unwrap_or("text");
+
+            // is this element a link?
+            let is_link = element_type == "link" && element.get_attribute("target").is_some();
+
             // does this element go onto a new line?
-            if element.get_attribute("type").unwrap_or("text") == "newline" {
+            if element_type == "newline" {
                 // fill the current line and make the next one blank
                 self.fill_line();
                 self.newline();
@@ -148,6 +168,12 @@ impl LinesWrapper {
                     element.content(),
                     element.width(),
                 );
+
+                // if it's a link, register it
+                if is_link {
+                    self.register_link(*element.id());
+                }
+
                 continue;
             }
 
@@ -160,7 +186,28 @@ impl LinesWrapper {
             "wrap_lines finished successfully, wrapping '{}' lines",
             self.rendered_lines.len()
         );
+
+        if let Some(ref link_handler) = self.link_handler {
+            log::debug!("total links found: '{}'", link_handler.registered_links());
+        }
+
         self
+    }
+
+    /// Registers a new link with the given id
+    fn register_link(&mut self, id: i32) {
+        if let Some(ref mut link_handler) = self.link_handler {
+            link_handler.push_link(
+                id,
+                self.current_line.len().saturating_sub(1),
+                self.rendered_lines.len().saturating_sub(1),
+            );
+        }
+    }
+    /// Adds an element to the current line and if needed, registers a link to it
+    fn push_element(&mut self, element: RenderedElement) {
+        self.current_width += element.width;
+        self.current_line.push(element);
     }
 
     /// Adds the current line to the rendered lines and replaces it with a new, empty one
@@ -194,8 +241,8 @@ impl LinesWrapper {
 
     /// Creates a rendered element and adds it to the current line
     fn create_rendered_element(&mut self, id: &i32, style: &Style, content: &str, width: &usize) {
-        // we can just clone the whole thing
-        self.current_line.push(RenderedElement {
+        // we can just clone the whole thing and call the push_element function
+        self.push_element(RenderedElement {
             id: *id,
             style: *style,
             content: {
@@ -208,8 +255,6 @@ impl LinesWrapper {
             },
             width: *width,
         });
-        // don't forget to adjust our line width
-        self.current_width += width;
     }
 
     /// Splits the element into multiple (if required) lines. Pollutes the line with as few
@@ -219,6 +264,11 @@ impl LinesWrapper {
         // First, we split the content into words and then we merge these words together until the
         // line is full. Then we create a new one and do the same thing over and over again until
         // we run out of words.
+
+        // is this a link?
+        let is_link = element.get_attribute("type") == Some("link")
+            && element.get_attribute("target").is_some();
+
         let mut merged_element = RenderedElement {
             id: *element.id(),
             style: *element.style(),
@@ -245,6 +295,11 @@ impl LinesWrapper {
             self.current_width += merged_element.width;
             self.current_line.push(merged_element);
 
+            // if its a link, add it
+            if is_link {
+                self.register_link(*element.id())
+            }
+
             self.fill_line();
             self.newline();
 
@@ -256,10 +311,15 @@ impl LinesWrapper {
             };
         }
 
-        // if there are still some spans in the merged_element, add it to the current line
+        // if there are still some spans in the merged_element, add it to the current line and
+        // register a link if it is one
         if !merged_element.content.is_empty() {
             self.current_width += merged_element.width;
             self.current_line.push(merged_element);
+
+            if is_link {
+                self.register_link(*element.id());
+            }
         }
     }
 }

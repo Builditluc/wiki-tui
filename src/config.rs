@@ -1,16 +1,13 @@
+use crate::cli::Cli;
+
 use anyhow::*;
-use cursive::theme::BaseColor;
-use cursive::theme::Color;
+use cursive::theme::{BaseColor, Color};
 use lazy_static::*;
 use log::LevelFilter;
 use serde::Deserialize;
-use std::fs;
-use std::path::PathBuf;
-use std::str::FromStr;
+use std::{path::PathBuf, str::FromStr};
 use structopt::StructOpt;
 use toml::from_str;
-
-use crate::cli::Cli;
 
 const CONFIG_FILE: &str = "config.toml";
 const CONFIG_DIR: &str = ".config";
@@ -110,11 +107,16 @@ pub struct ParserConfig {
     pub code_blocks: bool,
 }
 
+pub struct ArticleFeatures {
+    pub links: bool,
+}
+
 pub struct Config {
     pub api_config: ApiConfig,
     pub theme: Theme,
     pub logging: Logging,
     pub parser: ParserConfig,
+    pub features: ArticleFeatures,
     config_path: PathBuf,
     args: Cli,
 }
@@ -125,6 +127,7 @@ struct UserConfig {
     theme: Option<UserTheme>,
     logging: Option<UserLogging>,
     parser: Option<UserParserConfig>,
+    features: Option<UserArticleFeatures>,
 }
 
 #[derive(Deserialize, Debug)]
@@ -169,16 +172,21 @@ struct UserLogging {
 
 #[derive(Deserialize, Debug)]
 struct UserParserConfig {
-    pub toc: Option<bool>,
-    pub headers: Option<bool>,
-    pub paragraphs: Option<bool>,
-    pub lists: Option<bool>,
-    pub code_blocks: Option<bool>,
+    toc: Option<bool>,
+    headers: Option<bool>,
+    paragraphs: Option<bool>,
+    lists: Option<bool>,
+    code_blocks: Option<bool>,
+}
+
+#[derive(Deserialize, Debug)]
+struct UserArticleFeatures {
+    links: Option<bool>,
 }
 
 impl Config {
     pub fn new() -> Config {
-        // initialize the struct with the defaults
+        // initialize the configuration with the defaults
         let mut config = Config {
             api_config: ApiConfig {
                 base_url: "https://en.wikipedia.org/".to_string(),
@@ -211,12 +219,13 @@ impl Config {
                 lists: true,
                 code_blocks: true,
             },
+            features: ArticleFeatures { links: true },
             config_path: PathBuf::new(),
             args: Cli::from_args(),
         };
 
-        // do the loading stuff here
-        log::info!("Loading the config");
+        // load the configuration from the file
+        log::info!("loading the config");
         config.load_config();
 
         // return the config
@@ -224,24 +233,23 @@ impl Config {
     }
 
     fn load_config(&mut self) {
-        // load (or create if they not exist) the config path(s)
+        // load (or create if they don't exist) the config path(s)
         // this function returns true if the config file exists and false if not
         let config_exists = self.load_or_create_config_paths();
 
         // check, if any errors occured during loading
         if config_exists.is_err() {
-            // Abort the loading
-            log::warn!("Failed loading the config paths, {:?}", config_exists.err());
+            // abort the loading and return the error
+            log::warn!("{:?}", config_exists);
             return;
         }
 
         // read the config file and check if there were any errors
-        let config_str = match fs::read_to_string(&self.config_path).context(format!(
-            "Failed loading the config file at the location: {}",
-            &self.config_path.to_str().unwrap_or("NONE")
-        )) {
+        let config_str = match std::fs::read_to_string(&self.config_path)
+            .context("failed reading the config file")
+        {
             Ok(config) => {
-                log::info!("Successfully read the config file");
+                log::info!("successfully read the config file");
                 config
             }
             Err(error) => {
@@ -250,15 +258,13 @@ impl Config {
             }
         };
 
-        let user_config = match from_str::<UserConfig>(&config_str)
-            .context("Failed deserializing the loaded config file")
-        {
+        let user_config = match from_str::<UserConfig>(&config_str).context("wrong format") {
             Ok(config) => {
-                log::info!("Successfully deserialized config");
+                log::info!("successfully deserialized config");
                 config
             }
             Err(error) => {
-                log::warn!("{:?}", error);
+                log::warn!("deserializing the config file failed, {:?}", error);
                 return;
             }
         };
@@ -279,6 +285,10 @@ impl Config {
             self.load_parser(&user_parser);
         }
 
+        if let Some(user_article_features) = user_config.features {
+            self.load_article_features(&user_article_features);
+        }
+
         // override the log level
         if let Some(log_level) = self.args.level.as_ref() {
             let level = match log_level {
@@ -288,7 +298,7 @@ impl Config {
                 3 => LevelFilter::Error,
                 _ => self.logging.log_level,
             };
-            log::info!("Overriding the configured log level to '{}'", level);
+            log::info!("overriding the configured log level to '{}'", level);
             self.logging.log_level = level;
         }
     }
@@ -298,14 +308,13 @@ impl Config {
         let config_dir = match dirs::home_dir() {
             Some(config_dir) => {
                 log::info!(
-                    "The config directory is {}",
+                    "the config directory is {}",
                     config_dir.join(CONFIG_DIR).to_str().unwrap()
                 );
                 config_dir.join(CONFIG_DIR)
             }
             None => {
-                log::error!("Couldn't find the home directory");
-                panic!()
+                bail!("couldn't find the home directory")
             }
         };
 
@@ -315,34 +324,34 @@ impl Config {
 
         // create the app config folder if it doesn't exist
         if !app_config_dir.exists() {
-            log::info!("The app config directory doesn't exist, creating it now");
-            match fs::create_dir(app_config_dir).context("Couldn't create the app config directory")
-            {
-                Ok(_) => {
-                    log::info!("Successfully created the app config directory");
-                }
-                Err(error) => return Err(error),
-            };
+            log::info!("the app config directory doesn't exist, creating it now");
+            std::fs::create_dir(app_config_dir)
+                .context("couldn't create the app config directory")?;
         }
 
         // check, if the config file exists
         if !config_file_dir.exists() {
-            log::info!("The config file doesn't exist");
+            log::info!("the config file doesn't exist");
             return Ok(false);
         }
 
         // if the config file exists,
         // return true and store the path to it
-        log::debug!("The config file exists");
+        log::info!(
+            "location of the config file: '{}'",
+            // the path can be non unicode so we have to check for that
+            config_file_dir.to_str().unwrap_or("UNICODE_ERROR")
+        );
         self.config_path = config_file_dir;
         Ok(true)
     }
 
     fn load_api_config(&mut self, user_api_config: &UserApiConfig) {
+        log::info!("loading the api configuration");
+
         // define the macro for loading individual api settings
         macro_rules! to_api_setting {
             ($setting: ident) => {
-                log::debug!("Trying to load the setting '{}'", stringify!($setting));
                 if user_api_config.$setting.is_some() {
                     self.api_config.$setting =
                         user_api_config.$setting.as_ref().unwrap().to_string();
@@ -354,15 +363,15 @@ impl Config {
     }
 
     fn load_theme(&mut self, user_theme: &UserTheme) {
+        log::info!("loading the theme configuration");
+
         // define the macro for loading individual color settings
         macro_rules! to_theme_color {
             ($color: ident) => {
-                log::debug!("Trying to load the color '{}'", stringify!($color));
                 if user_theme.$color.is_some() {
                     match parse_color(user_theme.$color.as_ref().unwrap().to_string()) {
                         Ok(color) => {
                             self.theme.$color = color;
-                            log::debug!("Loaded the color '{}'", stringify!($color));
                         }
                         Err(error) => {
                             log::warn!("{}", error);
@@ -414,12 +423,10 @@ impl Config {
 
         macro_rules! to_view_theme {
             ($color: ident) => {
-                log::debug!("Trying to load the color '{}'", stringify!($color));
                 if user_view_theme.$color.is_some() {
                     match parse_color(user_view_theme.$color.as_ref().unwrap().to_string()) {
                         Ok(color) => {
                             view_theme.$color = color;
-                            log::debug!("Loaded the color '{}'", stringify!($color));
                         }
                         Err(error) => {
                             log::warn!("{}", error);
@@ -452,20 +459,18 @@ impl Config {
     }
 
     fn load_logging(&mut self, user_logging: &UserLogging) {
-        // now load the settings
-        log::debug!("Trying to load the enabled setting");
+        log::info!("loading the logging configuration");
+
         if let Some(enabled) = user_logging.enabled {
             self.logging.enabled = enabled;
         }
 
-        log::debug!("Trying to load the logging dir setting");
         if let Some(log_dir) = user_logging.log_dir.as_ref() {
             if let Ok(path) = PathBuf::from_str(log_dir) {
                 self.logging.log_dir = path;
             }
         }
 
-        log::debug!("Trying to load the log level");
         if let Some(log_level) = user_logging.log_level.as_ref() {
             if let Ok(level) = LevelFilter::from_str(log_level) {
                 self.logging.log_level = level;
@@ -474,6 +479,8 @@ impl Config {
     }
 
     fn load_parser(&mut self, user_parser: &UserParserConfig) {
+        log::info!("loading the parser configuration");
+
         if let Some(toc) = user_parser.toc {
             self.parser.toc = toc;
         }
@@ -488,6 +495,14 @@ impl Config {
         }
         if let Some(code_blocks) = user_parser.code_blocks {
             self.parser.code_blocks = code_blocks;
+        }
+    }
+
+    fn load_article_features(&mut self, user_article_features: &UserArticleFeatures) {
+        log::info!("loading the article features");
+
+        if let Some(links) = user_article_features.links {
+            self.features.links = links;
         }
     }
 

@@ -157,7 +157,7 @@ fn on_result_select(siv: &mut Cursive, item: &SearchResult) {
         item.page_id()
     );
 
-    log::info!("generating the preview");
+    log::debug!("generating the preview");
     let mut preview = StyledString::new();
 
     // add the title to the preview
@@ -188,7 +188,7 @@ fn on_result_select(siv: &mut Cursive, item: &SearchResult) {
     }
 
     // set the content of the preview view to the generated preview
-    log::info!("displaying the generated preivew");
+    log::debug!("displaying the generated preivew");
     let result = siv.call_on_name("search_results_preview", |view: &mut TextView| {
         view.set_content(preview);
     });

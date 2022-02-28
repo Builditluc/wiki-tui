@@ -16,6 +16,7 @@ use cursive::Cursive;
 
 mod content;
 mod lines;
+mod links;
 mod view;
 pub type ArticleView = view::ArticleView;
 
@@ -75,22 +76,90 @@ pub fn on_article_submit(siv: &mut Cursive, search_result: &SearchResult) {
     log::info!("on_article_submit finished successfully");
 }
 
-// /// Fetches an article from a given link and displays it. It's the on_submit callback for the
-// /// article view
-// pub fn on_link_submit(siv: &mut Cursive, target: String) {}
-//
-// /// Helper function for fetching and displaying an artile from a given link. Any errors it
-// /// encounters are returned
-// fn open_link(siv: &mut Cursive, target: String) -> Result<()> {
-//     // fetch the article
-//     let article = ArticleBuilder::new(0, Some(target))
-//         .build(&mut DefaultParser::new(&config::CONFIG.parser))?;
-//
-//     // display the article
-//     display_article(siv, article)?;
-//
-//     Ok(())
-// }
+/// Fetches an article from a given link and displays it. It's the on_submit callback for the
+/// article view
+pub fn on_link_submit(siv: &mut Cursive, target: String) {
+    log::info!(
+        "on_link_submit was called with the target link '{}'",
+        target
+    );
+
+    // convert the target into a human-friendly format
+    let target_human = {
+        let target = target.strip_prefix("/wiki/").unwrap_or(&target);
+        target.replace('_', " ")
+    };
+
+    log::info!("requesting confirmation from the user");
+    siv.add_layer(
+        // create a dialog that asks the user for confirmation whether he really wants to open this
+        // link
+        Dialog::around(TextView::new(format!(
+            "Do you want to open the article '{}'?",
+            target_human
+        )))
+        .button("Yep", move |s| {
+            log::info!("on_link_submit - user said yes :) continuing...");
+            // the human wants us to open the link for him... we will comply...
+            open_link(s, target.clone())
+        })
+        .button("Nope", move |s| {
+            log::info!("on_link_submit - said no :/ aborting...");
+            // so he doesn't want us to open the link... delete the whole dialog and pretend it
+            // didn't happen
+            s.pop_layer();
+        }),
+    );
+
+    log::info!("on_link_submit finished successfully");
+}
+
+/// Helper function for fetching and displaying an article from a given link
+fn open_link(siv: &mut Cursive, target: String) {
+    log::debug!("open_link was called");
+
+    // hide the confirmation dialog
+    siv.pop_layer();
+
+    // fetch the article
+    log::debug!("fetching the article");
+    let article = match ArticleBuilder::new(0, Some(target))
+        .build(&mut DefaultParser::new(&config::CONFIG.parser))
+    {
+        Ok(article) => article,
+        Err(error) => {
+            log::warn!("{:?}", error);
+
+            // display an error message
+            siv.add_layer(
+                Dialog::info("A Problem occurred while fetching the article.\nCheck the logs for further information")
+                    .title("Error")
+                    .title_position(HAlign::Center)
+            );
+
+            log::debug!("open_link failed to finish");
+            return;
+        }
+    };
+
+    // display the article
+    log::debug!("displaying the article");
+    if let Err(error) = display_article(siv, article) {
+        log::warn!("{:?}", error);
+
+        // display an error message
+        siv.add_layer(
+            Dialog::info("A Problem occurred while displaying the article.\nCheck the logs for further information")
+                .title("Error")
+                .title_position(HAlign::Center)
+        );
+
+        log::debug!("open_link failed to finish");
+        return;
+    }
+
+    log::debug!("open_link finished successfully");
+}
 
 /// Helper function for displaying an article on the screen. This includes creating an article view
 /// and any errors it encountred are returned
