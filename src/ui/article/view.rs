@@ -1,12 +1,15 @@
-use crate::{config::CONFIG, ui::article::content::ArticleContent, wiki::article::Article};
+use crate::{
+    config::CONFIG, ui::article::content::ArticleContent, ui::article::on_link_submit,
+    wiki::article::Article,
+};
 
 use cursive::{
     direction::Absolute,
     event::{Callback, Event, EventResult, Key},
-    Vec2, View,
+    Rect, Vec2, View,
 };
 
-use super::on_link_submit;
+use std::cell::Cell;
 
 /// A view displaying an article
 pub struct ArticleView {
@@ -15,6 +18,12 @@ pub struct ArticleView {
 
     /// The last size the view had
     last_size: Vec2,
+
+    /// The offset of the viewport
+    viewport_offset: Cell<usize>,
+
+    /// The size of the viewport
+    viewport_size: Cell<Vec2>,
 }
 
 impl ArticleView {
@@ -24,7 +33,57 @@ impl ArticleView {
         ArticleView {
             content: ArticleContent::new(article),
             last_size: Vec2::zero(),
+            viewport_offset: Cell::new(0),
+            viewport_size: Cell::new(Vec2::zero()),
         }
+    }
+
+    /// Moves the viewport by a given amount in a given direction
+    fn scroll(&mut self, direction: Absolute, amount: usize) -> EventResult {
+        match direction {
+            Absolute::Up => self
+                .viewport_offset
+                .set(self.viewport_offset.get().saturating_sub(amount)),
+            Absolute::Down => self
+                .viewport_offset
+                .set(self.viewport_offset.get().saturating_add(amount)),
+            _ => return EventResult::Ignored,
+        }
+
+        // if the links are enabled, check if the current link is out of the viewport
+        if !CONFIG.features.links {
+            return EventResult::Consumed(None);
+        }
+
+        // get the position of the current link and the top of the viewport
+        let link_pos = self.content.current_link_pos().unwrap(); // we can use unwrap here because the feature is enabled
+        let viewport_top = self.viewport_offset.get();
+
+        // if the link is above the viewport (aka its y-pos is smaller than the viewport offset),
+        // then increase the links position by the difference between the viewport offset and its
+        // y-position
+        if link_pos.y <= viewport_top {
+            let move_amount = viewport_top.saturating_sub(link_pos.y);
+            log::debug!("moving the link down by '{}'", move_amount);
+            self.content.move_selected_link(Absolute::Down, move_amount);
+
+            return EventResult::Consumed(None)
+        }
+
+        // if the link is below the viewport (aka its y-pos is bigger than the viewport offset plus
+        // its size),
+        // then decrease the links position by the difference between its y-position and the
+        // viewport offset
+        let viewport_bottom = viewport_top.saturating_add(self.viewport_size.get().y);
+        if link_pos.y >= viewport_bottom {
+            let move_amount = link_pos.y.saturating_sub(viewport_bottom);
+            log::debug!("moving the link up by '{}'", move_amount);
+            self.content.move_selected_link(Absolute::Up, move_amount);
+
+            return EventResult::Consumed(None)
+        }
+
+        return EventResult::Consumed(None)
     }
 }
 
@@ -33,6 +92,10 @@ impl View for ArticleView {
         // get the start and end y coordinates so that we only draw the lines visible
         let miny = printer.content_offset.y;
         let maxy = printer.content_offset.y + printer.output_size.y;
+
+        // update the viewport
+        self.viewport_offset.set(miny);
+        self.viewport_size.set(printer.output_size);
 
         // go through every line and print it to the screen
         for (y, line) in self
@@ -85,14 +148,55 @@ impl View for ArticleView {
         true
     }
 
+    fn important_area(&self, _: Vec2) -> cursive::Rect {
+        // return the viewport
+        Rect::from_size(
+            Vec2::new(0, self.viewport_offset.get()),
+            self.viewport_size.get(),
+        )
+    }
+
     fn on_event(&mut self, event: Event) -> EventResult {
         match event {
+            Event::Key(Key::Up) => self.scroll(Absolute::Up, 1),
+            Event::Key(Key::Down) => self.scroll(Absolute::Down, 1),
             Event::Key(Key::Left) if CONFIG.features.links => {
-                self.content.move_selected_link(Absolute::Down, 1);
+                self.content.move_selected_link(Absolute::Left, 1);
+                // if the current link is outside of the viewport, then scroll
+                // get the current links position
+                let current_link_pos = self.content.current_link_pos().unwrap(); // we can use unwrap here 
+
+                // we've moved the link to the left, so we only need to check if the link is above
+                // the viewport
+                let viewport_top = self.viewport_offset.get();
+                if current_link_pos.y <= viewport_top {
+                    // so the link is below the viewport... great...
+                    // calculate how much below the viewport the link is
+                    let move_amount = viewport_top.saturating_sub(current_link_pos.y);
+
+                    // then scroll that amount
+                    self.scroll(Absolute::Up, move_amount);
+                }
                 EventResult::Consumed(None)
             }
             Event::Key(Key::Right) if CONFIG.features.links => {
                 self.content.move_selected_link(Absolute::Right, 1);
+                // if the current link is outside of the viewport, then scroll
+                // get the current links position
+                let current_link_pos = self.content.current_link_pos().unwrap(); // we can use unwrap here 
+
+                // we've moved the link to the right, so we only need to check if the link is below
+                // the viewport
+                let viewport_bottom = self.viewport_offset.get().saturating_add(self.viewport_size.get().y);
+                if current_link_pos.y >= viewport_bottom {
+                    // so the link is below the viewport... great...
+                    // calculate how much below the viewport the link is
+                    let move_amount = current_link_pos.y.saturating_sub(viewport_bottom);
+
+                    // then scroll that amount
+                    self.scroll(Absolute::Down, move_amount);
+                }
+
                 EventResult::Consumed(None)
             }
             Event::Key(Key::Enter) if CONFIG.features.links => {

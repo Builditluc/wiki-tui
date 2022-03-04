@@ -107,7 +107,7 @@ pub struct ParserConfig {
     pub code_blocks: bool,
 }
 
-pub struct ArticleFeatures {
+pub struct Features {
     pub links: bool,
 }
 
@@ -116,7 +116,7 @@ pub struct Config {
     pub theme: Theme,
     pub logging: Logging,
     pub parser: ParserConfig,
-    pub features: ArticleFeatures,
+    pub features: Features,
     config_path: PathBuf,
     args: Cli,
 }
@@ -127,7 +127,7 @@ struct UserConfig {
     theme: Option<UserTheme>,
     logging: Option<UserLogging>,
     parser: Option<UserParserConfig>,
-    features: Option<UserArticleFeatures>,
+    features: Option<UserFeatures>,
 }
 
 #[derive(Deserialize, Debug)]
@@ -180,7 +180,7 @@ struct UserParserConfig {
 }
 
 #[derive(Deserialize, Debug)]
-struct UserArticleFeatures {
+struct UserFeatures {
     links: Option<bool>,
 }
 
@@ -219,7 +219,7 @@ impl Config {
                 lists: true,
                 code_blocks: true,
             },
-            features: ArticleFeatures { links: true },
+            features: Features { links: true },
             config_path: PathBuf::new(),
             args: Cli::from_args(),
         };
@@ -285,8 +285,8 @@ impl Config {
             self.load_parser(&user_parser);
         }
 
-        if let Some(user_article_features) = user_config.features {
-            self.load_article_features(&user_article_features);
+        if let Some(user_features) = user_config.features {
+            self.load_features(&user_features);
         }
 
         // override the log level
@@ -498,7 +498,7 @@ impl Config {
         }
     }
 
-    fn load_article_features(&mut self, user_article_features: &UserArticleFeatures) {
+    fn load_features(&mut self, user_article_features: &UserFeatures) {
         log::info!("loading the article features");
 
         if let Some(links) = user_article_features.links {

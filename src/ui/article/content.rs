@@ -50,6 +50,14 @@ impl ArticleContent {
         None
     }
 
+    /// Returns the position of the current link
+    pub fn current_link_pos(&self) -> Option<Vec2> {
+        if let Some(ref link_handler) = self.link_handler {
+            return Some(link_handler.get_current_link_pos());
+        }
+        None
+    }
+
     /// Calculates and returns the required size
     pub fn required_size(&mut self, size: Vec2) -> Vec2 {
         log::debug!(
