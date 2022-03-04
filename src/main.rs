@@ -2,7 +2,6 @@ extern crate anyhow;
 extern crate lazy_static;
 extern crate log;
 
-use core::panic;
 use cursive::align::HAlign;
 use cursive::theme::*;
 use cursive::traits::*;

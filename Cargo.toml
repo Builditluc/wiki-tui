@@ -27,8 +27,6 @@ structopt = "0.3.25"
 
 [dependencies.cursive]
 version = "0.16.3"
-default-features = false
-features = ["crossterm-backend"]
 
 [dependencies.reqwest]
 version = "0.11"

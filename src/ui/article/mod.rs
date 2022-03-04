@@ -150,7 +150,7 @@ fn open_link(siv: &mut Cursive, target: String) {
 
     // display the article
     log::debug!("displaying the article");
-    if let Err(error) = display_article(siv, article) {
+    if let Err(error) = display_article(siv, article.clone()) {
         log::warn!("{:?}", error);
 
         // display an error message
@@ -162,6 +162,12 @@ fn open_link(siv: &mut Cursive, target: String) {
 
         log::debug!("open_link failed to finish");
         return;
+    }
+
+    // display the toc if there is one
+    if let Some(toc) = article.toc() {
+        log::debug!("displaying the table of contents");
+        ui::toc::add_table_of_contents(siv, toc);
     }
 
     log::debug!("open_link finished successfully");
