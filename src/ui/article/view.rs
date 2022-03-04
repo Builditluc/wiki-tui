@@ -1,353 +1,150 @@
-use crate::config::CONFIG;
-use crate::ui::article::{
-    lines::LinesWrapper,
-    links::{Directions, LinkHandler},
+use crate::{
+    config::CONFIG, 
+    ui::article::content::ArticleContent, 
+    ui::article::on_link_submit,
+    wiki::article::Article,
 };
-use crate::wiki::article::*;
 
-use cursive::align::Align;
-use cursive::event::{Callback, Event, EventResult, Key};
-use cursive::theme::{Effect, Style};
-use cursive::view::*;
-use cursive::views::ViewRef;
-use cursive::{Printer, Vec2, XY};
+use cursive::{
+    direction::Absolute,
+    event::{Callback, Event, EventResult, Key},
+    Rect, Vec2, View,
+};
+
 use std::cell::Cell;
-use std::cmp::min;
-use std::rc::Rc;
 
+/// A view displaying an article
 pub struct ArticleView {
+    /// The content of the view
     content: ArticleContent,
-    focus: Rc<Cell<usize>>,
-    output_size: Cell<Vec2>,
 
+    /// The last size the view had
     last_size: Vec2,
-    width: Option<usize>,
-}
 
-struct ArticleContent {
-    elements_rendered: Vec<RenderedElement>,
-    elements_count: usize,
+    /// The offset of the viewport
+    viewport_offset: Cell<usize>,
 
-    lines: Vec<Line>,
-    lines_wrapped: bool,
-    link_handler: LinkHandler,
-
-    headers: Vec<String>,
-    headers_coords: Vec<usize>,
-
-    size_cache: Option<XY<SizeCache>>,
-    historical_caches: Vec<(Vec2, Vec2)>,
-}
-
-#[derive(Debug)]
-pub struct Element {
-    pub text: String,
-    pub style: Style,
-    pub width: usize,
-    pub link_index: Option<usize>,
-}
-
-pub struct RenderedElement {
-    pub text: String,
-    pub style: Style,
-    pub newline: bool,
-    pub link_destination: Option<String>,
-}
-
-pub type Line = Vec<Element>;
-
-impl ArticleContent {
-    pub fn new() -> ArticleContent {
-        ArticleContent {
-            elements_rendered: Vec::new(),
-            elements_count: 0,
-
-            lines: Vec::new(),
-            lines_wrapped: false,
-            link_handler: LinkHandler::new(),
-
-            headers: Vec::new(),
-            headers_coords: Vec::new(),
-
-            size_cache: None,
-            historical_caches: Vec::new(),
-        }
-    }
-
-    fn render(&mut self, article: Article) {
-        self.elements_count = article.elements.len();
-        let mut rendered_article = Vec::new();
-
-        // go trough every element in the article
-        for element in article.elements.into_iter() {
-            match element.element_type {
-                // if its a link, make it underlined
-                ArticleElementType::Link => rendered_article.push(RenderedElement {
-                    text: element.content,
-                    newline: false,
-                    style: Style::from(CONFIG.theme.text).combine(Effect::Underline),
-                    link_destination: element.link_target,
-                }),
-
-                // if its text, just append it to the rendered article
-                ArticleElementType::Text => rendered_article.append(&mut self.render_element(
-                    element.content.split('\n').enumerate(),
-                    Style::from(CONFIG.theme.text),
-                    &element.link_target,
-                )),
-
-                // if its a header, add some linebreaks and change the color
-                ArticleElementType::Header => {
-                    rendered_article.append(&mut self.render_element(
-                        format!("\n{}\n\n", element.content).split('\n').enumerate(),
-                        Style::from(CONFIG.theme.title),
-                        &element.link_target,
-                    ));
-                    self.headers.push(element.content);
-                }
-                // if its bold text, make it bold
-                ArticleElementType::Bold => rendered_article.append(&mut self.render_element(
-                    element.content.split('\n').enumerate(),
-                    Style::from(CONFIG.theme.text).combine(Effect::Bold),
-                    &element.link_target,
-                )),
-                // if its italic text, make it italic
-                ArticleElementType::Italic => rendered_article.append(&mut self.render_element(
-                    element.content.split('\n').enumerate(),
-                    Style::from(CONFIG.theme.text).combine(Effect::Italic),
-                    &element.link_target,
-                )),
-            }
-        }
-
-        self.elements_rendered = rendered_article;
-    }
-
-    fn render_element<'a>(
-        &self,
-        element: impl Iterator<Item = (usize, &'a str)>,
-        style: Style,
-        link_target: &'a Option<String>,
-    ) -> Vec<RenderedElement> {
-        let mut rendered_elements: Vec<RenderedElement> = Vec::new();
-        for (idx, content) in element {
-            rendered_elements.push(RenderedElement {
-                text: content.to_string(),
-                newline: idx >= 1,
-                style,
-                link_destination: link_target.clone(),
-            })
-        }
-
-        rendered_elements
-    }
-
-    fn calculate_lines(&mut self, max_width: usize) -> Vec<Line> {
-        log::debug!(
-            "Calculating the lines with a max line width of: {}",
-            max_width
-        );
-        log::trace!("headers: \t{:?}", self.headers);
-
-        let lines_wrapper = LinesWrapper::new(max_width, self.headers.clone())
-            .calculate_lines(&self.elements_rendered, &mut self.link_handler);
-
-        self.lines_wrapped = lines_wrapper.lines_wrapped;
-        self.headers_coords = lines_wrapper.header_coords;
-
-        lines_wrapper.lines
-    }
-
-    fn set_article(&mut self, article: Article) {
-        // render the new article
-        self.render(article);
-
-        // after rendering, flush the caches
-        self.historical_caches.clear();
-        self.size_cache = None;
-
-        // also, reset the link_handler
-        self.link_handler.reset();
-    }
-
-    fn is_chache_valid(&self, size: Vec2) -> bool {
-        match self.size_cache {
-            None => false,
-            Some(ref last) => last.x.accept(size.x) && last.y.accept(size.y),
-        }
-    }
+    /// The size of the viewport
+    viewport_size: Cell<Vec2>,
 }
 
 impl ArticleView {
-    pub fn new() -> ArticleView {
+    /// Creates a new ArticleView with a given article as its content
+    pub fn new(article: Article) -> Self {
+        log::debug!("creating a new instance of ArticleView");
         ArticleView {
-            content: ArticleContent::new(),
-            focus: Rc::new(Cell::new(0)),
-            output_size: Cell::new(Vec2::zero()),
+            content: ArticleContent::new(article),
             last_size: Vec2::zero(),
-            width: None,
+            viewport_offset: Cell::new(0),
+            viewport_size: Cell::new(Vec2::zero()),
         }
     }
 
-    pub fn set_article(&mut self, article: Article) {
-        self.content.set_article(article)
+    /// Moves the viewport by a given amount in a given direction
+    fn scroll(&mut self, direction: Absolute, amount: usize) -> EventResult {
+        match direction {
+            Absolute::Up => self
+                .viewport_offset
+                .set(self.viewport_offset.get().saturating_sub(amount)),
+            Absolute::Down => self
+                .viewport_offset
+                .set(self.viewport_offset.get().saturating_add(amount)),
+            _ => return EventResult::Ignored,
+        }
+
+        // if the links are enabled, check if the current link is out of the viewport
+        if !CONFIG.features.links {
+            return EventResult::Consumed(None);
+        }
+
+        // get the position of the current link and the top of the viewport
+        let link_pos = self.content.current_link_pos().unwrap(); // we can use unwrap here because the feature is enabled
+        let viewport_top = self.viewport_offset.get();
+
+        // if the link is above the viewport (aka its y-pos is smaller than the viewport offset),
+        // then increase the links position by the difference between the viewport offset and its
+        // y-position
+        if link_pos.y <= viewport_top {
+            let move_amount = viewport_top.saturating_sub(link_pos.y);
+            log::debug!("moving the link down by '{}'", move_amount);
+            self.content.move_selected_link(Absolute::Down, move_amount);
+
+            return EventResult::Consumed(None)
+        }
+
+        // if the link is below the viewport (aka its y-pos is bigger than the viewport offset plus
+        // its size),
+        // then decrease the links position by the difference between its y-position and the
+        // viewport offset
+        let viewport_bottom = viewport_top.saturating_add(self.viewport_size.get().y);
+        if link_pos.y >= viewport_bottom {
+            let move_amount = link_pos.y.saturating_sub(viewport_bottom);
+            log::debug!("moving the link up by '{}'", move_amount);
+            self.content.move_selected_link(Absolute::Up, move_amount);
+
+            return EventResult::Consumed(None)
+        }
+
+        return EventResult::Consumed(None)
     }
 
-    fn calculate_lines(&mut self, size: Vec2) {
-        if self.content.is_chache_valid(size) || size.x == 0 {
+    /// Select a header by moving the viewport to its coordinates
+    pub fn select_header(&mut self, index: usize) {
+        if !CONFIG.features.headers { return }
+        log::info!("selecting the header number '{}'", index);
+
+        // get the position of the header and the viewport top and bottom
+        let header_pos = self.content.header_y_pos(index).unwrap_or(self.viewport_offset.get());
+        let viewport_top = self.viewport_offset.get();
+        let viewport_bottom = viewport_top.saturating_mul(self.viewport_size.get().y);
+
+        // if the header is above the viewport, then get the difference between the header and the
+        // viewport and scroll up by that amount
+        if header_pos < viewport_top {
+            let move_amount = viewport_top.saturating_sub(header_pos);
+            self.scroll(Absolute::Up, move_amount);
             return;
         }
 
-        self.content.size_cache = None;
-        self.content.link_handler.links.clear();
-
-        self.content.lines_wrapped = false;
-        self.content.lines = self.content.calculate_lines(size.x);
-
-        // Desired width
-        self.width = if self.content.lines_wrapped {
-            log::debug!("Rows are wrapped, requiring the full width of '{}'", size.x);
-            // if any rows are wrapped, then require the full width
-            Some(size.x)
-        } else {
-            log::debug!("Rows aren't wrapped");
-            let size_x = self
-                .content
-                .lines
-                .iter()
-                .map(|line| line.iter().map(|element| element.width).max().unwrap_or(0))
-                .max();
-
-            size_x
+        // if the header is below the viewport, then get the difference between the header and the
+        // viewport and scroll down by that amount
+        if header_pos > viewport_bottom {
+            let move_amount = header_pos.saturating_sub(viewport_bottom);
+            self.scroll(Absolute::Down, move_amount);
+            return
         }
-    }
-
-    fn move_link(&mut self, direction: Directions, amount: i32) -> EventResult {
-        if self.content.link_handler.has_links() {
-            let link_pos_y = self.content.link_handler.move_link(direction, amount);
-            if link_pos_y < self.focus.get() {
-                self.move_focus_up(self.focus.get().saturating_sub(link_pos_y));
-            } else if (self.output_size.get().y + self.focus.get()) < link_pos_y {
-                self.move_focus_down(
-                    link_pos_y.saturating_sub(self.output_size.get().y + self.focus.get()),
-                );
-            }
-        }
-        EventResult::Consumed(None)
-    }
-
-    #[must_use]
-    pub fn on_link_submit<F: Fn(&mut cursive::Cursive, &str) + 'static>(
-        mut self,
-        function: F,
-    ) -> Self {
-        self.content.link_handler.on_link_submit_callback = Some(Rc::new(function));
-
-        self
-    }
-
-    fn move_focus_up(&mut self, n: usize) -> EventResult {
-        let focus = self.focus.get().saturating_sub(n);
-        self.focus.set(focus);
-        if self.content.link_handler.has_links() {
-            let link_pos_y = self.content.link_handler.links
-                [self.content.link_handler.current_link]
-                .position
-                .y;
-            if self.output_size.get().y < link_pos_y {
-                self.content
-                    .link_handler
-                    .move_link(Directions::VERTICAL, 0 - (n as i32));
-            }
-        }
-        EventResult::Consumed(None)
-    }
-
-    fn move_focus_down(&mut self, n: usize) -> EventResult {
-        let focus = min(
-            self.focus.get() + n,
-            self.content.lines.len().saturating_sub(1),
-        );
-        self.focus.set(focus);
-        EventResult::Consumed(Some(Callback::from_fn(
-            move |siv: &mut cursive::Cursive| {
-                log::debug!("Moving the link focus");
-                let mut view: ViewRef<ArticleView> = siv.find_name("article_view").unwrap();
-                if view.content.link_handler.has_links() {
-                    let link_pos_y = view.content.link_handler.links
-                        [view.content.link_handler.current_link]
-                        .position
-                        .y;
-                    log::debug!("old link pos: {}", link_pos_y);
-                    view.content.link_handler.move_link(
-                        Directions::VERTICAL,
-                        (focus.saturating_sub(link_pos_y)) as i32,
-                    );
-                    log::debug!(
-                        "current link: {} at {:?}",
-                        view.content.link_handler.current_link,
-                        view.content.link_handler.links[view.content.link_handler.current_link]
-                    );
-                }
-            },
-        )))
-    }
-
-    pub fn select_header(&mut self, header: usize) {
-        if (header >= self.content.headers_coords.len()) && (header >= self.content.headers.len()) {
-            log::error!("The Header could not be found");
-            log::trace!("headers_coords: \t{:?}", self.content.headers_coords);
-            log::trace!("headers: \t{:?}", self.content.headers);
-            return;
-        }
-
-        let header_pos = self.content.headers_coords[header];
-        let focus = self.focus.get();
-
-        log::debug!("header_pos: {}, focus: {}", header_pos, focus);
-
-        if header_pos > focus {
-            self.move_focus_down(header_pos.saturating_sub(focus));
-        } else {
-            self.move_focus_up(focus.saturating_sub(header_pos));
-        }
-
-        log::debug!("current focus: {}", self.focus.get());
     }
 }
 
 impl View for ArticleView {
-    fn draw(&self, printer: &Printer) {
-        let h = self.content.lines.len();
-
-        let offset = Align::top_left().v.get_offset(h, printer.size.y);
-        let printer = &printer.offset((0, offset));
-
+    fn draw(&self, printer: &cursive::Printer) {
+        // get the start and end y coordinates so that we only draw the lines visible
         let miny = printer.content_offset.y;
-        let maxy = printer.output_size.y + printer.content_offset.y;
+        let maxy = printer.content_offset.y + printer.output_size.y;
 
-        self.output_size.set(printer.output_size);
+        // update the viewport
+        self.viewport_offset.set(miny);
+        self.viewport_size.set(printer.output_size);
 
-        // got through every row and print it to the screen
-        for (y, line) in self.content.lines.iter().enumerate() {
-            if y < miny || y >= maxy {
-                continue;
-            }
+        // go through every line and print it to the screen
+        for (y, line) in self
+            .content
+            .get_rendered_lines()
+            .enumerate()
+            .filter(|(y, _)| &miny <= y && y <= &maxy)
+        {
+            // go through every element in the line and print it with its style
+            let mut x = 0;
+            for element in line {
+                let mut style = element.style;
 
-            let l = line.iter().map(|element| element.width).max().unwrap_or(0);
-            let mut x = Align::top_left().h.get_offset(l, printer.size.x);
+                if Some(element.id) == self.content.current_link() {
+                    style = style.combine(CONFIG.theme.highlight);
+                }
 
-            for span in line {
-                let style = if span.link_index.unwrap_or(999999)
-                    == self.content.link_handler.current_link
-                {
-                    span.style.combine(CONFIG.theme.highlight)
-                } else {
-                    span.style
-                };
                 printer.with_style(style, |printer| {
-                    printer.print((x, y), &span.text);
-                    x += span.width;
+                    printer.print((x, y), &element.content);
+                    x += element.width;
                 });
             }
         }
@@ -358,97 +155,106 @@ impl View for ArticleView {
         if self.last_size == size {
             return;
         }
+        log::debug!("final size for the view is '({},{})'", size.x, size.y);
 
-        // set the new width and calculate the lines
+        // save the new size and compute the lines
         self.last_size = size;
-        self.calculate_lines(size);
-
-        let my_size = Vec2::new(self.width.unwrap_or(0), self.content.lines.len());
-        self.content.size_cache = Some(SizeCache::build(my_size, size));
-        self.content.historical_caches.clear();
-
-        log::debug!("size of view: {:?}", size);
-        log::trace!("view width is: '{}'", size.x);
-        log::trace!("lines: \n{:#?}", self.content.lines);
+        self.content.compute_lines(size);
     }
 
-    fn required_size(&mut self, size: Vec2) -> Vec2 {
-        // do we already have the required size calculated and cached?
-        for previous_size in self.content.historical_caches.iter() {
-            let req_size = previous_size.0;
-            if req_size == size {
-                return previous_size.1;
-            }
-        }
-
-        // if we don't have the size calculated, calculate it and add it to the cache
-        self.calculate_lines(size);
-        let required_size = Vec2::new(self.width.unwrap_or(0), self.content.lines.len());
-
+    fn required_size(&mut self, constraint: Vec2) -> Vec2 {
+        // calculate and return the required size
         log::debug!(
-            "The required size for '{:?}' is '{:?}'",
-            size,
-            required_size
+            "calculating the required size for '({},{})'",
+            constraint.x,
+            constraint.y
         );
-        self.content
-            .historical_caches
-            .insert(0, (size, required_size));
-
-        required_size
-    }
-
-    fn needs_relayout(&self) -> bool {
-        self.content.size_cache.is_none()
+        self.content.required_size(constraint)
     }
 
     fn take_focus(&mut self, _: cursive::direction::Direction) -> bool {
+        // this view is always focusable
         true
     }
 
     fn important_area(&self, _: Vec2) -> cursive::Rect {
-        Some(self.focus.get())
-            .map(|i| {
-                cursive::Rect::from_size(
-                    (0, i),
-                    (self.output_size.get().x, self.output_size.get().y),
-                )
-            })
-            .unwrap_or_else(|| cursive::Rect::from((0, 1)))
+        // return the viewport
+        Rect::from_size(
+            Vec2::new(0, self.viewport_offset.get()),
+            self.viewport_size.get(),
+        )
     }
 
     fn on_event(&mut self, event: Event) -> EventResult {
         match event {
-            Event::Key(Key::Left) => self.move_link(Directions::HORIZONTAL, -1),
-            Event::Key(Key::Right) => self.move_link(Directions::HORIZONTAL, 1),
-            Event::Key(Key::Up) => self.move_focus_up(1),
-            Event::Key(Key::Down) => self.move_focus_down(1),
-            Event::Key(Key::Enter) => {
-                if self.content.link_handler.current_link >= self.content.link_handler.links.len() {
-                    log::error!("Failed trying to access an invalid link");
-                    log::debug!("current_link: {:?}", self.content.link_handler.current_link);
-                    return EventResult::Consumed(None);
+            Event::Key(Key::Up) => self.scroll(Absolute::Up, 1),
+            Event::Key(Key::Down) => self.scroll(Absolute::Down, 1),
+            Event::Key(Key::Left) if CONFIG.features.links => {
+                self.content.move_selected_link(Absolute::Left, 1);
+                // if the current link is outside of the viewport, then scroll
+                // get the current links position
+                let current_link_pos = self.content.current_link_pos().unwrap(); // we can use unwrap here 
+
+                // we've moved the link to the left, so we only need to check if the link is above
+                // the viewport
+                let viewport_top = self.viewport_offset.get();
+                if current_link_pos.y <= viewport_top {
+                    // so the link is below the viewport... great...
+                    // calculate how much below the viewport the link is
+                    let move_amount = viewport_top.saturating_sub(current_link_pos.y);
+
+                    // then scroll that amount
+                    self.scroll(Absolute::Up, move_amount);
+                }
+                EventResult::Consumed(None)
+            }
+            Event::Key(Key::Right) if CONFIG.features.links => {
+                self.content.move_selected_link(Absolute::Right, 1);
+                // if the current link is outside of the viewport, then scroll
+                // get the current links position
+                let current_link_pos = self.content.current_link_pos().unwrap(); // we can use unwrap here 
+
+                // we've moved the link to the right, so we only need to check if the link is below
+                // the viewport
+                let viewport_bottom = self.viewport_offset.get().saturating_add(self.viewport_size.get().y);
+                if current_link_pos.y >= viewport_bottom {
+                    // so the link is below the viewport... great...
+                    // calculate how much below the viewport the link is
+                    let move_amount = current_link_pos.y.saturating_sub(viewport_bottom);
+
+                    // then scroll that amount
+                    self.scroll(Absolute::Down, move_amount);
                 }
 
-                let target = self.content.link_handler.links
-                    [self.content.link_handler.current_link]
-                    .destination
-                    .clone();
-                log::info!("Showing the dialog to open '{}'", target);
-                EventResult::Consumed(
-                    self.content
-                        .link_handler
-                        .on_link_submit_callback
-                        .clone()
-                        .map(|f| Callback::from_fn(move |s| f(s, &target))),
-                )
+                EventResult::Consumed(None)
+            }
+            Event::Key(Key::Enter) if CONFIG.features.links => {
+                log::info!("opening the link");
+
+                // get current link and retrieve the ArticleElement linked to it
+                let current_link = self.content.current_link();
+                log::debug!("current link is '{:?}'", current_link);
+
+                if let Some(element) = self.content.element_by_id(current_link) {
+                    log::debug!("found the element");
+
+                    // get target link from the article element
+                    let target = match element.get_attribute("target") {
+                        Some(t) => t.to_string(),
+                        None => return EventResult::Ignored,
+                    };
+                    log::info!("target article is '{}'", target);
+
+                    // return the callback
+                    log::debug!("returning the callback to open the link");
+                    return EventResult::Consumed(Some(Callback::from_fn(move |s| {
+                        on_link_submit(s, target.clone())
+                    })));
+                }
+
+                EventResult::Ignored
             }
             _ => EventResult::Ignored,
         }
-    }
-}
-
-impl Default for ArticleView {
-    fn default() -> Self {
-        Self::new()
     }
 }

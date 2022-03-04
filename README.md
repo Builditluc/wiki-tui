@@ -123,6 +123,12 @@ code_blocks = true
 enabled = true                          # can be either true or false. enables/disables logging
 log_dir = "wiki_tui.log"                # location of the file where the log will be written to
 log_level = "Info"                      # log level to be used, can be Debug, Info, Warn, Error
+
+# wiki-tui allows you to disable certain features like links completely.
+# All features are enabled by default
+[features]
+links = true                            # enables/disables links (link selection, link opening, etc)
+headers = true                          # enables/disables header selection
 ```
 
 ## Contributing

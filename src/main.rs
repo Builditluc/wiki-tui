@@ -2,7 +2,6 @@ extern crate anyhow;
 extern crate lazy_static;
 extern crate log;
 
-use anyhow::*;
 use core::panic;
 use cursive::align::HAlign;
 use cursive::theme::*;
@@ -12,6 +11,8 @@ use cursive::views::*;
 use cursive::Cursive;
 use std::fs;
 use std::io::Write;
+
+use crate::wiki::search::SearchResult;
 
 pub mod cli;
 pub mod config;
@@ -36,30 +37,20 @@ fn main() {
         };
     });
 
-    let wiki = match initialize() {
-        Ok(wiki) => wiki,
-        Err(error) => {
-            panic!("Something happend during initialization:\n{:?}", error);
-        }
-    };
-
-    start_application(wiki);
+    initialize();
+    start_application();
 }
 
-fn initialize() -> Result<wiki::WikiApi> {
+fn initialize() {
     println!("{}", LOGO);
 
     // create and initialize the logger
     logging::Logger::new().initialize();
-
-    // Create the wiki struct, used for interaction with the wikipedia website/api
-    Ok(wiki::WikiApi::new())
 }
 
-fn start_application(wiki: wiki::WikiApi) {
+fn start_application() {
     let mut siv = cursive::default();
     siv.add_global_callback('q', Cursive::quit);
-    siv.set_user_data(wiki);
 
     // get and apply the color theme
     let theme = Theme {
@@ -70,21 +61,22 @@ fn start_application(wiki: wiki::WikiApi) {
 
     // Create the views
     let search_bar = EditView::new()
-        .on_submit(|s, q| match ui::search::on_search(s, q.to_string()) {
-            Ok(_) => (),
-            Err(error) => {log::error!("{:?}", error); panic!("Something happened while searching. Please check your logs for further information")},
-        })
+        .on_submit(|s, q| ui::search::on_search(s, q.to_string()))
         .style({
             if let Some(search_theme) = &config::CONFIG.theme.search_bar {
                 if search_theme.background == search_theme.secondary {
                     ColorStyle::new(search_theme.background, search_theme.text)
-                } else { ColorStyle::secondary() }
-            } else { ColorStyle::secondary() }
+                } else {
+                    ColorStyle::secondary()
+                }
+            } else {
+                ColorStyle::secondary()
+            }
         })
         .with_name("search_bar")
         .full_width();
 
-    let search_layout = change_theme!(
+    let search_layout = view_with_theme!(
         config::CONFIG.theme.search_bar,
         Dialog::around(LinearLayout::horizontal().child(search_bar))
             .title("Search")
@@ -126,17 +118,32 @@ fn start_application(wiki: wiki::WikiApi) {
 
 fn handle_arguments() -> Box<dyn FnOnce(&mut Cursive) + Send> {
     if let Some(search_query) = config::CONFIG.get_args().search_query.as_ref() {
-        log::info!("Searching for the article: {}", search_query);
+        log::info!("searching for the article: {}", search_query);
         return Box::new(move |siv: &mut Cursive| {
-            if let Err(error) = ui::search::on_search(siv, search_query.to_string()) {
-                log::error!("{:?}", error);
-                panic!("Something happened while searching. Please check your logs for further information");
-            };
+            ui::search::on_search(siv, search_query.to_string());
         });
     } else if let Some(article_id) = config::CONFIG.get_args().article_id {
-        log::info!("Opening the article: {}", article_id);
+        log::info!("opening the article: {}", article_id);
         return Box::new(move |siv: &mut Cursive| {
-            ui::article::on_article_submit(siv, &article_id.into());
+            ui::article::on_article_submit(
+                siv,
+                &SearchResult::new(
+                    String::new(),
+                    0,
+                    article_id,
+                    None,
+                    None,
+                    None,
+                    None,
+                    None,
+                    None,
+                    None,
+                    None,
+                    None,
+                    None,
+                    None,
+                ),
+            );
         });
     }
 
@@ -154,15 +161,4 @@ fn get_color_palette() -> Palette {
     custom_palette.set_color("HighlightText", config::CONFIG.theme.highlight_text);
 
     custom_palette
-}
-
-fn remove_view_from_article_layout(siv: &mut Cursive, view_name: &str) {
-    siv.call_on_name("article_layout", |view: &mut LinearLayout| {
-        if let Some(i) = view.find_child_from_name(view_name) {
-            log::debug!("Removing the {} from the article_layout", view_name);
-            view.remove_child(i);
-        } else {
-            log::warn!("Couldn't find the {}", view_name);
-        }
-    });
 }

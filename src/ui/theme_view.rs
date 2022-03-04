@@ -2,12 +2,16 @@ use cursive::theme::{ColorStyle, Theme};
 use cursive::view::{View, ViewWrapper};
 use cursive::{inner_getters, wrap_impl};
 
+/// This is a wrapper that applies a theme to a view by overriding its draw method
 pub struct ThemedView<T> {
+    /// The theme of the view
     theme: Theme,
+    /// The view
     view: T,
 }
 
 impl<T> ThemedView<T> {
+    /// Creates a new ThemedView with the given theme and view
     pub fn new(theme: Theme, view: T) -> Self {
         ThemedView { theme, view }
     }
@@ -28,15 +32,4 @@ impl<T: View> ViewWrapper for ThemedView<T> {
             printer.with_style(ColorStyle::primary(), |printer| self.view.draw(printer));
         });
     }
-}
-
-#[macro_export]
-macro_rules! change_theme {
-    ($theme:expr,$view:expr) => {
-        if let Some(theme) = $theme.as_ref() {
-            ui::ThemedView::new(theme.to_theme(), $view)
-        } else {
-            ui::ThemedView::new(config::CONFIG.theme.to_theme(), $view)
-        }
-    };
 }
