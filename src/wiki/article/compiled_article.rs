@@ -1,7 +1,7 @@
 use crate::wiki::article::{element::ArticleElement, toc::TableOfContents};
 
 /// A fully parsed article with an optional table of contents
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Clone)]
 pub struct Article {
     /// The elements of the article
     elements: Vec<ArticleElement>,

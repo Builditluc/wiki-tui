@@ -109,6 +109,7 @@ pub struct ParserConfig {
 
 pub struct Features {
     pub links: bool,
+    pub headers: bool,
 }
 
 pub struct Config {
@@ -182,6 +183,7 @@ struct UserParserConfig {
 #[derive(Deserialize, Debug)]
 struct UserFeatures {
     links: Option<bool>,
+    headers: Option<bool>,
 }
 
 impl Config {
@@ -219,7 +221,7 @@ impl Config {
                 lists: true,
                 code_blocks: true,
             },
-            features: Features { links: true },
+            features: Features { links: true, headers: true },
             config_path: PathBuf::new(),
             args: Cli::from_args(),
         };
@@ -498,11 +500,15 @@ impl Config {
         }
     }
 
-    fn load_features(&mut self, user_article_features: &UserFeatures) {
+    fn load_features(&mut self, user_features: &UserFeatures) {
         log::info!("loading the article features");
 
-        if let Some(links) = user_article_features.links {
+        if let Some(links) = user_features.links {
             self.features.links = links;
+        }
+
+        if let Some(headers) = user_features.headers {
+            self.features.headers = headers;
         }
     }
 

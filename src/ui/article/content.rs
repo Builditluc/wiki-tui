@@ -17,6 +17,10 @@ pub struct ArticleContent {
     /// Wrapped lines, ready for drawing
     rendered_lines: Vec<Line>,
 
+    /// The y-coordinates of the headers, only created and used when it's enabled in the
+    /// configuration
+    header_y_coords: Option<Vec<usize>>,
+
     /// The LinkHandler, only created and used when it's enabled in the configuration
     link_handler: Option<LinkHandler>,
 }
@@ -28,6 +32,7 @@ impl ArticleContent {
         ArticleContent {
             article,
             rendered_lines: Vec::new(),
+            header_y_coords: None,
             link_handler: None,
         }
     }
@@ -54,6 +59,15 @@ impl ArticleContent {
     pub fn current_link_pos(&self) -> Option<Vec2> {
         if let Some(ref link_handler) = self.link_handler {
             return Some(link_handler.get_current_link_pos());
+        }
+        None
+    }
+
+    /// Returns the y-position of a given header
+    pub fn header_y_pos(&self, index: usize) -> Option<usize> {
+        if let Some(ref header_y_coords) = self.header_y_coords {
+            assert!(header_y_coords.len() > index);
+            return Some(header_y_coords[index]);
         }
         None
     }
@@ -123,6 +137,7 @@ impl ArticleContent {
 
         self.link_handler = lines_wrapper.link_handler;
         self.rendered_lines = lines_wrapper.rendered_lines;
+        self.header_y_coords = lines_wrapper.header_y_coords;
 
         log::debug!(
             "compute_lines finished successfully, rendering '{}' lines",

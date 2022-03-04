@@ -1,5 +1,7 @@
 use crate::{
-    config::CONFIG, ui::article::content::ArticleContent, ui::article::on_link_submit,
+    config::CONFIG, 
+    ui::article::content::ArticleContent, 
+    ui::article::on_link_submit,
     wiki::article::Article,
 };
 
@@ -84,6 +86,33 @@ impl ArticleView {
         }
 
         return EventResult::Consumed(None)
+    }
+
+    /// Select a header by moving the viewport to its coordinates
+    pub fn select_header(&mut self, index: usize) {
+        if !CONFIG.features.headers { return }
+        log::info!("selecting the header number '{}'", index);
+
+        // get the position of the header and the viewport top and bottom
+        let header_pos = self.content.header_y_pos(index).unwrap_or(self.viewport_offset.get());
+        let viewport_top = self.viewport_offset.get();
+        let viewport_bottom = viewport_top.saturating_mul(self.viewport_size.get().y);
+
+        // if the header is above the viewport, then get the difference between the header and the
+        // viewport and scroll up by that amount
+        if header_pos < viewport_top {
+            let move_amount = viewport_top.saturating_sub(header_pos);
+            self.scroll(Absolute::Up, move_amount);
+            return;
+        }
+
+        // if the header is below the viewport, then get the difference between the header and the
+        // viewport and scroll down by that amount
+        if header_pos > viewport_bottom {
+            let move_amount = header_pos.saturating_sub(viewport_bottom);
+            self.scroll(Absolute::Down, move_amount);
+            return
+        }
     }
 }
 

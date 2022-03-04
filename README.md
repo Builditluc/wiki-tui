@@ -128,6 +128,7 @@ log_level = "Info"                      # log level to be used, can be Debug, In
 # All features are enabled by default
 [features]
 links = true                            # enables/disables links (link selection, link opening, etc)
+headers = true                          # enables/disables header selection
 ```
 
 ## Contributing

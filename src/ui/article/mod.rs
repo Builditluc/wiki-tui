@@ -59,7 +59,7 @@ pub fn on_article_submit(siv: &mut Cursive, search_result: &SearchResult) {
             search_result.title().to_string()
         }
     );
-    if let Err(error) = display_article(siv, article) {
+    if let Err(error) = display_article(siv, article.clone()) {
         // log the error
         log::warn!("{}", error);
 
@@ -71,6 +71,12 @@ pub fn on_article_submit(siv: &mut Cursive, search_result: &SearchResult) {
         );
         log::info!("on_article_submit failed to finish");
         return;
+    }
+
+    // display the toc if there is one
+    if let Some(toc) = article.toc() {
+        log::info!("displaying the table of contents");
+        ui::toc::add_table_of_contents(siv, toc);
     }
 
     log::info!("on_article_submit finished successfully");

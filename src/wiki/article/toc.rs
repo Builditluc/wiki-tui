@@ -1,5 +1,5 @@
 /// A struct representing the table of contents of an article
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Clone)]
 pub struct TableOfContents {
     /// The title of the table of contents
     title: String,
@@ -25,7 +25,7 @@ impl TableOfContents {
 }
 
 /// An item of from a table of contents
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Clone)]
 pub struct TableOfContentsItem {
     /// The number (level) of the item in the table of contents
     number: i32,

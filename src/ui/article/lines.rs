@@ -57,6 +57,9 @@ pub struct LinesWrapper {
 
     /// The link handler, it is only created and used when enabled in the config
     pub link_handler: Option<LinkHandler>,
+
+    /// The y coordinates of the headers, it is only created and used when enabled in the config
+    pub header_y_coords: Option<Vec<usize>>,
 }
 
 impl LinesWrapper {
@@ -86,6 +89,14 @@ impl LinesWrapper {
                     None
                 }
             },
+
+            header_y_coords: {
+                if CONFIG.features.headers {
+                    Some(Vec::new())
+                } else {
+                    None
+                }
+            }
         }
     }
 
@@ -146,6 +157,9 @@ impl LinesWrapper {
             // is this element a link?
             let is_link = element_type == "link" && element.get_attribute("target").is_some();
 
+            // is this element a header?
+            let is_header = element_type == "header";
+
             // does this element go onto a new line?
             if element_type == "newline" {
                 // fill the current line and make the next one blank
@@ -172,6 +186,13 @@ impl LinesWrapper {
                 // if it's a link, register it
                 if is_link {
                     self.register_link(*element.id());
+                }
+
+                // if it's a header, save its coordinates
+                if is_header && CONFIG.features.headers {
+                    if let Some(ref mut header_y_coords) = self.header_y_coords {
+                        header_y_coords.push(self.rendered_lines.len());
+                    }
                 }
 
                 continue;
@@ -269,6 +290,9 @@ impl LinesWrapper {
         let is_link = element.get_attribute("type") == Some("link")
             && element.get_attribute("target").is_some();
 
+        // is this a header?
+        let is_header = element.get_attribute("header") == Some("header");
+
         let mut merged_element = RenderedElement {
             id: *element.id(),
             style: *element.style(),
@@ -300,6 +324,13 @@ impl LinesWrapper {
                 self.register_link(*element.id())
             }
 
+            // if its a header, save its y position
+            if is_header && CONFIG.features.headers {
+                if let Some(ref mut header_y_coords) = self.header_y_coords {
+                    header_y_coords.push(self.rendered_lines.len());
+                }
+            }
+
             self.fill_line();
             self.newline();
 
@@ -319,6 +350,12 @@ impl LinesWrapper {
 
             if is_link {
                 self.register_link(*element.id());
+            }
+
+            if is_header && CONFIG.features.headers {
+                if let Some(ref mut header_y_coords) = self.header_y_coords {
+                    header_y_coords.push(self.rendered_lines.len());
+                }
             }
         }
     }
