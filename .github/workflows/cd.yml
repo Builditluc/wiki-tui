@@ -1,0 +1,51 @@
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+name: Continuous Deployment
+
+jobs:
+  changelog:
+    name: Generate Changelog
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - uses: BobAnkh/auto-generate-changelog@master
+        with:
+          ACCESS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          COMMIT_MESSAGE: 'docs(changelog): update release notes'
+          TYPE: 'feat:Feature,fix:Bug Fixes,docs:Documentation,perf:Performance Improvements'
+
+  release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: taiki-e/create-gh-release-action@v1
+        with:
+          changelog: CHANGELOG.md
+          title: $version
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  upload-assets:
+    name: Upload Assets
+    strategy:
+      matrix:
+        os:
+          - ubuntu-latest
+          - macos-latest
+          - windows-latest
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v2
+      - uses: taiki-e/upload-rust-binary-action@v1
+        with:
+          bin: wiki-tui
+          tar: all
+          zip: windows
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
