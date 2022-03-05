@@ -9,16 +9,18 @@ jobs:
   release:
     name: Create Release
     runs-on: ubuntu-latest
-steps:
-  - uses: actions/checkout@v2
-  - uses: softprops/action/gh/release@v2
-    with:
-      files: LICENSE.txt
-      token: ${{ secrets.GITHUB_TOKEN }}
-      generate_release_notes: true
+
+  steps:
+    - uses: actions/checkout@v2
+    - uses: softprops/action/gh/release@v2
+      with:
+        files: LICENSE.txt
+        token: ${{ secrets.GITHUB_TOKEN }}
+        generate_release_notes: true
 
   upload-assets:
     name: Upload Assets
+    needs: release
     strategy:
       matrix:
         os:
@@ -35,3 +37,19 @@ steps:
           zip: windows
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  publish:
+    name: Publish to crates.io
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+      - uses: actions-rs/cargo@v1
+        with:
+          command: publish
+          args: --token ${CRATES_TOKEN}
+        env:
+          CRATES_TOKEN: ${{ secrets.CRATES_TOKEN }}
