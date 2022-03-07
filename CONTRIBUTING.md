@@ -16,13 +16,13 @@ You can report a bug by opening an Issue at https://github.com/Builditluc/wiki-t
 
 #### What will happen once you've created the Issue?
 
-* The team will [label the issue](#label-issues)
-* A maintainer will then try to reproduce the issue with your provided steps
-* If the issue could be reproduced, it will be marked `needs-fix` and the issue will be left to be [implemented by someone](#contribute-code).
+* The team will try to reproduce the bug with your provided steps.
+* As soon as the issue could be reproduced, it'll be marked as 'bug' and left to be [implemented by someone](#contribute-code).
+* If the issue couldn't be reproduced, it'll be marked as 'wontfix' and closed.
 
 ### Suggest an Enhancement?
 If wiki-tui doesn't do something you need or want it to do, open an Issue at https://github.com/Builditluc/wiki-tui/issues.
-> Note: Before suggesting an enhancement, please check if there were any previous suggestions describing the same thing.
+> Note: Before suggesting an enhancement, please check if there were any previous suggestions suggesting the same thing.
 
 #### What should be included in the Enhancement Request
 
@@ -31,9 +31,8 @@ If wiki-tui doesn't do something you need or want it to do, open an Issue at htt
 
 #### What will happen once you've created the Issue?
 
-* The team will [label the issue](#label-issues)
 * The team will then evaluate the feature request, possibly asking you more questions. If the issue is closed, the team will convey their reasoning.
-* If the request is accepted, it will be marked with `enhancement-accepted`, which can then be done by either a team member or by anyoune who wants to [contribute code](#contribute-code).
+* If the request is accepted, it will be marked with `enhancement`, which can then be done by either a team member or by anyoune who wants to [contribute code](#contribute-code).
 
 ### Setup the Project
 This project uses GitHub Pull Requests to manage contributions.
@@ -44,9 +43,9 @@ To run the project locally:
 * `cd path/to/your/clone`
 * `cargo build`
 
-Then, branch off from the `experimental` branch:
+Then, create new branch for your feature bug fix:
 
-`git checkout -b myfeature experimental`
+`git checkout -b myfeature`
 
 And you're good to go!
 
@@ -170,20 +169,8 @@ Closes #456
 Label | Apply When | Notes
 --- | --- | ---
 `bug` | Cases where the code (or documentations) is behaving in a way it wasn't intended to. | If something is happening that surprises the user but does not go against the way the code is designed, it should use the enhancement label.
-`critical` | Added to `bug` issues if the problem described makes the code completely unusable in a common situation. |
+`breaking-change` | Added to `bug` issues if the problem described makes the code completely unusable in a common situation. |
 `documentation` | Added to issues or pull requests that affect any of the documentation for the project. | Can be combined with other labels, such as `bug` or `enhancement`
 `duplicate` | Added to issues or PRs that refer to the exact same issue as another one that's been previously labeled. | Duplicate issues should be marked and closed right away, with a message referencing the issue it's a duplicate of (with `#123`)
 `enhancement` | Added to feature requests, PRs, or documentation issues that are purely additive: the code or docs currently work as expected, but a change is being requested or suggested. | 
 `wontfix` | Labelers may apply this label to issues that clearly have nothing at all to do with the project or are otherwise entirely outside of its scope/sphere of influence. Committers may apply this label and close an issue or PR if they decide to pass on an otherwise relevant issue. | The issue or PR should be closed as soon as the label is applied, and a clear explanation provided of why the label was used. Contributors are free to contest the labeling, but the decision ultimately falls on committers as to whether to accept something or not.
-
-## Release Checklist
-Here are some things that should be done when creating a new release:
-- bump version number in Cargo.toml and Cargo.lock (commit BOTH files)
-- wait for the changelog action to finish
-- merge experimental into stable (commit: "v{VERSION}")
-- create a release with this body:
-```
-<!-- HIDE IN CHANGELOG BEGIN -->
-See CHANGELOG for more details.
-<!-- HIDE IN CHANGELOG END -->
-```
