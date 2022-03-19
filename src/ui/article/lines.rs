@@ -96,7 +96,7 @@ impl LinesWrapper {
                 } else {
                     None
                 }
-            }
+            },
         }
     }
 

@@ -221,7 +221,10 @@ impl Config {
                 lists: true,
                 code_blocks: true,
             },
-            features: Features { links: true, headers: true },
+            features: Features {
+                links: true,
+                headers: true,
+            },
             config_path: PathBuf::new(),
             args: Cli::from_args(),
         };
