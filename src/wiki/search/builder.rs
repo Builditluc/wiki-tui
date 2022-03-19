@@ -214,7 +214,7 @@ impl SearchBuilder {
             self.offset,
             self.info.build(),
             self.prop.build(),
-            self.sort.to_string(),
+            self.sort,
         ))
     }
 

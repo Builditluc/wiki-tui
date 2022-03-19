@@ -1,7 +1,5 @@
 use crate::{
-    config::CONFIG, 
-    ui::article::content::ArticleContent, 
-    ui::article::on_link_submit,
+    config::CONFIG, ui::article::content::ArticleContent, ui::article::on_link_submit,
     wiki::article::Article,
 };
 
@@ -69,7 +67,7 @@ impl ArticleView {
             log::debug!("moving the link down by '{}'", move_amount);
             self.content.move_selected_link(Absolute::Down, move_amount);
 
-            return EventResult::Consumed(None)
+            return EventResult::Consumed(None);
         }
 
         // if the link is below the viewport (aka its y-pos is bigger than the viewport offset plus
@@ -82,19 +80,24 @@ impl ArticleView {
             log::debug!("moving the link up by '{}'", move_amount);
             self.content.move_selected_link(Absolute::Up, move_amount);
 
-            return EventResult::Consumed(None)
+            return EventResult::Consumed(None);
         }
 
-        return EventResult::Consumed(None)
+        EventResult::Consumed(None)
     }
 
     /// Select a header by moving the viewport to its coordinates
     pub fn select_header(&mut self, index: usize) {
-        if !CONFIG.features.headers { return }
+        if !CONFIG.features.headers {
+            return;
+        }
         log::info!("selecting the header number '{}'", index);
 
         // get the position of the header and the viewport top and bottom
-        let header_pos = self.content.header_y_pos(index).unwrap_or(self.viewport_offset.get());
+        let header_pos = self
+            .content
+            .header_y_pos(index)
+            .unwrap_or_else(|| self.viewport_offset.get());
         let viewport_top = self.viewport_offset.get();
         let viewport_bottom = viewport_top.saturating_mul(self.viewport_size.get().y);
 
@@ -111,7 +114,6 @@ impl ArticleView {
         if header_pos > viewport_bottom {
             let move_amount = header_pos.saturating_sub(viewport_bottom);
             self.scroll(Absolute::Down, move_amount);
-            return
         }
     }
 }
@@ -193,7 +195,7 @@ impl View for ArticleView {
                 self.content.move_selected_link(Absolute::Left, 1);
                 // if the current link is outside of the viewport, then scroll
                 // get the current links position
-                let current_link_pos = self.content.current_link_pos().unwrap(); // we can use unwrap here 
+                let current_link_pos = self.content.current_link_pos().unwrap(); // we can use unwrap here
 
                 // we've moved the link to the left, so we only need to check if the link is above
                 // the viewport
@@ -212,11 +214,14 @@ impl View for ArticleView {
                 self.content.move_selected_link(Absolute::Right, 1);
                 // if the current link is outside of the viewport, then scroll
                 // get the current links position
-                let current_link_pos = self.content.current_link_pos().unwrap(); // we can use unwrap here 
+                let current_link_pos = self.content.current_link_pos().unwrap(); // we can use unwrap here
 
                 // we've moved the link to the right, so we only need to check if the link is below
                 // the viewport
-                let viewport_bottom = self.viewport_offset.get().saturating_add(self.viewport_size.get().y);
+                let viewport_bottom = self
+                    .viewport_offset
+                    .get()
+                    .saturating_add(self.viewport_size.get().y);
                 if current_link_pos.y >= viewport_bottom {
                     // so the link is below the viewport... great...
                     // calculate how much below the viewport the link is

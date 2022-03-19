@@ -42,7 +42,7 @@ impl ArticleContent {
     pub fn element_by_id(&self, id: Option<i32>) -> Option<&ArticleElement> {
         if let Some(id) = id {
             // get every element with that id and return the first one
-            return self.article.elements().filter(|e| e.id() == &id).next();
+            return self.article.elements().find(|e| e.id() == &id);
         }
         None
     }
@@ -162,7 +162,7 @@ impl ArticleContent {
                 Absolute::Up => link_handler.move_up(amount),
                 Absolute::Right => link_handler.move_right(amount),
                 Absolute::Down => link_handler.move_down(amount),
-                Absolute::None => return,
+                Absolute::None => {}
             }
         }
     }

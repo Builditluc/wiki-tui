@@ -95,7 +95,7 @@ impl LinkHandler {
             return;
         }
 
-        self.current_link = self.current_link + amount
+        self.current_link += amount
     }
 }
 
