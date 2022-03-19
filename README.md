@@ -20,6 +20,9 @@
   </p>
 </p>
 
+# Breaking Changes to the branching system!
+The experimental and stable branch are now removed and replaced by a single main branch. Also, the changelog file is gone and replaced by the release notes. If you want to know how to contribute to wiki-tui, you can read about it [here](./CONTRIBUTING.md).
+
 ## Preview
 ### How it looks
 
