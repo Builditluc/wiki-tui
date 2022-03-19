@@ -449,9 +449,9 @@ mod tests {
         let article = parser.parse(test_html.as_bytes()).unwrap();
 
         assert_eq!(
-            article.elements().filter(|x| x.id() == &4).next().unwrap(),
+            article.elements().filter(|x| x.id() == &3).next().unwrap(),
             &ArticleElement::new(
-                4,
+                3,
                 "\t- ".chars().count(),
                 Style::from(CONFIG.theme.text),
                 "\t- ".to_string(),
@@ -459,9 +459,9 @@ mod tests {
         );
 
         assert_eq!(
-            article.elements().filter(|x| x.id() == &6).next().unwrap(),
+            article.elements().filter(|x| x.id() == &5).next().unwrap(),
             &ArticleElement::new(
-                6,
+                5,
                 6,
                 Style::from(CONFIG.theme.text).combine(Effect::Underline),
                 "README".to_string(),
