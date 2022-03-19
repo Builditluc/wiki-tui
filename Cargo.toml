@@ -12,10 +12,8 @@ readme = "README.md"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-dotenv = "0.15.0"
 syn = "=1.0.57"
 serde_json = "1.0.61"
-cursive = "0.16.3"
 log = "0.4.13"
 dirs = "3.0.1"
 anyhow = "1.0"
@@ -26,6 +24,11 @@ panic-message = "0.3.0"
 backtrace = "0.3"
 toml = "0.5.8"
 structopt = "0.3.25"
+
+[dependencies.cursive]
+version = "0.16.3"
+default-features = false
+features = ["crossterm-backend"]
 
 [dependencies.reqwest]
 version = "0.11"

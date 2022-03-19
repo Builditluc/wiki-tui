@@ -1,20 +1,40 @@
-use backtrace::Backtrace;
 use panic_message::panic_info_message;
 use std::collections::HashMap;
 use std::env;
 use std::panic::{set_hook, PanicInfo};
 use uuid::Uuid;
 
+use crate::config::CONFIG;
+
 pub const PANIC: &str = "
 Well, this is embarrassing...
 %NAME% had a problem and crashed spectacularly. To help us diagnose the problem, you can send us a crash report.
-We have generated a report file at \"%PATH%\". Submit an issue with the subjet of \"%NAME% Crash Report\"
+We have generated a report file in the current working directory. Submit an issue with the subjet of \"%NAME% Crash Report\"
 and describe what you did before the crash. Also include the report as an attachment.
 
 Github: %GITHUB%
 ";
 
-pub fn create_hook<F>(data: Option<HashMap<&'static str, &'static str>>, f: F)
+pub fn print_panic() {
+    let data = {
+        let mut data = HashMap::new();
+        data.insert("%NAME%", env!("CARGO_PKG_NAME"));
+        data.insert("%GITHUB%", env!("CARGO_PKG_REPOSITORY"));
+        data
+    };
+
+    let text = {
+        let mut text = String::from(PANIC);
+        for (k, v) in &data {
+            text = text.replace(k, v);
+        }
+        text
+    };
+
+    println!("{}", text);
+}
+
+pub fn create_hook<F>(f: F)
 where
     F: 'static + Fn(Option<std::path::PathBuf>, String) + Send + Sync,
 {
@@ -22,31 +42,14 @@ where
         return;
     }
 
-    let data = data.unwrap_or({
-        let mut data = HashMap::new();
-        data.insert("%NAME%", env!("CARGO_PKG_NAME"));
-        data.insert("%GITHUB%", env!("CARGO_PKG_REPOSITORY"));
-        data
-    });
-
     set_hook(Box::new(move |info: &PanicInfo| {
-        let mut text = String::from(PANIC);
-        for (k, v) in &data {
-            text = text.replace(k, v);
-        }
-
-        let path = if text.contains("%PATH%") {
-            let tmp = env::temp_dir().join(format!(
+        let path = env::current_dir()
+            .unwrap_or_else(|_| env::temp_dir())
+            .join(format!(
                 "crash_report-{}.log",
-                Uuid::new_v4().to_hyphenated().to_string()
+                Uuid::new_v4().to_hyphenated()
             ));
-            text = text.replace("%PATH%", tmp.to_string_lossy().as_ref());
-            Some(tmp)
-        } else {
-            None
-        };
-
-        println!("{}", text);
+        log::error!("panic occurred, crash log is at: {}", path.display());
 
         let mut payload = String::new();
 
@@ -75,12 +78,13 @@ where
             None => payload.push_str("Panic location unknown.\n"),
         }
 
-        payload.push_str(&format!(
-            "{:#?}\n
-        ",
-            Backtrace::new()
-        ));
+        let logs = match std::fs::read_to_string(&CONFIG.logging.log_dir) {
+            Ok(logs) => logs,
+            Err(_) => "No logs available.".to_string(),
+        };
 
-        f(path, payload);
+        payload.push_str(&format!("\n\nLogs: \n{}", logs));
+
+        f(Some(path), payload);
     }))
 }
