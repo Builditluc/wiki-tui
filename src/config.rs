@@ -1,6 +1,10 @@
 use crate::cli::Cli;
 
-use anyhow::*;
+use anyhow::{
+    Result,
+    Context,
+    bail
+};
 use cursive::theme::{BaseColor, Color};
 use lazy_static::*;
 use log::LevelFilter;
