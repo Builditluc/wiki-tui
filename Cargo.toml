@@ -11,6 +11,13 @@ readme = "README.md"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[features]
+default = ["crossterm-backend"]
+ncurses-backend = ["cursive/ncurses-backend"]
+pancurses-backend = ["cursive/pancurses-backend"]
+termion-backend = ["cursive/termion-backend"]
+crossterm-backend = ["cursive/crossterm-backend"]
+
 [dependencies]
 syn = "=1.0.57"
 serde_json = "1.0.61"
@@ -28,7 +35,6 @@ structopt = "0.3.25"
 [dependencies.cursive]
 version = "0.16.3"
 default-features = false
-features = ["crossterm-backend"]
 
 [dependencies.reqwest]
 version = "0.11"
