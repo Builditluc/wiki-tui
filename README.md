@@ -20,9 +20,6 @@
   </p>
 </p>
 
-# Breaking Changes to the branching system!
-The experimental and stable branch are now removed and replaced by a single main branch. Also, the changelog file is gone and replaced by the release notes. If you want to know how to contribute to wiki-tui, you can read about it [here](./CONTRIBUTING.md).
-
 ## Preview
 ### How it looks
 
@@ -50,6 +47,15 @@ The binary executable is `wiki-tui`
 ```
 cargo install wiki-tui
 ```
+
+When installing wiki-tui via cargo, you can choose what backend to use. More information on the
+available backends can be found [here](https://github.com/gyscos/cursive/wiki/Backends#available-backends)
+
+To use a different backend, you will have to disable the default features and enable the desired backend feature.
+```
+cargo install wiki-tui --no-default-features --features termion-backend
+```
+
 ### NetBSD
 Using the package manager
 ```
