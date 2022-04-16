@@ -48,7 +48,7 @@ The binary executable is `wiki-tui`
 cargo install wiki-tui
 ```
 
-When installing wiki-tui via cargo, you can choose what backend to use. More information on the
+When installing wiki-tui via cargo, you can choose what backend to use (The default one is crossterm). More information on the
 available backends can be found [here](https://github.com/gyscos/cursive/wiki/Backends#available-backends)
 
 To use a different backend, you will have to disable the default features and enable the desired backend feature.
