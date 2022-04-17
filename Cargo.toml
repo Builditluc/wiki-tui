@@ -17,6 +17,7 @@ ncurses-backend = ["cursive/ncurses-backend"]
 pancurses-backend = ["cursive/pancurses-backend"]
 termion-backend = ["cursive/termion-backend"]
 crossterm-backend = ["cursive/crossterm-backend"]
+blt-backend = ["cursive/blt-backend"]
 
 [dependencies]
 syn = "=1.0.57"
@@ -35,6 +36,9 @@ structopt = "0.3.25"
 [dependencies.cursive]
 version = "0.16.3"
 default-features = false
+
+[dependencies.cursive_buffered_backend]
+git = "https://github.com/gyscos/cursive_buffered_backend"
 
 [dependencies.reqwest]
 version = "0.11"
