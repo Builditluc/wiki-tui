@@ -56,7 +56,7 @@ impl ArticleView {
         }
 
         // get the position of the current link and the top of the viewport
-        let link_pos = self.content.current_link_pos().unwrap(); // we can use unwrap here because the feature is enabled
+        let link_pos = self.content.current_link_pos().unwrap_or_default();
         let viewport_top = self.viewport_offset.get();
 
         // if the link is above the viewport (aka its y-pos is smaller than the viewport offset),
