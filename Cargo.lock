@@ -103,6 +103,24 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "904dfeac50f3cdaba28fc6f57fdcddb75f49ed61346676a78c4ffe55877802fd"
 
 [[package]]
+name = "bear-lib-terminal"
+version = "2.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "315549f695a3fef8ad1e1ebad093a7c38d135fab85e10067841744901f907116"
+dependencies = [
+ "bear-lib-terminal-sys",
+]
+
+[[package]]
+name = "bear-lib-terminal-sys"
+version = "1.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3a04c83b2c02f07128177fa98ea2d241f85d351d376dcee70694fcb6960a279f"
+dependencies = [
+ "libc",
+]
+
+[[package]]
 name = "bit-set"
 version = "0.5.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -243,6 +261,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6593c3409eb794bf22090bec60dda1e19d1def284478bec7e5a92da3cf977c52"
 dependencies = [
  "ahash",
+ "bear-lib-terminal",
  "cfg-if",
  "crossbeam-channel",
  "crossterm",
@@ -256,6 +275,19 @@ dependencies = [
  "signal-hook 0.3.10",
  "term_size",
  "termion",
+ "unicode-segmentation",
+ "unicode-width",
+ "wasmer_enumset",
+]
+
+[[package]]
+name = "cursive_buffered_backend"
+version = "0.4.2-pre"
+source = "git+https://github.com/gyscos/cursive_buffered_backend#6957ac2e100f8256645702b8a5abab9db3a06e36"
+dependencies = [
+ "cursive_core",
+ "log",
+ "smallvec",
  "unicode-segmentation",
  "unicode-width",
  "wasmer_enumset",
@@ -2083,6 +2115,7 @@ dependencies = [
  "anyhow",
  "backtrace",
  "cursive",
+ "cursive_buffered_backend",
  "dirs",
  "lazy_static",
  "log",

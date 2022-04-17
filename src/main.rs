@@ -3,11 +3,13 @@ extern crate lazy_static;
 extern crate log;
 
 use cursive::align::HAlign;
+use cursive::backends;
 use cursive::theme::*;
 use cursive::traits::*;
 use cursive::view::Resizable;
 use cursive::views::*;
 use cursive::Cursive;
+use cursive_buffered_backend::BufferedBackend;
 use std::fs;
 use std::io::Write;
 
@@ -26,6 +28,41 @@ pub const LOGO: &str = "
 | |/ |/ /  / /   / ,<    / /  /_____// /_  / /_/ /  / /   
 |__/|__/  /_/   /_/|_|  /_/          \\__/  \\__,_/  /_/    
 ";
+
+#[cfg(feature = "blt-backend")]
+fn backend() -> Box<BufferedBackend> {
+    let blt_backend = backends::blt::Backend::init();
+    let buffered_backend = BufferedBackend::new(blt_backend);
+    Box::new(buffered_backend)
+}
+
+#[cfg(feature = "termion-backend")]
+fn backend() -> Box<BufferedBackend> {
+    let termion_backend = backends::termion::Backend::init().unwrap();
+    let buffered_backend = BufferedBackend::new(termion_backend);
+    Box::new(buffered_backend)
+}
+
+#[cfg(feature = "crossterm-backend")]
+fn backend() -> Box<BufferedBackend> {
+    let crossterm_backend = backends::crossterm::Backend::init().unwrap();
+    let buffered_backend = BufferedBackend::new(crossterm_backend);
+    Box::new(buffered_backend)
+}
+
+#[cfg(feature = "pancurses-backend")]
+fn backend() -> Box<BufferedBackend> {
+    let pancurses_backend = backends::curses::pan::Backend::init().unwrap();
+    let buffered_backend = BufferedBackend::new(pancurses_backend);
+    Box::new(buffered_backend)
+}
+
+#[cfg(feature = "ncurses-backend")]
+fn backend() -> Box<BufferedBackend> {
+    let ncurses_backend = backends::curses::n::Backend::init().unwrap();
+    let buffered_backend = BufferedBackend::new(ncurses_backend);
+    Box::new(buffered_backend)
+}
 
 fn main() {
     error::create_hook(|path, data| {
@@ -48,7 +85,7 @@ fn initialize() {
 }
 
 fn start_application() {
-    let mut siv = cursive::default();
+    let mut siv = Cursive::new();
     siv.add_global_callback('q', Cursive::quit);
 
     // get and apply the color theme
@@ -110,7 +147,8 @@ fn start_application() {
     }
 
     let siv_box = std::sync::Mutex::new(siv);
-    if std::panic::catch_unwind(|| siv_box.lock().unwrap().run()).is_err() {
+    #[allow(clippy::redundant_closure)]
+    if std::panic::catch_unwind(|| siv_box.lock().unwrap().run_with(|| backend())).is_err() {
         error::print_panic();
     }
 }
