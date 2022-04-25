@@ -5,7 +5,7 @@ use crate::{
 
 use cursive::{
     direction::Absolute,
-    event::{Callback, Event, EventResult, Key},
+    event::{Callback, Event, EventResult, Key, MouseButton, MouseEvent},
     view::CannotFocus,
     Rect, Vec2, View,
 };
@@ -256,6 +256,50 @@ impl View for ArticleView {
                 }
 
                 EventResult::Ignored
+            }
+            Event::Mouse {
+                event: MouseEvent::Release(MouseButton::Left),
+                position,
+                offset,
+            } => {
+                // get what element was clicked
+                if let Some(element) = self
+                    .content
+                    .get_element_at_position(position.saturating_sub(offset))
+                {
+                    match element.get_attribute("type") {
+                        // if it's a link, check if it's valid and then open it
+                        Some("link") if CONFIG.features.links => {
+                            log::info!("detected a mouse event over the link '{}'", element.id());
+                            let target = match element.get_attribute("target") {
+                                Some(t) => t.to_string(),
+                                None => {
+                                    log::warn!("the link '{}' is not valid!", element.id());
+                                    return EventResult::Consumed(None);
+                                }
+                            };
+                            log::info!("target article is '{}'", target);
+
+                            // select this link
+                            let element_id = *element.id();
+                            self.content.set_current_link(element_id);
+
+                            // return the callback
+                            return EventResult::Consumed(Some(Callback::from_fn(move |s| {
+                                on_link_submit(s, target.clone())
+                            })));
+                        }
+
+                        // if it's a button, don't do anything for now
+                        Some("button") => {
+                            log::error!("wow, you've found a secret!")
+                        }
+
+                        // this element doesn't support mouse clicking
+                        _ => {}
+                    }
+                }
+                EventResult::Consumed(None)
             }
             _ => EventResult::Ignored,
         }

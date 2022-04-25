@@ -97,6 +97,21 @@ impl LinkHandler {
 
         self.current_link += amount
     }
+
+    /// Overrides the current link
+    pub fn set_current_link(&mut self, id: i32) {
+        let new_selection = self
+            .links
+            .iter()
+            .position(|l| l.id == id)
+            .unwrap_or_default();
+        log::info!(
+            "replacing the current link '{}', with '{}'",
+            self.current_link,
+            new_selection
+        );
+        self.current_link = new_selection as usize;
+    }
 }
 
 /// A struct representing a Link. It contains an id to reference it to an ArticleElement and

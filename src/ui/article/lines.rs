@@ -8,6 +8,7 @@ use std::rc::Rc;
 
 /// An element only containing the neccessary information for rendering (and an id so that it can
 /// be referenced to an article element
+#[derive(Debug)]
 pub struct RenderedElement {
     /// The id of the ArticleElement this element belongs to
     pub id: i32,

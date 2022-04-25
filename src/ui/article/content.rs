@@ -55,6 +55,13 @@ impl ArticleContent {
         None
     }
 
+    /// Overrides the current link
+    pub fn set_current_link(&mut self, id: i32) {
+        if let Some(ref mut link_handler) = self.link_handler {
+            link_handler.set_current_link(id);
+        }
+    }
+
     /// Returns the position of the current link
     pub fn current_link_pos(&self) -> Option<Vec2> {
         if let Some(ref link_handler) = self.link_handler {
@@ -165,5 +172,33 @@ impl ArticleContent {
                 Absolute::None => {}
             }
         }
+    }
+
+    /// Retrieves the element at the given position. If no element could be found at that position,
+    /// none is returned
+    pub fn get_element_at_position(&self, position: Vec2) -> Option<&ArticleElement> {
+        // check if y-pos is outside of the bounds
+        if position.y >= self.rendered_lines.len() || self.rendered_lines.is_empty() {
+            return None;
+        }
+
+        // get the line at the given y coordinate
+        let line = &self.rendered_lines[position.y];
+        let mut x_offset = 0;
+
+        // iterate through every element in that line
+        for element in line {
+            // if the x position is inside of the bounds of the element, get its ArticleElement and
+            // return it
+            if position.x >= x_offset && position.x <= x_offset.saturating_add(element.width) {
+                return self.element_by_id(Some(element.id));
+            }
+
+            // increment the offset
+            x_offset += element.width;
+        }
+
+        // no element could be found at that position
+        None
     }
 }
