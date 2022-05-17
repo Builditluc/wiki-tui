@@ -1,6 +1,6 @@
 [package]
 name = "wiki-tui"
-version = "0.4.7"
+version = "0.4.8"
 authors = ["builditluc <37375448+Builditluc@users.noreply.github.com>"]
 edition = "2018"
 repository = "https://github.com/Builditluc/wiki-tui"
@@ -34,11 +34,12 @@ toml = "0.5.8"
 structopt = "0.3.25"
 
 [dependencies.cursive]
-version = "0.16.3"
+version = "0.17"
 default-features = false
 
 [dependencies.cursive_buffered_backend]
-git = "https://github.com/gyscos/cursive_buffered_backend"
+# git = "https://github.com/gyscos/cursive_buffered_backend"
+version = "0.6.0"
 
 [dependencies.reqwest]
 version = "0.11"

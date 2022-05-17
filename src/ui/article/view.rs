@@ -6,6 +6,7 @@ use crate::{
 use cursive::{
     direction::Absolute,
     event::{Callback, Event, EventResult, Key},
+    view::CannotFocus,
     Rect, Vec2, View,
 };
 
@@ -174,9 +175,9 @@ impl View for ArticleView {
         self.content.required_size(constraint)
     }
 
-    fn take_focus(&mut self, _: cursive::direction::Direction) -> bool {
+    fn take_focus(&mut self, _: cursive::direction::Direction) -> Result<EventResult, CannotFocus> {
         // this view is always focusable
-        true
+        Ok(EventResult::Consumed(None))
     }
 
     fn important_area(&self, _: Vec2) -> cursive::Rect {
