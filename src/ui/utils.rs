@@ -26,3 +26,36 @@ macro_rules! view_with_theme {
         }
     };
 }
+
+/// Wraps a view into a OnEventView that overrides the keybindings of the view with the ones
+/// defined in the config
+#[macro_export]
+macro_rules! override_keybindings {
+    ($view: expr) => {
+        cursive::views::OnEventView::new($view)
+            .on_pre_event(
+                config::CONFIG.keybindings.down.clone(),
+                |siv: &mut cursive::Cursive| {
+                    siv.on_event(cursive::event::Event::Key(cursive::event::Key::Down))
+                },
+            )
+            .on_pre_event(
+                cursive::event::Event::Char('k'),
+                |siv: &mut cursive::Cursive| {
+                    siv.on_event(cursive::event::Event::Key(cursive::event::Key::Up))
+                },
+            )
+            .on_pre_event(
+                cursive::event::Event::Char('h'),
+                |siv: &mut cursive::Cursive| {
+                    siv.on_event(cursive::event::Event::Key(cursive::event::Key::Left))
+                },
+            )
+            .on_pre_event(
+                cursive::event::Event::Char('l'),
+                |siv: &mut cursive::Cursive| {
+                    siv.on_event(cursive::event::Event::Key(cursive::event::Key::Right))
+                },
+            )
+    };
+}

@@ -124,9 +124,9 @@ fn start_application() {
         .with_name("logo_view")
         .full_screen();
 
-    let article_layout = LinearLayout::horizontal()
+    let article_layout = override_keybindings!(LinearLayout::horizontal()
         .child(Dialog::around(logo_view))
-        .with_name("article_layout");
+        .with_name("article_layout"));
 
     // Add a fullscreen layer, containing the search bar and the article view
     siv.add_fullscreen_layer(
