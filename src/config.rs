@@ -1,7 +1,10 @@
 use crate::cli::Cli;
 
 use anyhow::{bail, Context, Result};
-use cursive::theme::{BaseColor, Color};
+use cursive::{
+    event::{Event, Key},
+    theme::{BaseColor, Color},
+};
 use lazy_static::*;
 use log::LevelFilter;
 use serde::Deserialize;
@@ -112,12 +115,20 @@ pub struct Features {
     pub headers: bool,
 }
 
+pub struct Keybindings {
+    pub down: Event,
+    pub up: Event,
+    pub left: Event,
+    pub right: Event,
+}
+
 pub struct Config {
     pub api_config: ApiConfig,
     pub theme: Theme,
     pub logging: Logging,
     pub parser: ParserConfig,
     pub features: Features,
+    pub keybindings: Keybindings,
     config_path: PathBuf,
     args: Cli,
 }
@@ -129,6 +140,7 @@ struct UserConfig {
     logging: Option<UserLogging>,
     parser: Option<UserParserConfig>,
     features: Option<UserFeatures>,
+    keybindings: Option<UserKeybindings>,
 }
 
 #[derive(Deserialize, Debug)]
@@ -186,6 +198,20 @@ struct UserFeatures {
     headers: Option<bool>,
 }
 
+#[derive(Deserialize, Debug)]
+struct UserKeybindings {
+    down: Option<UserKeybinding>,
+    up: Option<UserKeybinding>,
+    left: Option<UserKeybinding>,
+    right: Option<UserKeybinding>,
+}
+
+#[derive(Deserialize, Debug)]
+struct UserKeybinding {
+    key: String,
+    mode: Option<String>,
+}
+
 impl Config {
     pub fn new() -> Config {
         // initialize the configuration with the defaults
@@ -224,6 +250,12 @@ impl Config {
             features: Features {
                 links: true,
                 headers: true,
+            },
+            keybindings: Keybindings {
+                down: Event::Key(Key::Down),
+                up: Event::Key(Key::Up),
+                left: Event::Key(Key::Left),
+                right: Event::Key(Key::Right),
             },
             config_path: PathBuf::new(),
             args: Cli::from_args(),
@@ -292,6 +324,10 @@ impl Config {
 
         if let Some(user_features) = user_config.features {
             self.load_features(&user_features);
+        }
+
+        if let Some(user_keybindings) = user_config.keybindings {
+            self.load_keybindings(&user_keybindings);
         }
 
         // override the log level
@@ -515,6 +551,63 @@ impl Config {
         }
     }
 
+    fn load_keybindings(&mut self, user_keybindings: &UserKeybindings) {
+        log::info!("loading the keybindings");
+
+        if let Some(keybinding) = &user_keybindings.down {
+            match parse_keybinding(
+                &keybinding.key,
+                keybinding.mode.as_ref().unwrap_or(&"normal".to_string()),
+            ) {
+                Ok(event_key) => {
+                    self.keybindings.down = event_key;
+                }
+                Err(error) => {
+                    log::warn!("{:?}", error)
+                }
+            }
+        }
+        if let Some(keybinding) = &user_keybindings.up {
+            match parse_keybinding(
+                &keybinding.key,
+                keybinding.mode.as_ref().unwrap_or(&"normal".to_string()),
+            ) {
+                Ok(event_key) => {
+                    self.keybindings.up = event_key;
+                }
+                Err(error) => {
+                    log::warn!("{:?}", error)
+                }
+            }
+        }
+        if let Some(keybinding) = &user_keybindings.left {
+            match parse_keybinding(
+                &keybinding.key,
+                keybinding.mode.as_ref().unwrap_or(&"normal".to_string()),
+            ) {
+                Ok(event_key) => {
+                    self.keybindings.left = event_key;
+                }
+                Err(error) => {
+                    log::warn!("{:?}", error)
+                }
+            }
+        }
+        if let Some(keybinding) = &user_keybindings.right {
+            match parse_keybinding(
+                &keybinding.key,
+                keybinding.mode.as_ref().unwrap_or(&"normal".to_string()),
+            ) {
+                Ok(event_key) => {
+                    self.keybindings.right = event_key;
+                }
+                Err(error) => {
+                    log::warn!("{:?}", error)
+                }
+            }
+        }
+    }
+
     pub fn get_args(&self) -> &Cli {
         &self.args
     }
@@ -522,6 +615,65 @@ impl Config {
 
 fn parse_color(color: String) -> Result<Color> {
     Color::parse(&color.to_lowercase()).context("Failed loading the color")
+}
+
+fn parse_keybinding(key: &str, mode: &str) -> Result<Event> {
+    // check if the key is a character
+    if let Ok(character) = char::from_str(key) {
+        match mode.to_lowercase().as_str() {
+            "normal" => return Ok(Event::Char(character)),
+            "ctrl" => return Ok(Event::CtrlChar(character)),
+            _ => {
+                bail!(
+                    "couldn't parse the char: {} with the mode: {}",
+                    character,
+                    mode
+                );
+            }
+        }
+    }
+
+    let event_key = parse_key(key)?;
+    match mode.to_lowercase().as_str() {
+        "normal" => Ok(Event::Key(event_key)),
+        "shift" => Ok(Event::Shift(event_key)),
+        "alt" => Ok(Event::Alt(event_key)),
+        "altshift" => Ok(Event::AltShift(event_key)),
+        "ctrl" => Ok(Event::Ctrl(event_key)),
+        "ctrlshift" => Ok(Event::CtrlShift(event_key)),
+        "ctrlalt" => Ok(Event::CtrlAlt(event_key)),
+        _ => {
+            bail!("couldn't parse the key: {} with the mode: {}", key, mode);
+        }
+    }
+}
+
+fn parse_key(key: &str) -> Result<Key> {
+    // check if the key is a non-character key on the keyboard
+    match key.to_lowercase().as_str() {
+        "insert" => Ok(Key::Ins),
+        "delete" => Ok(Key::Del),
+        "home" => Ok(Key::Home),
+        "end" => Ok(Key::End),
+        "pageup" => Ok(Key::PageUp),
+        "pagedown" => Ok(Key::PageDown),
+        "pausebreak" => Ok(Key::PauseBreak),
+        "numpadcenter" => Ok(Key::NumpadCenter),
+        "f0" => Ok(Key::F0),
+        "f1" => Ok(Key::F1),
+        "f2" => Ok(Key::F2),
+        "f3" => Ok(Key::F3),
+        "f4" => Ok(Key::F4),
+        "f5" => Ok(Key::F5),
+        "f6" => Ok(Key::F6),
+        "f7" => Ok(Key::F7),
+        "f8" => Ok(Key::F8),
+        "f9" => Ok(Key::F9),
+        "f10" => Ok(Key::F10),
+        "f11" => Ok(Key::F11),
+        "f12" => Ok(Key::F12),
+        _ => bail!("couldn't parse the key: {}", key),
+    }
 }
 
 impl Default for Config {

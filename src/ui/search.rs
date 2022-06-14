@@ -1,5 +1,5 @@
 use crate::{
-    config, ui, view_with_theme,
+    config, override_keybindings, ui, view_with_theme,
     wiki::search::{
         SearchBuilder, SearchMetadata, SearchProperties, SearchResult, SearchSortOrder,
     },
@@ -102,16 +102,14 @@ pub fn on_search(siv: &mut Cursive, search_query: String) {
     let search_results_layout = LinearLayout::horizontal()
         .child(view_with_theme!(
             config::CONFIG.theme.search_results,
-            Dialog::around(
-                LinearLayout::vertical()
-                    .child(
-                        search_results_view
-                            .with_name("search_results_view")
-                            .scrollable()
-                            .min_height(10)
-                    )
-                    .child(search_continue_button),
-            )
+            Dialog::around(override_keybindings!(LinearLayout::vertical()
+                .child(
+                    search_results_view
+                        .with_name("search_results_view")
+                        .scrollable()
+                        .min_height(10)
+                )
+                .child(search_continue_button)),)
         ))
         .child(view_with_theme!(
             config::CONFIG.theme.search_preview,

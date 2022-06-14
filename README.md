@@ -138,6 +138,46 @@ log_level = "Info"                      # log level to be used, can be Debug, In
 [features]
 links = true                            # enables/disables links (link selection, link opening, etc)
 headers = true                          # enables/disables header selection
+
+# You can change the keybindings of certain actions
+# These are the default values
+[keybindings]
+down.key = ""
+# Here you can define the key, it can be a simple character or a non-character key
+# Supported non-character Keys (lower-/uppercase do not matter):
+# - insert
+# - delete
+# - home
+# - end
+# - pageup
+# - pagedown
+# - pausebreak
+# - numpadcenter
+# - f0 - f12
+
+down.mode = "normal"
+# Here you can change the mode of the keybinding. The standard mode is normal and doesn't need to be set.
+# This value is optional and the following modes are available:
+# Characters:
+# - normal
+# - ctrl
+# Non-Character Keys:
+# - normal
+# - shift
+# - alt
+# - altshift
+# - ctrl
+# - ctrlshift
+# - ctrlalt
+
+
+# Currently, these actions can be changed with a keybinding:
+# - down
+# - up
+# - left
+# - right
+
+# Note: the default keys (Up, Down, Left, Right) will still work even after changing the keybinding.
 ```
 
 ## Contributing
