@@ -5,7 +5,7 @@ use crate::{
 
 use cursive::{
     direction::Absolute,
-    event::{Callback, Event, EventResult, Key},
+    event::{Callback, Event, EventResult, Key, MouseButton, MouseEvent},
     view::CannotFocus,
     Rect, Vec2, View,
 };
@@ -100,7 +100,6 @@ impl ArticleView {
             .header_y_pos(index)
             .unwrap_or_else(|| self.viewport_offset.get());
         let viewport_top = self.viewport_offset.get();
-        let viewport_bottom = viewport_top.saturating_mul(self.viewport_size.get().y);
 
         // if the header is above the viewport, then get the difference between the header and the
         // viewport and scroll up by that amount
@@ -112,10 +111,8 @@ impl ArticleView {
 
         // if the header is below the viewport, then get the difference between the header and the
         // viewport and scroll down by that amount
-        if header_pos > viewport_bottom {
-            let move_amount = header_pos.saturating_sub(viewport_bottom);
-            self.scroll(Absolute::Down, move_amount);
-        }
+        let move_amount = header_pos.saturating_sub(viewport_top);
+        self.scroll(Absolute::Down, move_amount);
     }
 }
 
@@ -259,6 +256,50 @@ impl View for ArticleView {
                 }
 
                 EventResult::Ignored
+            }
+            Event::Mouse {
+                event: MouseEvent::Release(MouseButton::Left),
+                position,
+                offset,
+            } => {
+                // get what element was clicked
+                if let Some(element) = self
+                    .content
+                    .get_element_at_position(position.saturating_sub(offset))
+                {
+                    match element.get_attribute("type") {
+                        // if it's a link, check if it's valid and then open it
+                        Some("link") if CONFIG.features.links => {
+                            log::info!("detected a mouse event over the link '{}'", element.id());
+                            let target = match element.get_attribute("target") {
+                                Some(t) => t.to_string(),
+                                None => {
+                                    log::warn!("the link '{}' is not valid!", element.id());
+                                    return EventResult::Consumed(None);
+                                }
+                            };
+                            log::info!("target article is '{}'", target);
+
+                            // select this link
+                            let element_id = *element.id();
+                            self.content.set_current_link(element_id);
+
+                            // return the callback
+                            return EventResult::Consumed(Some(Callback::from_fn(move |s| {
+                                on_link_submit(s, target.clone())
+                            })));
+                        }
+
+                        // if it's a button, don't do anything for now
+                        Some("button") => {
+                            log::error!("wow, you've found a secret!")
+                        }
+
+                        // this element doesn't support mouse clicking
+                        _ => {}
+                    }
+                }
+                EventResult::Consumed(None)
             }
             _ => EventResult::Ignored,
         }

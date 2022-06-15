@@ -8,6 +8,7 @@ use std::rc::Rc;
 
 /// An element only containing the neccessary information for rendering (and an id so that it can
 /// be referenced to an article element
+#[derive(Debug)]
 pub struct RenderedElement {
     /// The id of the ArticleElement this element belongs to
     pub id: i32,
@@ -201,6 +202,12 @@ impl LinesWrapper {
             // oh no, it doesn't fit!
             // well, then split it
             self.split_element(element);
+        }
+
+        if let Some(ref mut header_y_coords) = self.header_y_coords {
+            if !header_y_coords.is_empty() {
+                header_y_coords.remove(0);
+            }
         }
 
         log::debug!(
