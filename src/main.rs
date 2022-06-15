@@ -78,6 +78,7 @@ fn main() {
 }
 
 fn initialize() {
+    #[cfg(debug_assertions)]
     println!("{}", LOGO);
 
     // create and initialize the logger
