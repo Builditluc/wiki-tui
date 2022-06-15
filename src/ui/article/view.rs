@@ -100,7 +100,6 @@ impl ArticleView {
             .header_y_pos(index)
             .unwrap_or_else(|| self.viewport_offset.get());
         let viewport_top = self.viewport_offset.get();
-        let viewport_bottom = viewport_top.saturating_mul(self.viewport_size.get().y);
 
         // if the header is above the viewport, then get the difference between the header and the
         // viewport and scroll up by that amount
@@ -112,10 +111,8 @@ impl ArticleView {
 
         // if the header is below the viewport, then get the difference between the header and the
         // viewport and scroll down by that amount
-        if header_pos > viewport_bottom {
-            let move_amount = header_pos.saturating_sub(viewport_bottom);
-            self.scroll(Absolute::Down, move_amount);
-        }
+        let move_amount = header_pos.saturating_sub(viewport_top);
+        self.scroll(Absolute::Down, move_amount);
     }
 }
 

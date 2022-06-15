@@ -203,6 +203,12 @@ impl LinesWrapper {
             self.split_element(element);
         }
 
+        if let Some(ref mut header_y_coords) = self.header_y_coords {
+            if !header_y_coords.is_empty() {
+                header_y_coords.remove(0);
+            }
+        }
+
         log::debug!(
             "wrap_lines finished successfully, wrapping '{}' lines",
             self.rendered_lines.len()
