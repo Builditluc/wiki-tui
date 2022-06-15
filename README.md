@@ -72,6 +72,11 @@ The wiki-tui package is in the [nixpkgs](https://search.nixos.org/packages?chann
 
 Either install it with `nix-env -iA wiki-tui`, get it temporarily with `nix-shell -p wiki-tui` or add it to your configuration.
 
+### AUR
+The wiki-tui package is available in the [AUR](https://aur.archlinux.org/packages/wiki-tui).
+
+Either install it with `makepkg` manually, or using the preferred AUR helper.
+
 ## Configuration
 
 ### Location of the config file
