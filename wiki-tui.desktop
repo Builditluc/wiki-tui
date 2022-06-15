@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=wiki-tui
+Comment=A simple and easy to use Wikipedia Text User Interface
+TryExec=wiki-tui
+Exec=wiki-tui
+Keywords=wikipedia;search;
+Categories=Network
+Icon=wiki-tui
+Type=Application
+Terminal=true
