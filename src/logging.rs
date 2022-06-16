@@ -15,9 +15,14 @@ impl Logger {
         let default_config = Config::builder()
             .appender(Appender::builder().build("wiki_tui", Box::new(wiki_tui)))
             .build(
+                #[cfg(debug_assertions)]
                 Root::builder()
                     .appender("wiki_tui")
                     .build(log::LevelFilter::Info),
+                #[cfg(not(debug_assertions))]
+                Root::builder()
+                    .appender("wiki_tui")
+                    .build(log::LevelFilter::Off),
             )
             .unwrap();
 
