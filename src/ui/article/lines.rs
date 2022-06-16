@@ -347,7 +347,7 @@ impl LinesWrapper {
                 content: String::new(),
                 width: 0,
             };
-            
+
             // does the span fit onto the current line?
             if span.chars().count() + merged_element.width + self.current_width < self.width {
                 // then add it to the merged element
