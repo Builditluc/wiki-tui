@@ -31,31 +31,38 @@ macro_rules! view_with_theme {
 /// defined in the config
 #[macro_export]
 macro_rules! override_keybindings {
-    ($view: expr) => {
-        cursive::views::OnEventView::new($view)
-            .on_pre_event(
-                config::CONFIG.keybindings.down.clone(),
-                |siv: &mut cursive::Cursive| {
-                    siv.on_event(cursive::event::Event::Key(cursive::event::Key::Down))
-                },
-            )
-            .on_pre_event(
-                cursive::event::Event::Char('k'),
-                |siv: &mut cursive::Cursive| {
-                    siv.on_event(cursive::event::Event::Key(cursive::event::Key::Up))
-                },
-            )
-            .on_pre_event(
-                cursive::event::Event::Char('h'),
-                |siv: &mut cursive::Cursive| {
-                    siv.on_event(cursive::event::Event::Key(cursive::event::Key::Left))
-                },
-            )
-            .on_pre_event(
-                cursive::event::Event::Char('l'),
-                |siv: &mut cursive::Cursive| {
-                    siv.on_event(cursive::event::Event::Key(cursive::event::Key::Right))
-                },
-            )
-    };
+    ($view: expr) => {{
+        let mut event_view = cursive::views::OnEventView::new($view);
+
+        // go through all of the keybindings
+        if let Some(event_key) = config::CONFIG.keybindings.down.clone() {
+            log::debug!("registered the '{:?}' key as Down", event_key);
+            event_view.set_on_pre_event(event_key, |siv: &mut cursive::Cursive| {
+                siv.on_event(cursive::event::Event::Key(cursive::event::Key::Down))
+            });
+        }
+
+        if let Some(event_key) = config::CONFIG.keybindings.up.clone() {
+            log::debug!("registered the '{:?}' key as Up", event_key);
+            event_view.set_on_pre_event(event_key, |siv: &mut cursive::Cursive| {
+                siv.on_event(cursive::event::Event::Key(cursive::event::Key::Up))
+            });
+        }
+
+        if let Some(event_key) = config::CONFIG.keybindings.left.clone() {
+            log::debug!("registered the '{:?}' key as Left", event_key);
+            event_view.set_on_pre_event(event_key, |siv: &mut cursive::Cursive| {
+                siv.on_event(cursive::event::Event::Key(cursive::event::Key::Left))
+            });
+        }
+
+        if let Some(event_key) = config::CONFIG.keybindings.right.clone() {
+            log::debug!("registered the '{:?}' key as Right", event_key);
+            event_view.set_on_pre_event(event_key, |siv: &mut cursive::Cursive| {
+                siv.on_event(cursive::event::Event::Key(cursive::event::Key::Right))
+            });
+        }
+
+        event_view
+    }};
 }
