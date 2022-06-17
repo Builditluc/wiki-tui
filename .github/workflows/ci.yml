@@ -1,11 +1,13 @@
 on:
   pull_request:
+    types: [opened, labeled, unlabeled, synchronize]
 
 name: Continuous Integration
 
 jobs:
   build:
     name: Build
+    if: ${{ github.event.label.name == 'bug' || github.event.label.name == 'enhancement' }}
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -26,6 +28,7 @@ jobs:
 
   check:
     name: Clippy Check
+    if: ${{ github.event.label.name == 'bug' || github.event.label.name == 'enhancement' }}
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -46,6 +49,7 @@ jobs:
 
   test:
     name: Run Tests
+    if: ${{ github.event.label.name == 'bug' || github.event.label.name == 'enhancement' }}
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -66,6 +70,7 @@ jobs:
 
   format:
     name: Check formatting
+    if: ${{ github.event.label.name == 'bug' || github.event.label.name == 'enhancement' }}
     runs-on: ubuntu-latest
     strategy:
       matrix:
