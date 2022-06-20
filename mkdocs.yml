@@ -1,10 +1,20 @@
 # yaml-language-server: $schema=https://squidfunk.github.io/mkdocs-material/schema.json
 
-site_name: wiki-tui Handbook
+site_name: wiki-tui
 site_url: https://builditluc.github.io/wiki-tui
+
+repo_name: builditluc/wiki-tui
+repo_url: https://github.com/builditluc/wiki-tui
 
 theme:
   name: material
+  icon:
+    logo: material/console
+    repo: fontawesome/brands/github
+  favicon: assets/images/logo.png
+  features:
+    - navigation.tabs
+    - navigation.sections
   palette:
     - media: "(prefers-color-scheme: light)"
       scheme: default
@@ -19,3 +29,21 @@ theme:
 
 nav:
   - Home: index.md
+
+edit_uri: edit/main/docs/
+
+markdown_extensions:
+  - meta
+  - attr_list
+  - tables
+  - md_in_html
+  - pymdownx.emoji:
+      emoji_index: !!python/name:materialx.emoji.twemoji
+      emoji_generator: !!python/name:materialx.emoji.to_svg
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/builditluc/
+
+copyright: Copyright &copy; 2021 - 2022 Builditluc
