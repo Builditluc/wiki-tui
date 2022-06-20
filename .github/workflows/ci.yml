@@ -1,6 +1,6 @@
 on:
   pull_request:
-    types: [opened, labeled, unlabeled, synchronize]
+    types: [opened, labeled, unlabeled, synchronize, closed]
 
 name: Continuous Integration
 
@@ -89,3 +89,14 @@ jobs:
         with:
           command: fmt
           args: --all -- --check
+  documentation:
+    name: Rebuild Documentation
+    if: ${{ (github.event.pull_request.merged == true) && (contains(github.event.pull_request.labels.*.name, 'documentation')) }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: 3.x
+      - run: pip install mkdocs-material
+      - run: mkdocs gh-deploy --force
