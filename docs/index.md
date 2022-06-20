@@ -17,8 +17,10 @@ A simple and easy to use Wikipedia Text User Interface
 
 # How does it look?
 
+<center>
 ![Preview-1](assets/images/preview-1.png)
 ![Preview-2](assets/images/preview-2.png)
+</center>
 
 
 # What can I do with it?
