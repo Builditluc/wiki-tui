@@ -216,7 +216,7 @@ fn continue_search(siv: &mut Cursive, search_query: &str, search_offset: &usize)
         .search()?;
 
     // get the results view so we can add some results to it
-    log::debug!("getting the search resutls view");
+    log::debug!("getting the search results view");
     let mut search_results_views = siv
         .find_name::<SelectView<SearchResult>>("search_results_view")
         .with_context(|| {
