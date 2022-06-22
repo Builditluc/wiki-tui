@@ -29,14 +29,25 @@ theme:
 
 nav:
   - Home: index.md
+  - Getting Started:
+    - Installation: getting-started/installation.md
+    # - Controls: getting-started/controls.md
+    # - Usage: getting-started/usage.md
+    - License: getting-started/license.md
 
 edit_uri: edit/main/docs/
 
 markdown_extensions:
   - meta
   - attr_list
+  - admonition
   - tables
   - md_in_html
+  - def_list
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
   - pymdownx.emoji:
       emoji_index: !!python/name:materialx.emoji.twemoji
       emoji_generator: !!python/name:materialx.emoji.to_svg
