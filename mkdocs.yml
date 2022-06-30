@@ -31,8 +31,7 @@ nav:
   - Home: index.md
   - Getting Started:
     - Installation: getting-started/installation.md
-    # - Controls: getting-started/controls.md
-    # - Usage: getting-started/usage.md
+    - Usage: getting-started/usage.md
     - License: getting-started/license.md
 
 edit_uri: edit/main/docs/
@@ -46,6 +45,7 @@ markdown_extensions:
   - def_list
   - pymdownx.details
   - pymdownx.superfences
+  - pymdownx.keys
   - pymdownx.tabbed:
       alternate_style: true
   - pymdownx.emoji:
