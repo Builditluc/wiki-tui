@@ -32,6 +32,7 @@ nav:
   - Getting Started:
     - Installation: getting-started/installation.md
     - Usage: getting-started/usage.md
+    - What to do if a crash occurs: getting-started/crash.md
     - License: getting-started/license.md
 
 edit_uri: edit/main/docs/
