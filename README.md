@@ -191,11 +191,12 @@ See [contributing guidelines](/CONTRIBUTING.md) for contributing conventions.
 ## Similar Projects
 
 * [hexrcs/wiki-cli](https://github.com/hexrcs/wiki-cli)
+* [yashinghcodes/wik](https://github.com/yashsinghcodes/wik)
 
 ## Acknowledgements
 
 * [cursive](https://github.com/gyscos/cursive)
-* Some parts of [Best-README-Template](https://github.com/0fakhri/Best-README-Template)
+* [Best-README-Template](https://github.com/0fakhri/Best-README-Template)
 
 ## Contributors ✨
 
