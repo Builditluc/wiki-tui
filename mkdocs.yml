@@ -34,6 +34,9 @@ nav:
     - Usage: getting-started/usage.md
     - What to do if a crash occurs: getting-started/crash.md
     - License: getting-started/license.md
+  - Contributing: 
+    - Overview: contributing/overview.md
+    - Bug Report: contributing/bug-report.md
 
 edit_uri: edit/main/docs/
 
