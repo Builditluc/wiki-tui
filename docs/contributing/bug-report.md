@@ -5,7 +5,7 @@ If you are here, that means you've found a bug and want to report it. Great! Why
 
 ## Create the issue
 
-When creating a new issue, please choose the `Bug report` template and fill it in. It should now look something like this
+When creating a new issue, please choose the `Bug report` template. It should now look something like this
 
 ![Bug Report Template](../assets/images/bug_report_template.png)
 
@@ -67,7 +67,7 @@ Here you can check the things you have already done
 
 ## Submit and wait
 
-When you've filled out the template. You can proudly click on that green `Submit new issue` button.
+When you've filled out the template, you can proudly click on that green `Submit new issue` button.
 
 <center>
 <b>
