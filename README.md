@@ -20,6 +20,8 @@
   </p>
 </p>
 
+> Note: wiki-tui is still under active development and breaking changes can occur. Please always check the release notes before upgrading
+
 ## Preview
 ### How it looks
 
