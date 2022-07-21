@@ -6,6 +6,7 @@ use crate::wiki::article::TableOfContents;
 use crate::wiki::article::TableOfContentsItem;
 
 use cursive::event::{Event, Key};
+use cursive::traits::Scrollable;
 use cursive::view::{Nameable, Resizable};
 use cursive::views::{Dialog, LinearLayout, SelectView};
 use cursive::Cursive;
@@ -57,14 +58,18 @@ pub fn add_table_of_contents(siv: &mut Cursive, toc: &TableOfContents) {
         add_item_to_toc(&mut toc_view, item);
     }
 
-    article_layout.insert_child(
-        1,
-        view_with_theme!(
-            config::CONFIG.theme.toc_view,
-            Dialog::around(toc_view.with_name("toc_view").full_height()).title(toc.title())
-        ),
-    );
-    article_layout.set_weight(1, 10);
+    article_layout.add_child(view_with_theme!(
+        config::CONFIG.theme.toc_view,
+        Dialog::around(
+            toc_view
+                .with_name("toc_view")
+                .scrollable()
+                .scroll_x(true)
+                .full_height()
+        )
+        .title(toc.title())
+    ));
+
     log::debug!("added the toc_view to the article_layout");
 }
 
