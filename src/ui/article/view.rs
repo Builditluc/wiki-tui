@@ -89,7 +89,7 @@ impl ArticleView {
 
     /// Select a header by moving the viewport to its coordinates
     pub fn select_header(&mut self, index: usize) {
-        if !CONFIG.features.headers {
+        if !CONFIG.features.toc {
             return;
         }
         log::info!("selecting the header number '{}'", index);

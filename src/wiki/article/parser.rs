@@ -1,4 +1,4 @@
-use crate::config::{ParserConfig, CONFIG};
+use crate::config::CONFIG;
 use crate::wiki::article::{
     compiled_article::Article,
     element::ArticleElement,
@@ -15,21 +15,19 @@ use select::{
 use std::io::Read;
 
 /// The Parser trait allows for generating an Article from a html source
-pub trait Parser<'a> {
-    fn new(config: &'a ParserConfig) -> Self;
+pub trait Parser {
+    fn new() -> Self;
     fn parse<R: Read>(&mut self, html: R) -> Result<Article>;
 }
 
 /// The Default Parser. It can generate an Article from a given html source. Requires a
 /// configuration
-pub struct DefaultParser<'a> {
-    /// The configuration of the Parser
-    config: &'a ParserConfig,
+pub struct DefaultParser {
     /// The elements that have been parsed already
     elements: Vec<ArticleElement>,
 }
 
-impl<'a> DefaultParser<'a> {
+impl DefaultParser {
     /// This functinon takes generates a TableOfContents from a given document. When no
     /// TableOfContents can be found in the document, it returns Ok(None). Any errors it
     /// encounters are returned
@@ -116,7 +114,7 @@ impl<'a> DefaultParser<'a> {
     /// ArticleElement's and just adds them to the elements array
     fn parse_node(&mut self, node: Node) {
         match node.name().unwrap_or_default() {
-            "h2" | "h3" | "h4" | "h5" if self.config.headers => {
+            "h2" | "h3" | "h4" | "h5" => {
                 if let Some(headline_node) = node.find(Class("mw-headline")).next() {
                     self.push_header(headline_node.text())
                 }
@@ -139,7 +137,7 @@ impl<'a> DefaultParser<'a> {
                 }
                 self.push_text(content, None);
             }
-            "p" if self.config.paragraphs => {
+            "p" => {
                 // parse every child node of the paragraph
                 for child in node.children() {
                     self.parse_node(child)
@@ -147,7 +145,7 @@ impl<'a> DefaultParser<'a> {
                 // after every paragraph we want a newline
                 self.push_newline()
             }
-            "ul" if self.config.lists => {
+            "ul" => {
                 // go through every list item inside of the node
                 for list_item in node
                     .children()
@@ -164,7 +162,7 @@ impl<'a> DefaultParser<'a> {
                 // after every list we want a newline
                 self.push_newline()
             }
-            "pre" if self.config.code_blocks => {
+            "pre" => {
                 // for the code blocks, we just parse it like normal but add a newline at the
                 // beginning and the end
                 self.push_newline();
@@ -259,12 +257,11 @@ impl<'a> DefaultParser<'a> {
     }
 }
 
-impl<'a> Parser<'a> for DefaultParser<'a> {
+impl Parser for DefaultParser {
     /// Creates a new DefaultParser with the given ParserConfig
-    fn new(config: &'a ParserConfig) -> Self {
+    fn new() -> Self {
         log::debug!("creating a new instance of DefaultParser");
         Self {
-            config,
             elements: Vec::new(),
         }
     }
@@ -297,13 +294,16 @@ impl<'a> Parser<'a> for DefaultParser<'a> {
             .count();
 
         // parse the table of contents (if it exists)
-        let toc = match self.parse_toc(&document) {
-            Ok(toc) => toc,
-            Err(error) => {
-                log::warn!("{}", error);
-                None
-            }
-        };
+        let mut toc = None;
+
+        if CONFIG.features.toc {
+            match self.parse_toc(&document) {
+                Ok(_toc) => toc = _toc,
+                Err(error) => {
+                    log::warn!("{}", error);
+                }
+            };
+        }
 
         log::debug!("parse finished successfully");
         Ok(Article::new(std::mem::take(&mut self.elements), toc))
@@ -313,18 +313,8 @@ impl<'a> Parser<'a> for DefaultParser<'a> {
 #[cfg(test)]
 mod tests {
     use super::{ArticleElement, DefaultParser, Parser};
-    use crate::config::{ParserConfig, CONFIG};
+    use crate::config::CONFIG;
     use cursive::theme::{Effect, Style};
-
-    fn build_parser_config() -> ParserConfig {
-        ParserConfig {
-            toc: true,
-            headers: true,
-            paragraphs: true,
-            lists: true,
-            code_blocks: true,
-        }
-    }
 
     fn generate_html(html: &str) -> String {
         format!(
@@ -335,8 +325,7 @@ mod tests {
 
     #[test]
     fn parse_link() {
-        let config = build_parser_config();
-        let mut parser = DefaultParser::new(&config);
+        let mut parser = DefaultParser::new();
 
         let test_html = generate_html(
             "<h1 class=\"mw-first-heading\">Github</h1><p><a href=\"/wiki/Software_development\">software development</a></p>",
@@ -358,8 +347,7 @@ mod tests {
 
     #[test]
     fn parse_text() {
-        let config = build_parser_config();
-        let mut parser = DefaultParser::new(&config);
+        let mut parser = DefaultParser::new();
 
         let test_html =
             generate_html("<h1 class=\"mw-first-heading\">Github</h1><p>is a provider of</p>");
@@ -378,8 +366,7 @@ mod tests {
 
     #[test]
     fn parse_header() {
-        let config = build_parser_config();
-        let mut parser = DefaultParser::new(&config);
+        let mut parser = DefaultParser::new();
 
         let test_html = generate_html(
             "<h1 class=\"mw-first-heading\">Github</h1><h2><span class=\"mw-headline\">History</span></h2>",
@@ -400,8 +387,7 @@ mod tests {
 
     #[test]
     fn parse_bold() {
-        let config = build_parser_config();
-        let mut parser = DefaultParser::new(&config);
+        let mut parser = DefaultParser::new();
 
         let test_html =
             generate_html("<h1 class=\"mw-first-heading\">Github</h1><p><b>GitHub, Inc.</b></p>");
@@ -420,8 +406,7 @@ mod tests {
 
     #[test]
     fn parse_italic() {
-        let config = build_parser_config();
-        let mut parser = DefaultParser::new(&config);
+        let mut parser = DefaultParser::new();
 
         let test_html =
             generate_html("<h1 class=\"mw-first-heading\">Github</h1><p><i>GitHub, Inc.</i></p>");
@@ -440,8 +425,7 @@ mod tests {
 
     #[test]
     fn parse_list() {
-        let config = build_parser_config();
-        let mut parser = DefaultParser::new(&config);
+        let mut parser = DefaultParser::new();
 
         let test_html = generate_html(
             "<h1 class=\"mw-first-heading\">Github</h1><ul><li>Documentation,<a href=\"/wiki/README\">README</a></li></ul>",
@@ -473,8 +457,7 @@ mod tests {
 
     #[test]
     fn parse_code_block() {
-        let config = build_parser_config();
-        let mut parser = DefaultParser::new(&config);
+        let mut parser = DefaultParser::new();
 
         let test_html = generate_html(
             "<h1 class=\"mw-first-heading\">Github</h1><pre><code>inverse(a, n) t := 0</code></pre>",
@@ -494,8 +477,7 @@ mod tests {
 
     #[test]
     fn incorrect_html() {
-        let config = build_parser_config();
-        let mut parser = DefaultParser::new(&config);
+        let mut parser = DefaultParser::new();
 
         let test_html = generate_html("nope");
         assert!(parser.parse(test_html.as_bytes()).is_err())

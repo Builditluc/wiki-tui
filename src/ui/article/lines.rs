@@ -92,7 +92,7 @@ impl LinesWrapper {
             },
 
             header_y_coords: {
-                if CONFIG.features.headers {
+                if CONFIG.features.toc {
                     Some(Vec::new())
                 } else {
                     None
@@ -190,7 +190,7 @@ impl LinesWrapper {
                 }
 
                 // if it's a header, save its coordinates
-                if is_header && CONFIG.features.headers {
+                if is_header && CONFIG.features.toc {
                     if let Some(ref mut header_y_coords) = self.header_y_coords {
                         header_y_coords.push(self.rendered_lines.len());
                     }
@@ -332,7 +332,7 @@ impl LinesWrapper {
             }
 
             // if its a header, save its y position
-            if is_header && CONFIG.features.headers {
+            if is_header && CONFIG.features.toc {
                 if let Some(ref mut header_y_coords) = self.header_y_coords {
                     header_y_coords.push(self.rendered_lines.len());
                 }
@@ -367,7 +367,7 @@ impl LinesWrapper {
                 self.register_link(*element.id());
             }
 
-            if is_header && CONFIG.features.headers {
+            if is_header && CONFIG.features.toc {
                 if let Some(ref mut header_y_coords) = self.header_y_coords {
                     header_y_coords.push(self.rendered_lines.len());
                 }

@@ -32,7 +32,7 @@ pub fn on_article_submit(siv: &mut Cursive, search_result: &SearchResult) {
         search_result.page_id()
     );
     let article = match ArticleBuilder::new(*search_result.page_id(), None)
-        .build(&mut DefaultParser::new(&config::CONFIG.parser))
+        .build(&mut DefaultParser::new())
     {
         Ok(article) => article,
         Err(error) => {
@@ -129,9 +129,7 @@ fn open_link(siv: &mut Cursive, target: String) {
 
     // fetch the article
     log::debug!("fetching the article");
-    let article = match ArticleBuilder::new(0, Some(target))
-        .build(&mut DefaultParser::new(&config::CONFIG.parser))
-    {
+    let article = match ArticleBuilder::new(0, Some(target)).build(&mut DefaultParser::new()) {
         Ok(article) => article,
         Err(error) => {
             log::warn!("{:?}", error);
