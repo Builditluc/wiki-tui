@@ -114,7 +114,11 @@ pub struct Keybindings {
 }
 
 pub struct Settings {
-    pub toc_position: TocPosition,
+    pub toc: TocSettings,
+}
+
+pub struct TocSettings {
+    pub position: TocPosition,
 }
 
 pub enum TocPosition {
@@ -145,7 +149,12 @@ struct UserConfig {
 
 #[derive(Deserialize, Debug)]
 struct UserSettings {
-    toc_position: Option<String>,
+    toc: Option<UserTocSettings>,
+}
+
+#[derive(Deserialize, Debug)]
+struct UserTocSettings {
+    position: Option<String>,
 }
 
 #[derive(Deserialize, Debug)]
@@ -247,7 +256,7 @@ impl Config {
                 right: None,
             },
             settings: Settings {
-                toc_position: TocPosition::RIGHT,
+                toc: TocSettings { position: TocPosition::RIGHT, },
             },
             config_path: PathBuf::new(),
             args: Cli::from_args(),
@@ -583,10 +592,18 @@ impl Config {
     fn load_settings(&mut self, user_settings: &UserSettings) {
         log::info!("loading settings");
 
-        if let Some(position) = &user_settings.toc_position {
+        if let Some(user_toc_settings) = &user_settings.toc {
+            self.load_toc_settings(user_toc_settings);
+        }
+    }
+
+    fn load_toc_settings(&mut self, user_toc_settings: &UserTocSettings) {
+        log::info!("loading toc settings");
+
+        if let Some(position) = &user_toc_settings.position {
             match position.to_lowercase().as_str() {
-                "left" => self.settings.toc_position = TocPosition::LEFT,
-                "right" => self.settings.toc_position = TocPosition::RIGHT,
+                "left" => self.settings.toc.position = TocPosition::LEFT,
+                "right" => self.settings.toc.position = TocPosition::RIGHT,
                 pos => log::warn!("unknown toc position, got {}", pos),
             }
         }

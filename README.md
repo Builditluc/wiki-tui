@@ -179,8 +179,8 @@ down.mode = "normal"
 
 # [PRE-RELEASE] These options haven't been released yet
 # You can change different settings here
-[settings]
-toc_position = "left"                    # Here you can change the position of the toc view. Available options are "left" and "right" (default).
+[settings.toc]
+position = "right"                   # Here you can change the position of the toc view. Available options are "left" and "right" (default).
 ```
 
 ## Contributing

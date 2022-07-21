@@ -187,18 +187,22 @@ fn display_article(siv: &mut Cursive, article: Article) -> Result<()> {
         ui::toc::add_table_of_contents(siv, toc);
     }
 
+    // check if the article has a toc
+    let has_toc = article.toc().is_some();
+
     // create the article view
     let article_view = ArticleView::new(article);
     log::debug!("created an instance of ArticleView");
 
     // get the index of the article view (this index determines the location of the toc)
-    let index = match CONFIG.settings.toc_position {
+    let index = match CONFIG.settings.toc.position {
         TocPosition::LEFT => 1,
         TocPosition::RIGHT => 0,
     };
 
     // add the article view to the screen
     let result = siv.call_on_name("article_layout", |view: &mut LinearLayout| {
+        if CONFIG.features.toc && has_toc {
         view.insert_child(
             index,
             view_with_theme!(
@@ -206,6 +210,14 @@ fn display_article(siv: &mut Cursive, article: Article) -> Result<()> {
                 Dialog::around(article_view.with_name("article_view").scrollable())
             ),
         );
+        } else {
+            view.add_child(
+                view_with_theme!(
+                    CONFIG.theme.article_view,
+                    Dialog::around(article_view.with_name("article_view").scrollable())
+                ),
+            );
+        }
     });
     if result.is_none() {
         log::debug!("display_article failed to finish");
