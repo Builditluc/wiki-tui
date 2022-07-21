@@ -22,7 +22,7 @@ impl ArticleBuilder {
     }
 
     /// Fetches the article and parses it with a given parser. Any errors it encounters will be returned
-    pub fn build<'a>(&self, parser: &mut impl Parser<'a>) -> Result<Article> {
+    pub fn build(&self, parser: &mut impl Parser) -> Result<Article> {
         log::info!("beginning the build process");
         let url = self.build_url();
 
@@ -47,11 +47,7 @@ impl ArticleBuilder {
     }
 
     /// Parses the response with a given parser
-    fn parse_response<'a>(
-        &self,
-        parser: &mut impl Parser<'a>,
-        response: Response,
-    ) -> Result<Article> {
+    fn parse_response(&self, parser: &mut impl Parser, response: Response) -> Result<Article> {
         parser.parse(response)
     }
 }

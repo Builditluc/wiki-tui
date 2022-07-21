@@ -90,7 +90,7 @@ pub fn on_search(siv: &mut Cursive, search_query: String) {
     }
 
     // save the first result so we can display its preview
-    let first_result = search.results().cloned().next();
+    let first_result = search.results().next().cloned();
 
     // add the search results to the results view
     log::debug!("adding the results to the search results view");

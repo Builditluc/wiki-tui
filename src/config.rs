@@ -101,18 +101,9 @@ pub struct Logging {
     pub log_level: LevelFilter,
 }
 
-#[derive(Debug)]
-pub struct ParserConfig {
-    pub toc: bool,
-    pub headers: bool,
-    pub paragraphs: bool,
-    pub lists: bool,
-    pub code_blocks: bool,
-}
-
 pub struct Features {
     pub links: bool,
-    pub headers: bool,
+    pub toc: bool,
 }
 
 pub struct Keybindings {
@@ -126,7 +117,6 @@ pub struct Config {
     pub api_config: ApiConfig,
     pub theme: Theme,
     pub logging: Logging,
-    pub parser: ParserConfig,
     pub features: Features,
     pub keybindings: Keybindings,
     config_path: PathBuf,
@@ -138,7 +128,6 @@ struct UserConfig {
     api: Option<UserApiConfig>,
     theme: Option<UserTheme>,
     logging: Option<UserLogging>,
-    parser: Option<UserParserConfig>,
     features: Option<UserFeatures>,
     keybindings: Option<UserKeybindings>,
 }
@@ -184,18 +173,9 @@ struct UserLogging {
 }
 
 #[derive(Deserialize, Debug)]
-struct UserParserConfig {
-    toc: Option<bool>,
-    headers: Option<bool>,
-    paragraphs: Option<bool>,
-    lists: Option<bool>,
-    code_blocks: Option<bool>,
-}
-
-#[derive(Deserialize, Debug)]
 struct UserFeatures {
     links: Option<bool>,
-    headers: Option<bool>,
+    toc: Option<bool>,
 }
 
 #[derive(Deserialize, Debug)]
@@ -240,16 +220,9 @@ impl Config {
                 log_dir: PathBuf::from("wiki_tui.log"),
                 log_level: LevelFilter::Info,
             },
-            parser: ParserConfig {
-                toc: true,
-                headers: true,
-                paragraphs: true,
-                lists: true,
-                code_blocks: true,
-            },
             features: Features {
                 links: true,
-                headers: true,
+                toc: true,
             },
             keybindings: Keybindings {
                 down: None,
@@ -316,10 +289,6 @@ impl Config {
 
         if let Some(user_logging) = user_config.logging {
             self.load_logging(&user_logging);
-        }
-
-        if let Some(user_parser) = user_config.parser {
-            self.load_parser(&user_parser);
         }
 
         if let Some(user_features) = user_config.features {
@@ -519,26 +488,6 @@ impl Config {
         }
     }
 
-    fn load_parser(&mut self, user_parser: &UserParserConfig) {
-        log::info!("loading the parser configuration");
-
-        if let Some(toc) = user_parser.toc {
-            self.parser.toc = toc;
-        }
-        if let Some(headers) = user_parser.headers {
-            self.parser.headers = headers;
-        }
-        if let Some(paragraphs) = user_parser.paragraphs {
-            self.parser.paragraphs = paragraphs;
-        }
-        if let Some(lists) = user_parser.lists {
-            self.parser.lists = lists;
-        }
-        if let Some(code_blocks) = user_parser.code_blocks {
-            self.parser.code_blocks = code_blocks;
-        }
-    }
-
     fn load_features(&mut self, user_features: &UserFeatures) {
         log::info!("loading the article features");
 
@@ -546,8 +495,8 @@ impl Config {
             self.features.links = links;
         }
 
-        if let Some(headers) = user_features.headers {
-            self.features.headers = headers;
+        if let Some(toc) = user_features.toc {
+            self.features.toc = toc;
         }
     }
 
