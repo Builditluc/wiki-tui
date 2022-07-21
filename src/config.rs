@@ -113,12 +113,22 @@ pub struct Keybindings {
     pub right: Option<Event>,
 }
 
+pub struct Settings {
+    pub toc_position: TocPosition,
+}
+
+pub enum TocPosition {
+    LEFT,
+    RIGHT,
+}
+
 pub struct Config {
     pub api_config: ApiConfig,
     pub theme: Theme,
     pub logging: Logging,
     pub features: Features,
     pub keybindings: Keybindings,
+    pub settings: Settings,
     config_path: PathBuf,
     args: Cli,
 }
@@ -130,6 +140,12 @@ struct UserConfig {
     logging: Option<UserLogging>,
     features: Option<UserFeatures>,
     keybindings: Option<UserKeybindings>,
+    settings: Option<UserSettings>,
+}
+
+#[derive(Deserialize, Debug)]
+struct UserSettings {
+    toc_position: Option<String>,
 }
 
 #[derive(Deserialize, Debug)]
@@ -230,6 +246,9 @@ impl Config {
                 left: None,
                 right: None,
             },
+            settings: Settings {
+                toc_position: TocPosition::RIGHT,
+            },
             config_path: PathBuf::new(),
             args: Cli::from_args(),
         };
@@ -297,6 +316,10 @@ impl Config {
 
         if let Some(user_keybindings) = user_config.keybindings {
             self.load_keybindings(&user_keybindings);
+        }
+
+        if let Some(user_settings) = user_config.settings {
+            self.load_settings(&user_settings);
         }
 
         // override the log level
@@ -553,6 +576,18 @@ impl Config {
                 Err(error) => {
                     log::warn!("{:?}", error)
                 }
+            }
+        }
+    }
+
+    fn load_settings(&mut self, user_settings: &UserSettings) {
+        log::info!("loading settings");
+
+        if let Some(position) = &user_settings.toc_position {
+            match position.to_lowercase().as_str() {
+                "left" => self.settings.toc_position = TocPosition::LEFT,
+                "right" => self.settings.toc_position = TocPosition::RIGHT,
+                pos => log::warn!("unknown toc position, got {}", pos),
             }
         }
     }

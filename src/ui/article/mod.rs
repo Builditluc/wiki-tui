@@ -6,7 +6,10 @@ use crate::wiki::{
     },
     search::SearchResult,
 };
-use crate::{config, ui, view_with_theme};
+use crate::{
+    config::{self, TocPosition, CONFIG},
+    ui, view_with_theme,
+};
 
 use anyhow::{bail, Context, Result};
 use cursive::align::HAlign;
@@ -188,12 +191,18 @@ fn display_article(siv: &mut Cursive, article: Article) -> Result<()> {
     let article_view = ArticleView::new(article);
     log::debug!("created an instance of ArticleView");
 
+    // get the index of the article view (this index determines the location of the toc)
+    let index = match CONFIG.settings.toc_position {
+        TocPosition::LEFT => 1,
+        TocPosition::RIGHT => 0,
+    };
+
     // add the article view to the screen
     let result = siv.call_on_name("article_layout", |view: &mut LinearLayout| {
         view.insert_child(
-            0,
+            index,
             view_with_theme!(
-                config::CONFIG.theme.article_view,
+                CONFIG.theme.article_view,
                 Dialog::around(article_view.with_name("article_view").scrollable())
             ),
         );

@@ -176,6 +176,11 @@ down.mode = "normal"
 # - right
 
 # Note: the default keys (Up, Down, Left, Right) will still work even after changing the keybinding.
+
+# [PRE-RELEASE] These options haven't been released yet
+# You can change different settings here
+[settings]
+toc_position = "left"                    # Here you can change the position of the toc view. Available options are "left" and "right" (default).
 ```
 
 ## Contributing
