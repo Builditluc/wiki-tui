@@ -180,7 +180,14 @@ down.mode = "normal"
 # [PRE-RELEASE] These options haven't been released yet
 # You can change different settings here
 [settings.toc]
-position = "right"                   # Here you can change the position of the toc view. Available options are "left" and "right" (default).
+# Here you can change the position of the toc view. Available options are "left" and "right" (default).
+position = "right"
+# You can change the title of the table of contents, the available options are
+# - default (uses the toc title given by the article)
+# - article (uses the title of the article you are viewing)
+# - custom  (uses the title configured in the option "title_custom", if "title_custom" is empty, it will display "NONE")
+title = "default"
+title_custom = "My Custom Title"
 ```
 
 ## Contributing

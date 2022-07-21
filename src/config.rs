@@ -119,11 +119,19 @@ pub struct Settings {
 
 pub struct TocSettings {
     pub position: TocPosition,
+    pub title: TocTitle,
+    pub title_custom: Option<String>,
 }
 
 pub enum TocPosition {
     LEFT,
     RIGHT,
+}
+
+pub enum TocTitle {
+    DEFAULT,
+    CUSTOM,
+    ARTICLE,
 }
 
 pub struct Config {
@@ -155,6 +163,8 @@ struct UserSettings {
 #[derive(Deserialize, Debug)]
 struct UserTocSettings {
     position: Option<String>,
+    title: Option<String>,
+    title_custom: Option<String>,
 }
 
 #[derive(Deserialize, Debug)]
@@ -256,7 +266,11 @@ impl Config {
                 right: None,
             },
             settings: Settings {
-                toc: TocSettings { position: TocPosition::RIGHT, },
+                toc: TocSettings {
+                    position: TocPosition::RIGHT,
+                    title: TocTitle::DEFAULT,
+                    title_custom: None,
+                },
             },
             config_path: PathBuf::new(),
             args: Cli::from_args(),
@@ -606,6 +620,19 @@ impl Config {
                 "right" => self.settings.toc.position = TocPosition::RIGHT,
                 pos => log::warn!("unknown toc position, got {}", pos),
             }
+        }
+
+        if let Some(title) = &user_toc_settings.title {
+            match title.to_lowercase().as_str() {
+                "default" => self.settings.toc.title = TocTitle::DEFAULT,
+                "custom" => self.settings.toc.title = TocTitle::CUSTOM,
+                "article" => self.settings.toc.title = TocTitle::ARTICLE,
+                _ => self.settings.toc.title = TocTitle::DEFAULT,
+            }
+        }
+
+        if let Some(title_custom) = &user_toc_settings.title_custom {
+            self.settings.toc.title_custom = Some(title_custom.to_string());
         }
     }
 

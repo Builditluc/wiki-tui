@@ -203,20 +203,18 @@ fn display_article(siv: &mut Cursive, article: Article) -> Result<()> {
     // add the article view to the screen
     let result = siv.call_on_name("article_layout", |view: &mut LinearLayout| {
         if CONFIG.features.toc && has_toc {
-        view.insert_child(
-            index,
-            view_with_theme!(
-                CONFIG.theme.article_view,
-                Dialog::around(article_view.with_name("article_view").scrollable())
-            ),
-        );
-        } else {
-            view.add_child(
+            view.insert_child(
+                index,
                 view_with_theme!(
                     CONFIG.theme.article_view,
                     Dialog::around(article_view.with_name("article_view").scrollable())
                 ),
             );
+        } else {
+            view.add_child(view_with_theme!(
+                CONFIG.theme.article_view,
+                Dialog::around(article_view.with_name("article_view").scrollable())
+            ));
         }
     });
     if result.is_none() {

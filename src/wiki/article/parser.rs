@@ -1,4 +1,4 @@
-use crate::config::CONFIG;
+use crate::config::{TocTitle, CONFIG};
 use crate::wiki::article::{
     compiled_article::Article,
     element::ArticleElement,
@@ -42,11 +42,20 @@ impl DefaultParser {
             .context("No table of contents was found")?;
 
         // get the title of the toc
-        let toc_title = toc_node
-            .find(Class("toctitle"))
-            .next()
-            .context("No toc title was found")?
-            .text();
+        let toc_title = match CONFIG.settings.toc.title {
+            TocTitle::DEFAULT => toc_node
+                .find(Class("toctitle"))
+                .next()
+                .context("No toc title was found")?
+                .text(),
+            TocTitle::ARTICLE => self.get_title(document)?,
+            TocTitle::CUSTOM => CONFIG
+                .settings
+                .toc
+                .title_custom
+                .clone()
+                .unwrap_or_else(|| "NONE".to_string()),
+        };
 
         log::debug!("parsing the toc now");
         let mut toc_items: Vec<TableOfContentsItem> = Vec::new();
@@ -255,6 +264,15 @@ impl DefaultParser {
     fn get_id(&self) -> i32 {
         self.elements.len() as i32
     }
+
+    /// A helper function that retrieves the title of the article from the document
+    fn get_title(&self, document: &Document) -> Result<String> {
+        Ok(document
+            .find(Class("mw-first-heading"))
+            .next()
+            .context("Couldn't find the title")?
+            .text())
+    }
 }
 
 impl Parser for DefaultParser {
@@ -276,11 +294,7 @@ impl Parser for DefaultParser {
         log::debug!("loaded the document");
 
         // retrieve the title of the article
-        let title = document
-            .find(Class("mw-first-heading"))
-            .next()
-            .context("Couldn't find the title")?
-            .text();
+        let title = self.get_title(&document)?;
         log::debug!("retrieved the title '{}' from the document", &title);
         self.push_header(title);
 
