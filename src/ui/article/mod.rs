@@ -59,7 +59,7 @@ pub fn on_article_submit(siv: &mut Cursive, search_result: &SearchResult) {
             search_result.title().to_string()
         }
     );
-    if let Err(error) = display_article(siv, article.clone()) {
+    if let Err(error) = display_article(siv, article) {
         // log the error
         log::warn!("{}", error);
 
@@ -71,12 +71,6 @@ pub fn on_article_submit(siv: &mut Cursive, search_result: &SearchResult) {
         );
         log::info!("on_article_submit failed to finish");
         return;
-    }
-
-    // display the toc if there is one
-    if let Some(toc) = article.toc() {
-        log::info!("displaying the table of contents");
-        ui::toc::add_table_of_contents(siv, toc);
     }
 
     log::info!("on_article_submit finished successfully");
@@ -148,7 +142,7 @@ fn open_link(siv: &mut Cursive, target: String) {
 
     // display the article
     log::debug!("displaying the article");
-    if let Err(error) = display_article(siv, article.clone()) {
+    if let Err(error) = display_article(siv, article) {
         log::warn!("{:?}", error);
 
         // display an error message
@@ -160,12 +154,6 @@ fn open_link(siv: &mut Cursive, target: String) {
 
         log::debug!("open_link failed to finish");
         return;
-    }
-
-    // display the toc if there is one
-    if let Some(toc) = article.toc() {
-        log::debug!("displaying the table of contents");
-        ui::toc::add_table_of_contents(siv, toc);
     }
 
     log::debug!("open_link finished successfully");
@@ -189,6 +177,12 @@ fn display_article(siv: &mut Cursive, article: Article) -> Result<()> {
     remove_view_from_layout(siv, "logo_view", "article_layout");
     remove_view_from_layout(siv, "article_view", "article_layout");
     remove_view_from_layout(siv, "toc_view", "article_layout");
+
+    // display the toc if there is one
+    if let Some(toc) = article.toc() {
+        log::info!("displaying the table of contents");
+        ui::toc::add_table_of_contents(siv, toc);
+    }
 
     // create the article view
     let article_view = ArticleView::new(article);
