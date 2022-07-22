@@ -12,6 +12,7 @@ use select::{
     node::Node,
     predicate::{Attr, Class, Name},
 };
+use std::collections::HashMap;
 use std::io::Read;
 
 /// The Parser trait allows for generating an Article from a html source
@@ -105,18 +106,31 @@ impl DefaultParser {
             }
         }
 
+        // put number and text into a hashmap
+        let data = {
+            let mut data = HashMap::new();
+            data.insert("{NUMBER}", item_number);
+            data.insert("{TEXT}", item_text);
+            data
+        };
+
+        // format the text
+        let text = {
+            let mut text = CONFIG.settings.toc.item_format.to_string();
+            for (k, v) in &data {
+                text = text.replace(k, v);
+            }
+            text
+        };
+
         // return everything
-        Ok(TableOfContentsItem::new(
-            level,
-            format!("{} {}", item_number, item_text),
-            {
-                if sub_items.is_empty() {
-                    None
-                } else {
-                    Some(sub_items)
-                }
-            },
-        ))
+        Ok(TableOfContentsItem::new(level, text, {
+            if sub_items.is_empty() {
+                None
+            } else {
+                Some(sub_items)
+            }
+        }))
     }
 
     /// A helper function that parses a single node from a html document into one or multiple

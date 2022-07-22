@@ -192,6 +192,10 @@ title_custom = "My Custom Title"
 #If you don't want these scrollbars, you can disable them.
 scroll_x = true
 scroll_y = true
+# You can also change how the items are generated. Available values are
+# - {NUMBER} : current number of the header (1, 1.1, 1.2, 2, ...)
+# - {TEXT}   : text of the header
+item_format = "{NUMBER} {TEXT}"
 ```
 
 ## Contributing

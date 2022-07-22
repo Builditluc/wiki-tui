@@ -123,6 +123,7 @@ pub struct TocSettings {
     pub title_custom: Option<String>,
     pub scroll_x: bool,
     pub scroll_y: bool,
+    pub item_format: String,
 }
 
 pub enum TocPosition {
@@ -169,6 +170,7 @@ struct UserTocSettings {
     title_custom: Option<String>,
     scroll_x: Option<bool>,
     scroll_y: Option<bool>,
+    item_format: Option<String>,
 }
 
 #[derive(Deserialize, Debug)]
@@ -276,6 +278,7 @@ impl Config {
                     title_custom: None,
                     scroll_x: true,
                     scroll_y: true,
+                    item_format: "{NUMBER} {TEXT}".to_string(),
                 },
             },
             config_path: PathBuf::new(),
@@ -647,6 +650,10 @@ impl Config {
 
         if let Some(scroll_y) = &user_toc_settings.scroll_y {
             self.settings.toc.scroll_y = scroll_y.to_owned();
+        }
+
+        if let Some(item_format) = &user_toc_settings.item_format {
+            self.settings.toc.item_format = item_format.to_owned();
         }
     }
 
