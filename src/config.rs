@@ -121,6 +121,8 @@ pub struct TocSettings {
     pub position: TocPosition,
     pub title: TocTitle,
     pub title_custom: Option<String>,
+    pub scroll_x: bool,
+    pub scroll_y: bool,
 }
 
 pub enum TocPosition {
@@ -165,6 +167,8 @@ struct UserTocSettings {
     position: Option<String>,
     title: Option<String>,
     title_custom: Option<String>,
+    scroll_x: Option<bool>,
+    scroll_y: Option<bool>,
 }
 
 #[derive(Deserialize, Debug)]
@@ -270,6 +274,8 @@ impl Config {
                     position: TocPosition::RIGHT,
                     title: TocTitle::DEFAULT,
                     title_custom: None,
+                    scroll_x: true,
+                    scroll_y: true,
                 },
             },
             config_path: PathBuf::new(),
@@ -633,6 +639,14 @@ impl Config {
 
         if let Some(title_custom) = &user_toc_settings.title_custom {
             self.settings.toc.title_custom = Some(title_custom.to_string());
+        }
+
+        if let Some(scroll_x) = &user_toc_settings.scroll_x {
+            self.settings.toc.scroll_x = scroll_x.to_owned();
+        }
+
+        if let Some(scroll_y) = &user_toc_settings.scroll_y {
+            self.settings.toc.scroll_y = scroll_y.to_owned();
         }
     }
 

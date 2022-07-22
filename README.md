@@ -188,6 +188,10 @@ position = "right"
 # - custom  (uses the title configured in the option "title_custom", if "title_custom" is empty, it will display "NONE")
 title = "default"
 title_custom = "My Custom Title"
+# By default, there are horizontal and vertical scrollbars that appear when there isn't enough space for the toc. 
+#If you don't want these scrollbars, you can disable them.
+scroll_x = true
+scroll_y = true
 ```
 
 ## Contributing

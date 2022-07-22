@@ -64,7 +64,8 @@ pub fn add_table_of_contents(siv: &mut Cursive, toc: &TableOfContents) {
             toc_view
                 .with_name("toc_view")
                 .scrollable()
-                .scroll_x(true)
+                .scroll_x(config::CONFIG.settings.toc.scroll_x)
+                .scroll_y(config::CONFIG.settings.toc.scroll_y)
                 .full_height()
         )
         .title(toc.title())
