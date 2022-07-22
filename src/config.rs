@@ -121,6 +121,8 @@ pub struct TocSettings {
     pub position: TocPosition,
     pub title: TocTitle,
     pub title_custom: Option<String>,
+    pub min_width: usize,
+    pub max_width: usize,
     pub scroll_x: bool,
     pub scroll_y: bool,
     pub item_format: String,
@@ -168,6 +170,8 @@ struct UserTocSettings {
     position: Option<String>,
     title: Option<String>,
     title_custom: Option<String>,
+    min_width: Option<usize>,
+    max_width: Option<usize>,
     scroll_x: Option<bool>,
     scroll_y: Option<bool>,
     item_format: Option<String>,
@@ -276,6 +280,8 @@ impl Config {
                     position: TocPosition::RIGHT,
                     title: TocTitle::DEFAULT,
                     title_custom: None,
+                    min_width: 20,
+                    max_width: 60,
                     scroll_x: true,
                     scroll_y: true,
                     item_format: "{NUMBER} {TEXT}".to_string(),
@@ -642,6 +648,14 @@ impl Config {
 
         if let Some(title_custom) = &user_toc_settings.title_custom {
             self.settings.toc.title_custom = Some(title_custom.to_string());
+        }
+
+        if let Some(min_width) = &user_toc_settings.min_width {
+            self.settings.toc.min_width = min_width.to_owned();
+        }
+
+        if let Some(max_width) = &user_toc_settings.max_width {
+            self.settings.toc.max_width = max_width.to_owned();
         }
 
         if let Some(scroll_x) = &user_toc_settings.scroll_x {

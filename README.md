@@ -188,6 +188,10 @@ position = "right"
 # - custom  (uses the title configured in the option "title_custom", if "title_custom" is empty, it will display "NONE")
 title = "default"
 title_custom = "My Custom Title"
+# You can also change the min and max width of the toc view. The defaults are 20 for the min width and 60 for the max width
+min_width = 20
+max_width = 60
+
 # By default, there are horizontal and vertical scrollbars that appear when there isn't enough space for the toc. 
 #If you don't want these scrollbars, you can disable them.
 scroll_x = true

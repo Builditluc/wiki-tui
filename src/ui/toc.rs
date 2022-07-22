@@ -58,18 +58,22 @@ pub fn add_table_of_contents(siv: &mut Cursive, toc: &TableOfContents) {
         add_item_to_toc(&mut toc_view, item);
     }
 
-    article_layout.add_child(view_with_theme!(
-        config::CONFIG.theme.toc_view,
-        Dialog::around(
-            toc_view
-                .with_name("toc_view")
-                .scrollable()
-                .scroll_x(config::CONFIG.settings.toc.scroll_x)
-                .scroll_y(config::CONFIG.settings.toc.scroll_y)
-                .full_height()
+    article_layout.add_child(
+        view_with_theme!(
+            config::CONFIG.theme.toc_view,
+            Dialog::around(
+                toc_view
+                    .with_name("toc_view")
+                    .scrollable()
+                    .scroll_x(config::CONFIG.settings.toc.scroll_x)
+                    .scroll_y(config::CONFIG.settings.toc.scroll_y)
+                    .full_height()
+            )
+            .title(toc.title())
         )
-        .title(toc.title())
-    ));
+        .min_width(config::CONFIG.settings.toc.min_width)
+        .max_width(config::CONFIG.settings.toc.max_width),
+    );
 
     log::debug!("added the toc_view to the article_layout");
 }
