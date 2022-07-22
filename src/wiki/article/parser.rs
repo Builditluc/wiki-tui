@@ -1,4 +1,4 @@
-use crate::config::CONFIG;
+use crate::config::{TocTitle, CONFIG};
 use crate::wiki::article::{
     compiled_article::Article,
     element::ArticleElement,
@@ -12,6 +12,7 @@ use select::{
     node::Node,
     predicate::{Attr, Class, Name},
 };
+use std::collections::HashMap;
 use std::io::Read;
 
 /// The Parser trait allows for generating an Article from a html source
@@ -42,11 +43,20 @@ impl DefaultParser {
             .context("No table of contents was found")?;
 
         // get the title of the toc
-        let toc_title = toc_node
-            .find(Class("toctitle"))
-            .next()
-            .context("No toc title was found")?
-            .text();
+        let toc_title = match CONFIG.settings.toc.title {
+            TocTitle::DEFAULT => toc_node
+                .find(Class("toctitle"))
+                .next()
+                .context("No toc title was found")?
+                .text(),
+            TocTitle::ARTICLE => self.get_title(document)?,
+            TocTitle::CUSTOM => CONFIG
+                .settings
+                .toc
+                .title_custom
+                .clone()
+                .unwrap_or_else(|| "NONE".to_string()),
+        };
 
         log::debug!("parsing the toc now");
         let mut toc_items: Vec<TableOfContentsItem> = Vec::new();
@@ -96,18 +106,31 @@ impl DefaultParser {
             }
         }
 
+        // put number and text into a hashmap
+        let data = {
+            let mut data = HashMap::new();
+            data.insert("{NUMBER}", item_number);
+            data.insert("{TEXT}", item_text);
+            data
+        };
+
+        // format the text
+        let text = {
+            let mut text = CONFIG.settings.toc.item_format.to_string();
+            for (k, v) in &data {
+                text = text.replace(k, v);
+            }
+            text
+        };
+
         // return everything
-        Ok(TableOfContentsItem::new(
-            level,
-            format!("{} {}", item_number, item_text),
-            {
-                if sub_items.is_empty() {
-                    None
-                } else {
-                    Some(sub_items)
-                }
-            },
-        ))
+        Ok(TableOfContentsItem::new(level, text, {
+            if sub_items.is_empty() {
+                None
+            } else {
+                Some(sub_items)
+            }
+        }))
     }
 
     /// A helper function that parses a single node from a html document into one or multiple
@@ -255,6 +278,15 @@ impl DefaultParser {
     fn get_id(&self) -> i32 {
         self.elements.len() as i32
     }
+
+    /// A helper function that retrieves the title of the article from the document
+    fn get_title(&self, document: &Document) -> Result<String> {
+        Ok(document
+            .find(Class("mw-first-heading"))
+            .next()
+            .context("Couldn't find the title")?
+            .text())
+    }
 }
 
 impl Parser for DefaultParser {
@@ -276,11 +308,7 @@ impl Parser for DefaultParser {
         log::debug!("loaded the document");
 
         // retrieve the title of the article
-        let title = document
-            .find(Class("mw-first-heading"))
-            .next()
-            .context("Couldn't find the title")?
-            .text();
+        let title = self.get_title(&document)?;
         log::debug!("retrieved the title '{}' from the document", &title);
         self.push_header(title);
 

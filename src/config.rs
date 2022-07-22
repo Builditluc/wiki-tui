@@ -114,12 +114,29 @@ pub struct Keybindings {
 }
 
 pub struct Settings {
-    pub toc_position: TocPosition,
+    pub toc: TocSettings,
+}
+
+pub struct TocSettings {
+    pub position: TocPosition,
+    pub title: TocTitle,
+    pub title_custom: Option<String>,
+    pub min_width: usize,
+    pub max_width: usize,
+    pub scroll_x: bool,
+    pub scroll_y: bool,
+    pub item_format: String,
 }
 
 pub enum TocPosition {
     LEFT,
     RIGHT,
+}
+
+pub enum TocTitle {
+    DEFAULT,
+    CUSTOM,
+    ARTICLE,
 }
 
 pub struct Config {
@@ -145,7 +162,19 @@ struct UserConfig {
 
 #[derive(Deserialize, Debug)]
 struct UserSettings {
-    toc_position: Option<String>,
+    toc: Option<UserTocSettings>,
+}
+
+#[derive(Deserialize, Debug)]
+struct UserTocSettings {
+    position: Option<String>,
+    title: Option<String>,
+    title_custom: Option<String>,
+    min_width: Option<usize>,
+    max_width: Option<usize>,
+    scroll_x: Option<bool>,
+    scroll_y: Option<bool>,
+    item_format: Option<String>,
 }
 
 #[derive(Deserialize, Debug)]
@@ -247,7 +276,16 @@ impl Config {
                 right: None,
             },
             settings: Settings {
-                toc_position: TocPosition::RIGHT,
+                toc: TocSettings {
+                    position: TocPosition::RIGHT,
+                    title: TocTitle::DEFAULT,
+                    title_custom: None,
+                    min_width: 20,
+                    max_width: 60,
+                    scroll_x: true,
+                    scroll_y: true,
+                    item_format: "{NUMBER} {TEXT}".to_string(),
+                },
             },
             config_path: PathBuf::new(),
             args: Cli::from_args(),
@@ -583,12 +621,53 @@ impl Config {
     fn load_settings(&mut self, user_settings: &UserSettings) {
         log::info!("loading settings");
 
-        if let Some(position) = &user_settings.toc_position {
+        if let Some(user_toc_settings) = &user_settings.toc {
+            self.load_toc_settings(user_toc_settings);
+        }
+    }
+
+    fn load_toc_settings(&mut self, user_toc_settings: &UserTocSettings) {
+        log::info!("loading toc settings");
+
+        if let Some(position) = &user_toc_settings.position {
             match position.to_lowercase().as_str() {
-                "left" => self.settings.toc_position = TocPosition::LEFT,
-                "right" => self.settings.toc_position = TocPosition::RIGHT,
+                "left" => self.settings.toc.position = TocPosition::LEFT,
+                "right" => self.settings.toc.position = TocPosition::RIGHT,
                 pos => log::warn!("unknown toc position, got {}", pos),
             }
+        }
+
+        if let Some(title) = &user_toc_settings.title {
+            match title.to_lowercase().as_str() {
+                "default" => self.settings.toc.title = TocTitle::DEFAULT,
+                "custom" => self.settings.toc.title = TocTitle::CUSTOM,
+                "article" => self.settings.toc.title = TocTitle::ARTICLE,
+                _ => self.settings.toc.title = TocTitle::DEFAULT,
+            }
+        }
+
+        if let Some(title_custom) = &user_toc_settings.title_custom {
+            self.settings.toc.title_custom = Some(title_custom.to_string());
+        }
+
+        if let Some(min_width) = &user_toc_settings.min_width {
+            self.settings.toc.min_width = min_width.to_owned();
+        }
+
+        if let Some(max_width) = &user_toc_settings.max_width {
+            self.settings.toc.max_width = max_width.to_owned();
+        }
+
+        if let Some(scroll_x) = &user_toc_settings.scroll_x {
+            self.settings.toc.scroll_x = scroll_x.to_owned();
+        }
+
+        if let Some(scroll_y) = &user_toc_settings.scroll_y {
+            self.settings.toc.scroll_y = scroll_y.to_owned();
+        }
+
+        if let Some(item_format) = &user_toc_settings.item_format {
+            self.settings.toc.item_format = item_format.to_owned();
         }
     }
 

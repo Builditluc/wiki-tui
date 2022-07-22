@@ -179,8 +179,27 @@ down.mode = "normal"
 
 # [PRE-RELEASE] These options haven't been released yet
 # You can change different settings here
-[settings]
-toc_position = "left"                    # Here you can change the position of the toc view. Available options are "left" and "right" (default).
+[settings.toc]
+# Here you can change the position of the toc view. Available options are "left" and "right" (default).
+position = "right"
+# You can change the title of the table of contents, the available options are
+# - default (uses the toc title given by the article)
+# - article (uses the title of the article you are viewing)
+# - custom  (uses the title configured in the option "title_custom", if "title_custom" is empty, it will display "NONE")
+title = "default"
+title_custom = "My Custom Title"
+# You can also change the min and max width of the toc view. The defaults are 20 for the min width and 60 for the max width
+min_width = 20
+max_width = 60
+
+# By default, there are horizontal and vertical scrollbars that appear when there isn't enough space for the toc. 
+#If you don't want these scrollbars, you can disable them.
+scroll_x = true
+scroll_y = true
+# You can also change how the items are generated. Available values are
+# - {NUMBER} : current number of the header (1, 1.1, 1.2, 2, ...)
+# - {TEXT}   : text of the header
+item_format = "{NUMBER} {TEXT}"
 ```
 
 ## Contributing
