@@ -50,7 +50,7 @@ impl ArticleContent {
     /// Returns the id of the current link
     pub fn current_link(&self) -> Option<i32> {
         if let Some(ref link_handler) = self.link_handler {
-            return Some(link_handler.get_current_link());
+            return link_handler.get_current_link();
         }
         None
     }
@@ -65,7 +65,7 @@ impl ArticleContent {
     /// Returns the position of the current link
     pub fn current_link_pos(&self) -> Option<Vec2> {
         if let Some(ref link_handler) = self.link_handler {
-            return Some(link_handler.get_current_link_pos());
+            return link_handler.get_current_link_pos();
         }
         None
     }
@@ -73,7 +73,10 @@ impl ArticleContent {
     /// Returns the y-position of a given header
     pub fn header_y_pos(&self, index: usize) -> Option<usize> {
         if let Some(ref header_y_coords) = self.header_y_coords {
-            assert!(header_y_coords.len() > index);
+            if header_y_coords.len() <= index {
+                log::warn!("couldn't retrieve the header y-position, headers_len: '{}' <= header_index '{}'", header_y_coords.len(), index);
+                return None;
+            }
             return Some(header_y_coords[index]);
         }
         None

@@ -193,7 +193,7 @@ impl View for ArticleView {
                 self.content.move_selected_link(Absolute::Left, 1);
                 // if the current link is outside of the viewport, then scroll
                 // get the current links position
-                let current_link_pos = self.content.current_link_pos().unwrap(); // we can use unwrap here
+                let current_link_pos = self.content.current_link_pos().unwrap_or((0, 0).into());
 
                 // we've moved the link to the left, so we only need to check if the link is above
                 // the viewport
@@ -212,7 +212,7 @@ impl View for ArticleView {
                 self.content.move_selected_link(Absolute::Right, 1);
                 // if the current link is outside of the viewport, then scroll
                 // get the current links position
-                let current_link_pos = self.content.current_link_pos().unwrap(); // we can use unwrap here
+                let current_link_pos = self.content.current_link_pos().unwrap_or((0, 0,).into());
 
                 // we've moved the link to the right, so we only need to check if the link is below
                 // the viewport
