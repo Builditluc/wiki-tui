@@ -139,7 +139,7 @@ impl DefaultParser {
         match node.name().unwrap_or_default() {
             "h2" | "h3" | "h4" | "h5" => {
                 if let Some(headline_node) = node.find(Class("mw-headline")).next() {
-                    self.push_header(headline_node.text())
+                    self.push_header(headline_node.text(), true)
                 }
             }
             "b" => self.push_text(
@@ -253,19 +253,27 @@ impl DefaultParser {
     }
 
     /// A helper function that add a header to the elements. It constructs an ArticleElement from
-    /// a given content and adds it to the array
-    fn push_header(&mut self, content: String) {
+    /// a given content and adds it to the array. The parameter `is_toc_header` can be used to indicate
+    /// that the header is also located within the table of contents. Only toc headers can be jumped to
+    fn push_header(&mut self, content: String, is_toc_header: bool) {
         // we create a new article element with the correct style from the config and add a newline
         // afterwards
-        self.elements.push(
-            ArticleElement::new(
+        self.elements.push({
+            let mut element = ArticleElement::new(
                 self.get_id(),
                 content.chars().count(),
                 Style::from(CONFIG.theme.title).combine(Effect::Bold),
                 content,
             )
-            .attribute("type", "header"),
-        );
+            .attribute("type", "header")
+            .attribute("is_toc_header", "false");
+
+            if is_toc_header {
+                element.set_attribute("is_toc_header", "true");
+            }
+
+            element
+        });
         self.push_newline();
     }
 
@@ -310,7 +318,7 @@ impl Parser for DefaultParser {
         // retrieve the title of the article
         let title = self.get_title(&document)?;
         log::debug!("retrieved the title '{}' from the document", &title);
-        self.push_header(title);
+        self.push_header(title, false);
 
         // parse the article content
         document
@@ -410,6 +418,7 @@ mod tests {
                 "History".to_string(),
             )
             .attribute("type", "header")
+            .attribute("is_toc_header", "true")
         );
     }
 

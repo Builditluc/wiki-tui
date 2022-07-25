@@ -3,6 +3,7 @@ use crate::ui::article::links::LinkHandler;
 use crate::wiki::article::ArticleElement;
 
 use cursive::theme::Style;
+use std::collections::HashMap;
 use std::mem;
 use std::rc::Rc;
 
@@ -60,7 +61,7 @@ pub struct LinesWrapper {
     pub link_handler: Option<LinkHandler>,
 
     /// The y coordinates of the headers, it is only created and used when enabled in the config
-    pub header_y_coords: Option<Vec<usize>>,
+    pub header_y: Option<HashMap<i32, usize>>,
 }
 
 impl LinesWrapper {
@@ -91,9 +92,9 @@ impl LinesWrapper {
                 }
             },
 
-            header_y_coords: {
+            header_y: {
                 if CONFIG.features.toc {
-                    Some(Vec::new())
+                    Some(HashMap::new())
                 } else {
                     None
                 }
@@ -155,11 +156,12 @@ impl LinesWrapper {
             // get the type of the element
             let element_type = element.get_attribute("type").unwrap_or("text");
 
-            // is this element a link?
+            // is this a link?
             let is_link = element_type == "link" && element.get_attribute("target").is_some();
 
-            // is this element a header?
-            let is_header = element_type == "header";
+            // is this a toc header?
+            let is_toc_header = element_type == "header"
+                && element.get_attribute("is_toc_header").unwrap_or("false") == "true";
 
             // does this element go onto a new line?
             if element_type == "newline" {
@@ -173,41 +175,97 @@ impl LinesWrapper {
                 continue;
             }
 
-            // does it fit into the current line?
-            if element.width() + self.current_width < self.width {
-                // yay, it fits!
-                // convert and add it to the current line
-                self.create_rendered_element(
-                    element.id(),
-                    element.style(),
-                    element.content(),
-                    element.width(),
-                );
+            // what we do here is fairly simple:
+            // First, we split the content into words and then we merge these words together until the
+            // line is full. Then we create a new one and do the same thing over and over again until
+            // we run out of words.
 
-                // if it's a link, register it
+            let mut merged_element = RenderedElement {
+                id: *element.id(),
+                style: *element.style(),
+                content: String::new(),
+                width: 0,
+            };
+
+            // now our lines are wrapped
+            self.is_wrapped = true;
+
+            // if the element does not have a leading special character and we are not at the beginning
+            // of a line, add a leading whitespace
+            if !element.content().starts_with([',', '.', ';', ':']) && !self.current_line.is_empty()
+            {
+                self.push_whitespace();
+            }
+
+            for span in element.content().split_whitespace() {
+                // does the span fit onto the current line?
+                if span.chars().count() + merged_element.width + self.current_width < self.width {
+                    // only add a leading whitespace if the merged element is not empty
+                    if !merged_element.content.is_empty() {
+                        merged_element.push(' ');
+                    }
+                    // then add it to the merged element
+                    merged_element.push_str(span);
+                    continue;
+                }
+
+                // now we have to do the following things:
+                // - add the merged element to the current line
+                // - fill the current line and replace it with a new one
+                // - add the span to a new merged element
+                self.current_width += merged_element.width;
+                self.current_line.push(merged_element);
+
+                // if its a link, add it
+                if is_link {
+                    self.register_link(*element.id())
+                }
+
+                // if its a toc header, register it
+                if is_toc_header {
+                    self.register_header(element.id().to_owned(), self.rendered_lines.len());
+                }
+
+                self.fill_line();
+                self.newline();
+
+                merged_element = RenderedElement {
+                    id: *element.id(),
+                    style: *element.style(),
+                    content: String::new(),
+                    width: 0,
+                };
+
+                // does the span fit onto the current line?
+                if span.chars().count() + merged_element.width + self.current_width < self.width {
+                    // only add a leading whitespace if the merged element is not empty
+                    if !merged_element.content.is_empty() {
+                        merged_element.push(' ');
+                    }
+                    // then add it to the merged element
+                    merged_element.push_str(span);
+                    continue;
+                }
+            }
+
+            // if there are still some spans in the merged_element, add it to the current line and
+            // register a link if it is one
+            if !merged_element.content.is_empty() {
+                self.current_width += merged_element.width;
+                self.current_line.push(merged_element);
+
                 if is_link {
                     self.register_link(*element.id());
                 }
 
-                // if it's a header, save its coordinates
-                if is_header && CONFIG.features.toc {
-                    if let Some(ref mut header_y_coords) = self.header_y_coords {
-                        header_y_coords.push(self.rendered_lines.len());
-                    }
+                if is_toc_header {
+                    self.register_header(element.id().to_owned(), self.rendered_lines.len());
                 }
-
-                continue;
             }
-
-            // oh no, it doesn't fit!
-            // well, then split it
-            self.split_element(element);
         }
 
-        if let Some(ref mut header_y_coords) = self.header_y_coords {
-            if !header_y_coords.is_empty() {
-                header_y_coords.remove(0);
-            }
+        if let Some(ref header_y) = self.header_y {
+            log::debug!("total headers registered: '{}'", header_y.len());
         }
 
         log::debug!(
@@ -220,6 +278,16 @@ impl LinesWrapper {
         }
 
         self
+    }
+
+    // Registers a new header. If the headers is already registered, it won't be registered again
+    fn register_header(&mut self, id: i32, y_pos: usize) {
+        if let Some(ref mut header_y) = self.header_y {
+            if header_y.contains_key(&id) {
+                return;
+            }
+            header_y.insert(id, y_pos);
+        }
     }
 
     /// Registers a new link with the given id
@@ -236,6 +304,22 @@ impl LinesWrapper {
     fn push_element(&mut self, element: RenderedElement) {
         self.current_width += element.width;
         self.current_line.push(element);
+    }
+
+    /// Adds a whitespacde to the current line
+    fn push_whitespace(&mut self) {
+        // check if we can add a whitespace
+        if self.current_width == self.width {
+            return;
+        }
+
+        // create a rendered element with the id -1 and push it to the current line
+        self.push_element(RenderedElement {
+            id: -1,
+            content: " ".to_string(),
+            style: Style::from(CONFIG.theme.text),
+            width: 1,
+        });
     }
 
     /// Adds the current line to the rendered lines and replaces it with a new, empty one
@@ -283,95 +367,5 @@ impl LinesWrapper {
             },
             width: *width,
         });
-    }
-
-    /// Splits the element into multiple (if required) lines. Pollutes the line with as few
-    /// rendered elements as possible
-    fn split_element(&mut self, element: &ArticleElement) {
-        // what we do here is fairly simple:
-        // First, we split the content into words and then we merge these words together until the
-        // line is full. Then we create a new one and do the same thing over and over again until
-        // we run out of words.
-
-        // is this a link?
-        let is_link = element.get_attribute("type") == Some("link")
-            && element.get_attribute("target").is_some();
-
-        // is this a header?
-        let is_header = element.get_attribute("header") == Some("header");
-
-        let mut merged_element = RenderedElement {
-            id: *element.id(),
-            style: *element.style(),
-            content: String::new(),
-            width: 0,
-        };
-
-        // now our lines are wrapped
-        self.is_wrapped = true;
-
-        for span in element.content().split_whitespace() {
-            // does the span fit onto the current line?
-            if span.chars().count() + merged_element.width + self.current_width < self.width {
-                // then add it to the merged element
-                merged_element.push_str(span);
-                merged_element.push(' ');
-                continue;
-            }
-
-            // now we have to do the following things:
-            // - add the merged element to the current line
-            // - fill the current line and replace it with a new one
-            // - add the span to a new merged element
-            self.current_width += merged_element.width;
-            self.current_line.push(merged_element);
-
-            // if its a link, add it
-            if is_link {
-                self.register_link(*element.id())
-            }
-
-            // if its a header, save its y position
-            if is_header && CONFIG.features.toc {
-                if let Some(ref mut header_y_coords) = self.header_y_coords {
-                    header_y_coords.push(self.rendered_lines.len());
-                }
-            }
-
-            self.fill_line();
-            self.newline();
-
-            merged_element = RenderedElement {
-                id: *element.id(),
-                style: *element.style(),
-                content: String::new(),
-                width: 0,
-            };
-
-            // does the span fit onto the current line?
-            if span.chars().count() + merged_element.width + self.current_width < self.width {
-                // then add it to the merged element
-                merged_element.push_str(span);
-                merged_element.push(' ');
-                continue;
-            }
-        }
-
-        // if there are still some spans in the merged_element, add it to the current line and
-        // register a link if it is one
-        if !merged_element.content.is_empty() {
-            self.current_width += merged_element.width;
-            self.current_line.push(merged_element);
-
-            if is_link {
-                self.register_link(*element.id());
-            }
-
-            if is_header && CONFIG.features.toc {
-                if let Some(ref mut header_y_coords) = self.header_y_coords {
-                    header_y_coords.push(self.rendered_lines.len());
-                }
-            }
-        }
     }
 }

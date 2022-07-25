@@ -144,7 +144,12 @@ impl ArticleContent {
 
         self.link_handler = lines_wrapper.link_handler;
         self.rendered_lines = lines_wrapper.rendered_lines;
-        self.header_y_coords = lines_wrapper.header_y_coords;
+
+        if let Some(ref header_y) = lines_wrapper.header_y {
+            let mut header_y_coords = header_y.clone().into_values().collect::<Vec<usize>>();
+            header_y_coords.sort_unstable();
+            self.header_y_coords = Some(header_y_coords);
+        }
 
         log::debug!(
             "compute_lines finished successfully, rendering '{}' lines",
