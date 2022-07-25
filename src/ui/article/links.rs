@@ -31,22 +31,29 @@ impl LinkHandler {
         self.links.push(Link { id, x, y })
     }
 
-    /// Retrieves the id of the currently selected link
-    pub fn get_current_link(&self) -> i32 {
-        assert!(self.links.len() > self.current_link);
-        self.links[self.current_link].id
+    /// Retrieves the id of the currently selected link. If there are no links, None will be returned
+    pub fn get_current_link(&self) -> Option<i32> {
+        if self.links.is_empty() {
+            return None;
+        }
+        Some(self.links[self.current_link].id)
     }
 
-    /// Returns the position of the currently selected link
-    pub fn get_current_link_pos(&self) -> Vec2 {
-        assert!(self.links.len() > self.current_link);
+    /// Returns the position of the currently selected link. If there are no links, None will be returned
+    pub fn get_current_link_pos(&self) -> Option<Vec2> {
+        if self.links.is_empty() {
+            return None;
+        }
         let link = &self.links[self.current_link];
-        Vec2::new(link.x, link.y)
+        Some(Vec2::new(link.x, link.y))
     }
 
     /// Moves the selection up by a given amount
     pub fn move_up(&mut self, amount: usize) {
-        assert!(self.links.len() > self.current_link);
+        if self.links.is_empty() {
+            log::warn!("no links are registered, aborting...");
+            return;
+        }
 
         // save the minimum y-position
         let min_y = self.links[self.current_link].y.saturating_sub(amount);
@@ -66,6 +73,11 @@ impl LinkHandler {
 
     /// Moves the selection down by a given amount
     pub fn move_down(&mut self, amount: usize) {
+        if self.links.is_empty() {
+            log::warn!("no links are registered, aborting...");
+            return;
+        }
+
         // save the minimum y-position
         let min_y = self.links[self.current_link].y.saturating_add(amount);
 
@@ -84,11 +96,21 @@ impl LinkHandler {
 
     /// Moves the selection left by a given amount
     pub fn move_left(&mut self, amount: usize) {
+        if self.links.is_empty() {
+            log::warn!("no links are registered, aborting...");
+            return;
+        }
+
         self.current_link = self.current_link.saturating_sub(amount);
     }
 
     /// Moves the selection right by a given amount
     pub fn move_right(&mut self, amount: usize) {
+        if self.links.is_empty() {
+            log::warn!("no links are registered, aborting...");
+            return;
+        }
+
         // if we don't have enough links on the right, just select the last one
         if self.current_link + amount >= self.links.len() {
             self.current_link = self.links.len().saturating_sub(1);
@@ -100,6 +122,11 @@ impl LinkHandler {
 
     /// Overrides the current link
     pub fn set_current_link(&mut self, id: i32) {
+        if self.links.is_empty() {
+            log::warn!("no links are registered, aborting...");
+            return;
+        }
+
         let new_selection = self
             .links
             .iter()
