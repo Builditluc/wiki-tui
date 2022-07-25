@@ -418,6 +418,7 @@ mod tests {
                 "History".to_string(),
             )
             .attribute("type", "header")
+            .attribute("is_toc_header", "true")
         );
     }
 
