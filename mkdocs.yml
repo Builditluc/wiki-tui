@@ -38,6 +38,7 @@ nav:
     - Overview: contributing/overview.md
     - Bug Report: contributing/bug-report.md
     - Feature Request: contributing/feature-request.md
+    - Developing: contributing/develop-code.md
 
 edit_uri: edit/main/docs/
 

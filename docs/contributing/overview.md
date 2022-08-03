@@ -9,4 +9,4 @@ to wiki-tui so if you're a new contributor, please read the corresponding guide.
 
 - [How to file a bug report?](./bug-report.md)
 - [How can I requst a new feature?](./feature-request.md)
-- [What to I need to know before developing a feature or fixing a bug?](./develop-code.md)
+- [How can I develop new features or fix a bug?](./develop-code.md)
