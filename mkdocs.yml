@@ -1,0 +1,76 @@
+# yaml-language-server: $schema=https://squidfunk.github.io/mkdocs-material/schema.json
+
+site_name: wiki-tui
+site_url: https://builditluc.github.io/wiki-tui
+
+repo_name: builditluc/wiki-tui
+repo_url: https://github.com/builditluc/wiki-tui
+
+theme:
+  name: material
+  icon:
+    logo: material/console
+    repo: fontawesome/brands/github
+  favicon: assets/images/logo.png
+  features:
+    - navigation.tabs
+    - navigation.sections
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      toggle:
+        icon: material/toggle-switch-off-outline
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      toggle:
+        icon: material/toggle-switch
+        name: Switch to light mode
+
+nav:
+  - Home: index.md
+  - Getting Started:
+    - Installation: getting-started/installation.md
+    - Usage: getting-started/usage.md
+    - What to do if a crash occurs: getting-started/crash.md
+    - License: getting-started/license.md
+  - Configuration:
+    - Overview: configuration/overview.md
+    - Api Settings: configuration/api.md
+    - Changing the Colors: configuration/theme.md
+    - Configure the Logging: configuration/logging.md
+    - Features: configuration/features.md
+    - Keybindings: configuration/keybindings.md
+  - Contributing: 
+    - Overview: contributing/overview.md
+    - Bug Report: contributing/bug-report.md
+    - Feature Request: contributing/feature-request.md
+    - Developing: contributing/develop-code.md
+
+edit_uri: edit/main/docs/
+
+markdown_extensions:
+  - meta
+  - attr_list
+  - admonition
+  - tables
+  - md_in_html
+  - def_list
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.keys
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.emoji:
+      emoji_index: !!python/name:materialx.emoji.twemoji
+      emoji_generator: !!python/name:materialx.emoji.to_svg
+
+plugins:
+  - tags
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/builditluc/
+
+copyright: Copyright &copy; 2021 - 2022 Builditluc
