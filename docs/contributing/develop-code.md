@@ -14,13 +14,13 @@ Before the actual development can start, please check that you have the followin
 * The programming language [Rust](https://www.rust-lang.org/tools/install)
 * A functioning version of git
 * Some code editor
-* If you want to [change the backend](../getting-started/installation.md), plase make sure to check if you need extra dependencies
+* If you want to [change the backend](../getting-started/installation.md), please make sure to check if you need extra dependencies
 
-And thats it!
+And that's it!
 
 ## Fork and clone the Repo
 
-First you have to fork the wiki-tui repository. 
+First, you have to fork the wiki-tui repository. 
 
 ??? info "From the [GitHub Documentation](https://docs.github.com/en/get-started/quickstart/fork-a-repo#forking-a-repository):"
     > Images are taken from the Documentation and the numbers will be different for wiki-tui
@@ -51,7 +51,7 @@ Then you have to clone your fork to your machine.
       ![Code URL Options](../assets/images/clone-2.png)
     4. Open Terminal
     5. Change the current working directory to the location where you want the cloned directory.
-    6. Type `git clone`, and then paste the URL you copied earlier. It will look like this, with your GitHub username instead of `YOUR-USERNAME`:
+    6. Type `git clone, and then paste the URL you copied earlier. It will look like this, with your GitHub username instead of `YOUR-USERNAME`:
       ```
       $ git clone https://github.com/YOUR-USERNAME/wiki-tui
       ```
@@ -61,7 +61,7 @@ Then you have to clone your fork to your machine.
       > Cloning into `wiki-tui`...
       > remote: Counting objects: 10, done.
       > remote: Compressing objects: 100% (8/8), done.
-      > remove: Total 10 (delta 1), reused 10 (delta 1)
+      > remote: Total 10 (delta 1), reused 10 (delta 1)
       > Unpacking objects: 100% (10/10), done.
       ```
 
@@ -75,7 +75,7 @@ Now that you've forked and cloned the repository you can create a branch for you
     $ git checkout -b add-feature
     ```
 
-    You can also use `add-{FEATURE-NAME}` for the branch name or something entirely different. Its up to you but it would be nice if the branch has a descriptive name of what it changes
+    You can also use `add-{FEATURE-NAME}` for the branch name or something entirely different. It's up to you but it would be nice if the branch has a descriptive name of what it changes
 
 === "Bug Fix"
 
@@ -83,7 +83,7 @@ Now that you've forked and cloned the repository you can create a branch for you
     $ git checkout -b fix-bug
     ```
 
-    You can also use `fix-{BUG-NAME}` for the branch name or something entirely different. Its up to you but it would be nice if the branch has a descriptive name of what it changes
+    You can also use `fix-{BUG-NAME}` for the branch name or something entirely different. It's up to you but it would be nice if the branch has a descriptive name of what it changes
 
 <center>
 Now you are ready to make your changes!
@@ -97,7 +97,7 @@ Before making a commit, please do the following things:
 
 * check compilation with `cargo build`
 * format your code with `cargo fmt`
-* clippy check your code with `cargo clippy` and fix any warnings
+* Clippy check your code with `cargo clippy` and fix any warnings
 
 Every commit should only contain relatively independent change (that is, multiple types of modifications are not allowed to be submitted in one commit)
 
@@ -109,8 +109,7 @@ The Commit Message needs to follow this simple format:
 <type>: <subject>
 ```
 
-The first line is mandatory for every commit and the `<body>` and `<footer>` lines are optional according to the actual situation. 
-It would also be nice if the first line is no longer than 50 characters 
+The message should not be longer than 50 characters
 
 This allows the commit message to be easier to read on GitHub as well as in various git tools.
 
@@ -119,11 +118,13 @@ The `type` field mainly explains the type of the commit. Only the following 9 ty
 * feat: A new feature
 * fix: A bug fix
 * docs: Documentation only changes
-* style: Changes that do not affect the meaning of the code (white-space, formatting, missing semi-colons, etc)
+* style: Changes that do not affect the meaning of the code (white space, formatting, missing semi-colons, etc)
 * refactor: A code change that neither fixes a bug nor adds a feature
 * perf: A code change that improves performance
 * test: Adding missing or correcting existing tests
 * chore: Changes to the build process or auxiliary tools and libraries such as documentation generation
+
+The `subject` field should summarize the changes made in the commit. It always begins with a verb and uses the imperative, and present tense. The first letter should be uppercase and have no dot (.) at the end.
 
 ## Push and the PR
 
@@ -139,7 +140,7 @@ When you're finished you can push your commits and create a pull request.
       ![Pull Request Compare](../assets/images/pull-request-2.png)
     4. In the "base branch" drop-down menu, select the main branch of wiki-tui.
       ![Pull Request Base Branch](../assets/images/pull-request-3.png)
-    5. In the "head fork" drop-down menu, select your fork, then use the "compare branch" drop-down menu to select the branch you made your changes in.
+    5. In the "head fork" drop-down menu, select your fork, then use the "compare branch" drop-down menu to select the branch you made your changes.
       ![Pull Request Head Fork](../assets/images/pull-request-4.png)
     6. Type a title and description for your pull request. (Please read below what to write here)
       ![Pull Request Title](../assets/images/pull-request-5.png)
