@@ -26,7 +26,7 @@ wiki-tui --version
 
 #### `Installation Method`
 
-This is the method you've used to [install](../getting-started/intallation.md) wiki-tui.
+This is the method you've used to [install](../getting-started/installation.md) wiki-tui.
 
 #### `Operating System`
 

@@ -20,7 +20,7 @@ logging.enabled = true
 
     When a crash occurs or you encounter a bug, without the log file we cannot do very much if we cannot reproduce it. But even if we can reproduce your bug or crash, we can usually fix it much faster with the logs. 
 
-    You don't need to have your `log_level` set to `INFO` (however, we would appreciate it if you have set it to `INFO` :)). Even if you only have the `log_level` set to `WARN`, it helps us so much more than no logs at all. So please, for you it is only a single file that gets overwritten when you start wiki-tui again. But for us, it means so much more.
+    You don't need to have your `log_level` set to `INFO` (altough, we would appreciate it :)). Even if you only have the `log_level` set to `WARN`, it helps us so much more than no logs at all. So please, for you it is only a single file that gets overwritten when you start wiki-tui again. But for us, it means so much more.
 
 ## Changing the Logging Path
 
