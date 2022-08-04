@@ -13,6 +13,12 @@ hide:
 **WIKI-TUI**
 
 A simple and easy to use Wikipedia Text User Interface
+
+!!! warning "Active Development"
+    wiki-tui is still under active-development (v0.x.x) and that means breaking changes, altough relatively rary at the moment, can occur. 
+
+    Please always check the release notes on GitHub before upgrading to a new version!
+
 </center>
 
 # How does it look?
@@ -21,7 +27,6 @@ A simple and easy to use Wikipedia Text User Interface
 ![Preview-1](assets/images/preview-1.png)
 ![Preview-2](assets/images/preview-2.png)
 </center>
-
 
 # What can I do with it?
 
@@ -38,9 +43,9 @@ supports mouse input (just click on a link or scroll with your scroll wheel in a
 
 ## Customize
 
-wiki-tui aims to be highly customizable allowing you to change almost everything to your liking. Currently, customization options include:
+wiki-tui aims to be highly customizable allowing you to change almost everything to your liking. Currently, [customization options](./configuration/overview.md) include:
 
-- Themes (changing colors of the whole program and individual parts)
+- [Themes](./configuration/theme.md) (changing colors of the whole program and individual parts)
 - Keybindings (so you don't have to use the arrow keys for navigation)
 - Change the behavior of wiki-tui:
     - Disable the table of contents
@@ -49,4 +54,4 @@ wiki-tui aims to be highly customizable allowing you to change almost everything
     - Disable lists from being rendered
     - Disable code blocks from being rendered
 - Logging
-- Change the language of wiki-tui
+- Change the [language](./configuration/api.md) of Wikipedia Articles

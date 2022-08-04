@@ -38,6 +38,7 @@ nav:
     - Overview: configuration/overview.md
     - Api Settings: configuration/api.md
     - Changing the Colors: configuration/theme.md
+    - Configure the Logging: configuration/logging.md
   - Contributing: 
     - Overview: contributing/overview.md
     - Bug Report: contributing/bug-report.md
