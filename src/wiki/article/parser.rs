@@ -321,13 +321,35 @@ impl Parser for DefaultParser {
         self.push_header(title, false);
 
         // parse the article content
-        document
+        let parsed_count = document
+            .find(Attr("id", "content"))
+            .into_selection()
+            .first()
+            .context("Couldn't find the node 'content'")?
+            .find(Attr("id", "bodyContent"))
+            .into_selection()
+            .first()
+            .context("Couldn't find the node 'bodyContent")?
+            .find(Attr("id", "mw-content-text"))
+            .into_selection()
+            .first()
+            .context("Couldn't find the node 'mw-content-text'")?
             .find(Class("mw-parser-output"))
-            .next()
-            .context("Couldn't find the content of the article")?
+            .into_selection()
+            .first()
+            .context("Couldn't find the node 'mw-parser-output'")?
             .children()
-            .map(|child| self.parse_node(child))
+            .map(|child| {
+                log::debug!("parsing the node {:?}", child);
+                self.parse_node(child)
+            })
             .count();
+
+        log::debug!(
+            "parsed '{}' nodes into '{}' elements",
+            &parsed_count,
+            self.elements.len()
+        );
 
         // parse the table of contents (if it exists)
         let mut toc = None;
