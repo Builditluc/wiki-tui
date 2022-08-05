@@ -2,6 +2,8 @@ changelog:
   exclude:
     authors:
       - allcontributors
+    labels:
+      - ignore-release
   categories:
     - title: Breaking Changes 🛠
       labels:
