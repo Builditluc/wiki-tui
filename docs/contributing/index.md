@@ -1,3 +1,5 @@
+# Contributing
+
 <center>
 <b>
 Thank you for taking your time to contribute!
