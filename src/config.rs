@@ -9,6 +9,7 @@ use lazy_static::*;
 use log::LevelFilter;
 use serde::Deserialize;
 use std::{path::PathBuf, str::FromStr};
+#[cfg(not(test))]
 use structopt::StructOpt;
 use toml::from_str;
 
@@ -291,7 +292,11 @@ impl Config {
                 },
             },
             config_path: PathBuf::new(),
+            #[cfg(not(test))]
             args: Cli::from_args(),
+
+            #[cfg(test)]
+            args: Cli::default(),
         };
 
         // load the configuration from the file

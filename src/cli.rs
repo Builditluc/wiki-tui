@@ -1,6 +1,6 @@
 use structopt::StructOpt;
 
-#[derive(StructOpt, Debug)]
+#[derive(StructOpt, Debug, Default)]
 pub struct Cli {
     /// Search for an article at startup with the given query
     pub search_query: Option<String>,
