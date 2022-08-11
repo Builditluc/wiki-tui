@@ -1,4 +1,3 @@
-use crate::config::CONFIG;
 use crate::wiki::search::{
     compiled_search::Search, info::SearchInfo, metadata::SearchMetadata,
     properties::SearchProperties, result::SearchResult, sort_order::SearchSortOrder,
@@ -27,6 +26,8 @@ pub struct SearchBuilder {
     prop: SearchProperties,
     /// Set the sort order of returned results
     sort: SearchSortOrder,
+    /// The url of wikipedia
+    base_url: String,
 }
 
 // NOTE: The following structs are only used for deserializing the json response
@@ -111,7 +112,7 @@ macro_rules! build_setter {
 
 impl SearchBuilder {
     /// Creates a new SearchBuilder
-    pub fn new() -> Self {
+    pub fn new(base_url: &str) -> Self {
         log::debug!("creating a new SearchBuilder");
         SearchBuilder {
             query: String::new(),
@@ -129,6 +130,7 @@ impl SearchBuilder {
                 .timestamp()
                 .snippet(),
             sort: SearchSortOrder::default(),
+            base_url: base_url.to_string(),
         }
     }
 
@@ -181,7 +183,7 @@ impl SearchBuilder {
 
         // build the url
         log::debug!("building the url");
-        let url = self.build_url(&CONFIG.api_config.base_url)?;
+        let url = self.build_url()?;
 
         // make the request
         log::debug!("making the request to '{}'", url);
@@ -198,7 +200,7 @@ impl SearchBuilder {
     }
 
     /// A helper function that builds the search url. It fails if the query is empty
-    fn build_url(&self, base_url: &str) -> Result<String> {
+    fn build_url(&self) -> Result<String> {
         // if the query is empty, then do nothing
         if self.query.is_empty() {
             bail!("the query is empty. we don't do that here!")
@@ -207,7 +209,7 @@ impl SearchBuilder {
         // just build the url, very simple
         Ok(format!(
             "{}w/api.php?action=query&format=json&list=search&srsearch={}&srnamespace={}&srlimit={}&sroffset={}{}{}{}",
-            base_url,
+            self.base_url,
             self.query,
             self.namespace,
             self.limit,
@@ -316,29 +318,22 @@ impl SearchBuilder {
     }
 }
 
-impl Default for SearchBuilder {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
 #[cfg(test)]
 mod tests {
     const SEARCH_RESPONSE: &str = r#"{"batchcomplete":"","continue":{"sroffset":2,"continue":"-||"},"query":{"searchinfo":{"totalhits":232618,"suggestion":"mening","suggestionsnippet":"mening"},"search":[{"ns":0,"title":"Meaning","pageid":18916,"size":1645,"wordcount":215,"snippet":"<span class=\"searchmatch\">Meaning</span> most commonly refers to: <span class=\"searchmatch\">Meaning</span> (linguistics), <span class=\"searchmatch\">meaning</span> which is communicated through the use of language <span class=\"searchmatch\">Meaning</span> (philosophy), definition, elements","timestamp":"2021-10-19T21:30:54Z"},{"ns":0,"title":"The Meaning of Meaning","pageid":1754283,"size":4359,"wordcount":470,"snippet":"The <span class=\"searchmatch\">Meaning</span> of <span class=\"searchmatch\">Meaning</span>: A Study of the Influence of Language upon Thought and of the Science of Symbolism (1923) is a book by C. K. Ogden and I. A. Richards","timestamp":"2022-01-07T23:20:19Z"}]}}"#;
+    const BASE_URL: &str = "https://en.wikipedia.org/";
 
     #[test]
     fn correct_url() {
         use super::SearchBuilder;
-        assert!(SearchBuilder::new()
-            .build_url("https://en.wikipedia.org/")
-            .is_err());
-        assert_eq!(SearchBuilder::new().query("meaning".to_string()).build_url("https://en.wikipedia.org/").unwrap(), "https://en.wikipedia.org/w/api.php?action=query&format=json&list=search&srsearch=meaning&srnamespace=0&srlimit=10&sroffset=0&srinfo=totalhits|suggestion|rewrittenquery&srprop=size|wordcount|timestamp|snippet&srsort=relevance".to_string());
+        assert!(SearchBuilder::new(BASE_URL).build_url().is_err());
+        assert_eq!(SearchBuilder::new(BASE_URL).query("meaning".to_string()).build_url().unwrap(), "https://en.wikipedia.org/w/api.php?action=query&format=json&list=search&srsearch=meaning&srnamespace=0&srlimit=10&sroffset=0&srinfo=totalhits|suggestion|rewrittenquery&srprop=size|wordcount|timestamp|snippet&srsort=relevance".to_string());
     }
 
     #[test]
     fn deserialize_correct() -> anyhow::Result<()> {
         use super::SearchBuilder;
-        SearchBuilder::new().deserialize_response(SEARCH_RESPONSE.to_string())?;
+        SearchBuilder::new(BASE_URL).deserialize_response(SEARCH_RESPONSE.to_string())?;
 
         Ok(())
     }
@@ -346,7 +341,7 @@ mod tests {
     #[test]
     fn deserialize_missing_fields() {
         use super::SearchBuilder;
-        assert!(SearchBuilder::new()
+        assert!(SearchBuilder::new(BASE_URL)
             .deserialize_response("{}".to_string())
             .is_err());
     }
@@ -354,17 +349,26 @@ mod tests {
     #[test]
     fn namespace_invalid() {
         use super::SearchBuilder;
-        assert!(SearchBuilder::new()
+        assert!(SearchBuilder::new(BASE_URL)
             .namespace(2304)
             .invalid_fields()
             .is_err());
-        assert!(SearchBuilder::new().namespace(16).invalid_fields().is_err());
+        assert!(SearchBuilder::new(BASE_URL)
+            .namespace(16)
+            .invalid_fields()
+            .is_err());
     }
 
     #[test]
     fn limit_invalid() {
         use super::SearchBuilder;
-        assert!(SearchBuilder::new().limit(0).invalid_fields().is_err());
-        assert!(SearchBuilder::new().limit(501).invalid_fields().is_err());
+        assert!(SearchBuilder::new(BASE_URL)
+            .limit(0)
+            .invalid_fields()
+            .is_err());
+        assert!(SearchBuilder::new(BASE_URL)
+            .limit(501)
+            .invalid_fields()
+            .is_err());
     }
 }

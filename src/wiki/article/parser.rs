@@ -1,4 +1,4 @@
-use crate::config::{TocTitle, CONFIG};
+use crate::config::{TocSettings, TocTitle, CONFIG};
 use crate::wiki::article::{
     compiled_article::Article,
     element::ArticleElement,
@@ -17,7 +17,6 @@ use std::io::Read;
 
 /// The Parser trait allows for generating an Article from a html source
 pub trait Parser {
-    fn new() -> Self;
     fn parse<R: Read>(&mut self, html: R) -> Result<Article>;
 }
 
@@ -26,10 +25,21 @@ pub trait Parser {
 pub struct DefaultParser {
     /// The elements that have been parsed already
     elements: Vec<ArticleElement>,
+    /// The toc configuration
+    toc_settings: TocSettings,
 }
 
 impl DefaultParser {
-    /// This functinon takes generates a TableOfContents from a given document. When no
+    /// Creates a new DefaultParser with a given toc configuration
+    pub fn new(toc_settings: &TocSettings) -> Self {
+        log::debug!("creating a new instance of DefaultParser");
+        Self {
+            elements: Vec::new(),
+            toc_settings: toc_settings.clone(),
+        }
+    }
+
+    /// This function takes generates a TableOfContents from a given document. When no
     /// TableOfContents can be found in the document, it returns Ok(None). Any errors it
     /// encounters are returned
     fn parse_toc(&self, document: &Document) -> Result<Option<TableOfContents>> {
@@ -43,16 +53,15 @@ impl DefaultParser {
             .context("No table of contents was found")?;
 
         // get the title of the toc
-        let toc_title = match CONFIG.settings.toc.title {
+        let toc_title = match self.toc_settings.title {
             TocTitle::DEFAULT => toc_node
                 .find(Class("toctitle"))
                 .next()
                 .context("No toc title was found")?
                 .text(),
             TocTitle::ARTICLE => self.get_title(document)?,
-            TocTitle::CUSTOM => CONFIG
-                .settings
-                .toc
+            TocTitle::CUSTOM => self
+                .toc_settings
                 .title_custom
                 .clone()
                 .unwrap_or_else(|| "NONE".to_string()),
@@ -116,7 +125,7 @@ impl DefaultParser {
 
         // format the text
         let text = {
-            let mut text = CONFIG.settings.toc.item_format.to_string();
+            let mut text = self.toc_settings.item_format.to_string();
             for (k, v) in &data {
                 text = text.replace(k, v);
             }
@@ -298,14 +307,6 @@ impl DefaultParser {
 }
 
 impl Parser for DefaultParser {
-    /// Creates a new DefaultParser with the given ParserConfig
-    fn new() -> Self {
-        log::debug!("creating a new instance of DefaultParser");
-        Self {
-            elements: Vec::new(),
-        }
-    }
-
     /// Tries to parse a given html document into an Article. Any errors it encounters will be
     /// returned
     fn parse<R: Read>(&mut self, html: R) -> Result<Article> {
@@ -383,7 +384,7 @@ mod tests {
 
     #[test]
     fn parse_link() {
-        let mut parser = DefaultParser::new();
+        let mut parser = DefaultParser::new(&CONFIG.settings.toc);
 
         let test_html = generate_html(
             "<h1 class=\"mw-first-heading\">Github</h1><p><a href=\"/wiki/Software_development\">software development</a></p>",
@@ -405,7 +406,7 @@ mod tests {
 
     #[test]
     fn parse_text() {
-        let mut parser = DefaultParser::new();
+        let mut parser = DefaultParser::new(&CONFIG.settings.toc);
 
         let test_html =
             generate_html("<h1 class=\"mw-first-heading\">Github</h1><p>is a provider of</p>");
@@ -424,7 +425,7 @@ mod tests {
 
     #[test]
     fn parse_header() {
-        let mut parser = DefaultParser::new();
+        let mut parser = DefaultParser::new(&CONFIG.settings.toc);
 
         let test_html = generate_html(
             "<h1 class=\"mw-first-heading\">Github</h1><h2><span class=\"mw-headline\">History</span></h2>",
@@ -446,7 +447,7 @@ mod tests {
 
     #[test]
     fn parse_bold() {
-        let mut parser = DefaultParser::new();
+        let mut parser = DefaultParser::new(&CONFIG.settings.toc);
 
         let test_html =
             generate_html("<h1 class=\"mw-first-heading\">Github</h1><p><b>GitHub, Inc.</b></p>");
@@ -465,7 +466,7 @@ mod tests {
 
     #[test]
     fn parse_italic() {
-        let mut parser = DefaultParser::new();
+        let mut parser = DefaultParser::new(&CONFIG.settings.toc);
 
         let test_html =
             generate_html("<h1 class=\"mw-first-heading\">Github</h1><p><i>GitHub, Inc.</i></p>");
@@ -484,7 +485,7 @@ mod tests {
 
     #[test]
     fn parse_list() {
-        let mut parser = DefaultParser::new();
+        let mut parser = DefaultParser::new(&CONFIG.settings.toc);
 
         let test_html = generate_html(
             "<h1 class=\"mw-first-heading\">Github</h1><ul><li>Documentation,<a href=\"/wiki/README\">README</a></li></ul>",
@@ -516,7 +517,7 @@ mod tests {
 
     #[test]
     fn parse_code_block() {
-        let mut parser = DefaultParser::new();
+        let mut parser = DefaultParser::new(&CONFIG.settings.toc);
 
         let test_html = generate_html(
             "<h1 class=\"mw-first-heading\">Github</h1><pre><code>inverse(a, n) t := 0</code></pre>",
@@ -536,7 +537,7 @@ mod tests {
 
     #[test]
     fn incorrect_html() {
-        let mut parser = DefaultParser::new();
+        let mut parser = DefaultParser::new(&CONFIG.settings.toc);
 
         let test_html = generate_html("nope");
         assert!(parser.parse(test_html.as_bytes()).is_err())
