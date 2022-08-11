@@ -14,7 +14,10 @@ theme:
   favicon: assets/images/logo.png
   features:
     - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.top
     - navigation.sections
+    - navigation.indexes
   palette:
     - media: "(prefers-color-scheme: light)"
       scheme: default
@@ -35,14 +38,15 @@ nav:
     - What to do if a crash occurs: getting-started/crash.md
     - License: getting-started/license.md
   - Configuration:
-    - Overview: configuration/overview.md
+    - configuration/index.md
     - Api Settings: configuration/api.md
     - Changing the Colors: configuration/theme.md
     - Configure the Logging: configuration/logging.md
     - Features: configuration/features.md
     - Keybindings: configuration/keybindings.md
+    - Table of Contents: configuration/toc.md
   - Contributing: 
-    - Overview: contributing/overview.md
+    - contributing/index.md
     - Bug Report: contributing/bug-report.md
     - Feature Request: contributing/feature-request.md
     - Developing: contributing/develop-code.md

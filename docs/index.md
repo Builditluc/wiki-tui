@@ -43,7 +43,7 @@ supports mouse input (just click on a link or scroll with your scroll wheel in a
 
 ## Customize
 
-wiki-tui aims to be highly customizable allowing you to change almost everything to your liking. Currently, [customization options](./configuration/overview.md) include:
+wiki-tui aims to be highly customizable allowing you to change almost everything to your liking. Currently, [customization options](./configuration/index.md) include:
 
 - [Themes](./configuration/theme.md) (changing colors of the whole program and individual parts)
 - [Keybindings](./configuration/keybindings.md) (so you don't have to use the arrow keys for navigation)
