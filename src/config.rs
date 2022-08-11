@@ -117,6 +117,7 @@ pub struct Settings {
     pub toc: TocSettings,
 }
 
+#[derive(Clone)]
 pub struct TocSettings {
     pub position: TocPosition,
     pub title: TocTitle,
@@ -128,11 +129,13 @@ pub struct TocSettings {
     pub item_format: String,
 }
 
+#[derive(Clone)]
 pub enum TocPosition {
     LEFT,
     RIGHT,
 }
 
+#[derive(Clone)]
 pub enum TocTitle {
     DEFAULT,
     CUSTOM,

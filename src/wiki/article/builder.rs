@@ -1,7 +1,4 @@
-use crate::{
-    config::CONFIG,
-    wiki::article::{compiled_article::Article, parser::Parser},
-};
+use crate::wiki::article::{compiled_article::Article, parser::Parser};
 
 use anyhow::Result;
 use reqwest::blocking::{get, Response};
@@ -12,13 +9,19 @@ pub struct ArticleBuilder {
     page_id: i32,
     /// The optional link of the article to be fetched
     target: Option<String>,
+    /// The url of wikipedia
+    base_url: String,
 }
 
 impl ArticleBuilder {
     /// Creates a new Articlebuilder
-    pub fn new(page_id: i32, target: Option<String>) -> ArticleBuilder {
+    pub fn new(page_id: i32, target: Option<String>, base_url: &str) -> ArticleBuilder {
         log::debug!("creating a new instance of ArticleBuilder");
-        ArticleBuilder { page_id, target }
+        ArticleBuilder {
+            page_id,
+            target,
+            base_url: base_url.to_string(),
+        }
     }
 
     /// Fetches the article and parses it with a given parser. Any errors it encounters will be returned
@@ -36,8 +39,8 @@ impl ArticleBuilder {
     /// Creates a url from the link
     fn build_url(&self) -> String {
         match self.target {
-            Some(ref target) => format!("{}{}", CONFIG.api_config.base_url, target),
-            None => format!("{}?curid={}", CONFIG.api_config.base_url, self.page_id),
+            Some(ref target) => format!("{}{}", self.base_url, target),
+            None => format!("{}?curid={}", self.base_url, self.page_id),
         }
     }
 
@@ -54,16 +57,18 @@ impl ArticleBuilder {
 
 #[cfg(test)]
 mod tests {
+    const BASE_URL: &str = "https://en.wikipedia.org/";
+
     #[test]
     fn correct_url() {
         use super::ArticleBuilder;
         assert_eq!(
-            ArticleBuilder::new(1234, None).build_url(),
-            "https://en.wikipedia.org/?curid=1234".to_string()
+            ArticleBuilder::new(1234, None, BASE_URL).build_url(),
+            format!("{}?curid=1234", BASE_URL)
         );
         assert_eq!(
-            ArticleBuilder::new(1234, Some("/wiki/Software".to_string())).build_url(),
-            "https://en.wikipedia.org//wiki/Software".to_string()
+            ArticleBuilder::new(1234, Some("/wiki/Software".to_string()), BASE_URL).build_url(),
+            format!("{}/wiki/Software", BASE_URL)
         );
     }
 }

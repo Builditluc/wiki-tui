@@ -1,6 +1,7 @@
 use panic_message::panic_info_message;
 use std::collections::HashMap;
 use std::env;
+use std::fmt::Write;
 use std::panic::{set_hook, PanicInfo};
 use uuid::Uuid;
 
@@ -63,27 +64,30 @@ where
             "Unknown"
         };
 
-        payload.push_str(&format!("Name: {}\n", env!("CARGO_PKG_NAME")));
-        payload.push_str(&format!("Version: {}\n", env!("CARGO_PKG_VERSION")));
-        payload.push_str(&format!("Operating System: {}\n", os));
+        let _ = writeln!(payload, "Name: {}", env!("CARGO_PKG_NAME"));
+        let _ = writeln!(payload, "Version: {}", env!("CARGO_PKG_VERSION"));
+        let _ = writeln!(payload, "Operating System: {}", os);
 
-        payload.push_str(&format!("Cause: {}.\n", panic_info_message(info)));
+        let _ = writeln!(payload, "Cause: {}", panic_info_message(info));
 
         match info.location() {
-            Some(location) => payload.push_str(&format!(
-                "Panic occurred in file '{}' at line {}\n",
-                location.file(),
-                location.line()
-            )),
+            Some(location) => {
+                let _ = writeln!(
+                    payload,
+                    "Panic occurred in file '{}' at line {}",
+                    location.file(),
+                    location.line()
+                );
+            }
             None => payload.push_str("Panic location unknown.\n"),
-        }
+        };
 
         let logs = match std::fs::read_to_string(&CONFIG.logging.log_dir) {
             Ok(logs) => logs,
             Err(_) => "No logs available.".to_string(),
         };
 
-        payload.push_str(&format!("\n\nLogs: \n{}", logs));
+        let _ = write!(payload, "\n\nLogs: \n{}", logs);
 
         f(Some(path), payload);
     }))

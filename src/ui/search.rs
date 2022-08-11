@@ -12,7 +12,7 @@ use cursive::{align::HAlign, utils::markup::StyledString, Cursive};
 
 /// Returns the default SearchBuilder
 fn build_search() -> SearchBuilder {
-    SearchBuilder::new()
+    SearchBuilder::new(&config::CONFIG.api_config.base_url)
         .info(SearchMetadata::new().total_hits())
         .prop(SearchProperties::new().snippet())
         .sort(SearchSortOrder::JustMatch)

@@ -1,9 +1,6 @@
 use crate::ui::utils::remove_view_from_layout;
 use crate::wiki::{
-    article::{
-        parser::{DefaultParser, Parser},
-        Article, ArticleBuilder,
-    },
+    article::{parser::DefaultParser, Article, ArticleBuilder},
     search::SearchResult,
 };
 use crate::{
@@ -34,8 +31,12 @@ pub fn on_article_submit(siv: &mut Cursive, search_result: &SearchResult) {
         search_result.title(),
         search_result.page_id()
     );
-    let article = match ArticleBuilder::new(*search_result.page_id(), None)
-        .build(&mut DefaultParser::new())
+    let article = match ArticleBuilder::new(
+        *search_result.page_id(),
+        None,
+        &CONFIG.api_config.base_url,
+    )
+    .build(&mut DefaultParser::new(&CONFIG.settings.toc))
     {
         Ok(article) => article,
         Err(error) => {
@@ -126,7 +127,9 @@ fn open_link(siv: &mut Cursive, target: String) {
 
     // fetch the article
     log::debug!("fetching the article");
-    let article = match ArticleBuilder::new(0, Some(target)).build(&mut DefaultParser::new()) {
+    let article = match ArticleBuilder::new(0, Some(target), &CONFIG.api_config.base_url)
+        .build(&mut DefaultParser::new(&CONFIG.settings.toc))
+    {
         Ok(article) => article,
         Err(error) => {
             log::warn!("{:?}", error);
