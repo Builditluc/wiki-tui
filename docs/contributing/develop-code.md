@@ -71,19 +71,32 @@ Now that you've forked and cloned the repository you can create a branch for you
 
 === "Feature"
 
+    ```shell
+    $ git checkout -b feature/add-{YOUR-FEATURE}    
     ```
-    $ git checkout -b add-feature
-    ```
+    
+    `{YOUR-FEATURE}` should be the name of the feature you want to add. For example if you add new title configuration options, it would be `add-title-configuration`
 
-    You can also use `add-{FEATURE-NAME}` for the branch name or something entirely different. It's up to you but it would be nice if the branch has a descriptive name of what it changes
-
+    Instead of `add-...` you can also use `change-...` or something entirely different. It should, however, be a lowercase verb in the present tense that describes the type of change you're making
+    
 === "Bug Fix"
 
+    ```shell
+    $ git checkout -b bug/fix-{BUG-NAME]
     ```
-    $ git checkout -b fix-bug
+    
+    `{BUG-NAME}` should be the name of the bug you want to fix. For example `crash-when-article-empty`
+
+=== "Documentation Change"
+    
+    ```shell
+    $ git checkout -b documentation/add-{YOUR-CHANGE}
     ```
 
-    You can also use `fix-{BUG-NAME}` for the branch name or something entirely different. It's up to you but it would be nice if the branch has a descriptive name of what it changes
+    `{YOUR-CHANGE}` should be the name of the change. For example if you add new title configuration documentation, it would be `add-title-configuration`
+
+    Instead of `add-...` you can also use `change-...` or something entirely different. It should, however, be a lowercase verb in the present tense that describes the type of change you're making
+
 
 <center>
 Now you are ready to make your changes!
