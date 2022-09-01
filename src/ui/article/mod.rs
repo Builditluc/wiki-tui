@@ -5,13 +5,14 @@ use crate::wiki::{
 };
 use crate::{
     config::{self, TocPosition, CONFIG},
-    ui, view_with_theme,
+    ui::{self, RootLayout},
+    view_with_theme,
 };
 
 use anyhow::{bail, Context, Result};
 use cursive::align::HAlign;
 use cursive::view::{Nameable, Scrollable};
-use cursive::views::{Dialog, LinearLayout, TextView};
+use cursive::views::{Dialog, TextView};
 use cursive::Cursive;
 
 mod content;
@@ -204,7 +205,7 @@ fn display_article(siv: &mut Cursive, article: Article) -> Result<()> {
     };
 
     // add the article view to the screen
-    let result = siv.call_on_name("article_layout", |view: &mut LinearLayout| {
+    let result = siv.call_on_name("article_layout", |view: &mut RootLayout| {
         if CONFIG.features.toc && has_toc {
             view.insert_child(
                 index,

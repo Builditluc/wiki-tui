@@ -2,8 +2,13 @@ extern crate anyhow;
 extern crate lazy_static;
 extern crate log;
 
+#[macro_use]
+extern crate cursive;
+
+use crate::config::CONFIG;
 use cursive::align::HAlign;
 use cursive::backends;
+use cursive::direction::Orientation;
 use cursive::theme::*;
 use cursive::traits::*;
 use cursive::view::Resizable;
@@ -13,6 +18,7 @@ use cursive_buffered_backend::BufferedBackend;
 use std::fs;
 use std::io::Write;
 
+use crate::ui::RootLayout;
 use crate::wiki::search::SearchResult;
 
 pub mod cli;
@@ -125,9 +131,9 @@ fn start_application() {
         .with_name("logo_view")
         .full_screen();
 
-    let article_layout = override_keybindings!(LinearLayout::horizontal()
+    let article_layout = RootLayout::new(Orientation::Horizontal, CONFIG.keybindings.clone())
         .child(Dialog::around(logo_view))
-        .with_name("article_layout"));
+        .with_name("article_layout");
 
     // Add a fullscreen layer, containing the search bar and the article view
     siv.add_fullscreen_layer(

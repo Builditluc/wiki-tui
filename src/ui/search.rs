@@ -1,8 +1,11 @@
 use crate::{
-    config, override_keybindings, ui, view_with_theme,
+    config,
+    ui::{self, RootLayout},
+    view_with_theme,
     wiki::search::{
         SearchBuilder, SearchMetadata, SearchProperties, SearchResult, SearchSortOrder,
     },
+    Orientation, CONFIG,
 };
 
 use anyhow::{Context, Result};
@@ -99,22 +102,25 @@ pub fn on_search(siv: &mut Cursive, search_query: String) {
     }
 
     // create the search results layout
-    let search_results_layout = LinearLayout::horizontal()
-        .child(view_with_theme!(
-            config::CONFIG.theme.search_results,
-            Dialog::around(override_keybindings!(LinearLayout::vertical()
-                .child(
-                    search_results_view
-                        .with_name("search_results_view")
-                        .scrollable()
-                        .min_height(10)
+    let search_results_layout =
+        RootLayout::new(Orientation::Horizontal, CONFIG.keybindings.clone())
+            .child(view_with_theme!(
+                config::CONFIG.theme.search_results,
+                Dialog::around(
+                    LinearLayout::vertical()
+                        .child(
+                            search_results_view
+                                .with_name("search_results_view")
+                                .scrollable()
+                                .min_height(10)
+                        )
+                        .child(search_continue_button),
                 )
-                .child(search_continue_button)),)
-        ))
-        .child(view_with_theme!(
-            config::CONFIG.theme.search_preview,
-            Dialog::around(search_results_preview)
-        ));
+            ))
+            .child(view_with_theme!(
+                config::CONFIG.theme.search_preview,
+                Dialog::around(search_results_preview)
+            ));
     log::debug!("created the search results layout");
 
     // finally, add the whole thing as a new layer
