@@ -107,11 +107,15 @@ pub struct Features {
     pub toc: bool,
 }
 
+#[derive(Clone)]
 pub struct Keybindings {
-    pub down: Option<Event>,
-    pub up: Option<Event>,
-    pub left: Option<Event>,
-    pub right: Option<Event>,
+    pub down: Event,
+    pub up: Event,
+    pub left: Event,
+    pub right: Event,
+
+    pub focus_next: Event,
+    pub focus_prev: Event,
 }
 
 pub struct Settings {
@@ -233,6 +237,9 @@ struct UserKeybindings {
     up: Option<UserKeybinding>,
     left: Option<UserKeybinding>,
     right: Option<UserKeybinding>,
+
+    focus_next: Option<UserKeybinding>,
+    focus_prev: Option<UserKeybinding>,
 }
 
 #[derive(Deserialize, Debug)]
@@ -274,10 +281,13 @@ impl Config {
                 toc: true,
             },
             keybindings: Keybindings {
-                down: None,
-                up: None,
-                left: None,
-                right: None,
+                down: Event::Key(Key::Down),
+                up: Event::Key(Key::Up),
+                left: Event::Key(Key::Left),
+                right: Event::Key(Key::Right),
+
+                focus_next: Event::Key(Key::Tab),
+                focus_prev: Event::Shift(Key::Tab),
             },
             settings: Settings {
                 toc: TocSettings {
@@ -578,7 +588,7 @@ impl Config {
                 keybinding.mode.as_ref().unwrap_or(&"normal".to_string()),
             ) {
                 Ok(event_key) => {
-                    self.keybindings.down = Some(event_key);
+                    self.keybindings.down = event_key;
                 }
                 Err(error) => {
                     log::warn!("{:?}", error)
@@ -591,7 +601,7 @@ impl Config {
                 keybinding.mode.as_ref().unwrap_or(&"normal".to_string()),
             ) {
                 Ok(event_key) => {
-                    self.keybindings.up = Some(event_key);
+                    self.keybindings.up = event_key;
                 }
                 Err(error) => {
                     log::warn!("{:?}", error)
@@ -604,7 +614,7 @@ impl Config {
                 keybinding.mode.as_ref().unwrap_or(&"normal".to_string()),
             ) {
                 Ok(event_key) => {
-                    self.keybindings.left = Some(event_key);
+                    self.keybindings.left = event_key;
                 }
                 Err(error) => {
                     log::warn!("{:?}", error)
@@ -617,7 +627,33 @@ impl Config {
                 keybinding.mode.as_ref().unwrap_or(&"normal".to_string()),
             ) {
                 Ok(event_key) => {
-                    self.keybindings.right = Some(event_key);
+                    self.keybindings.right = event_key;
+                }
+                Err(error) => {
+                    log::warn!("{:?}", error)
+                }
+            }
+        }
+        if let Some(keybinding) = &user_keybindings.focus_next {
+            match parse_keybinding(
+                &keybinding.key,
+                keybinding.mode.as_ref().unwrap_or(&"normal".to_string()),
+            ) {
+                Ok(event_key) => {
+                    self.keybindings.focus_next = event_key;
+                }
+                Err(error) => {
+                    log::warn!("{:?}", error)
+                }
+            }
+        }
+        if let Some(keybinding) = &user_keybindings.focus_prev {
+            match parse_keybinding(
+                &keybinding.key,
+                keybinding.mode.as_ref().unwrap_or(&"normal".to_string()),
+            ) {
+                Ok(event_key) => {
+                    self.keybindings.focus_prev = event_key;
                 }
                 Err(error) => {
                     log::warn!("{:?}", error)

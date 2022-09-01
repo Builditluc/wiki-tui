@@ -10,7 +10,7 @@ The key setting can be a simple character or a non-character key
 These are the supported non-character keys (lower-/uppercase doesn't matter);
 
 | Key              | Config Name    |
-| ---------------- | -------------- |
+|------------------|----------------|
 | ++insert++       | `insert`       |
 | ++delete++       | `delete`       |
 | ++home++         | `home`         |
@@ -23,14 +23,28 @@ These are the supported non-character keys (lower-/uppercase doesn't matter);
 
 ### Mode
 
+The following modes are supported
+
+| Key            | Config Name |
+|----------------|-------------|
+ |                | `normal`    |
+| ++shift++      | `shit`      |
+| ++alt++        | `alt`       |
+| ++alt+shift++  | `altshift`  |
+| ++ctrl++       | `ctrl`      |
+| ++ctrl+shift++ | `ctrlshift` |
+| ++ctrl+alt++   | `ctrlalt`   |
+
 ## Supported Actions
 
-| Action | Default Keybinding | Changeable Since                         |
-| ------ | ------------------ | ---------------------------------------- |
-| Down   | ++down++           | [:octicons-tag-24: 0.5.0][release-0.5.0] |
-| Up     | ++up++             | [:octicons-tag-24: 0.5.0][release-0.5.0] |
-| Left   | ++left++           | [:octicons-tag-24: 0.5.0][release-0.5.0] |
-| Right  | ++right++          | [:octicons-tag-24: 0.5.0][release-0.5.0] |
+| Action                  | Config Name  | Default Keybinding | Changeable Since                          |
+|-------------------------|--------------|--------------------|-------------------------------------------|
+| Scroll Down             | `down`       | ++down++           | [:octicons-tag-24: 0.5.0][release-0.5.0]  |
+| Scroll Up               | `up`         | ++up++             | [:octicons-tag-24: 0.5.0][release-0.5.0]  |
+| Scroll / Select Left    | `left`       | ++left++           | [:octicons-tag-24: 0.5.0][release-0.5.0]  |
+| Scroll / Select Right   | `right`      | ++right++          | [:octicons-tag-24: 0.5.0][release-0.5.0]  |
+| Focus the next view     | `focus_next` | ++tab++            | :fontawesome-solid-microchip: pre-release |
+| Focus the previous view | `focus_prev` | ++shift+tab++      | :fontawesome-solid-microchip: pre-release |
 
 ## Sample Remap
 

@@ -5,13 +5,15 @@ use crate::wiki::{
 };
 use crate::{
     config::{self, TocPosition, CONFIG},
-    ui, view_with_theme,
+    ui::{self, RootLayout},
+    view_with_theme,
 };
 
 use anyhow::{bail, Context, Result};
 use cursive::align::HAlign;
+use cursive::direction::Orientation;
 use cursive::view::{Nameable, Scrollable};
-use cursive::views::{Dialog, LinearLayout, TextView};
+use cursive::views::{Dialog, TextView};
 use cursive::Cursive;
 
 mod content;
@@ -98,21 +100,23 @@ pub fn on_link_submit(siv: &mut Cursive, target: String) {
     siv.add_layer(
         // create a dialog that asks the user for confirmation whether he really wants to open this
         // link
-        Dialog::around(TextView::new(format!(
-            "Do you want to open the article '{}'?",
-            target_human
-        )))
-        .button("Yep", move |s| {
-            log::info!("on_link_submit - user said yes :) continuing...");
-            // the human wants us to open the link for him... we will comply...
-            open_link(s, target.clone())
-        })
-        .button("Nope", move |s| {
-            log::info!("on_link_submit - said no :/ aborting...");
-            // so he doesn't want us to open the link... delete the whole dialog and pretend it
-            // didn't happen
-            s.pop_layer();
-        }),
+        RootLayout::new(Orientation::Vertical, CONFIG.keybindings.clone()).child(
+            Dialog::around(TextView::new(format!(
+                "Do you want to open the article '{}'?",
+                target_human
+            )))
+            .button("Yep", move |s| {
+                log::info!("on_link_submit - user said yes :) continuing...");
+                // the human wants us to open the link for him... we will comply...
+                open_link(s, target.clone())
+            })
+            .button("Nope", move |s| {
+                log::info!("on_link_submit - said no :/ aborting...");
+                // so he doesn't want us to open the link... delete the whole dialog and pretend it
+                // didn't happen
+                s.pop_layer();
+            }),
+        ),
     );
 
     log::info!("on_link_submit finished successfully");
@@ -204,7 +208,7 @@ fn display_article(siv: &mut Cursive, article: Article) -> Result<()> {
     };
 
     // add the article view to the screen
-    let result = siv.call_on_name("article_layout", |view: &mut LinearLayout| {
+    let result = siv.call_on_name("article_layout", |view: &mut RootLayout| {
         if CONFIG.features.toc && has_toc {
             view.insert_child(
                 index,
