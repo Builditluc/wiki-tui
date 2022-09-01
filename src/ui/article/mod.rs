@@ -11,6 +11,7 @@ use crate::{
 
 use anyhow::{bail, Context, Result};
 use cursive::align::HAlign;
+use cursive::direction::Orientation;
 use cursive::view::{Nameable, Scrollable};
 use cursive::views::{Dialog, TextView};
 use cursive::Cursive;
@@ -99,21 +100,23 @@ pub fn on_link_submit(siv: &mut Cursive, target: String) {
     siv.add_layer(
         // create a dialog that asks the user for confirmation whether he really wants to open this
         // link
-        Dialog::around(TextView::new(format!(
-            "Do you want to open the article '{}'?",
-            target_human
-        )))
-        .button("Yep", move |s| {
-            log::info!("on_link_submit - user said yes :) continuing...");
-            // the human wants us to open the link for him... we will comply...
-            open_link(s, target.clone())
-        })
-        .button("Nope", move |s| {
-            log::info!("on_link_submit - said no :/ aborting...");
-            // so he doesn't want us to open the link... delete the whole dialog and pretend it
-            // didn't happen
-            s.pop_layer();
-        }),
+        RootLayout::new(Orientation::Vertical, CONFIG.keybindings.clone()).child(
+            Dialog::around(TextView::new(format!(
+                "Do you want to open the article '{}'?",
+                target_human
+            )))
+            .button("Yep", move |s| {
+                log::info!("on_link_submit - user said yes :) continuing...");
+                // the human wants us to open the link for him... we will comply...
+                open_link(s, target.clone())
+            })
+            .button("Nope", move |s| {
+                log::info!("on_link_submit - said no :/ aborting...");
+                // so he doesn't want us to open the link... delete the whole dialog and pretend it
+                // didn't happen
+                s.pop_layer();
+            }),
+        ),
     );
 
     log::info!("on_link_submit finished successfully");

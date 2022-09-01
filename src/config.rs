@@ -113,6 +113,9 @@ pub struct Keybindings {
     pub up: Event,
     pub left: Event,
     pub right: Event,
+
+    pub focus_next: Event,
+    pub focus_prev: Event,
 }
 
 pub struct Settings {
@@ -234,6 +237,9 @@ struct UserKeybindings {
     up: Option<UserKeybinding>,
     left: Option<UserKeybinding>,
     right: Option<UserKeybinding>,
+
+    focus_next: Option<UserKeybinding>,
+    focus_prev: Option<UserKeybinding>,
 }
 
 #[derive(Deserialize, Debug)]
@@ -279,6 +285,9 @@ impl Config {
                 up: Event::Key(Key::Up),
                 left: Event::Key(Key::Left),
                 right: Event::Key(Key::Right),
+
+                focus_next: Event::Key(Key::Tab),
+                focus_prev: Event::Shift(Key::Tab),
             },
             settings: Settings {
                 toc: TocSettings {
@@ -619,6 +628,32 @@ impl Config {
             ) {
                 Ok(event_key) => {
                     self.keybindings.right = event_key;
+                }
+                Err(error) => {
+                    log::warn!("{:?}", error)
+                }
+            }
+        }
+        if let Some(keybinding) = &user_keybindings.focus_next {
+            match parse_keybinding(
+                &keybinding.key,
+                keybinding.mode.as_ref().unwrap_or(&"normal".to_string()),
+            ) {
+                Ok(event_key) => {
+                    self.keybindings.focus_next = event_key;
+                }
+                Err(error) => {
+                    log::warn!("{:?}", error)
+                }
+            }
+        }
+        if let Some(keybinding) = &user_keybindings.focus_prev {
+            match parse_keybinding(
+                &keybinding.key,
+                keybinding.mode.as_ref().unwrap_or(&"normal".to_string()),
+            ) {
+                Ok(event_key) => {
+                    self.keybindings.focus_prev = event_key;
                 }
                 Err(error) => {
                     log::warn!("{:?}", error)

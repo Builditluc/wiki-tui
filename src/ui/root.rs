@@ -52,6 +52,11 @@ impl ViewWrapper for RootLayout {
             key if key == self.keybindings.right => self.layout.on_event(Event::Key(Key::Right)),
 
             // focus
+            key if key == self.keybindings.focus_next => self.layout.on_event(Event::Key(Key::Tab)),
+            key if key == self.keybindings.focus_prev => {
+                self.layout.on_event(Event::Shift(Key::Tab))
+            }
+
             _ => self.layout.on_event(ch),
         }
     }
