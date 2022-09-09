@@ -8,6 +8,7 @@ use cursive::Vec2;
 pub struct RootLayout {
     layout: LinearLayout,
     keybindings: Keybindings,
+    input_mode: bool,
 }
 
 impl RootLayout {
@@ -15,6 +16,7 @@ impl RootLayout {
         RootLayout {
             layout: LinearLayout::new(orientation),
             keybindings,
+            input_mode: false,
         }
     }
 
@@ -24,6 +26,11 @@ impl RootLayout {
 
     pub fn vertical(keybindings: Keybindings) -> Self {
         RootLayout::new(Orientation::Vertical, keybindings)
+    }
+
+    pub fn input(mut self, state: bool) -> Self {
+        self.input_mode = state;
+        self
     }
 
     pub fn child<V: IntoBoxedView + 'static>(mut self, view: V) -> Self {
@@ -53,6 +60,16 @@ impl ViewWrapper for RootLayout {
 
     fn wrap_on_event(&mut self, ch: Event) -> EventResult {
         match ch {
+            // input mode
+            Event::Char(_) if self.input_mode => self.layout.on_event(ch),
+            Event::Key(Key::Home) if self.input_mode => self.layout.on_event(ch),
+            Event::Key(Key::End) if self.input_mode => self.layout.on_event(ch),
+            Event::Key(Key::Left) if self.input_mode => self.layout.on_event(ch),
+            Event::Key(Key::Right) if self.input_mode => self.layout.on_event(ch),
+            Event::Key(Key::Backspace) if self.input_mode => self.layout.on_event(ch),
+            Event::Key(Key::Del) if self.input_mode => self.layout.on_event(ch),
+            Event::Key(Key::Enter) if self.input_mode => self.layout.on_event(ch),
+
             // movement
             key if key == self.keybindings.up => self.layout.on_event(Event::Key(Key::Up)),
             key if key == self.keybindings.down => self.layout.on_event(Event::Key(Key::Down)),

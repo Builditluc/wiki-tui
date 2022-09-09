@@ -1,12 +1,16 @@
 use cursive::{
     align::HAlign,
     view::Resizable,
-    views::{DummyView, EditView, LinearLayout, Panel, TextView},
+    views::{DummyView, EditView, Panel, TextView},
     Cursive,
 };
 use cursive_aligned_view::Alignable;
 
-use crate::{ui::search::on_search, LOGO};
+use crate::{
+    config::CONFIG,
+    ui::{search::on_search, RootLayout},
+    LOGO,
+};
 
 const PROMT_WIDTH_PERCENTAGE: f32 = 0.6;
 const LOGO_PROMT_SPACING: usize = 5;
@@ -23,10 +27,11 @@ pub fn display_home() -> Box<dyn FnOnce(&mut Cursive) + Send> {
 
         siv.add_fullscreen_layer(
             Panel::new(
-                LinearLayout::vertical()
+                RootLayout::vertical(CONFIG.keybindings.clone())
                     .child(logo_view)
                     .child(filler_view)
                     .child(search_promt)
+                    .input(true)
                     .full_screen(),
             )
             .title("wiki-tui"),
