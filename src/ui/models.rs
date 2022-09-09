@@ -5,12 +5,6 @@ pub struct ArticleResultPreview {
     pub title: String,
 }
 
-pub struct Article {
-    pub page_id: i32,
-    pub title: String,
-    pub content: String,
-}
-
 impl From<i32> for ArticleResultPreview {
     fn from(page_id: i32) -> Self {
         ArticleResultPreview {

@@ -41,6 +41,9 @@ default-features = false
 # git = "https://github.com/gyscos/cursive_buffered_backend"
 version = "0.6.0"
 
+[dependencies.cursive-aligned-view]
+version = "0.6.0"
+
 [dependencies.reqwest]
 version = "0.11"
 features = ["json", "blocking"]

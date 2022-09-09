@@ -18,6 +18,14 @@ impl RootLayout {
         }
     }
 
+    pub fn horizontal(keybindings: Keybindings) -> Self {
+        RootLayout::new(Orientation::Horizontal, keybindings)
+    }
+
+    pub fn vertical(keybindings: Keybindings) -> Self {
+        RootLayout::new(Orientation::Vertical, keybindings)
+    }
+
     pub fn child<V: IntoBoxedView + 'static>(mut self, view: V) -> Self {
         self.add_child(view);
         self

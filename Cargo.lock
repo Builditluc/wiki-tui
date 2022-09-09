@@ -274,6 +274,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "cursive-aligned-view"
+version = "0.6.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1b7dacf354d3652da419986792eb8df9615e409b1d2a575f73df641a83e3f759"
+dependencies = [
+ "cursive_core",
+]
+
+[[package]]
 name = "cursive_buffered_backend"
 version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2131,6 +2140,7 @@ dependencies = [
  "anyhow",
  "backtrace",
  "cursive",
+ "cursive-aligned-view",
  "cursive_buffered_backend",
  "dirs",
  "lazy_static",
