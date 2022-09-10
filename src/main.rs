@@ -6,7 +6,6 @@ extern crate log;
 extern crate cursive;
 
 use crate::config::CONFIG;
-use cursive::direction::Orientation;
 use cursive::theme::*;
 use cursive::Cursive;
 use home::display_home;
@@ -86,7 +85,7 @@ fn handle_arguments() -> Box<dyn FnOnce(&mut Cursive) + Send> {
     if let Some(search_query) = config::CONFIG.get_args().search_query.as_ref() {
         log::info!("searching for the article: {}", search_query);
         return Box::new(move |siv: &mut Cursive| {
-            ui::search::on_search(siv, search_query.to_string());
+            ui::search::on_search(siv, search_query);
         });
     } else if let Some(article_id) = config::CONFIG.get_args().article_id {
         log::info!("opening the article: {}", article_id);

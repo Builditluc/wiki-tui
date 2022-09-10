@@ -1,5 +1,6 @@
 use crate::ui::RootLayout;
-use cursive::Cursive;
+use anyhow::Error;
+use cursive::{views::Dialog, Cursive};
 
 /// Removes a given view from a given layout. If the view or the layout couldn't be found, the
 /// function fails silently
@@ -26,4 +27,14 @@ macro_rules! view_with_theme {
             ui::ThemedView::new(config::CONFIG.theme.to_theme(), $view)
         }
     };
+}
+
+pub fn display_error(siv: &mut Cursive, error: Error) {
+    const ERROR_MESSAGE: &str = "An error occurred during the search\nCheck the logs for more information\n\nError: {ERROR}";
+
+    siv.add_layer(
+        Dialog::text(ERROR_MESSAGE.replace("{ERROR}", &error.to_string()))
+            .title("Warning")
+            .dismiss_button("Dismiss"),
+    );
 }

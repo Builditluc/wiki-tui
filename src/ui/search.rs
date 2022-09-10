@@ -1,17 +1,17 @@
 use crate::{
     config,
-    ui::{self, RootLayout},
+    ui::{self, utils::display_error, RootLayout},
     view_with_theme,
     wiki::search::{
-        SearchBuilder, SearchMetadata, SearchProperties, SearchResult, SearchSortOrder,
+        Search, SearchBuilder, SearchMetadata, SearchProperties, SearchResult, SearchSortOrder,
     },
     CONFIG,
 };
 
-use anyhow::{Context, Result};
+use anyhow::{anyhow, Context, Result};
 use cursive::view::{Nameable, Resizable, Scrollable};
-use cursive::views::{Button, Dialog, EditView, LinearLayout, SelectView, TextView};
-use cursive::{align::HAlign, utils::markup::StyledString, Cursive};
+use cursive::views::{Button, Dialog, LinearLayout, SelectView, TextView};
+use cursive::{utils::markup::StyledString, Cursive};
 
 /// Returns the default SearchBuilder
 fn build_search() -> SearchBuilder {
@@ -21,37 +21,26 @@ fn build_search() -> SearchBuilder {
         .sort(SearchSortOrder::JustMatch)
 }
 
-/// Searches for a given query and displays the results. Returns an error if something went wrong.
-pub fn on_search(siv: &mut Cursive, search_query: String) {
-    log::info!("on_search was called");
-
-    // do the search and if something went wrong, display an error message to the user
-    log::info!("searching for '{}'", search_query);
-    let search = match build_search().query(search_query.clone()).search() {
+pub fn on_search(siv: &mut Cursive, query: &str) {
+    let search = match search(query) {
         Ok(search) => search,
         Err(error) => {
-            // log the error
-            log::warn!("{}", error);
-
-            // display an error message
-            siv.add_layer(
-                Dialog::info(
-                    "A Problem occurred while searching. \nCheck the logs for further information",
-                )
-                .title("Error")
-                .title_position(HAlign::Center),
-            );
-            log::info!("on_search failed to finish");
+            log::warn!("{:?}", error);
+            display_error(siv, error);
             return;
         }
     };
+    display_search_results(siv, search, query);
+}
 
-    // clear the search bar
-    log::debug!("clearing the search bar");
-    siv.call_on_name("search_bar", |view: &mut EditView| {
-        view.set_content("");
-    });
+/// Searches for a given query and returns the results. Returns an error if something went wrong.
+fn search(query: &str) -> Result<Search> {
+    // do the search and if something went wrong, return the error
+    log::info!("searching for '{}'", query);
+    build_search().query(query.to_string()).search()
+}
 
+fn display_search_results(siv: &mut Cursive, search: Search, query: &str) {
     // Create the views
 
     // create the results view letting the user select an result
@@ -66,12 +55,10 @@ pub fn on_search(siv: &mut Cursive, search_query: String) {
 
     // create the continue button
     let search_continue_button = {
-        let query = search_query.to_string();
+        let query = query.to_string();
         let offset = search.search_offset().to_owned();
         Button::new("Show more results...", move |s| {
-            if let Err(error) = continue_search(s, &query, &offset) {
-                log::warn!("{:?}", error);
-            }
+            on_continue_submit(s, &query, &offset)
         })
         .with_name("search_continue_button")
     };
@@ -129,7 +116,7 @@ pub fn on_search(siv: &mut Cursive, search_query: String) {
                 .child(search_results_layout)
                 .child(search_info_view),
         )
-        .title(format!("Results for \"{}\"", search_query))
+        .title(format!("Results for \"{}\"", query))
         .dismiss_button("Back")
         .button("Quit", Cursive::quit)
         .max_height(20),
@@ -144,18 +131,17 @@ pub fn on_search(siv: &mut Cursive, search_query: String) {
         }
     })) {
         log::warn!("{:?}", error);
-        log::info!("on_search failed to finish");
         return;
     }
 
-    log::info!("on_search finished successfully");
+    log::info!("finished displaying the results");
 }
 
 /// Generates and displays a preview of a given search result. It's used as a callback for the
 /// search results view
 fn on_result_select(siv: &mut Cursive, item: &SearchResult) {
     log::info!(
-        "on_result_select was called with the item '{}', page id: '{}'",
+        "selecting the item '{}', page id: '{}'",
         item.title(),
         item.page_id()
     );
@@ -196,30 +182,56 @@ fn on_result_select(siv: &mut Cursive, item: &SearchResult) {
         view.set_content(preview);
     });
     if result.is_none() {
-        log::warn!("couldn't find the search results preview view");
-        log::info!("on_result_select failed to finish");
-        return;
+        let error = anyhow!("couldn't find the search results view")
+            .context("failed displaying the generated preview");
+        log::warn!("{:?}", error);
+        display_error(siv, error);
     }
-
-    log::info!("on_result_select finished successfully");
 }
 
 /// Searches for more results at a given offset and adds them to the results view. It's a callback
-/// for the continue button and returns an error if something went wrong
-fn continue_search(siv: &mut Cursive, search_query: &str, search_offset: &usize) -> Result<()> {
+/// for the continue button and displays an error if something went wrong
+fn on_continue_submit(siv: &mut Cursive, search_query: &str, search_offset: &usize) {
+    let search = match continue_search(search_query, search_offset) {
+        Ok(search) => search,
+        Err(error) => {
+            log::warn!("{:?}", error);
+            display_error(siv, error);
+            return;
+        }
+    };
+    match display_more_search_results(siv, search, search_query)
+        .context("failed displaying the search results")
+    {
+        Ok(_) => return,
+        Err(error) => {
+            log::warn!("{:?}", error);
+            display_error(siv, error);
+            return;
+        }
+    }
+}
+
+fn continue_search(search_query: &str, search_offset: &usize) -> Result<Search> {
     log::info!(
-        "continue_search was called for the query '{}' with the offset '{}'",
+        "searching for the query '{}' with the offset '{}'",
         search_query,
         search_offset
     );
 
     // fetch more results
-    log::info!("fetching more results");
-    let search = build_search()
+    log::debug!("fetching more results");
+    build_search()
         .query(search_query.to_string())
         .offset(*search_offset)
-        .search()?;
+        .search()
+}
 
+fn display_more_search_results(
+    siv: &mut Cursive,
+    search: Search,
+    search_query: &str,
+) -> Result<()> {
     // get the results view so we can add some results to it
     log::debug!("getting the search results view");
     let mut search_results_views = siv
@@ -231,7 +243,7 @@ fn continue_search(siv: &mut Cursive, search_query: &str, search_offset: &usize)
 
     // add the new results to the view
     log::info!(
-        "adding '{}' results to the search results view",
+        "adding '{}' results to the search results",
         search.results().count()
     );
     for search_result in search.results() {
@@ -250,11 +262,8 @@ fn continue_search(siv: &mut Cursive, search_query: &str, search_offset: &usize)
     // modify the callback of the continue button so we don't search for the same thing again
     {
         let query = search_query.to_string();
-        search_continue_button.set_callback(move |s| {
-            if let Err(error) = continue_search(s, &query, search.search_offset()) {
-                log::warn!("{:?}", error);
-            }
-        });
+        search_continue_button
+            .set_callback(move |s| on_continue_submit(s, &query, search.search_offset()));
     }
 
     // focus the results view
@@ -264,6 +273,5 @@ fn continue_search(siv: &mut Cursive, search_query: &str, search_offset: &usize)
     })?;
     log::debug!("focussed the search results view");
 
-    log::info!("continue_search finished successfully");
     Ok(())
 }

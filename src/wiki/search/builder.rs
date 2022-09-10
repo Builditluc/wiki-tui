@@ -179,19 +179,25 @@ impl SearchBuilder {
 
         // check for invalid fields
         log::debug!("checking for invalid fields");
-        self.invalid_fields()?;
+        self.invalid_fields().context("there are invalid fields")?;
 
         // build the url
         log::debug!("building the url");
-        let url = self.build_url()?;
+        let url = self.build_url().context("failed building the url")?;
 
         // make the request
         log::debug!("making the request to '{}'", url);
-        let response = self.make_request(&url)?;
+        let response = self
+            .make_request(&url)
+            .context("failed sending the request")?;
 
         // deserialize the response and return the finished search
         log::debug!("deserializing the resposne");
-        let search = self.deserialize_response(response.text()?);
+        let search = self.deserialize_response(
+            response
+                .text()
+                .context("failed getting the response content")?,
+        );
         if search.is_ok() {
             log::info!("search finished successfully");
         }
