@@ -38,3 +38,16 @@ pub fn display_error(siv: &mut Cursive, error: Error) {
             .dismiss_button("Dismiss"),
     );
 }
+
+#[macro_export]
+macro_rules! unwrap {
+    ($to_unwrap: expr, $warn: expr) => {
+        match $to_unwrap {
+            Some(content) => content,
+            None => {
+                log::warn!($warn);
+                return;
+            }
+        }
+    };
+}

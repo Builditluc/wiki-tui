@@ -1,8 +1,8 @@
 use crate::config;
 use crate::ui::{self, article::ArticleView, RootLayout};
-use crate::view_with_theme;
 use crate::wiki::article::TableOfContents;
 use crate::wiki::article::TableOfContentsItem;
+use crate::{unwrap, view_with_theme};
 
 use cursive::event::{Event, Key};
 use cursive::traits::Scrollable;
@@ -13,7 +13,10 @@ use cursive::Cursive;
 pub fn add_table_of_contents(siv: &mut Cursive, toc: &TableOfContents) {
     // get the article_layout and create an empty select view
 
-    let mut article_layout = siv.find_name::<RootLayout>("article_layout").unwrap();
+    let mut article_layout = unwrap!(
+        siv.find_name::<RootLayout>("article_layout"),
+        "couldn't find the article layout"
+    );
     let mut toc_view = SelectView::<TableOfContentsItem>::new().on_submit(|siv, item| {
         log::info!("jumping to '{}'", item.text());
         let item_index = match siv.find_name::<SelectView<TableOfContentsItem>>("toc_view") {

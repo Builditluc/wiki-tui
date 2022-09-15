@@ -207,7 +207,6 @@ fn on_continue_submit(siv: &mut Cursive, search_query: &str, search_offset: &usi
         Err(error) => {
             log::warn!("{:?}", error);
             display_error(siv, error);
-            return;
         }
     }
 }
