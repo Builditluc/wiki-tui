@@ -54,13 +54,13 @@ impl DefaultParser {
 
         // get the title of the toc
         let toc_title = match self.toc_settings.title {
-            TocTitle::DEFAULT => toc_node
+            TocTitle::Default => toc_node
                 .find(Class("toctitle"))
                 .next()
                 .context("No toc title was found")?
                 .text(),
-            TocTitle::ARTICLE => self.get_title(document)?,
-            TocTitle::CUSTOM => self
+            TocTitle::Article => self.get_title(document)?,
+            TocTitle::Custom => self
                 .toc_settings
                 .title_custom
                 .clone()

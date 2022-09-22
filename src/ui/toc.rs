@@ -1,4 +1,4 @@
-use crate::config;
+use crate::config::{self, TocPosition, CONFIG};
 use crate::ui::{self, article::ArticleView, RootLayout};
 use crate::wiki::article::TableOfContents;
 use crate::wiki::article::TableOfContentsItem;
@@ -10,12 +10,12 @@ use cursive::view::{Nameable, Resizable};
 use cursive::views::{Dialog, SelectView};
 use cursive::Cursive;
 
-pub fn add_table_of_contents(siv: &mut Cursive, toc: &TableOfContents) {
+pub fn add_table_of_contents(siv: &mut Cursive, toc: &TableOfContents, layout: &str) {
     // get the article_layout and create an empty select view
 
     let mut article_layout = unwrap!(
-        siv.find_name::<RootLayout>("article_layout"),
-        "couldn't find the article layout"
+        siv.find_name::<RootLayout>(layout),
+        "couldn't find the layout"
     );
     let mut toc_view = SelectView::<TableOfContentsItem>::new().on_submit(|siv, item| {
         log::info!("jumping to '{}'", item.text());
@@ -61,7 +61,13 @@ pub fn add_table_of_contents(siv: &mut Cursive, toc: &TableOfContents) {
         add_item_to_toc(&mut toc_view, item);
     }
 
-    article_layout.add_child(
+    let toc_layout_index = match CONFIG.settings.toc.position {
+        TocPosition::Left => 0_usize,
+        TocPosition::Right => 1_usize,
+    };
+
+    article_layout.insert_child(
+        toc_layout_index,
         view_with_theme!(
             config::CONFIG.theme.toc_view,
             Dialog::around(

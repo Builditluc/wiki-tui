@@ -136,15 +136,15 @@ pub struct TocSettings {
 
 #[derive(Clone)]
 pub enum TocPosition {
-    LEFT,
-    RIGHT,
+    Left,
+    Right,
 }
 
 #[derive(Clone)]
 pub enum TocTitle {
-    DEFAULT,
-    CUSTOM,
-    ARTICLE,
+    Default,
+    Custom,
+    Article,
 }
 
 pub struct Config {
@@ -291,8 +291,8 @@ impl Config {
             },
             settings: Settings {
                 toc: TocSettings {
-                    position: TocPosition::RIGHT,
-                    title: TocTitle::DEFAULT,
+                    position: TocPosition::Right,
+                    title: TocTitle::Default,
                     title_custom: None,
                     min_width: 20,
                     max_width: 60,
@@ -675,18 +675,18 @@ impl Config {
 
         if let Some(position) = &user_toc_settings.position {
             match position.to_lowercase().as_str() {
-                "left" => self.settings.toc.position = TocPosition::LEFT,
-                "right" => self.settings.toc.position = TocPosition::RIGHT,
+                "left" => self.settings.toc.position = TocPosition::Left,
+                "right" => self.settings.toc.position = TocPosition::Right,
                 pos => log::warn!("unknown toc position, got {}", pos),
             }
         }
 
         if let Some(title) = &user_toc_settings.title {
             match title.to_lowercase().as_str() {
-                "default" => self.settings.toc.title = TocTitle::DEFAULT,
-                "custom" => self.settings.toc.title = TocTitle::CUSTOM,
-                "article" => self.settings.toc.title = TocTitle::ARTICLE,
-                _ => self.settings.toc.title = TocTitle::DEFAULT,
+                "default" => self.settings.toc.title = TocTitle::Default,
+                "custom" => self.settings.toc.title = TocTitle::Custom,
+                "article" => self.settings.toc.title = TocTitle::Article,
+                _ => self.settings.toc.title = TocTitle::Default,
             }
         }
 
