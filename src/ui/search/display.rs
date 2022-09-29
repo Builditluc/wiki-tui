@@ -1,22 +1,37 @@
 use anyhow::Result;
 use cursive::{
     align::HAlign,
-    view::{Nameable, Scrollable},
+    view::{Nameable, Resizable, Scrollable},
     views::{Button, LinearLayout, Panel, SelectView, TextView},
     Cursive,
 };
 
 use crate::{
     config::CONFIG,
-    ui::{article::on_article_submit, search::on_continue_submit, RootLayout},
+    ui::{article::on_article_submit, search::on_continue_submit, utils::percentage, RootLayout},
     wiki::search::{Search, SearchResult},
 };
 
 use super::on_result_select;
 
+const SEARCH_WIDTH_PERCENTAGE: f32 = 0.7;
+const SEARCH_HEIGHT_PERCENTAGE: f32 = 0.6;
+
+const PREVIEW_HEIGHT_PERCENTAGE: f32 = 0.5;
+const SEARCH_RESULTS_PERCENTAGE: f32 = 0.3;
+
 /// Displays the search results and returns an error if anything went wrong
 pub fn display_search_results(siv: &mut Cursive, search: Search, query: &str) -> Result<()> {
     log::info!("displaying '{}' search results", search.results().count());
+
+    // calculate the necessary size values
+    let screen_size = siv.screen_size();
+
+    let search_width = percentage(screen_size.x, SEARCH_WIDTH_PERCENTAGE);
+    let search_height = percentage(screen_size.y, SEARCH_HEIGHT_PERCENTAGE);
+
+    let search_results_width = percentage(search_width, SEARCH_RESULTS_PERCENTAGE);
+    let search_preview_height = percentage(search_height, PREVIEW_HEIGHT_PERCENTAGE);
 
     // create the results view (SelectView)
     let search_results_view = {
@@ -32,6 +47,8 @@ pub fn display_search_results(siv: &mut Cursive, search: Search, query: &str) ->
         search_results_view
     }
     .with_name("search_results_view")
+    .full_height()
+    .fixed_width(search_results_width)
     .scrollable();
 
     // create the continue button (Button)
@@ -49,10 +66,12 @@ pub fn display_search_results(siv: &mut Cursive, search: Search, query: &str) ->
         TextView::new("Test")
             .h_align(HAlign::Left)
             .with_name("search_result_preview"),
-    );
+    )
+    .fixed_height(search_preview_height);
 
     // create the info view (TextView)
-    let search_result_info = Panel::new(TextView::empty().with_name("search_result_info"));
+    let search_result_info =
+        Panel::new(TextView::empty().with_name("search_result_info")).full_height();
 
     // create the status view (TextView)
     let search_status_view = {
@@ -92,7 +111,9 @@ pub fn display_search_results(siv: &mut Cursive, search: Search, query: &str) ->
                 .child(search_layout)
                 .child(search_status_view),
         )
-        .title(format!("Results for '{}'", query)),
+        .title(format!("Results for '{}'", query))
+        .fixed_width(search_width)
+        .fixed_height(search_height),
     );
 
     // send the callback to select the first search result
