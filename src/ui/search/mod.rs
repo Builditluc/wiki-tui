@@ -9,6 +9,7 @@ use crate::{
 };
 
 use anyhow::{anyhow, Context, Result};
+use chrono::DateTime;
 use cursive::view::{Nameable, Resizable, Scrollable};
 use cursive::views::{Button, Dialog, LinearLayout, SelectView, TextView};
 use cursive::{utils::markup::StyledString, Cursive};
@@ -17,7 +18,7 @@ use cursive::{utils::markup::StyledString, Cursive};
 fn build_search() -> SearchBuilder {
     SearchBuilder::new(&config::CONFIG.api_config.base_url)
         .info(SearchMetadata::new().total_hits())
-        .prop(SearchProperties::new().snippet())
+        .prop(SearchProperties::new().snippet().wordcount().timestamp())
         .sort(SearchSortOrder::JustMatch)
 }
 
@@ -30,6 +31,7 @@ pub fn on_search(siv: &mut Cursive, query: &str) {
             return;
         }
     };
+
     display_search_results(siv, search, query);
 }
 
@@ -43,12 +45,9 @@ fn search(query: &str) -> Result<Search> {
 fn display_search_results(siv: &mut Cursive, search: Search, query: &str) {
     // Create the views
 
+    log::info!("displaying '{}' search results", search.results().count(),);
+
     // create the results view letting the user select an result
-    log::info!(
-        "displaying '{}' out of '{}' search results",
-        search.results().count(),
-        search.info().total_hits().unwrap_or(&-1),
-    );
     let mut search_results_view = SelectView::<SearchResult>::new()
         .on_select(on_result_select)
         .on_submit(ui::article::on_article_submit);
@@ -176,13 +175,43 @@ fn on_result_select(siv: &mut Cursive, item: &SearchResult) {
         preview.append_plain("...");
     }
 
-    // set the content of the preview view to the generated preview
+    // generate the info text
+    let mut info_text = String::new();
+
+    info_text.push_str(&format!("Title: {}", item.title()));
+
+    if let Some(wordcount) = item.wordcount() {
+        info_text.push_str(&format!("\nWord count: {} words", wordcount.to_string()));
+    }
+
+    if let Some(timestamp) = item.timestamp() {
+        if let Ok(formatted_time) = DateTime::parse_from_rfc3339(timestamp) {
+            info_text.push_str(&format!(
+                "\nLast Edited: {}",
+                formatted_time.format("%H:%M:%S %d/%m/%Y ")
+            ));
+        }
+    }
+
+    // set the content of the info view to the generated info text
+    if siv
+        .call_on_name("search_result_info", |view: &mut TextView| {
+            view.set_content(info_text);
+        })
+        .is_none()
+    {
+        let error = anyhow!("couldn't find the search info view")
+            .context("failed displaying the generated preview");
+        log::warn!("{:?}", error);
+        display_error(siv, error);
+    };
+
     log::debug!("displaying the generated preivew");
-    let result = siv.call_on_name("search_results_preview", |view: &mut TextView| {
+    let result = siv.call_on_name("search_result_preview", |view: &mut TextView| {
         view.set_content(preview);
     });
     if result.is_none() {
-        let error = anyhow!("couldn't find the search results view")
+        let error = anyhow!("couldn't find the search result view")
             .context("failed displaying the generated preview");
         log::warn!("{:?}", error);
         display_error(siv, error);

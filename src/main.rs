@@ -1,4 +1,6 @@
+#[macro_use]
 extern crate anyhow;
+
 extern crate lazy_static;
 extern crate log;
 
