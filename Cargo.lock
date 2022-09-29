@@ -2139,6 +2139,7 @@ version = "0.5.1"
 dependencies = [
  "anyhow",
  "backtrace",
+ "chrono",
  "cursive",
  "cursive-aligned-view",
  "cursive_buffered_backend",
