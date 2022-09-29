@@ -1,18 +1,17 @@
 use crate::{
     config,
-    ui::{self, utils::display_error, RootLayout},
-    view_with_theme,
+    ui::utils::display_error,
     wiki::search::{
         Search, SearchBuilder, SearchMetadata, SearchProperties, SearchResult, SearchSortOrder,
     },
-    CONFIG,
 };
 
 use anyhow::{anyhow, Context, Result};
 use chrono::DateTime;
-use cursive::view::{Nameable, Resizable, Scrollable};
-use cursive::views::{Button, Dialog, LinearLayout, SelectView, TextView};
+use cursive::views::{Button, SelectView, TextView};
 use cursive::{utils::markup::StyledString, Cursive};
+
+mod display;
 
 /// Returns the default SearchBuilder
 fn build_search() -> SearchBuilder {
@@ -32,7 +31,11 @@ pub fn on_search(siv: &mut Cursive, query: &str) {
         }
     };
 
-    display_search_results(siv, search, query);
+    if let Err(error) = display::display_search_results(siv, search, query) {
+        log::warn!("{:?}", error);
+        display_error(siv, error);
+        return;
+    }
 }
 
 /// Searches for a given query and returns the results. Returns an error if something went wrong.
@@ -40,100 +43,6 @@ fn search(query: &str) -> Result<Search> {
     // do the search and if something went wrong, return the error
     log::info!("searching for '{}'", query);
     build_search().query(query.to_string()).search()
-}
-
-fn display_search_results(siv: &mut Cursive, search: Search, query: &str) {
-    // Create the views
-
-    log::info!("displaying '{}' search results", search.results().count(),);
-
-    // create the results view letting the user select an result
-    let mut search_results_view = SelectView::<SearchResult>::new()
-        .on_select(on_result_select)
-        .on_submit(ui::article::on_article_submit);
-
-    // create the continue button
-    let search_continue_button = {
-        let query = query.to_string();
-        let offset = search.search_offset().to_owned();
-        Button::new("Show more results...", move |s| {
-            on_continue_submit(s, &query, &offset)
-        })
-        .with_name("search_continue_button")
-    };
-
-    // create the results preview displaying previews of the currently selected article
-    let search_results_preview = TextView::empty()
-        .h_align(cursive::align::HAlign::Left)
-        .with_name("search_results_preview")
-        .fixed_width(50);
-
-    // create the info view showing the total hits
-    let mut search_info_view = TextView::empty();
-    log::debug!("created the search results view, the search continue button, the search results preview and the search info view");
-    if let Some(total_hits) = search.info().total_hits() {
-        search_info_view.set_content(format!(
-            "Found {} articles matching your search",
-            total_hits
-        ));
-    }
-
-    // save the first result so we can display its preview
-    let first_result = search.results().next().cloned();
-
-    // add the search results to the results view
-    log::debug!("adding the results to the search results view");
-    for search_result in search.results() {
-        search_results_view.add_item(search_result.title().to_string(), search_result.to_owned())
-    }
-
-    // create the search results layout
-    let search_results_layout = RootLayout::horizontal(CONFIG.keybindings.clone())
-        .child(view_with_theme!(
-            config::CONFIG.theme.search_results,
-            Dialog::around(
-                LinearLayout::vertical()
-                    .child(
-                        search_results_view
-                            .with_name("search_results_view")
-                            .scrollable()
-                            .min_height(10)
-                    )
-                    .child(search_continue_button),
-            )
-        ))
-        .child(view_with_theme!(
-            config::CONFIG.theme.search_preview,
-            Dialog::around(search_results_preview)
-        ));
-    log::debug!("created the search results layout");
-
-    // finally, add the whole thing as a new layer
-    siv.add_layer(
-        Dialog::around(
-            LinearLayout::vertical()
-                .child(search_results_layout)
-                .child(search_info_view),
-        )
-        .title(format!("Results for \"{}\"", query))
-        .dismiss_button("Back")
-        .button("Quit", Cursive::quit)
-        .max_height(20),
-    );
-    log::debug!("added the search view to the screen");
-
-    // send a callback selecting the first search result
-    log::debug!("sending the callback to select the first search result");
-    if let Err(error) = siv.cb_sink().send(Box::new(|s| {
-        if let Some(search_result) = first_result {
-            on_result_select(s, &search_result);
-        }
-    })) {
-        log::warn!("{:?}", error);
-        return;
-    }
-
-    log::info!("finished displaying the results");
 }
 
 /// Generates and displays a preview of a given search result. It's used as a callback for the

@@ -7,7 +7,6 @@ extern crate log;
 #[macro_use]
 extern crate cursive;
 
-use crate::config::CONFIG;
 use cursive::theme::*;
 use cursive::Cursive;
 use home::display_home;
