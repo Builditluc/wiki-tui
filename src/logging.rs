@@ -12,18 +12,15 @@ impl Logger {
 
         let wiki_tui = ConsoleAppender::builder().build();
 
+        #[cfg(debug_assertions)]
+        let log_level = log::LevelFilter::Info;
+
+        #[cfg(not(debug_assertions))]
+        let log_level = log::LevelFilter::Warn;
+
         let default_config = Config::builder()
             .appender(Appender::builder().build("wiki_tui", Box::new(wiki_tui)))
-            .build(
-                #[cfg(debug_assertions)]
-                Root::builder()
-                    .appender("wiki_tui")
-                    .build(log::LevelFilter::Info),
-                #[cfg(not(debug_assertions))]
-                Root::builder()
-                    .appender("wiki_tui")
-                    .build(log::LevelFilter::Off),
-            )
+            .build(Root::builder().appender("wiki_tui").build(log_level))
             .unwrap();
 
         Logger {
