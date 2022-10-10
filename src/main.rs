@@ -1,7 +1,10 @@
 #[macro_use]
 extern crate anyhow;
 
+#[macro_use]
 extern crate lazy_static;
+
+#[macro_use]
 extern crate log;
 
 #[macro_use]
@@ -66,13 +69,13 @@ fn start_application() {
 
     // show the home screen
     if let Err(error) = siv.cb_sink().send(display_home()) {
-        log::error!("{:?}", error);
+        error!("{:?}", error);
     }
 
     // Start the application
     let argument_callback = handle_arguments();
     if let Err(error) = siv.cb_sink().send(argument_callback) {
-        log::error!("{:?}", error);
+        error!("{:?}", error);
     }
 
     let siv_box = std::sync::Mutex::new(siv);
@@ -84,12 +87,12 @@ fn start_application() {
 
 fn handle_arguments() -> Box<dyn FnOnce(&mut Cursive) + Send> {
     if let Some(search_query) = config::CONFIG.get_args().search_query.as_ref() {
-        log::info!("searching for the article: {}", search_query);
+        info!("searching for the article: {}", search_query);
         return Box::new(move |siv: &mut Cursive| {
             ui::search::on_search(siv, search_query);
         });
     } else if let Some(article_id) = config::CONFIG.get_args().article_id {
-        log::info!("opening the article: {}", article_id);
+        info!("opening the article: {}", article_id);
         return Box::new(move |siv: &mut Cursive| {
             ui::article::on_article_submit(
                 siv,

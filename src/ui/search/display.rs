@@ -22,7 +22,7 @@ const SEARCH_RESULTS_PERCENTAGE: f32 = 0.3;
 
 /// Displays the search results and returns an error if anything went wrong
 pub fn display_search_results(siv: &mut Cursive, search: Search, query: &str) -> Result<()> {
-    log::info!("displaying '{}' search results", search.results().count());
+    info!("displaying '{}' search results", search.results().count());
 
     // calculate the necessary size values
     let screen_size = siv.screen_size();
@@ -122,7 +122,7 @@ pub fn display_search_results(siv: &mut Cursive, search: Search, query: &str) ->
             on_result_select(s, &search_result);
         }
     })) {
-        log::warn!("{:?}", error);
+        warn!("{:?}", error);
         bail!("couldn't send the callback to select the first search result");
     }
 

@@ -25,14 +25,14 @@ pub fn on_search(siv: &mut Cursive, query: &str) {
     let search = match search(query) {
         Ok(search) => search,
         Err(error) => {
-            log::warn!("{:?}", error);
+            warn!("{:?}", error);
             display_error(siv, error);
             return;
         }
     };
 
     if let Err(error) = display::display_search_results(siv, search, query) {
-        log::warn!("{:?}", error);
+        warn!("{:?}", error);
         display_error(siv, error);
         return;
     }
@@ -41,29 +41,29 @@ pub fn on_search(siv: &mut Cursive, query: &str) {
 /// Searches for a given query and returns the results. Returns an error if something went wrong.
 fn search(query: &str) -> Result<Search> {
     // do the search and if something went wrong, return the error
-    log::info!("searching for '{}'", query);
+    info!("searching for '{}'", query);
     build_search().query(query.to_string()).search()
 }
 
 /// Generates and displays a preview of a given search result. It's used as a callback for the
 /// search results view
 fn on_result_select(siv: &mut Cursive, item: &SearchResult) {
-    log::info!(
+    info!(
         "selecting the item '{}', page id: '{}'",
         item.title(),
         item.page_id()
     );
 
-    log::debug!("generating the preview");
+    debug!("generating the preview");
     let mut preview = StyledString::new();
 
     // add the title to the preview
-    log::debug!("adding the title to the preview");
+    debug!("adding the title to the preview");
     preview.append_plain(format!("{}\n", item.title()));
 
     // only go through this if we have a snippet
     if let Some(snippet) = item.snippet() {
-        log::debug!("found a snippet for the result, adding it to the preview now");
+        debug!("found a snippet for the result, adding it to the preview now");
         let splitted_snippet: Vec<&str> = snippet.split(r#"<span class="searchmatch">"#).collect();
 
         // go through every slice of the splitted_snippet and if it contains </span>,
@@ -111,18 +111,18 @@ fn on_result_select(siv: &mut Cursive, item: &SearchResult) {
     {
         let error = anyhow!("couldn't find the search info view")
             .context("failed displaying the generated preview");
-        log::warn!("{:?}", error);
+        warn!("{:?}", error);
         display_error(siv, error);
     };
 
-    log::debug!("displaying the generated preivew");
+    debug!("displaying the generated preivew");
     let result = siv.call_on_name("search_result_preview", |view: &mut TextView| {
         view.set_content(preview);
     });
     if result.is_none() {
         let error = anyhow!("couldn't find the search result view")
             .context("failed displaying the generated preview");
-        log::warn!("{:?}", error);
+        warn!("{:?}", error);
         display_error(siv, error);
     }
 }
@@ -133,7 +133,7 @@ fn on_continue_submit(siv: &mut Cursive, search_query: &str, search_offset: &usi
     let search = match continue_search(search_query, search_offset) {
         Ok(search) => search,
         Err(error) => {
-            log::warn!("{:?}", error);
+            warn!("{:?}", error);
             display_error(siv, error);
             return;
         }
@@ -143,21 +143,20 @@ fn on_continue_submit(siv: &mut Cursive, search_query: &str, search_offset: &usi
     {
         Ok(_) => return,
         Err(error) => {
-            log::warn!("{:?}", error);
+            warn!("{:?}", error);
             display_error(siv, error);
         }
     }
 }
 
 fn continue_search(search_query: &str, search_offset: &usize) -> Result<Search> {
-    log::info!(
+    info!(
         "searching for the query '{}' with the offset '{}'",
-        search_query,
-        search_offset
+        search_query, search_offset
     );
 
     // fetch more results
-    log::debug!("fetching more results");
+    debug!("fetching more results");
     build_search()
         .query(search_query.to_string())
         .offset(*search_offset)
@@ -170,16 +169,16 @@ fn display_more_search_results(
     search_query: &str,
 ) -> Result<()> {
     // get the results view so we can add some results to it
-    log::debug!("getting the search results view");
+    debug!("getting the search results view");
     let mut search_results_views = siv
         .find_name::<SelectView<SearchResult>>("search_results_view")
         .with_context(|| {
-            log::info!("continue_search failed to finish");
+            info!("continue_search failed to finish");
             "Couldn't find the search results view"
         })?;
 
     // add the new results to the view
-    log::info!(
+    info!(
         "adding '{}' results to the search results",
         search.results().count()
     );
@@ -188,11 +187,11 @@ fn display_more_search_results(
     }
 
     // get the continue button so we can change its callback
-    log::debug!("modifying the callback of the search continue button");
+    debug!("modifying the callback of the search continue button");
     let mut search_continue_button = siv
         .find_name::<Button>("search_continue_button")
         .with_context(|| {
-            log::info!("continue_search failed to finish");
+            info!("continue_search failed to finish");
             "Couldn't find the search continue button"
         })?;
 
@@ -205,10 +204,10 @@ fn display_more_search_results(
 
     // focus the results view
     siv.focus_name("search_results_view").with_context(|| {
-        log::info!("continue_search failed to finish");
+        info!("continue_search failed to finish");
         "Failed to focus the search results view"
     })?;
-    log::debug!("focussed the search results view");
+    debug!("focussed the search results view");
 
     Ok(())
 }

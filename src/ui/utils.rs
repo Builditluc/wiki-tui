@@ -35,7 +35,7 @@ macro_rules! unwrap {
         match $to_unwrap {
             Some(content) => content,
             None => {
-                log::warn!($warn);
+                warn!($warn);
                 return;
             }
         }

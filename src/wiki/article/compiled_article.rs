@@ -13,7 +13,6 @@ impl Article {
     /// Creates a new article from given elements and a given table of contents. This should not be
     /// used directly, instead use the one the ArticleBuilder gives you
     pub fn new(elements: Vec<ArticleElement>, toc: Option<TableOfContents>) -> Self {
-        log::debug!("creating a new instance of Article");
         Self { elements, toc }
     }
 
