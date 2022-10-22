@@ -309,52 +309,41 @@ impl Config {
         };
 
         // load the configuration from the file
-        info!("loading the config");
-        config.load_config();
+        if let Err(err) = config
+            .load_config()
+            .context("failed loading the configuration")
+        {
+            error!("{:?}", err);
+            return config;
+        }
+
+        info!("loaded the config");
 
         // return the config
         config
     }
 
-    fn load_config(&mut self) {
+    fn load_config(&mut self) -> Result<()> {
         // load (or create if they don't exist) the config path(s)
         // this function returns true if the config file exists and false if not
-        let config_exists = self.load_or_create_config_paths();
-
-        // check, if any errors occured during loading
-        if config_exists.is_err() {
-            // abort the loading and return the error
-            warn!("{:?}", config_exists);
-            return;
-        }
+        self.load_or_create_config_paths()?;
+        debug!("loaded the config paths");
 
         // read the config file and check if there were any errors
-        let config_str = match std::fs::read_to_string(&self.config_path)
-            .context("failed reading the config file")
-        {
-            Ok(config) => {
-                info!("successfully read the config file");
-                config
-            }
-            Err(error) => {
-                warn!("{:?}", error);
-                return;
-            }
-        };
+        let config_str =
+            std::fs::read_to_string(&self.config_path).context("failed reading the config file")?;
 
-        let user_config = match from_str::<UserConfig>(&config_str).context("wrong format") {
-            Ok(config) => {
-                info!("successfully deserialized config");
-                config
-            }
-            Err(error) => {
-                warn!("deserializing the config file failed, {:?}", error);
-                return;
-            }
-        };
+        let user_config = from_str::<UserConfig>(&config_str).context("wrong config format")?;
 
         if let Some(user_theme) = user_config.theme {
-            self.load_theme(&user_theme);
+            if let Err(err) = self
+                .load_theme(&user_theme)
+                .context("failed loading the theme configuration")
+            {
+                warn!("{:?}", err);
+                bail!(err);
+            }
+            debug!("loaded the theme config")
         }
 
         if let Some(user_api_config) = user_config.api {
@@ -386,9 +375,15 @@ impl Config {
                 3 => LevelFilter::Error,
                 _ => self.logging.log_level,
             };
-            info!("overriding the configured log level to '{}'", level);
+            info!(
+                "overriding the configured log level from '{}' to '{}'",
+                self.logging.log_level, level
+            );
+
             self.logging.log_level = level;
         }
+
+        return Ok(());
     }
 
     fn load_or_create_config_paths(&mut self) -> Result<bool> {
@@ -450,21 +445,15 @@ impl Config {
         to_api_setting!(base_url);
     }
 
-    fn load_theme(&mut self, user_theme: &UserTheme) {
+    fn load_theme(&mut self, user_theme: &UserTheme) -> Result<()> {
         info!("loading the theme configuration");
 
         // define the macro for loading individual color settings
         macro_rules! to_theme_color {
             ($color: ident) => {
                 if user_theme.$color.is_some() {
-                    match parse_color(user_theme.$color.as_ref().unwrap().to_string()) {
-                        Ok(color) => {
-                            self.theme.$color = color;
-                        }
-                        Err(error) => {
-                            warn!("{}", error);
-                        }
-                    };
+                    self.theme.$color =
+                        parse_color(user_theme.$color.as_ref().unwrap().to_string())?
                 }
             };
         }
@@ -478,6 +467,9 @@ impl Config {
         to_theme_color!(highlight_text);
         to_theme_color!(highlight_inactive);
 
+        debug!("loaded the global theme");
+
+        // load the themes for the individual views
         if let Some(search_bar) = &user_theme.search_bar {
             let background_changed: bool = search_bar.background.is_some();
 
@@ -504,6 +496,10 @@ impl Config {
         if let Some(toc_view) = &user_theme.toc_view {
             self.theme.toc_view = Some(self.load_view_theme(toc_view));
         }
+
+        debug!("loaded the view themes");
+
+        Ok(())
     }
 
     fn load_view_theme(&self, user_view_theme: &UserViewTheme) -> ViewTheme {
@@ -720,7 +716,8 @@ impl Config {
 }
 
 fn parse_color(color: String) -> Result<Color> {
-    Color::parse(&color.to_lowercase()).context("Failed loading the color")
+    Color::parse(&color.to_lowercase())
+        .with_context(|| format!("failed parsing the color '{}'", color))
 }
 
 fn parse_keybinding(key: &str, mode: &str) -> Result<Event> {
