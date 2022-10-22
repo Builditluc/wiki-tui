@@ -45,14 +45,6 @@ impl RootLayout {
     pub fn add_child<V: IntoBoxedView + 'static>(&mut self, view: V) {
         self.layout.add_child(view);
     }
-
-    pub fn remove_child(&mut self, i: usize) -> Option<Box<dyn View>> {
-        self.layout.remove_child(i)
-    }
-
-    pub fn find_child_from_name(&mut self, name: &str) -> Option<usize> {
-        self.layout.find_child_from_name(name)
-    }
 }
 
 impl ViewWrapper for RootLayout {

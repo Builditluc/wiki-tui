@@ -63,7 +63,7 @@ pub fn on_link_submit(siv: &mut Cursive, target: String) {
         // create a dialog that asks the user for confirmation whether he really wants to open this
         // link
         RootLayout::new(Orientation::Vertical, CONFIG.keybindings.clone()).child(
-            Diaaround(TextView::new(format!(
+            Dialog::around(TextView::new(format!(
                 "Do you want to open the article '{}'?",
                 target_human
             )))
@@ -102,7 +102,7 @@ fn open_link(siv: &mut Cursive, target: String) {
 
             // display an error message
             siv.add_layer(
-                Diainfo("A Problem occurred while fetching the article.\nCheck the logs for further information")
+                Dialog::info("A Problem occurred while fetching the article.\nCheck the logs for further information")
                     .title("Error")
                     .title_position(HAlign::Center)
             );
@@ -119,7 +119,7 @@ fn open_link(siv: &mut Cursive, target: String) {
 
         // display an error message
         siv.add_layer(
-            Diainfo("A Problem occurred while displaying the article.\nCheck the logs for further information")
+            Dialog::info("A Problem occurred while displaying the article.\nCheck the logs for further information")
                 .title("Error")
                 .title_position(HAlign::Center)
         );
