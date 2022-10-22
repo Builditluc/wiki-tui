@@ -27,11 +27,19 @@ pub fn display_search_results(siv: &mut Cursive, search: Search, query: &str) ->
     // calculate the necessary size values
     let screen_size = siv.screen_size();
 
+    debug!("screen_size: '{}' '{}'", screen_size.x, screen_size.y);
+
     let search_width = percentage(screen_size.x, SEARCH_WIDTH_PERCENTAGE);
     let search_height = percentage(screen_size.y, SEARCH_HEIGHT_PERCENTAGE);
 
+    debug!("search_width: '{}'", search_width);
+    debug!("search_height: '{}'", search_height);
+
     let search_results_width = percentage(search_width, SEARCH_RESULTS_PERCENTAGE);
     let search_preview_height = percentage(search_height, PREVIEW_HEIGHT_PERCENTAGE);
+
+    debug!("search_results_width: '{}'", search_results_width);
+    debug!("search_preview_height: '{}'", search_preview_height);
 
     // create the results view (SelectView)
     let search_results_view = {
@@ -87,6 +95,8 @@ pub fn display_search_results(siv: &mut Cursive, search: Search, query: &str) ->
         search_status_view
     };
 
+    debug!("created the views for the search results layout");
+
     // pack results view and continue button in a layout
     let search_results_layout = Panel::new(
         LinearLayout::vertical()
@@ -104,6 +114,8 @@ pub fn display_search_results(siv: &mut Cursive, search: Search, query: &str) ->
         .child(search_results_layout)
         .child(search_result_detail_layout);
 
+    debug!("added the views to the search layout");
+
     // add the whole thing as a layer
     siv.add_layer(
         Panel::new(
@@ -116,6 +128,8 @@ pub fn display_search_results(siv: &mut Cursive, search: Search, query: &str) ->
         .fixed_height(search_height),
     );
 
+    debug!("added the layouts to a new layer");
+
     // send the callback to select the first search result
     if let Err(error) = siv.cb_sink().send(Box::new(move |s| {
         if let Some(search_result) = search.results().next() {
@@ -125,6 +139,8 @@ pub fn display_search_results(siv: &mut Cursive, search: Search, query: &str) ->
         warn!("{:?}", error);
         bail!("couldn't send the callback to select the first search result");
     }
+
+    debug!("send the callback for selecting the first search result");
 
     Ok(())
 }

@@ -19,6 +19,7 @@ macro_rules! view_with_theme {
     };
 }
 
+/// Displays a given error
 pub fn display_error(siv: &mut Cursive, error: Error) {
     const ERROR_MESSAGE: &str = "An error occurred during the search\nCheck the logs for more information\n\nError: {ERROR}";
 
@@ -27,17 +28,4 @@ pub fn display_error(siv: &mut Cursive, error: Error) {
             .title("Warning")
             .dismiss_button("Dismiss"),
     );
-}
-
-#[macro_export]
-macro_rules! unwrap {
-    ($to_unwrap: expr, $warn: expr) => {
-        match $to_unwrap {
-            Some(content) => content,
-            None => {
-                warn!($warn);
-                return;
-            }
-        }
-    };
 }
