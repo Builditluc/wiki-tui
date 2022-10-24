@@ -111,6 +111,7 @@ fn on_result_select(siv: &mut Cursive, item: &SearchResult) {
         }
         debug!("added the timestamp to the info")
     }
+    debug!("generated the info text");
 
     // set the content of the info view to the generated info text
     if siv

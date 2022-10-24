@@ -47,18 +47,13 @@ fn fetch_article(page_id: i32, target: Option<String>) -> Result<Article> {
 /// Fetches an article from a given link and displays it. It's the on_submit callback for the
 /// article view
 pub fn on_link_submit(siv: &mut Cursive, target: String) {
-    info!(
-        "on_link_submit was called with the target link '{}'",
-        target
-    );
-
     // convert the target into a human-friendly format
     let target_human = {
         let target = target.strip_prefix("/wiki/").unwrap_or(&target);
         target.replace('_', " ")
     };
 
-    info!("requesting confirmation from the user");
+    info!("requesting confirmation to open the link '{}'", target);
     siv.add_layer(
         // create a dialog that asks the user for confirmation whether he really wants to open this
         // link
@@ -68,31 +63,27 @@ pub fn on_link_submit(siv: &mut Cursive, target: String) {
                 target_human
             )))
             .button("Yep", move |s| {
-                info!("on_link_submit - user said yes :) continuing...");
-                // the human wants us to open the link for him... we will comply...
+                info!("opening the link '{}'", target);
+
+                // hide the confirmation dialog
+                s.pop_layer();
+                debug!("removed the confirmation dialog");
+
+                // open the link
                 open_link(s, target.clone())
             })
             .button("Nope", move |s| {
-                info!("on_link_submit - said no :/ aborting...");
                 // so he doesn't want us to open the link... delete the whole dialog and pretend it
                 // didn't happen
                 s.pop_layer();
             }),
         ),
     );
-
-    info!("on_link_submit finished successfully");
 }
 
 /// Helper function for fetching and displaying an article from a given link
 fn open_link(siv: &mut Cursive, target: String) {
-    debug!("open_link was called");
-
-    // hide the confirmation dialog
-    siv.pop_layer();
-
     // fetch the article
-    debug!("fetching the article");
     let article = match ArticleBuilder::new(0, Some(target), &CONFIG.api_config.base_url)
         .build(&mut DefaultParser::new(&CONFIG.settings.toc))
     {
@@ -106,14 +97,12 @@ fn open_link(siv: &mut Cursive, target: String) {
                     .title("Error")
                     .title_position(HAlign::Center)
             );
-
-            debug!("open_link failed to finish");
             return;
         }
     };
+    debug!("fetched the article");
 
     // display the article
-    debug!("displaying the article");
     if let Err(error) = display_article(siv, article) {
         warn!("{:?}", error);
 
@@ -124,11 +113,9 @@ fn open_link(siv: &mut Cursive, target: String) {
                 .title_position(HAlign::Center)
         );
 
-        debug!("open_link failed to finish");
         return;
     }
-
-    debug!("open_link finished successfully");
+    debug!("displayed the article");
 }
 
 /// Helper function for displaying an article on the screen. This includes creating an article view
@@ -140,7 +127,7 @@ fn display_article(siv: &mut Cursive, article: Article) -> Result<()> {
         .is_some()
     {
         siv.pop_layer();
-        debug!("removed the search_results_preview layer");
+        debug!("removed the search results popup")
     }
 
     // create the article view
@@ -158,19 +145,24 @@ fn display_article(siv: &mut Cursive, article: Article) -> Result<()> {
     debug!("created the article layout");
 
     siv.add_fullscreen_layer(article_layout);
+    debug!("created a new fullscreen layer and added the article layout to it");
 
     // display the toc if there is one
     if let Some(toc) = article.toc() {
-        debug!("displaying the table of contents");
-        ui::toc::add_table_of_contents(siv, toc, "article_layout");
+        if let Err(error) = ui::toc::add_table_of_contents(siv, toc, "article_layout")
+            .context("failed displaying the table of contents")
+        {
+            warn!("{:?}", error);
+            display_error(siv, error);
+        } else {
+            debug!("displayed the table of contents");
+        }
     }
 
     // focus the article view
-    siv.focus_name("article_view").with_context(|| {
-        debug!("display_article failed to finish");
-        "Failed to focus the article view"
-    })?;
+    siv.focus_name("article_view")
+        .context("failed focussing the article view")?;
 
-    debug!("display_article finished successfully");
+    debug!("focussed the article view");
     Ok(())
 }
