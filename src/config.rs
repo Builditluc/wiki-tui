@@ -5,7 +5,6 @@ use cursive::{
     event::{Event, Key},
     theme::{BaseColor, Color},
 };
-use lazy_static::*;
 use log::LevelFilter;
 use serde::Deserialize;
 use std::{path::PathBuf, str::FromStr};
@@ -310,52 +309,41 @@ impl Config {
         };
 
         // load the configuration from the file
-        log::info!("loading the config");
-        config.load_config();
+        if let Err(err) = config
+            .load_config()
+            .context("failed loading the configuration")
+        {
+            error!("{:?}", err);
+            return config;
+        }
+
+        info!("loaded the config");
 
         // return the config
         config
     }
 
-    fn load_config(&mut self) {
+    fn load_config(&mut self) -> Result<()> {
         // load (or create if they don't exist) the config path(s)
         // this function returns true if the config file exists and false if not
-        let config_exists = self.load_or_create_config_paths();
-
-        // check, if any errors occured during loading
-        if config_exists.is_err() {
-            // abort the loading and return the error
-            log::warn!("{:?}", config_exists);
-            return;
-        }
+        self.load_or_create_config_paths()?;
+        debug!("loaded the config paths");
 
         // read the config file and check if there were any errors
-        let config_str = match std::fs::read_to_string(&self.config_path)
-            .context("failed reading the config file")
-        {
-            Ok(config) => {
-                log::info!("successfully read the config file");
-                config
-            }
-            Err(error) => {
-                log::warn!("{:?}", error);
-                return;
-            }
-        };
+        let config_str =
+            std::fs::read_to_string(&self.config_path).context("failed reading the config file")?;
 
-        let user_config = match from_str::<UserConfig>(&config_str).context("wrong format") {
-            Ok(config) => {
-                log::info!("successfully deserialized config");
-                config
-            }
-            Err(error) => {
-                log::warn!("deserializing the config file failed, {:?}", error);
-                return;
-            }
-        };
+        let user_config = from_str::<UserConfig>(&config_str).context("wrong config format")?;
 
         if let Some(user_theme) = user_config.theme {
-            self.load_theme(&user_theme);
+            if let Err(err) = self
+                .load_theme(&user_theme)
+                .context("failed loading the theme configuration")
+            {
+                warn!("{:?}", err);
+                bail!(err);
+            }
+            debug!("loaded the theme config")
         }
 
         if let Some(user_api_config) = user_config.api {
@@ -387,16 +375,22 @@ impl Config {
                 3 => LevelFilter::Error,
                 _ => self.logging.log_level,
             };
-            log::info!("overriding the configured log level to '{}'", level);
+            info!(
+                "overriding the configured log level from '{}' to '{}'",
+                self.logging.log_level, level
+            );
+
             self.logging.log_level = level;
         }
+
+        return Ok(());
     }
 
     fn load_or_create_config_paths(&mut self) -> Result<bool> {
         // get the platform specific config directory
         let config_dir = match dirs::home_dir() {
             Some(config_dir) => {
-                log::info!(
+                info!(
                     "the config directory is {}",
                     config_dir.join(CONFIG_DIR).to_str().unwrap()
                 );
@@ -413,20 +407,20 @@ impl Config {
 
         // create the app config folder if it doesn't exist
         if !app_config_dir.exists() {
-            log::info!("the app config directory doesn't exist, creating it now");
+            info!("the app config directory doesn't exist, creating it now");
             std::fs::create_dir(app_config_dir)
                 .context("couldn't create the app config directory")?;
         }
 
         // check, if the config file exists
         if !config_file_dir.exists() {
-            log::info!("the config file doesn't exist");
+            info!("the config file doesn't exist");
             return Ok(false);
         }
 
         // if the config file exists,
         // return true and store the path to it
-        log::info!(
+        info!(
             "location of the config file: '{}'",
             // the path can be non unicode so we have to check for that
             config_file_dir.to_str().unwrap_or("UNICODE_ERROR")
@@ -436,7 +430,7 @@ impl Config {
     }
 
     fn load_api_config(&mut self, user_api_config: &UserApiConfig) {
-        log::info!("loading the api configuration");
+        info!("loading the api configuration");
 
         // define the macro for loading individual api settings
         macro_rules! to_api_setting {
@@ -451,21 +445,15 @@ impl Config {
         to_api_setting!(base_url);
     }
 
-    fn load_theme(&mut self, user_theme: &UserTheme) {
-        log::info!("loading the theme configuration");
+    fn load_theme(&mut self, user_theme: &UserTheme) -> Result<()> {
+        info!("loading the theme configuration");
 
         // define the macro for loading individual color settings
         macro_rules! to_theme_color {
             ($color: ident) => {
                 if user_theme.$color.is_some() {
-                    match parse_color(user_theme.$color.as_ref().unwrap().to_string()) {
-                        Ok(color) => {
-                            self.theme.$color = color;
-                        }
-                        Err(error) => {
-                            log::warn!("{}", error);
-                        }
-                    };
+                    self.theme.$color =
+                        parse_color(user_theme.$color.as_ref().unwrap().to_string())?
                 }
             };
         }
@@ -479,6 +467,9 @@ impl Config {
         to_theme_color!(highlight_text);
         to_theme_color!(highlight_inactive);
 
+        debug!("loaded the global theme");
+
+        // load the themes for the individual views
         if let Some(search_bar) = &user_theme.search_bar {
             let background_changed: bool = search_bar.background.is_some();
 
@@ -505,6 +496,10 @@ impl Config {
         if let Some(toc_view) = &user_theme.toc_view {
             self.theme.toc_view = Some(self.load_view_theme(toc_view));
         }
+
+        debug!("loaded the view themes");
+
+        Ok(())
     }
 
     fn load_view_theme(&self, user_view_theme: &UserViewTheme) -> ViewTheme {
@@ -518,7 +513,7 @@ impl Config {
                             view_theme.$color = color;
                         }
                         Err(error) => {
-                            log::warn!("{}", error);
+                            warn!("{}", error);
                         }
                     };
                 }
@@ -548,7 +543,7 @@ impl Config {
     }
 
     fn load_logging(&mut self, user_logging: &UserLogging) {
-        log::info!("loading the logging configuration");
+        info!("loading the logging configuration");
 
         if let Some(enabled) = user_logging.enabled {
             self.logging.enabled = enabled;
@@ -568,7 +563,7 @@ impl Config {
     }
 
     fn load_features(&mut self, user_features: &UserFeatures) {
-        log::info!("loading the article features");
+        info!("loading the article features");
 
         if let Some(links) = user_features.links {
             self.features.links = links;
@@ -580,7 +575,7 @@ impl Config {
     }
 
     fn load_keybindings(&mut self, user_keybindings: &UserKeybindings) {
-        log::info!("loading the keybindings");
+        info!("loading the keybindings");
 
         if let Some(keybinding) = &user_keybindings.down {
             match parse_keybinding(
@@ -591,7 +586,7 @@ impl Config {
                     self.keybindings.down = event_key;
                 }
                 Err(error) => {
-                    log::warn!("{:?}", error)
+                    warn!("{:?}", error)
                 }
             }
         }
@@ -604,7 +599,7 @@ impl Config {
                     self.keybindings.up = event_key;
                 }
                 Err(error) => {
-                    log::warn!("{:?}", error)
+                    warn!("{:?}", error)
                 }
             }
         }
@@ -617,7 +612,7 @@ impl Config {
                     self.keybindings.left = event_key;
                 }
                 Err(error) => {
-                    log::warn!("{:?}", error)
+                    warn!("{:?}", error)
                 }
             }
         }
@@ -630,7 +625,7 @@ impl Config {
                     self.keybindings.right = event_key;
                 }
                 Err(error) => {
-                    log::warn!("{:?}", error)
+                    warn!("{:?}", error)
                 }
             }
         }
@@ -643,7 +638,7 @@ impl Config {
                     self.keybindings.focus_next = event_key;
                 }
                 Err(error) => {
-                    log::warn!("{:?}", error)
+                    warn!("{:?}", error)
                 }
             }
         }
@@ -656,14 +651,14 @@ impl Config {
                     self.keybindings.focus_prev = event_key;
                 }
                 Err(error) => {
-                    log::warn!("{:?}", error)
+                    warn!("{:?}", error)
                 }
             }
         }
     }
 
     fn load_settings(&mut self, user_settings: &UserSettings) {
-        log::info!("loading settings");
+        info!("loading settings");
 
         if let Some(user_toc_settings) = &user_settings.toc {
             self.load_toc_settings(user_toc_settings);
@@ -671,13 +666,13 @@ impl Config {
     }
 
     fn load_toc_settings(&mut self, user_toc_settings: &UserTocSettings) {
-        log::info!("loading toc settings");
+        info!("loading toc settings");
 
         if let Some(position) = &user_toc_settings.position {
             match position.to_lowercase().as_str() {
                 "left" => self.settings.toc.position = TocPosition::Left,
                 "right" => self.settings.toc.position = TocPosition::Right,
-                pos => log::warn!("unknown toc position, got {}", pos),
+                pos => warn!("unknown toc position, got {}", pos),
             }
         }
 
@@ -721,7 +716,8 @@ impl Config {
 }
 
 fn parse_color(color: String) -> Result<Color> {
-    Color::parse(&color.to_lowercase()).context("Failed loading the color")
+    Color::parse(&color.to_lowercase())
+        .with_context(|| format!("failed parsing the color '{}'", color))
 }
 
 fn parse_keybinding(key: &str, mode: &str) -> Result<Event> {

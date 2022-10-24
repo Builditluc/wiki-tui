@@ -28,7 +28,6 @@ pub struct ArticleContent {
 impl ArticleContent {
     /// Creates a new ArticleContent with the given article
     pub fn new(article: Article) -> Self {
-        log::debug!("creating a new instance of ArticleContent");
         ArticleContent {
             article,
             rendered_lines: Vec::new(),
@@ -74,7 +73,7 @@ impl ArticleContent {
     pub fn header_y_pos(&self, index: usize) -> Option<usize> {
         if let Some(ref header_y_coords) = self.header_y_coords {
             if header_y_coords.len() <= index {
-                log::warn!("couldn't retrieve the header y-position, headers_len: '{}' <= header_index '{}'", header_y_coords.len(), index);
+                warn!("couldn't retrieve the header y-position, headers_len: '{}' <= header_index '{}'", header_y_coords.len(), index);
                 return None;
             }
             return Some(header_y_coords[index]);
@@ -84,12 +83,6 @@ impl ArticleContent {
 
     /// Calculates and returns the required size
     pub fn required_size(&mut self, size: Vec2) -> Vec2 {
-        log::debug!(
-            "required_size was called with a size of '({},{})'",
-            size.x,
-            size.y
-        );
-
         // get the required width from a LinesWrapper
         let required_width = LinesWrapper::new(
             size.x,
@@ -111,27 +104,21 @@ impl ArticleContent {
         // the required width is 0, when any of the lines are wrapped. When this happens we
         // require the full width
         if required_width == 0 {
-            log::debug!("lines are wrapped, requiring the full width");
-            log::debug!("required_size finished successfully");
             return Vec2::new(size.x, self.rendered_lines.len());
         }
 
         // if the lines are not wrapped, then return the required width
-        log::debug!(
-            "required_size finished successfully width a width of '{}'",
-            required_width
+        debug!(
+            "required size is ({},{})",
+            required_width,
+            self.rendered_lines.len()
         );
         Vec2::new(required_width, self.rendered_lines.len())
     }
 
     /// Renders the article with a given constraint
     pub fn compute_lines(&mut self, size: Vec2) {
-        log::debug!(
-            "compute_lines was called with a size of '({},{})'",
-            size.x,
-            size.y
-        );
-
+        debug!("rendering the article with a size constraint of {:?}", size);
         // render the lines
         let lines_wrapper = LinesWrapper::new(
             size.x,
@@ -153,11 +140,7 @@ impl ArticleContent {
             header_y_coords.sort_unstable();
             self.header_y_coords = Some(header_y_coords);
         }
-
-        log::debug!(
-            "compute_lines finished successfully, rendering '{}' lines",
-            self.rendered_lines.len()
-        );
+        debug!("sucessfully rendered '{}' lines", self.rendered_lines.len());
     }
 
     /// Returns an iterator over the rendered lines
