@@ -2,3 +2,4 @@ ignore-failures:
   rust:
     - lazy_static
     - select
+    - toml
