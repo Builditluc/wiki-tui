@@ -30,7 +30,7 @@ log4rs = "1.0.0"
 lazy_static = "1.4.0"
 panic-message = "0.3.0"
 backtrace = "0.3"
-toml = "0.5.8"
+toml = "0.5.9"
 structopt = "0.3.25"
 
 [dependencies.cursive]
