@@ -75,7 +75,8 @@ pub fn display_search_results(siv: &mut Cursive, search: Search, query: &str) ->
             .h_align(HAlign::Left)
             .with_name("search_result_preview"),
     )
-    .fixed_height(search_preview_height);
+    .fixed_height(search_preview_height)
+    .full_width();
 
     // create the info view (TextView)
     let search_result_info =
