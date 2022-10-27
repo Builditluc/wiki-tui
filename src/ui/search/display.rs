@@ -1,4 +1,4 @@
-use anyhow::Result;
+use anyhow::{Context, Result};
 use cursive::{
     align::HAlign,
     view::{Nameable, Resizable, Scrollable},
@@ -142,6 +142,51 @@ pub fn display_search_results(siv: &mut Cursive, search: Search, query: &str) ->
     }
 
     debug!("send the callback for selecting the first search result");
+
+    Ok(())
+}
+
+/// Adds more search results to the already existing search panel
+pub fn display_more_search_results(
+    siv: &mut Cursive,
+    search: Search,
+    search_query: &str,
+) -> Result<()> {
+    info!(
+        "displaying '{}' more search results",
+        search.results().count()
+    );
+
+    // get the results view so we can add some results to it
+    let mut search_results_views = siv
+        .find_name::<SelectView<SearchResult>>("search_results_view")
+        .context("couldn't find the search_results_view view")?;
+    debug!("found the search_results_view");
+
+    // get the continue button so we can change its callback
+    let mut search_continue_button = siv
+        .find_name::<Button>("search_continue_button")
+        .context("couldn't find the search_continue_button view")?;
+    debug!("found the search_continue_button");
+
+    // add the new results to the view
+    for search_result in search.results() {
+        search_results_views.add_item(search_result.title(), search_result.clone())
+    }
+    debug!("added the results to the results view");
+
+    // modify the callback of the continue button so we don't search for the same thing again
+    {
+        let query = search_query.to_string();
+        search_continue_button
+            .set_callback(move |s| on_continue_submit(s, &query, search.search_offset()));
+    }
+    debug!("set the new callback of the continue button");
+
+    // focus the results view
+    siv.focus_name("search_results_view")
+        .context("failed to focus the search_results_view")?;
+    debug!("focussed the search_results_view");
 
     Ok(())
 }

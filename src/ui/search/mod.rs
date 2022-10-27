@@ -7,7 +7,6 @@ use crate::{
 };
 
 use anyhow::{Context, Result};
-use cursive::views::{Button, SelectView};
 use cursive::Cursive;
 
 mod display;
@@ -93,12 +92,14 @@ fn on_continue_submit(siv: &mut Cursive, search_query: &str, search_offset: &usi
     };
 
     // display the search results
-    if let Err(error) = display_more_search_results(siv, search, search_query).with_context(|| {
-        format!(
-            "failed displaying more search results for '{}'",
-            search_query
-        )
-    }) {
+    if let Err(error) = display::display_more_search_results(siv, search, search_query)
+        .with_context(|| {
+            format!(
+                "failed displaying more search results for '{}'",
+                search_query
+            )
+        })
+    {
         warn!("{:?}", error);
         display_error(siv, error);
         return;
@@ -115,49 +116,4 @@ fn continue_search(search_query: &str, search_offset: &usize) -> Result<Search> 
         .query(search_query.to_string())
         .offset(*search_offset)
         .search()
-}
-
-/// Adds more search results to the already existing search panel
-fn display_more_search_results(
-    siv: &mut Cursive,
-    search: Search,
-    search_query: &str,
-) -> Result<()> {
-    info!(
-        "displaying '{}' more search results",
-        search.results().count()
-    );
-
-    // get the results view so we can add some results to it
-    let mut search_results_views = siv
-        .find_name::<SelectView<SearchResult>>("search_results_view")
-        .context("couldn't find the search_results_view view")?;
-    debug!("found the search_results_view");
-
-    // get the continue button so we can change its callback
-    let mut search_continue_button = siv
-        .find_name::<Button>("search_continue_button")
-        .context("couldn't find the search_continue_button view")?;
-    debug!("found the search_continue_button");
-
-    // add the new results to the view
-    for search_result in search.results() {
-        search_results_views.add_item(search_result.title(), search_result.clone())
-    }
-    debug!("added the results to the results view");
-
-    // modify the callback of the continue button so we don't search for the same thing again
-    {
-        let query = search_query.to_string();
-        search_continue_button
-            .set_callback(move |s| on_continue_submit(s, &query, search.search_offset()));
-    }
-    debug!("set the new callback of the continue button");
-
-    // focus the results view
-    siv.focus_name("search_results_view")
-        .context("failed to focus the search_results_view")?;
-    debug!("focussed the search_results_view");
-
-    Ok(())
 }
