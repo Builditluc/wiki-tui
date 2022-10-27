@@ -6,12 +6,12 @@ use crate::{
     },
 };
 
-use anyhow::{anyhow, Context, Result};
-use chrono::DateTime;
-use cursive::views::{Button, SelectView, TextView};
-use cursive::{utils::markup::StyledString, Cursive};
+use anyhow::{Context, Result};
+use cursive::views::{Button, SelectView};
+use cursive::Cursive;
 
 mod display;
+mod select;
 
 /// Returns the default SearchBuilder
 fn build_search() -> SearchBuilder {
@@ -21,7 +21,7 @@ fn build_search() -> SearchBuilder {
         .sort(SearchSortOrder::JustMatch)
 }
 
-/// Calback that searches for a given query and adds the results to a new layer
+/// Callback that searches for a given query and adds the results to a new layer
 /// Displays any error that occurred and aborts the search (does not crash)
 pub fn on_search(siv: &mut Cursive, query: &str) {
     // search for the query
@@ -60,86 +60,21 @@ fn on_result_select(siv: &mut Cursive, item: &SearchResult) {
         item.page_id()
     );
 
-    let mut preview = StyledString::new();
-
-    // add the title to the preview
-    preview.append_plain(format!("{}\n", item.title()));
-
-    // only go through this if we have a snippet
-    if let Some(snippet) = item.snippet() {
-        let splitted_snippet: Vec<&str> = snippet.split(r#"<span class="searchmatch">"#).collect();
-
-        // go through every slice of the splitted_snippet and if it contains </span>,
-        // split the slice again and make the first split red
-        for slice in splitted_snippet {
-            if slice.contains("</span>") {
-                let split_slice: Vec<&str> = slice.split("</span>").collect();
-
-                preview.append(StyledString::styled(
-                    split_slice[0],
-                    config::CONFIG.theme.search_match,
-                ));
-                preview.append_plain(split_slice[1]);
-            } else {
-                preview.append_plain(slice);
-            }
-        }
-        preview.append_plain("...");
-        debug!("added the snippet to the preview");
-    }
-    debug!("generated the preview");
-
-    // generate the info text
-    let mut info_text = String::new();
-
-    info_text.push_str(&format!("Title: {}", item.title()));
-
-    // add the wordcount to the info if available
-    if let Some(wordcount) = item.wordcount() {
-        info_text.push_str(&format!("\nWord count: {} words", wordcount.to_string()));
-        debug!("added the wordcount to the info");
-    }
-
-    // add the formatted timestamp to the info if available
-    if let Some(timestamp) = item.timestamp() {
-        match DateTime::parse_from_rfc3339(timestamp) {
-            Ok(formatted_time) => info_text.push_str(&format!(
-                "\nLast Edited: {}",
-                formatted_time.format("%H:%M:%S %d/%m/%Y ")
-            )),
-            Err(error) => warn!("failed formatting the found timestamp '{}'", error),
-        }
-        debug!("added the timestamp to the info")
-    }
-    debug!("generated the info text");
-
-    // set the content of the info view to the generated info text
-    if siv
-        .call_on_name("search_result_info", |view: &mut TextView| {
-            view.set_content(info_text);
-        })
-        .is_none()
+    // generate and display the preview of the search result
+    if let Err(error) = select::generate_and_display_preview(siv, item)
+        .context("failed generating and displaying the preview")
     {
-        let error = anyhow!("couldn't find the search info view")
-            .context("failed displaying the generated result info");
+        // only log the error and don't display it
         warn!("{:?}", error);
-        display_error(siv, error);
-    };
-    debug!("displayed the generated result info");
+    }
 
-    // set the content of the result preview view to the generated preview
-    if siv
-        .call_on_name("search_result_preview", |view: &mut TextView| {
-            view.set_content(preview);
-        })
-        .is_none()
+    // generate and display the info of the search result
+    if let Err(error) = select::generate_and_display_info(siv, item)
+        .context("failed generating and displaying the info")
     {
-        let error = anyhow!("couldn't find the search result view")
-            .context("failed displaying the generated preview");
+        // only log the error and don't display it
         warn!("{:?}", error);
-        display_error(siv, error);
-    };
-    debug!("displayed the generated result preview");
+    }
 }
 
 /// Searches for more results at a given offset and adds them to the results view. It's a callback
