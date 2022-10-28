@@ -41,6 +41,21 @@ cd /usr/pkgsrc/www/wiki-tui
 make install
 ```
 
+### FreeBSD
+
+Using the package manager
+
+```sh
+pkg install wiki-tui
+```
+
+Building from source
+
+```sh
+cd /usr/ports/www/wiki-tui/
+make install clean
+```
+
 ### Cargo
 
 If wiki-tui cannot be installed with your package manager, you can also install it with cargo. There are no extra dependencies (except rust of course).
