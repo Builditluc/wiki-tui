@@ -7,7 +7,7 @@ use cursive::{
 };
 use lazy_static::*;
 use log::LevelFilter;
-use serde::Deserialize;
+use serde::{ser::SerializeStruct, Deserialize, Serialize};
 use std::{path::PathBuf, str::FromStr};
 #[cfg(not(test))]
 use structopt::StructOpt;
@@ -19,6 +19,31 @@ const APP_DIR: &str = "wiki-tui";
 
 lazy_static! {
     pub static ref CONFIG: Config = Config::new();
+}
+
+fn base_color_to_string(color: &BaseColor) -> String {
+    match color {
+        BaseColor::Black => "black",
+        BaseColor::Red => "red",
+        BaseColor::Green => "green",
+        BaseColor::Yellow => "yellow",
+        BaseColor::Blue => "blue",
+        BaseColor::Magenta => "magenta",
+        BaseColor::Cyan => "cyan",
+        BaseColor::White => "white",
+    }
+    .to_string()
+}
+
+fn color_to_string(color: &Color) -> String {
+    match color {
+        Color::TerminalDefault => "default".to_string(),
+        Color::Dark(color) => base_color_to_string(color),
+        Color::Light(color) => format!("light {}", base_color_to_string(color)),
+        Color::Rgb(r, g, b) | Color::RgbLowRes(r, g, b) => {
+            format!("#{}{}{}", r, g, b)
+        }
+    }
 }
 
 pub struct Theme {
@@ -36,6 +61,31 @@ pub struct Theme {
 
     pub article_view: Option<ViewTheme>,
     pub toc_view: Option<ViewTheme>,
+}
+
+impl Serialize for Theme {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        let mut s = serializer.serialize_struct("theme", 2)?;
+
+        macro_rules! serialize_color {
+            ($field: ident) => {
+                s.serialize_field(stringify!($field), &color_to_string(&self.$field))?;
+            };
+        }
+
+        serialize_color!(text);
+        serialize_color!(title);
+        serialize_color!(highlight);
+        serialize_color!(background);
+        serialize_color!(search_match);
+        serialize_color!(highlight_text);
+        serialize_color!(highlight_inactive);
+
+        s.end()
+    }
 }
 
 impl Theme {
@@ -91,17 +141,19 @@ impl ViewTheme {
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct ApiConfig {
     pub base_url: String,
 }
 
+#[derive(Serialize)]
 pub struct Logging {
     pub enabled: bool,
     pub log_dir: PathBuf,
     pub log_level: LevelFilter,
 }
 
+#[derive(Serialize)]
 pub struct Features {
     pub links: bool,
     pub toc: bool,
@@ -118,11 +170,106 @@ pub struct Keybindings {
     pub focus_prev: Event,
 }
 
+impl Serialize for Keybindings {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        let mut s = serializer.serialize_struct("keybindings", 1)?;
+
+        fn key_to_string(key: &Key) -> String {
+            match key {
+                Key::Enter => "enter",
+                Key::Tab => "tab",
+                Key::Backspace => "backspace",
+                Key::Esc => "escape",
+                Key::Left => "left",
+                Key::Right => "right",
+                Key::Up => "up",
+                Key::Down => "down",
+                Key::Ins => "insert",
+                Key::Del => "delete",
+                Key::Home => "home",
+                Key::End => "end",
+                Key::PageUp => "pageup",
+                Key::PageDown => "pagedown",
+                Key::PauseBreak => "pausebreak",
+                Key::NumpadCenter => "numpadcenter",
+                Key::F0 => "f0",
+                Key::F1 => "f1",
+                Key::F2 => "f2",
+                Key::F3 => "f3",
+                Key::F4 => "f4",
+                Key::F5 => "f5",
+                Key::F6 => "f6",
+                Key::F7 => "f7",
+                Key::F8 => "f8",
+                Key::F9 => "f9",
+                Key::F10 => "f10",
+                Key::F11 => "f11",
+                Key::F12 => "f12",
+            }
+            .to_string()
+        }
+
+        macro_rules! serialize_event {
+            ($event: ident) => {
+                match &self.$event {
+                    Event::Char(char) => s.serialize_field(stringify!($event.key), char)?,
+                    Event::CtrlChar(char) => {
+                        s.serialize_field(stringify!($event.key), char)?;
+                        s.serialize_field(stringify!($event.mode), "ctrl")?;
+                    }
+                    Event::Key(key) => {
+                        s.serialize_field(stringify!($event.key), &key_to_string(key))?
+                    }
+                    Event::Shift(key) => {
+                        s.serialize_field(stringify!($event.key), &key_to_string(key))?;
+                        s.serialize_field(stringify!($event.mode), "shift")?;
+                    }
+                    Event::Alt(key) => {
+                        s.serialize_field(stringify!($event.key), &key_to_string(key))?;
+                        s.serialize_field(stringify!($event.mode), "alt")?;
+                    }
+                    Event::AltShift(key) => {
+                        s.serialize_field(stringify!($event.key), &key_to_string(key))?;
+                        s.serialize_field(stringify!($event.mode), "altshift")?;
+                    }
+                    Event::Ctrl(key) => {
+                        s.serialize_field(stringify!($event.key), &key_to_string(key))?;
+                        s.serialize_field(stringify!($event.mode), "ctrl")?;
+                    }
+                    Event::CtrlShift(key) => {
+                        s.serialize_field(stringify!($event.key), &key_to_string(key))?;
+                        s.serialize_field(stringify!($event.mode), "ctrlshift")?;
+                    }
+                    Event::CtrlAlt(key) => {
+                        s.serialize_field(stringify!($event.key), &key_to_string(key))?;
+                        s.serialize_field(stringify!($event.mode), "ctrlalt")?;
+                    }
+                    _ => s.serialize_field(stringify!($event), "invalid, internal error")?,
+                }
+            };
+        }
+
+        serialize_event!(down);
+        serialize_event!(up);
+        serialize_event!(left);
+        serialize_event!(right);
+
+        serialize_event!(focus_next);
+        serialize_event!(focus_prev);
+
+        s.end()
+    }
+}
+
+#[derive(Serialize)]
 pub struct Settings {
     pub toc: TocSettings,
 }
 
-#[derive(Clone)]
+#[derive(Clone, Serialize)]
 pub struct TocSettings {
     pub position: TocPosition,
     pub title: TocTitle,
@@ -134,19 +281,20 @@ pub struct TocSettings {
     pub item_format: String,
 }
 
-#[derive(Clone)]
+#[derive(Clone, Serialize)]
 pub enum TocPosition {
     LEFT,
     RIGHT,
 }
 
-#[derive(Clone)]
+#[derive(Clone, Serialize)]
 pub enum TocTitle {
     DEFAULT,
     CUSTOM,
     ARTICLE,
 }
 
+#[derive(Serialize)]
 pub struct Config {
     pub api_config: ApiConfig,
     pub theme: Theme,
@@ -154,7 +302,9 @@ pub struct Config {
     pub features: Features,
     pub keybindings: Keybindings,
     pub settings: Settings,
+    #[serde(skip_serializing)]
     config_path: PathBuf,
+    #[serde(skip_serializing)]
     args: Cli,
 }
 
@@ -421,16 +571,13 @@ impl Config {
         // check, if the config file exists
         if !config_file_dir.exists() {
             log::info!("the config file doesn't exist");
-            return Ok(false);
+            log::info!("creating the config file");
+
+            // serialize the default configuration
+            let config = toml::to_string_pretty(&self).context("couldn't serialize the config")?;
+            std::fs::write(config_file_dir.clone(), config).context("couldn't write the config")?;
         }
 
-        // if the config file exists,
-        // return true and store the path to it
-        log::info!(
-            "location of the config file: '{}'",
-            // the path can be non unicode so we have to check for that
-            config_file_dir.to_str().unwrap_or("UNICODE_ERROR")
-        );
         self.config_path = config_file_dir;
         Ok(true)
     }
