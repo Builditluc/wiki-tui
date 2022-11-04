@@ -1,5 +1,6 @@
 use crate::config::CONFIG;
 
+use anyhow::{Context, Result};
 use log4rs::config::{Appender, Config, Root};
 use log4rs::Handle;
 
@@ -30,18 +31,18 @@ impl Logger {
             handle: log4rs::init_config(default_config).unwrap(),
         }
     }
-    pub fn initialize(&self) {
+    pub fn initialize(&self) -> Result<()> {
         use log4rs::append::file::FileAppender;
 
         // disable logging if not enabled in the config
         if !CONFIG.logging.enabled {
-            return;
+            return Ok(());
         }
 
         let wiki_tui = FileAppender::builder()
             .append(false)
             .build(CONFIG.logging.log_dir.as_path())
-            .unwrap();
+            .context("failed building the FileAppender")?;
 
         let default_config = Config::builder()
             .appender(Appender::builder().build("wiki_tui", Box::new(wiki_tui)))
@@ -50,10 +51,11 @@ impl Logger {
                     .appender("wiki_tui")
                     .build(CONFIG.logging.log_level),
             )
-            .unwrap();
+            .context("failed building the default config")?;
 
         self.handle.set_config(default_config);
         log::info!("successfully initialized the logging system");
+        Ok(())
     }
 }
 
