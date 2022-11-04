@@ -33,6 +33,11 @@ impl Logger {
     pub fn initialize(&self) {
         use log4rs::append::file::FileAppender;
 
+        // disable logging if not enabled in the config
+        if !CONFIG.logging.enabled {
+            return;
+        }
+
         let wiki_tui = FileAppender::builder()
             .append(false)
             .build(CONFIG.logging.log_dir.as_path())
