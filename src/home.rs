@@ -1,14 +1,18 @@
 use cursive::{
     align::HAlign,
     view::Resizable,
-    views::{DummyView, EditView, Panel, TextView},
+    views::{DummyView, EditView, TextView},
     Cursive,
 };
 use cursive_aligned_view::Alignable;
 
 use crate::{
     config::CONFIG,
-    ui::{search::on_search, utils::percentage, RootLayout},
+    ui::{
+        search::on_search,
+        utils::percentage,
+        views::{Panel, RootLayout},
+    },
     LOGO,
 };
 

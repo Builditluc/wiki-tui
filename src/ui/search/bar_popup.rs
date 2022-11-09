@@ -1,10 +1,6 @@
 use super::on_search;
-use crate::ui::utils::percentage;
-use cursive::{
-    view::Resizable,
-    views::{EditView, Panel},
-    Cursive,
-};
+use crate::ui::{utils::percentage, views::Panel};
+use cursive::{view::Resizable, views::EditView, Cursive};
 
 const PROMPT_WIDTH_PERCENTAGE: f32 = 0.6;
 

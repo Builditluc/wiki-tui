@@ -6,14 +6,17 @@ use crate::wiki::{
 };
 use crate::{
     config::CONFIG,
-    ui::{self, RootLayout},
+    ui::{
+        self,
+        views::{Panel, RootLayout},
+    },
 };
 
 use anyhow::{Context, Result};
 use cursive::align::HAlign;
 use cursive::direction::Orientation;
 use cursive::view::{Nameable, Scrollable};
-use cursive::views::{Dialog, OnEventView, Panel, TextView};
+use cursive::views::{Dialog, OnEventView, TextView};
 use cursive::Cursive;
 
 mod content;

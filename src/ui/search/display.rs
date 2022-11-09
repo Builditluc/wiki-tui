@@ -2,13 +2,18 @@ use anyhow::{Context, Result};
 use cursive::{
     align::HAlign,
     view::{Nameable, Resizable, Scrollable},
-    views::{Button, LinearLayout, Panel, SelectView, TextView},
+    views::{Button, LinearLayout, SelectView, TextView},
     Cursive,
 };
 
 use crate::{
     config::CONFIG,
-    ui::{article::on_article_submit, search::on_continue_submit, utils::percentage, RootLayout},
+    ui::{
+        article::on_article_submit,
+        search::on_continue_submit,
+        utils::percentage,
+        views::{Panel, RootLayout},
+    },
     wiki::search::{Search, SearchResult},
 };
 

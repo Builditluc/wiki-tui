@@ -1,6 +1,6 @@
 use crate::config::{self, TocPosition, CONFIG};
 use crate::ui::utils::display_error;
-use crate::ui::{self, article::ArticleView, RootLayout};
+use crate::ui::{self, article::ArticleView, views::RootLayout};
 use crate::view_with_theme;
 use crate::wiki::article::TableOfContents;
 use crate::wiki::article::TableOfContentsItem;

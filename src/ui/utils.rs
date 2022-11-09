@@ -12,9 +12,9 @@ pub fn percentage(value: usize, percentage: f32) -> usize {
 macro_rules! view_with_theme {
     ($theme: expr, $view: expr) => {
         if let Some(theme) = $theme.as_ref() {
-            ui::ThemedView::new(theme.to_theme(), $view)
+            ui::views::ThemedView::new(theme.to_theme(), $view)
         } else {
-            ui::ThemedView::new(config::CONFIG.theme.to_theme(), $view)
+            ui::views::ThemedView::new(config::CONFIG.theme.to_theme(), $view)
         }
     };
 }
