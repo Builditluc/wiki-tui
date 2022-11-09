@@ -38,12 +38,10 @@ pub fn generate_and_display_preview(siv: &mut Cursive, item: &SearchResult) -> R
     debug!("generated the preview");
 
     // now display the generated preview
-    if siv
-        .call_on_name("search_result_preview", |view: &mut TextView| {
-            view.set_content(preview);
-        })
-        .is_none()
-    {
+    let display_preview = siv.call_on_name("search_result_preview", |view: &mut TextView| {
+        view.set_content(preview);
+    });
+    if display_preview.is_none() {
         return Err(anyhow!("view not found").context("failed displaying the generated preview"));
     }
     debug!("displayed the generated preview");
@@ -60,7 +58,7 @@ pub fn generate_and_display_info(siv: &mut Cursive, item: &SearchResult) -> Resu
 
     // add the wordcount to the info if available
     if let Some(wordcount) = item.wordcount() {
-        info.append_plain(&format!("\nWord count: {} words", wordcount.to_string()));
+        info.append_plain(&format!("\nWord count: {} words", wordcount));
         debug!("added the wordcount to the info");
     }
 
@@ -78,12 +76,10 @@ pub fn generate_and_display_info(siv: &mut Cursive, item: &SearchResult) -> Resu
     debug!("generated the info text");
 
     // now display the generated info
-    if siv
-        .call_on_name("search_result_info", |view: &mut TextView| {
-            view.set_content(info);
-        })
-        .is_none()
-    {
+    let display_info = siv.call_on_name("search_result_info", |view: &mut TextView| {
+        view.set_content(info);
+    });
+    if display_info.is_none() {
         return Err(anyhow!("view not found").context("failed displaying the generated info"));
     }
     debug!("displayed the generated info");

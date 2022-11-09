@@ -9,6 +9,7 @@ use crate::{
 use anyhow::{Context, Result};
 use cursive::Cursive;
 
+pub mod bar_popup;
 mod display;
 mod select;
 
@@ -39,7 +40,6 @@ pub fn on_search(siv: &mut Cursive, query: &str) {
     {
         warn!("{:?}", error);
         display_error(siv, error);
-        return;
     }
 }
 
@@ -102,7 +102,6 @@ fn on_continue_submit(siv: &mut Cursive, search_query: &str, search_offset: &usi
     {
         warn!("{:?}", error);
         display_error(siv, error);
-        return;
     }
 }
 

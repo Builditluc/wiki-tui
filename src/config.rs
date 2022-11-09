@@ -383,7 +383,7 @@ impl Config {
             self.logging.log_level = level;
         }
 
-        return Ok(());
+        Ok(())
     }
 
     fn load_or_create_config_paths(&mut self) -> Result<bool> {

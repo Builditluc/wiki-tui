@@ -134,7 +134,7 @@ pub fn display_search_results(siv: &mut Cursive, search: Search, query: &str) ->
     // send the callback to select the first search result
     if let Err(error) = siv.cb_sink().send(Box::new(move |s| {
         if let Some(search_result) = search.results().next() {
-            on_result_select(s, &search_result);
+            on_result_select(s, search_result);
         }
     })) {
         warn!("{:?}", error);

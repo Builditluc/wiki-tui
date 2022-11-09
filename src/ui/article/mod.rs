@@ -1,3 +1,4 @@
+use crate::ui::search::bar_popup::open_search_bar;
 use crate::ui::utils::display_error;
 use crate::wiki::{
     article::{parser::DefaultParser, Article, ArticleBuilder},
@@ -12,7 +13,7 @@ use anyhow::{Context, Result};
 use cursive::align::HAlign;
 use cursive::direction::Orientation;
 use cursive::view::{Nameable, Scrollable};
-use cursive::views::{Dialog, Panel, TextView};
+use cursive::views::{Dialog, OnEventView, Panel, TextView};
 use cursive::Cursive;
 
 mod content;
@@ -121,11 +122,10 @@ fn open_link(siv: &mut Cursive, target: String) {
 /// Helper function for displaying an article on the screen. This includes creating an article view
 /// and any errors it encountred are returned
 fn display_article(siv: &mut Cursive, article: Article) -> Result<()> {
-    // if the search layer still exists or another article is currently being displayed, then remove it
+    // if the search layer still exists, then remove it
     if siv
         .find_name::<TextView>("search_results_preview")
         .is_some()
-        || siv.find_name::<ArticleView>("article_view").is_some()
     {
         siv.pop_layer();
         debug!("removed the last layer")
@@ -140,17 +140,24 @@ fn display_article(siv: &mut Cursive, article: Article) -> Result<()> {
     .title("wiki-tui");
     debug!("created the article view");
 
+    // get the amount of layers, this is used as an id for the new article layout so we don't have
+    // multiple layouts with the same name
+
+    let layer_len = siv.screen_mut().len();
+    let article_layout_name = format!("article_layout-{}", layer_len);
+    debug!("article layout name '{}'", article_layout_name);
+
     let article_layout = RootLayout::horizontal(CONFIG.keybindings.clone())
         .child(article_view)
-        .with_name("article_layout");
+        .with_name(&article_layout_name);
     debug!("created the article layout");
 
-    siv.add_fullscreen_layer(article_layout);
+    siv.add_fullscreen_layer(OnEventView::new(article_layout).on_event('S', open_search_bar));
     debug!("created a new fullscreen layer and added the article layout to it");
 
     // display the toc if there is one
     if let Some(toc) = article.toc() {
-        if let Err(error) = ui::toc::add_table_of_contents(siv, toc, "article_layout")
+        if let Err(error) = ui::toc::add_table_of_contents(siv, toc, &article_layout_name)
             .context("failed displaying the table of contents")
         {
             warn!("{:?}", error);

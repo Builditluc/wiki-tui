@@ -10,6 +10,7 @@ extern crate log;
 #[macro_use]
 extern crate cursive;
 
+use cursive::event::Key;
 use cursive::theme::*;
 use cursive::Cursive;
 use home::display_home;
@@ -59,6 +60,9 @@ fn initialize() {
 fn start_application() {
     let mut siv = Cursive::new();
     siv.add_global_callback('q', Cursive::quit);
+    siv.add_global_callback(Key::Esc, |s| {
+        s.pop_layer();
+    });
 
     // get and apply the color theme
     let theme = Theme {
