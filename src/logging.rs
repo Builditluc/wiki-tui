@@ -19,7 +19,7 @@ impl Logger {
                 #[cfg(debug_assertions)]
                 Root::builder()
                     .appender("wiki_tui")
-                    .build(log::LevelFilter::Info),
+                    .build(log::LevelFilter::Debug),
                 #[cfg(not(debug_assertions))]
                 Root::builder()
                     .appender("wiki_tui")
