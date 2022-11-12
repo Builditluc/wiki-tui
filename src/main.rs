@@ -10,6 +10,7 @@ extern crate log;
 #[macro_use]
 extern crate cursive;
 
+use anyhow::Context;
 use cursive::event::Key;
 use cursive::theme::*;
 use cursive::Cursive;

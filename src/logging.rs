@@ -1,6 +1,7 @@
 use crate::config::CONFIG;
 
 use anyhow::{Context, Result};
+use log::LevelFilter;
 use log4rs::config::{Appender, Config, Root};
 use log4rs::Handle;
 
@@ -12,13 +13,6 @@ impl Logger {
         use log4rs::append::console::ConsoleAppender;
 
         let wiki_tui = ConsoleAppender::builder().build();
-
-        #[cfg(debug_assertions)]
-        let log_level = log::LevelFilter::Debug;
-
-        #[cfg(not(debug_assertions))]
-        let log_level = log::LevelFilter::Warn;
-
         let default_config = Config::builder()
             .appender(Appender::builder().build("wiki_tui", Box::new(wiki_tui)))
             .build(
