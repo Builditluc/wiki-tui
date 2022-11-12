@@ -278,12 +278,12 @@ impl Config {
                 base_url: "https://en.wikipedia.org/".to_string(),
             },
             theme: Theme {
-                background: Color::Dark(BaseColor::White),
+                background: Color::Dark(BaseColor::Black),
                 title: Color::Dark(BaseColor::Red),
                 highlight: Color::Dark(BaseColor::Red),
-                highlight_inactive: Color::Dark(BaseColor::Blue),
+                highlight_inactive: Color::Dark(BaseColor::Black),
                 highlight_text: Color::Dark(BaseColor::White),
-                text: Color::Dark(BaseColor::Black),
+                text: Color::Dark(BaseColor::White),
                 search_match: Color::Dark(BaseColor::Red),
 
                 border: BorderStyle::Default,

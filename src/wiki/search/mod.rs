@@ -8,6 +8,7 @@ mod info;
 mod result;
 
 pub type Search = compiled_search::Search;
+#[allow(dead_code)]
 pub type SearchInfo = info::SearchInfo;
 pub type SearchResult = result::SearchResult;
 

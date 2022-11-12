@@ -110,6 +110,7 @@ macro_rules! build_setter {
     };
 }
 
+#[allow(dead_code)]
 impl SearchBuilder {
     /// Creates a new SearchBuilder
     pub fn new(base_url: &str) -> Self {

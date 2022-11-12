@@ -35,6 +35,7 @@ pub struct TableOfContentsItem {
     sub_items: Option<Vec<TableOfContentsItem>>,
 }
 
+#[allow(dead_code)]
 impl TableOfContentsItem {
     /// Create a new item from a given number, text and sub items
     pub fn new(number: i32, text: String, sub_items: Option<Vec<TableOfContentsItem>>) -> Self {

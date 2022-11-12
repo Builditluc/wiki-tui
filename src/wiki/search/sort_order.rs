@@ -2,6 +2,7 @@
 
 /// SearchSortOrder can be used to configure how the search results should be ordered. The default
 /// one is relevance
+#[allow(dead_code)]
 pub enum SearchSortOrder {
     CreateTimestampAscending,
     CreateTimestampDescending,
