@@ -8,6 +8,8 @@ use cursive::{
     Printer, Rect, Vec2, View,
 };
 
+use crate::config::BorderStyle;
+
 /// Draws a border around a wrapped view
 pub struct Panel<V> {
     /// Inner View
@@ -16,8 +18,62 @@ pub struct Panel<V> {
     title: String,
     /// Where to put the title position
     title_position: HAlign,
+    /// Characters for the border
+    border: Border,
     /// `true` when it needs relayout
     invalidated: bool,
+}
+
+/// Holds the characters required for the border
+pub struct Border {
+    upper_left: String,
+    upper_right: String,
+
+    lower_left: String,
+    lower_right: String,
+
+    horizontal: String,
+    vertical: String,
+
+    title_left: String,
+    title_right: String,
+}
+
+impl From<BorderStyle> for Border {
+    fn from(style: BorderStyle) -> Self {
+        match style {
+            BorderStyle::Light | BorderStyle::Default => Border {
+                upper_left: "\u{250C}".to_string(),
+                upper_right: "\u{2510}".to_string(),
+                lower_left: "\u{2514}".to_string(),
+                lower_right: "\u{2518}".to_string(),
+                horizontal: "\u{2500}".to_string(),
+                vertical: "\u{2502}".to_string(),
+                title_left: "\u{2524}".to_string(),
+                title_right: "\u{251C}".to_string(),
+            },
+            BorderStyle::Heavy => Border {
+                upper_left: "\u{2554}".to_string(),
+                upper_right: "\u{2557}".to_string(),
+                lower_left: "\u{255A}".to_string(),
+                lower_right: "\u{255D}".to_string(),
+                horizontal: "\u{2550}".to_string(),
+                vertical: "\u{2551}".to_string(),
+                title_left: "\u{2563}".to_string(),
+                title_right: "\u{2560}".to_string(),
+            },
+            BorderStyle::Round => Border {
+                upper_left: "\u{256D}".to_string(),
+                upper_right: "\u{256E}".to_string(),
+                lower_left: "\u{2570}".to_string(),
+                lower_right: "\u{256F}".to_string(),
+                horizontal: "\u{2500}".to_string(),
+                vertical: "\u{2502}".to_string(),
+                title_left: "\u{2524}".to_string(),
+                title_right: "\u{251C}".to_string(),
+            },
+        }
+    }
 }
 
 /// Minimum distance between title and borders
@@ -25,11 +81,12 @@ const TITLE_SPACING: usize = 3;
 
 impl<V> Panel<V> {
     /// Creates a new panel around the given view
-    pub fn new(view: V) -> Self {
+    pub fn new<B: Into<Border>>(view: V, border: B) -> Self {
         Panel {
             view,
             title: String::new(),
             title_position: HAlign::Center,
+            border: border.into(),
             invalidated: true,
         }
     }
@@ -62,8 +119,41 @@ impl<V> Panel<V> {
                 p.print((0, 0), &self.title)
             });
         printer.with_high_border(false, |printer| {
-            printer.print((x - 2, 0), "┤ ");
-            printer.print((x + len, 0), " ├");
+            printer.print((x - 2, 0), &format!("{} ", self.border.title_left));
+            printer.print((x + len, 0), &format!(" {}", self.border.title_right));
+        });
+    }
+
+    fn draw_border(&self, printer: &Printer) {
+        let start: Vec2 = (0, 0).into();
+        let size: Vec2 = printer.size;
+
+        if size.x < 2 || size.y < 2 {
+            return;
+        }
+
+        let size = size.saturating_sub((1, 1));
+
+        printer.with_high_border(true, |s| {
+            s.print(start, &self.border.upper_left);
+            s.print(start + size.keep_y(), &self.border.lower_left);
+            s.print_hline(start + (1, 0), size.x - 1, &self.border.horizontal);
+            s.print_vline(start + (0, 1), size.y - 1, &self.border.vertical);
+        });
+
+        printer.with_low_border(true, |s| {
+            s.print(start + size.keep_x(), &self.border.upper_right);
+            s.print(start + size, &self.border.lower_right);
+            s.print_hline(
+                start + (1, 0) + size.keep_y(),
+                size.x - 1,
+                &self.border.horizontal,
+            );
+            s.print_vline(
+                start + (0, 1) + size.keep_x(),
+                size.y - 1,
+                &self.border.vertical,
+            );
         });
     }
 
@@ -89,7 +179,7 @@ impl<V: View> ViewWrapper for Panel<V> {
     }
 
     fn wrap_draw(&self, printer: &Printer) {
-        printer.print_box((0, 0), printer.size, true);
+        self.draw_border(printer);
         self.draw_title(printer);
 
         let printer = printer.offset((1, 1)).shrinked((1, 1));

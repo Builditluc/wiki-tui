@@ -139,6 +139,7 @@ fn display_article(siv: &mut Cursive, article: Article) -> Result<()> {
         ArticleView::new(article.clone())
             .with_name("article_view")
             .scrollable(),
+        CONFIG.theme.border,
     )
     .title("wiki-tui");
     debug!("created the article view");

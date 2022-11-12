@@ -79,13 +79,17 @@ pub fn display_search_results(siv: &mut Cursive, search: Search, query: &str) ->
         TextView::new("Test")
             .h_align(HAlign::Left)
             .with_name("search_result_preview"),
+        CONFIG.theme.border,
     )
     .fixed_height(search_preview_height)
     .full_width();
 
     // create the info view (TextView)
-    let search_result_info =
-        Panel::new(TextView::empty().with_name("search_result_info")).full_height();
+    let search_result_info = Panel::new(
+        TextView::empty().with_name("search_result_info"),
+        CONFIG.theme.border,
+    )
+    .full_height();
 
     // create the status view (TextView)
     let search_status_view = {
@@ -108,6 +112,7 @@ pub fn display_search_results(siv: &mut Cursive, search: Search, query: &str) ->
         LinearLayout::vertical()
             .child(search_results_view)
             .child(search_continue_button),
+        CONFIG.theme.border,
     );
 
     // pack preview view and info view in a layout
@@ -128,6 +133,7 @@ pub fn display_search_results(siv: &mut Cursive, search: Search, query: &str) ->
             LinearLayout::vertical()
                 .child(search_layout)
                 .child(search_status_view),
+            CONFIG.theme.border,
         )
         .title(format!("Results for '{}'", query))
         .fixed_width(search_width)

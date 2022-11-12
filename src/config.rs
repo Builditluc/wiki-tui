@@ -29,6 +29,8 @@ pub struct Theme {
     pub highlight_text: Color,
     pub highlight_inactive: Color,
 
+    pub border: BorderStyle,
+
     pub search_bar: Option<ViewTheme>,
     pub search_results: Option<ViewTheme>,
     pub search_preview: Option<ViewTheme>,
@@ -58,8 +60,27 @@ impl Theme {
     }
 }
 
+#[derive(Copy, Clone)]
+pub enum BorderStyle {
+    Default,
+    Light,
+    Heavy,
+    Round,
+}
+
+impl From<&String> for BorderStyle {
+    fn from(s: &String) -> Self {
+        match s.to_lowercase().as_str() {
+            "default" => BorderStyle::Default,
+            "light" => BorderStyle::Light,
+            "heavy" => BorderStyle::Heavy,
+            "round" => BorderStyle::Round,
+            _ => BorderStyle::Default,
+        }
+    }
+}
+
 pub struct ViewTheme {
-    // TODO: Add borders
     pub background: Color,
     pub text: Color,
     pub title: Color,
@@ -194,6 +215,8 @@ struct UserTheme {
     highlight_text: Option<String>,
     highlight_inactive: Option<String>,
 
+    border: Option<String>,
+
     search_bar: Option<UserViewTheme>,
     search_results: Option<UserViewTheme>,
     search_preview: Option<UserViewTheme>,
@@ -262,6 +285,8 @@ impl Config {
                 highlight_text: Color::Dark(BaseColor::White),
                 text: Color::Dark(BaseColor::Black),
                 search_match: Color::Dark(BaseColor::Red),
+
+                border: BorderStyle::Default,
 
                 search_bar: None,
                 search_results: None,
@@ -334,6 +359,7 @@ impl Config {
             std::fs::read_to_string(&self.config_path).context("failed reading the config file")?;
 
         let user_config = from_str::<UserConfig>(&config_str).context("wrong config format")?;
+        debug!("{:#?}", user_config);
 
         if let Some(user_theme) = user_config.theme {
             if let Err(err) = self
@@ -436,6 +462,7 @@ impl Config {
         macro_rules! to_api_setting {
             ($setting: ident) => {
                 if user_api_config.$setting.is_some() {
+                    debug!("loading {}", stringify!($setting));
                     self.api_config.$setting =
                         user_api_config.$setting.as_ref().unwrap().to_string();
                 }
@@ -468,6 +495,11 @@ impl Config {
         to_theme_color!(highlight_inactive);
 
         debug!("loaded the global theme");
+
+        // load the border
+        if let Some(border) = &user_theme.border {
+            self.theme.border = border.into();
+        }
 
         // load the themes for the individual views
         if let Some(search_bar) = &user_theme.search_bar {
