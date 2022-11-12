@@ -40,7 +40,7 @@ nav:
   - Configuration:
     - configuration/index.md
     - Api Settings: configuration/api.md
-    - Changing the Colors: configuration/theme.md
+    - Changing the Theme: configuration/theme.md
     - Configure the Logging: configuration/logging.md
     - Features: configuration/features.md
     - Keybindings: configuration/keybindings.md
