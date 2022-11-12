@@ -54,7 +54,12 @@ fn initialize() {
     println!("{}", LOGO);
 
     // create and initialize the logger
-    logging::Logger::new().initialize();
+    if let Err(error) = logging::Logger::new()
+        .initialize()
+        .context("failed initializing the logger")
+    {
+        println!("Error: {:?}", error);
+    }
 }
 
 fn start_application() {

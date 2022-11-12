@@ -232,40 +232,72 @@ impl Serialize for Keybindings {
             .to_string()
         }
 
+        // this is used for serializing the nested fields mode and key
+        #[derive(Serialize)]
+        struct Keybinding {
+            key: String,
+            mode: String,
+        }
+
+        impl Keybinding {
+            fn new<S: Into<String>>(key: S, mode: &str) -> Self {
+                Keybinding {
+                    key: key.into(),
+                    mode: mode.to_string(),
+                }
+            }
+        }
+
         macro_rules! serialize_event {
             ($event: ident) => {
+                impl Keybinding {}
+
                 match &self.$event {
-                    Event::Char(char) => s.serialize_field(stringify!($event.key), char)?,
+                    Event::Char(char) => {
+                        s.serialize_field(stringify!($event), &Keybinding::new(*char, "normal"))?
+                    }
                     Event::CtrlChar(char) => {
-                        s.serialize_field(stringify!($event.key), char)?;
-                        s.serialize_field(stringify!($event.mode), "ctrl")?;
+                        s.serialize_field(stringify!($event), &Keybinding::new(*char, "ctrl"))?;
                     }
-                    Event::Key(key) => {
-                        s.serialize_field(stringify!($event.key), &key_to_string(key))?
-                    }
+                    Event::Key(key) => s.serialize_field(
+                        stringify!($event),
+                        &Keybinding::new(&key_to_string(key), "normal"),
+                    )?,
                     Event::Shift(key) => {
-                        s.serialize_field(stringify!($event.key), &key_to_string(key))?;
-                        s.serialize_field(stringify!($event.mode), "shift")?;
+                        s.serialize_field(
+                            stringify!($event),
+                            &Keybinding::new(&key_to_string(key), "shift"),
+                        )?;
                     }
                     Event::Alt(key) => {
-                        s.serialize_field(stringify!($event.key), &key_to_string(key))?;
-                        s.serialize_field(stringify!($event.mode), "alt")?;
+                        s.serialize_field(
+                            stringify!($event),
+                            &Keybinding::new(&key_to_string(key), "alt"),
+                        )?;
                     }
                     Event::AltShift(key) => {
-                        s.serialize_field(stringify!($event.key), &key_to_string(key))?;
-                        s.serialize_field(stringify!($event.mode), "altshift")?;
+                        s.serialize_field(
+                            stringify!($event),
+                            &Keybinding::new(&key_to_string(key), "altshift"),
+                        )?;
                     }
                     Event::Ctrl(key) => {
-                        s.serialize_field(stringify!($event.key), &key_to_string(key))?;
-                        s.serialize_field(stringify!($event.mode), "ctrl")?;
+                        s.serialize_field(
+                            stringify!($event),
+                            &Keybinding::new(&key_to_string(key), "ctrl"),
+                        )?;
                     }
                     Event::CtrlShift(key) => {
-                        s.serialize_field(stringify!($event.key), &key_to_string(key))?;
-                        s.serialize_field(stringify!($event.mode), "ctrlshift")?;
+                        s.serialize_field(
+                            stringify!($event),
+                            &Keybinding::new(&key_to_string(key), "ctrlshift"),
+                        )?;
                     }
                     Event::CtrlAlt(key) => {
-                        s.serialize_field(stringify!($event.key), &key_to_string(key))?;
-                        s.serialize_field(stringify!($event.mode), "ctrlalt")?;
+                        s.serialize_field(
+                            stringify!($event),
+                            &Keybinding::new(&key_to_string(key), "ctrlalt"),
+                        )?;
                     }
                     _ => s.serialize_field(stringify!($event), "invalid, internal error")?,
                 }
@@ -316,6 +348,7 @@ pub enum TocTitle {
 
 #[derive(Serialize)]
 pub struct Config {
+    #[serde(rename(serialize = "api"))]
     pub api_config: ApiConfig,
     pub theme: Theme,
     pub logging: Logging,
@@ -511,6 +544,10 @@ impl Config {
         let user_config = from_str::<UserConfig>(&config_str).context("wrong config format")?;
         debug!("{:#?}", user_config);
 
+        if let Some(user_api_config) = user_config.api {
+            self.load_api_config(&user_api_config);
+        }
+
         if let Some(user_theme) = user_config.theme {
             if let Err(err) = self
                 .load_theme(&user_theme)
@@ -520,10 +557,6 @@ impl Config {
                 bail!(err);
             }
             debug!("loaded the theme config")
-        }
-
-        if let Some(user_api_config) = user_config.api {
-            self.load_api_config(&user_api_config);
         }
 
         if let Some(user_logging) = user_config.logging {
@@ -612,6 +645,7 @@ impl Config {
                     debug!("loading {}", stringify!($setting));
                     self.api_config.$setting =
                         user_api_config.$setting.as_ref().unwrap().to_string();
+                    log::debug!("loaded '{}'", stringify!(api.$setting));
                 }
             };
         }
@@ -626,8 +660,15 @@ impl Config {
         macro_rules! to_theme_color {
             ($color: ident) => {
                 if user_theme.$color.is_some() {
-                    self.theme.$color =
-                        parse_color(user_theme.$color.as_ref().unwrap().to_string())?
+                    match parse_color(user_theme.$color.as_ref().unwrap().to_string()) {
+                        Ok(color) => {
+                            self.theme.$color = color;
+                            debug!("loaded '{}'", stringify!(theme.$color));
+                        }
+                        Err(error) => {
+                            warn!("{}", error);
+                        }
+                    };
                 }
             };
         }
@@ -662,18 +703,22 @@ impl Config {
 
         if let Some(search_results) = &user_theme.search_results {
             self.theme.search_results = Some(self.load_view_theme(search_results));
+            log::debug!("loaded 'theme.search_results'");
         }
 
         if let Some(search_preview) = &user_theme.search_preview {
             self.theme.search_preview = Some(self.load_view_theme(search_preview));
+            log::debug!("loaded 'theme.search_preview'");
         }
 
         if let Some(article_view) = &user_theme.article_view {
             self.theme.article_view = Some(self.load_view_theme(article_view));
+            log::debug!("loaded 'theme.article_view'");
         }
 
         if let Some(toc_view) = &user_theme.toc_view {
             self.theme.toc_view = Some(self.load_view_theme(toc_view));
+            log::debug!("loaded 'theme.toc_view'");
         }
 
         debug!("loaded the view themes");
@@ -726,17 +771,20 @@ impl Config {
 
         if let Some(enabled) = user_logging.enabled {
             self.logging.enabled = enabled;
+            log::debug!("loaded 'logging.enabled'");
         }
 
         if let Some(log_dir) = user_logging.log_dir.as_ref() {
             if let Ok(path) = PathBuf::from_str(log_dir) {
                 self.logging.log_dir = path;
+                log::debug!("loaded 'logging.log_dir'");
             }
         }
 
         if let Some(log_level) = user_logging.log_level.as_ref() {
             if let Ok(level) = LevelFilter::from_str(log_level) {
                 self.logging.log_level = level;
+                log::debug!("loaded 'logging.log_level'");
             }
         }
     }
@@ -746,10 +794,12 @@ impl Config {
 
         if let Some(links) = user_features.links {
             self.features.links = links;
+            log::debug!("loaded 'features.links'");
         }
 
         if let Some(toc) = user_features.toc {
             self.features.toc = toc;
+            log::debug!("loaded 'features.toc'");
         }
     }
 
@@ -763,6 +813,7 @@ impl Config {
             ) {
                 Ok(event_key) => {
                     self.keybindings.down = event_key;
+                    log::debug!("loaded 'keybindings.down'");
                 }
                 Err(error) => {
                     warn!("{:?}", error)
@@ -776,6 +827,7 @@ impl Config {
             ) {
                 Ok(event_key) => {
                     self.keybindings.up = event_key;
+                    log::debug!("loaded 'keybindings.up'");
                 }
                 Err(error) => {
                     warn!("{:?}", error)
@@ -789,6 +841,7 @@ impl Config {
             ) {
                 Ok(event_key) => {
                     self.keybindings.left = event_key;
+                    log::debug!("loaded 'keybindings.left'");
                 }
                 Err(error) => {
                     warn!("{:?}", error)
@@ -802,6 +855,7 @@ impl Config {
             ) {
                 Ok(event_key) => {
                     self.keybindings.right = event_key;
+                    log::debug!("loaded 'keybindings.right'");
                 }
                 Err(error) => {
                     warn!("{:?}", error)
@@ -815,6 +869,7 @@ impl Config {
             ) {
                 Ok(event_key) => {
                     self.keybindings.focus_next = event_key;
+                    log::debug!("loaded 'keybindings.focus_next'");
                 }
                 Err(error) => {
                     warn!("{:?}", error)
@@ -828,6 +883,7 @@ impl Config {
             ) {
                 Ok(event_key) => {
                     self.keybindings.focus_prev = event_key;
+                    log::debug!("loaded 'keybindings.focus_prev'");
                 }
                 Err(error) => {
                     warn!("{:?}", error)
@@ -853,6 +909,7 @@ impl Config {
                 "right" => self.settings.toc.position = TocPosition::Right,
                 pos => warn!("unknown toc position, got {}", pos),
             }
+            log::debug!("loaded 'settings.toc.position'");
         }
 
         if let Some(title) = &user_toc_settings.title {
@@ -862,30 +919,37 @@ impl Config {
                 "article" => self.settings.toc.title = TocTitle::Article,
                 _ => self.settings.toc.title = TocTitle::Default,
             }
+            log::debug!("loaded 'settings.toc.title'");
         }
 
         if let Some(title_custom) = &user_toc_settings.title_custom {
             self.settings.toc.title_custom = Some(title_custom.to_string());
+            log::debug!("loaded 'settings.toc.title_custom'");
         }
 
         if let Some(min_width) = &user_toc_settings.min_width {
             self.settings.toc.min_width = min_width.to_owned();
+            log::debug!("loaded 'settings.toc.min_width'");
         }
 
         if let Some(max_width) = &user_toc_settings.max_width {
             self.settings.toc.max_width = max_width.to_owned();
+            log::debug!("loaded 'settings.toc.max_width'");
         }
 
         if let Some(scroll_x) = &user_toc_settings.scroll_x {
             self.settings.toc.scroll_x = scroll_x.to_owned();
+            log::debug!("loaded 'settings.toc.scroll_x'");
         }
 
         if let Some(scroll_y) = &user_toc_settings.scroll_y {
             self.settings.toc.scroll_y = scroll_y.to_owned();
+            log::debug!("loaded 'settings.toc.scroll_y'");
         }
 
         if let Some(item_format) = &user_toc_settings.item_format {
             self.settings.toc.item_format = item_format.to_owned();
+            log::debug!("loaded 'settings.toc.item_format'");
         }
     }
 
@@ -933,6 +997,11 @@ fn parse_keybinding(key: &str, mode: &str) -> Result<Event> {
 fn parse_key(key: &str) -> Result<Key> {
     // check if the key is a non-character key on the keyboard
     match key.to_lowercase().as_str() {
+        "down" => Ok(Key::Down),
+        "up" => Ok(Key::Up),
+        "left" => Ok(Key::Left),
+        "right" => Ok(Key::Right),
+        "tab" => Ok(Key::Tab),
         "insert" => Ok(Key::Ins),
         "delete" => Ok(Key::Del),
         "home" => Ok(Key::Home),
