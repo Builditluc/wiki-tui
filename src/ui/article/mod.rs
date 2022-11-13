@@ -134,22 +134,26 @@ fn display_article(siv: &mut Cursive, article: Article) -> Result<()> {
         debug!("removed the last layer")
     }
 
+    // get the amount of layers, this is used as an id for the new article layout so we don't have
+    // multiple layouts with the same name
+
+    let layer_len = siv.screen_mut().len() + 1;
+
+    let article_layout_name = format!("article_layout-{}", layer_len);
+    let article_view_name = format!("article_view-{}", layer_len);
+
+    debug!("article_layout name '{}'", article_layout_name);
+    debug!("artilce_view name '{}'", article_view_name);
+
     // create the article view
     let article_view = Panel::new(
         ArticleView::new(article.clone())
-            .with_name("article_view")
+            .with_name(&article_view_name)
             .scrollable(),
         CONFIG.theme.border,
     )
     .title("wiki-tui");
     debug!("created the article view");
-
-    // get the amount of layers, this is used as an id for the new article layout so we don't have
-    // multiple layouts with the same name
-
-    let layer_len = siv.screen_mut().len();
-    let article_layout_name = format!("article_layout-{}", layer_len);
-    debug!("article layout name '{}'", article_layout_name);
 
     let article_layout = RootLayout::horizontal(CONFIG.keybindings.clone())
         .child(article_view)
@@ -161,7 +165,7 @@ fn display_article(siv: &mut Cursive, article: Article) -> Result<()> {
 
     // display the toc if there is one
     if let Some(toc) = article.toc() {
-        if let Err(error) = ui::toc::add_table_of_contents(siv, toc, &article_layout_name)
+        if let Err(error) = ui::toc::add_table_of_contents(siv, toc)
             .context("failed displaying the table of contents")
         {
             warn!("{:?}", error);
@@ -172,7 +176,7 @@ fn display_article(siv: &mut Cursive, article: Article) -> Result<()> {
     }
 
     // focus the article view
-    siv.focus_name("article_view")
+    siv.focus_name(&article_view_name)
         .context("failed focussing the article view")?;
 
     debug!("focussed the article view");

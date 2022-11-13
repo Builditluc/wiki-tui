@@ -542,7 +542,6 @@ impl Config {
             std::fs::read_to_string(&self.config_path).context("failed reading the config file")?;
 
         let user_config = from_str::<UserConfig>(&config_str).context("wrong config format")?;
-        debug!("{:#?}", user_config);
 
         if let Some(user_api_config) = user_config.api {
             self.load_api_config(&user_api_config);

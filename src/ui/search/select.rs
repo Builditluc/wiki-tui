@@ -5,7 +5,11 @@ use cursive::{utils::markup::StyledString, views::TextView, Cursive};
 use crate::{config, wiki::search::SearchResult};
 
 /// Generates a preview from a given search result. Any errors are returned
-pub fn generate_and_display_preview(siv: &mut Cursive, item: &SearchResult) -> Result<()> {
+pub fn generate_and_display_preview(
+    siv: &mut Cursive,
+    item: &SearchResult,
+    view_name: &str,
+) -> Result<()> {
     // check if we even have a preview snippet
     if item.snippet().is_none() {
         bail!("no preview snippet found");
@@ -38,11 +42,12 @@ pub fn generate_and_display_preview(siv: &mut Cursive, item: &SearchResult) -> R
     debug!("generated the preview");
 
     // now display the generated preview
-    let display_preview = siv.call_on_name("search_result_preview", |view: &mut TextView| {
+    let display_preview = siv.call_on_name(view_name, |view: &mut TextView| {
         view.set_content(preview);
     });
     if display_preview.is_none() {
-        return Err(anyhow!("view not found").context("failed displaying the generated preview"));
+        return Err(anyhow!("view '{}' not found", view_name)
+            .context("failed displaying the generated preview"));
     }
     debug!("displayed the generated preview");
 
@@ -50,7 +55,11 @@ pub fn generate_and_display_preview(siv: &mut Cursive, item: &SearchResult) -> R
 }
 
 /// Generates an info string from a given search result
-pub fn generate_and_display_info(siv: &mut Cursive, item: &SearchResult) -> Result<()> {
+pub fn generate_and_display_info(
+    siv: &mut Cursive,
+    item: &SearchResult,
+    view_name: &str,
+) -> Result<()> {
     let mut info = StyledString::new();
 
     info.append_plain(&format!("Title: {}", item.title()));
@@ -76,11 +85,12 @@ pub fn generate_and_display_info(siv: &mut Cursive, item: &SearchResult) -> Resu
     debug!("generated the info text");
 
     // now display the generated info
-    let display_info = siv.call_on_name("search_result_info", |view: &mut TextView| {
+    let display_info = siv.call_on_name(view_name, |view: &mut TextView| {
         view.set_content(info);
     });
     if display_info.is_none() {
-        return Err(anyhow!("view not found").context("failed displaying the generated info"));
+        return Err(anyhow!("view '{}' not found", view_name)
+            .context("failed displaying the generated info"));
     }
     debug!("displayed the generated info");
 

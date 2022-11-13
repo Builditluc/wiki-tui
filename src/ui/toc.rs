@@ -13,18 +13,28 @@ use cursive::views::{Dialog, SelectView};
 use cursive::Cursive;
 
 /// Adds a table of contents to a given layout
-pub fn add_table_of_contents(siv: &mut Cursive, toc: &TableOfContents, layout: &str) -> Result<()> {
+pub fn add_table_of_contents(siv: &mut Cursive, toc: &TableOfContents) -> Result<()> {
+    let layer_len = siv.screen_mut().len();
+
+    let article_layout_name = format!("article_layout-{}", layer_len);
+    let toc_view_name = format!("toc_view-{}", layer_len);
+    debug!("toc_view name '{}'", toc_view_name);
+
     // get the article_layout and create an empty select view
     let mut article_layout = siv
-        .find_name::<RootLayout>(layout)
+        .find_name::<RootLayout>(&article_layout_name)
         .context("couldn't find the layout")?;
     debug!("found the layout");
 
     let mut toc_view = SelectView::<TableOfContentsItem>::new().on_submit(|siv, item| {
         debug!("jumping to '{}'", item.text());
 
+        let layer_len = siv.screen_mut().len();
+        let article_view_name = format!("article_view-{}", layer_len);
+        let toc_view_name = format!("toc_view-{}", layer_len);
+
         // get the index of the toc items
-        let item_index = match siv.find_name::<SelectView<TableOfContentsItem>>("toc_view") {
+        let item_index = match siv.find_name::<SelectView<TableOfContentsItem>>(&toc_view_name) {
             Some(view) => {
                 let mut index: usize = 0;
                 for (idx, _item) in view.iter().enumerate() {
@@ -43,14 +53,14 @@ pub fn add_table_of_contents(siv: &mut Cursive, toc: &TableOfContents, layout: &
         debug!("the index for the toc item is '{}'", item_index);
 
         // select the header in the article view
-        if let Some(mut view) = siv.find_name::<ArticleView>("article_view") {
+        if let Some(mut view) = siv.find_name::<ArticleView>(&article_view_name) {
             view.select_header(item_index);
             debug!("selected the header in the article view");
         }
 
         // focus the article view
-        if let Err(error) = siv.focus_name("article_view") {
-            let err = anyhow!(error).context("couldn't find the article view");
+        if let Err(error) = siv.focus_name(&article_view_name) {
+            let err = anyhow!(error).context(format!("couldn't find '{}'", article_view_name));
             display_error(siv, err);
             return;
         }
@@ -95,7 +105,7 @@ pub fn add_table_of_contents(siv: &mut Cursive, toc: &TableOfContents, layout: &
             config::CONFIG.theme.toc_view,
             Dialog::around(
                 toc_view
-                    .with_name("toc_view")
+                    .with_name(toc_view_name)
                     .scrollable()
                     .scroll_x(config::CONFIG.settings.toc.scroll_x)
                     .scroll_y(config::CONFIG.settings.toc.scroll_y)

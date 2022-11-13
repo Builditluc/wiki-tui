@@ -46,6 +46,24 @@ pub fn display_search_results(siv: &mut Cursive, search: Search, query: &str) ->
     debug!("search_results_width: '{}'", search_results_width);
     debug!("search_preview_height: '{}'", search_preview_height);
 
+    let layer_len = siv.screen_mut().len() + 1;
+
+    let search_results_view_name = format!("search_results_view-{}", layer_len);
+    let search_continue_button_name = format!("search_continue_button-{}", layer_len);
+    let search_result_preview_name = format!("search_result_preview-{}", layer_len);
+    let search_result_info_name = format!("search_result_info-{}", layer_len);
+
+    debug!("search_results_view name '{}'", search_results_view_name);
+    debug!(
+        "search_continue_button name '{}'",
+        search_continue_button_name
+    );
+    debug!(
+        "search_result_preview name '{}'",
+        search_result_preview_name
+    );
+    debug!("search_result_info name '{}'", search_result_info_name);
+
     // create the results view (SelectView)
     let search_results_view = {
         let mut search_results_view = SelectView::<SearchResult>::new()
@@ -59,7 +77,7 @@ pub fn display_search_results(siv: &mut Cursive, search: Search, query: &str) ->
         }
         search_results_view
     }
-    .with_name("search_results_view")
+    .with_name(search_results_view_name)
     .full_height()
     .fixed_width(search_results_width)
     .scrollable();
@@ -71,14 +89,14 @@ pub fn display_search_results(siv: &mut Cursive, search: Search, query: &str) ->
         Button::new("Show more results...", move |s| {
             on_continue_submit(s, &query, &offset)
         })
-        .with_name("search_continue_button")
+        .with_name(search_continue_button_name)
     };
 
     // create the preview view (TextView)
     let search_result_preview = Panel::new(
         TextView::new("Test")
             .h_align(HAlign::Left)
-            .with_name("search_result_preview"),
+            .with_name(search_result_preview_name),
         CONFIG.theme.border,
     )
     .fixed_height(search_preview_height)
@@ -86,7 +104,7 @@ pub fn display_search_results(siv: &mut Cursive, search: Search, query: &str) ->
 
     // create the info view (TextView)
     let search_result_info = Panel::new(
-        TextView::empty().with_name("search_result_info"),
+        TextView::empty().with_name(search_result_info_name),
         CONFIG.theme.border,
     )
     .full_height();
@@ -168,16 +186,21 @@ pub fn display_more_search_results(
         search.results().count()
     );
 
+    let layer_len = siv.screen_mut().len();
+
+    let search_results_view_name = format!("search_results_view-{}", layer_len);
+    let search_continue_button_name = format!("search_continue_button-{}", layer_len);
+
     // get the results view so we can add some results to it
     let mut search_results_views = siv
-        .find_name::<SelectView<SearchResult>>("search_results_view")
-        .context("couldn't find the search_results_view view")?;
+        .find_name::<SelectView<SearchResult>>(&search_results_view_name)
+        .context(format!("couldn't find '{}'", search_results_view_name))?;
     debug!("found the search_results_view");
 
     // get the continue button so we can change its callback
     let mut search_continue_button = siv
-        .find_name::<Button>("search_continue_button")
-        .context("couldn't find the search_continue_button view")?;
+        .find_name::<Button>(&search_continue_button_name)
+        .context(format!("couldn't find '{}'", search_continue_button_name))?;
     debug!("found the search_continue_button");
 
     // add the new results to the view
@@ -195,8 +218,8 @@ pub fn display_more_search_results(
     debug!("set the new callback of the continue button");
 
     // focus the results view
-    siv.focus_name("search_results_view")
-        .context("failed to focus the search_results_view")?;
+    siv.focus_name(&search_results_view_name)
+        .context(format!("failed to focus '{}'", search_results_view_name))?;
     debug!("focussed the search_results_view");
 
     Ok(())

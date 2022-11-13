@@ -59,8 +59,13 @@ fn on_result_select(siv: &mut Cursive, item: &SearchResult) {
         item.page_id()
     );
 
+    let layer_len = siv.screen_mut().len();
+
+    let search_result_preview_name = format!("search_result_preview-{}", layer_len);
+    let search_result_info_name = format!("search_result_info-{}", layer_len);
+
     // generate and display the preview of the search result
-    if let Err(error) = select::generate_and_display_preview(siv, item)
+    if let Err(error) = select::generate_and_display_preview(siv, item, &search_result_preview_name)
         .context("failed generating and displaying the preview")
     {
         // only log the error and don't display it
@@ -68,7 +73,7 @@ fn on_result_select(siv: &mut Cursive, item: &SearchResult) {
     }
 
     // generate and display the info of the search result
-    if let Err(error) = select::generate_and_display_info(siv, item)
+    if let Err(error) = select::generate_and_display_info(siv, item, &search_result_info_name)
         .context("failed generating and displaying the info")
     {
         // only log the error and don't display it
