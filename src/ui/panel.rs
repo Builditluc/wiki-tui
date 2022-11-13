@@ -8,7 +8,7 @@ use cursive::{
     Printer, Rect, Vec2, View,
 };
 
-use crate::config::BorderStyle;
+use crate::config::{BorderStyle, CONFIG};
 
 /// Draws a border around a wrapped view
 pub struct Panel<V> {
@@ -199,3 +199,11 @@ impl<V: View> ViewWrapper for Panel<V> {
         self.invalidated || self.view.needs_relayout()
     }
 }
+
+pub trait WithPanel: View + Sized {
+    fn with_panel(self) -> Panel<Self> {
+        Panel::new(self, CONFIG.theme.border)
+    }
+}
+
+impl<T: View> WithPanel for T {}

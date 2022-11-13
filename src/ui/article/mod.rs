@@ -1,3 +1,4 @@
+use crate::ui::panel::WithPanel;
 use crate::ui::search::bar_popup::open_search_bar;
 use crate::ui::utils::display_error;
 use crate::wiki::{
@@ -6,10 +7,7 @@ use crate::wiki::{
 };
 use crate::{
     config::CONFIG,
-    ui::{
-        self,
-        views::{Panel, RootLayout},
-    },
+    ui::{self, views::RootLayout},
 };
 
 use anyhow::{Context, Result};
@@ -146,13 +144,11 @@ fn display_article(siv: &mut Cursive, article: Article) -> Result<()> {
     debug!("artilce_view name '{}'", article_view_name);
 
     // create the article view
-    let article_view = Panel::new(
-        ArticleView::new(article.clone())
-            .with_name(&article_view_name)
-            .scrollable(),
-        CONFIG.theme.border,
-    )
-    .title("wiki-tui");
+    let article_view = ArticleView::new(article.clone())
+        .with_name(&article_view_name)
+        .scrollable()
+        .with_panel()
+        .title("wiki-tui");
     debug!("created the article view");
 
     let article_layout = RootLayout::horizontal(CONFIG.keybindings.clone())

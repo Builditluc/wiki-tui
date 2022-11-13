@@ -9,10 +9,8 @@ use cursive::{
 use crate::{
     config::CONFIG,
     ui::{
-        article::on_article_submit,
-        search::on_continue_submit,
-        utils::percentage,
-        views::{Panel, RootLayout},
+        article::on_article_submit, panel::WithPanel, search::on_continue_submit,
+        utils::percentage, views::RootLayout,
     },
     wiki::search::{Search, SearchResult},
 };
@@ -93,21 +91,18 @@ pub fn display_search_results(siv: &mut Cursive, search: Search, query: &str) ->
     };
 
     // create the preview view (TextView)
-    let search_result_preview = Panel::new(
-        TextView::new("Test")
-            .h_align(HAlign::Left)
-            .with_name(search_result_preview_name),
-        CONFIG.theme.border,
-    )
-    .fixed_height(search_preview_height)
-    .full_width();
+    let search_result_preview = TextView::new("Test")
+        .h_align(HAlign::Left)
+        .with_name(search_result_preview_name)
+        .with_panel()
+        .fixed_height(search_preview_height)
+        .full_width();
 
     // create the info view (TextView)
-    let search_result_info = Panel::new(
-        TextView::empty().with_name(search_result_info_name),
-        CONFIG.theme.border,
-    )
-    .full_height();
+    let search_result_info = TextView::empty()
+        .with_name(search_result_info_name)
+        .with_panel()
+        .full_height();
 
     // create the status view (TextView)
     let search_status_view = {
@@ -126,12 +121,10 @@ pub fn display_search_results(siv: &mut Cursive, search: Search, query: &str) ->
     debug!("created the views for the search results layout");
 
     // pack results view and continue button in a layout
-    let search_results_layout = Panel::new(
-        LinearLayout::vertical()
-            .child(search_results_view)
-            .child(search_continue_button),
-        CONFIG.theme.border,
-    );
+    let search_results_layout = LinearLayout::vertical()
+        .child(search_results_view)
+        .child(search_continue_button)
+        .with_panel();
 
     // pack preview view and info view in a layout
     let search_result_detail_layout = LinearLayout::vertical()
@@ -147,15 +140,13 @@ pub fn display_search_results(siv: &mut Cursive, search: Search, query: &str) ->
 
     // add the whole thing as a layer
     siv.add_layer(
-        Panel::new(
-            LinearLayout::vertical()
-                .child(search_layout)
-                .child(search_status_view),
-            CONFIG.theme.border,
-        )
-        .title(format!("Results for '{}'", query))
-        .fixed_width(search_width)
-        .fixed_height(search_height),
+        LinearLayout::vertical()
+            .child(search_layout)
+            .child(search_status_view)
+            .with_panel()
+            .title(format!("Results for '{}'", query))
+            .fixed_width(search_width)
+            .fixed_height(search_height),
     );
 
     debug!("added the layouts to a new layer");

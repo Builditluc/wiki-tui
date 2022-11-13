@@ -1,5 +1,11 @@
 use anyhow::Error;
-use cursive::{views::Dialog, Cursive};
+use cursive::{
+    views::{Button, LinearLayout, TextView},
+    Cursive,
+};
+use cursive_aligned_view::Alignable;
+
+use crate::ui::panel::WithPanel;
 
 /// Returns the percentage of a given value
 pub fn percentage(value: usize, percentage: f32) -> usize {
@@ -24,8 +30,15 @@ pub fn display_error(siv: &mut Cursive, error: Error) {
     const ERROR_MESSAGE: &str = "An error occurred during the search\nCheck the logs for more information\n\nError: {ERROR}";
 
     siv.add_layer(
-        Dialog::text(ERROR_MESSAGE.replace("{ERROR}", &error.to_string()))
-            .title("Warning")
-            .dismiss_button("Dismiss"),
+        LinearLayout::vertical()
+            .child(TextView::new(ERROR_MESSAGE.replace("{ERROR}", &error.to_string())).with_panel())
+            .child(
+                Button::new("Dismiss", |s| {
+                    s.pop_layer();
+                })
+                .align_bottom_right(),
+            )
+            .with_panel()
+            .title("Warning"),
     );
 }
