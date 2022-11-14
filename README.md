@@ -1,5 +1,5 @@
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-4-orange.svg?style=flat-square)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-5-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 [![Stargazers](https://img.shields.io/github/stars/Builditluc/wiki-tui.svg?style=for-the-badge)](https://github.com/Builditluc/wiki-tui/stargazers)
 [![Issues](https://img.shields.io/github/issues/Builditluc/wiki-tui.svg?style=for-the-badge)](https://github.com/Builditluc/wiki-tui/issues)
@@ -50,12 +50,15 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
 <!-- prettier-ignore-start -->
 <!-- markdownlint-disable -->
 <table>
-  <tr>
-    <td align="center"><a href="https://github.com/Builditluc"><img src="https://avatars.githubusercontent.com/u/37375448?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Builditluc</b></sub></a><br /><a href="#ideas-Builditluc" title="Ideas, Planning, & Feedback">🤔</a> <a href="https://github.com/Builditluc/wiki-tui/commits?author=Builditluc" title="Code">💻</a> <a href="https://github.com/Builditluc/wiki-tui/commits?author=Builditluc" title="Documentation">📖</a> <a href="https://github.com/Builditluc/wiki-tui/issues?q=author%3ABuilditluc" title="Bug reports">🐛</a></td>
-    <td align="center"><a href="https://github.com/0323pin"><img src="https://avatars.githubusercontent.com/u/90570748?v=4?s=100" width="100px;" alt=""/><br /><sub><b>0323pin</b></sub></a><br /><a href="https://github.com/Builditluc/wiki-tui/issues?q=author%3A0323pin" title="Bug reports">🐛</a> <a href="#platform-0323pin" title="Packaging/porting to new platform">📦</a></td>
-    <td align="center"><a href="https://github.com/legendofmiracles"><img src="https://avatars.githubusercontent.com/u/30902201?v=4?s=100" width="100px;" alt=""/><br /><sub><b>legendofmiracles</b></sub></a><br /><a href="#platform-legendofmiracles" title="Packaging/porting to new platform">📦</a></td>
-    <td align="center"><a href="https://github.com/ThomasFrans"><img src="https://avatars.githubusercontent.com/u/48214567?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Thomas</b></sub></a><br /><a href="#platform-ThomasFrans" title="Packaging/porting to new platform">📦</a> <a href="https://github.com/Builditluc/wiki-tui/issues?q=author%3AThomasFrans" title="Bug reports">🐛</a></td>
-  </tr>
+  <tbody>
+    <tr>
+      <td align="center"><a href="https://github.com/Builditluc"><img src="https://avatars.githubusercontent.com/u/37375448?v=4?s=100" width="100px;" alt="Builditluc"/><br /><sub><b>Builditluc</b></sub></a><br /><a href="#ideas-Builditluc" title="Ideas, Planning, & Feedback">🤔</a> <a href="https://github.com/Builditluc/wiki-tui/commits?author=Builditluc" title="Code">💻</a> <a href="https://github.com/Builditluc/wiki-tui/commits?author=Builditluc" title="Documentation">📖</a> <a href="https://github.com/Builditluc/wiki-tui/issues?q=author%3ABuilditluc" title="Bug reports">🐛</a></td>
+      <td align="center"><a href="https://github.com/0323pin"><img src="https://avatars.githubusercontent.com/u/90570748?v=4?s=100" width="100px;" alt="0323pin"/><br /><sub><b>0323pin</b></sub></a><br /><a href="https://github.com/Builditluc/wiki-tui/issues?q=author%3A0323pin" title="Bug reports">🐛</a> <a href="#platform-0323pin" title="Packaging/porting to new platform">📦</a></td>
+      <td align="center"><a href="https://github.com/legendofmiracles"><img src="https://avatars.githubusercontent.com/u/30902201?v=4?s=100" width="100px;" alt="legendofmiracles"/><br /><sub><b>legendofmiracles</b></sub></a><br /><a href="#platform-legendofmiracles" title="Packaging/porting to new platform">📦</a></td>
+      <td align="center"><a href="https://github.com/ThomasFrans"><img src="https://avatars.githubusercontent.com/u/48214567?v=4?s=100" width="100px;" alt="Thomas"/><br /><sub><b>Thomas</b></sub></a><br /><a href="#platform-ThomasFrans" title="Packaging/porting to new platform">📦</a> <a href="https://github.com/Builditluc/wiki-tui/issues?q=author%3AThomasFrans" title="Bug reports">🐛</a></td>
+      <td align="center"><a href="https://github.com/nunotexbsd"><img src="https://avatars.githubusercontent.com/u/43720668?v=4?s=100" width="100px;" alt="Nuno Teixeira"/><br /><sub><b>Nuno Teixeira</b></sub></a><br /><a href="#platform-nunotexbsd" title="Packaging/porting to new platform">📦</a></td>
+    </tr>
+  </tbody>
 </table>
 
 <!-- markdownlint-restore -->
