@@ -8,6 +8,14 @@ description = "A simple and easy to use Wikipedia Text User Interface"
 license = "MIT"
 readme = "README.md"
 
+include = [
+  "Cargo.*",
+  "logo.png",
+  "LICENSE.txt",
+  "src/",
+  "docs/assets/images/preview*",
+]
+
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
