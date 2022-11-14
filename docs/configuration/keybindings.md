@@ -28,7 +28,7 @@ The following modes are supported
 | Key            | Config Name |
 |----------------|-------------|
  |                | `normal`    |
-| ++shift++      | `shit`      |
+| ++shift++      | `shift`      |
 | ++alt++        | `alt`       |
 | ++alt+shift++  | `altshift`  |
 | ++ctrl++       | `ctrl`      |

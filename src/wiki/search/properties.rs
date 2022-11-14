@@ -1,4 +1,5 @@
 /// SearchProperties can be used to configure what properties each search result should contain
+#[allow(dead_code)]
 pub struct SearchProperties {
     /// The size of the article
     size: bool,
@@ -40,6 +41,7 @@ macro_rules! build_setter {
     };
 }
 
+#[allow(dead_code)]
 impl SearchProperties {
     /// Creates a new SearchProperties struct with its defaults
     pub fn new() -> Self {

@@ -2,6 +2,7 @@
 /// not be created directly. Instead, use the one SearchBuilder creates for you.
 /// It's important to know that only some values are in every search result and the rest of them are
 /// optional.
+#[allow(dead_code)]
 #[derive(Clone)]
 pub struct SearchResult {
     /// The title of the search result, usually the title of the article it represents
@@ -52,6 +53,7 @@ macro_rules! build_getter {
     };
 }
 
+#[allow(dead_code)]
 impl SearchResult {
     /// Creates a new struct with the given metadata. This function should not be used directly
     #[allow(clippy::too_many_arguments)]

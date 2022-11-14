@@ -12,7 +12,6 @@ pub struct LinkHandler {
 impl LinkHandler {
     /// Creates a new link handler
     pub fn new() -> Self {
-        log::debug!("creating a new instance of LinkHandler");
         Self {
             links: Vec::new(),
             current_link: 0,
@@ -51,7 +50,7 @@ impl LinkHandler {
     /// Moves the selection up by a given amount
     pub fn move_up(&mut self, amount: usize) {
         if self.links.is_empty() {
-            log::warn!("no links are registered, aborting...");
+            warn!("no links are registered, abort moving up by '{}'", amount);
             return;
         }
 
@@ -74,7 +73,7 @@ impl LinkHandler {
     /// Moves the selection down by a given amount
     pub fn move_down(&mut self, amount: usize) {
         if self.links.is_empty() {
-            log::warn!("no links are registered, aborting...");
+            warn!("no links are registered, abort moving down by '{}'", amount);
             return;
         }
 
@@ -97,7 +96,7 @@ impl LinkHandler {
     /// Moves the selection left by a given amount
     pub fn move_left(&mut self, amount: usize) {
         if self.links.is_empty() {
-            log::warn!("no links are registered, aborting...");
+            warn!("no links are registered, abort moving left by '{}'", amount);
             return;
         }
 
@@ -107,7 +106,10 @@ impl LinkHandler {
     /// Moves the selection right by a given amount
     pub fn move_right(&mut self, amount: usize) {
         if self.links.is_empty() {
-            log::warn!("no links are registered, aborting...");
+            warn!(
+                "no links are registered, abort moving right by '{}'",
+                amount
+            );
             return;
         }
 
@@ -123,7 +125,10 @@ impl LinkHandler {
     /// Overrides the current link
     pub fn set_current_link(&mut self, id: i32) {
         if self.links.is_empty() {
-            log::warn!("no links are registered, aborting...");
+            warn!(
+                "no links are registered, abort setting the current link to '{}'",
+                id
+            );
             return;
         }
 
@@ -132,10 +137,9 @@ impl LinkHandler {
             .iter()
             .position(|l| l.id == id)
             .unwrap_or_default();
-        log::info!(
+        debug!(
             "replacing the current link '{}', with '{}'",
-            self.current_link,
-            new_selection
+            self.current_link, new_selection
         );
         self.current_link = new_selection as usize;
     }

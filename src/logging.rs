@@ -1,6 +1,7 @@
 use crate::config::CONFIG;
 
 use anyhow::{Context, Result};
+use log::LevelFilter;
 use log4rs::config::{Appender, Config, Root};
 use log4rs::Handle;
 
@@ -12,7 +13,6 @@ impl Logger {
         use log4rs::append::console::ConsoleAppender;
 
         let wiki_tui = ConsoleAppender::builder().build();
-
         let default_config = Config::builder()
             .appender(Appender::builder().build("wiki_tui", Box::new(wiki_tui)))
             .build(
@@ -33,6 +33,7 @@ impl Logger {
     }
     pub fn initialize(&self) -> Result<()> {
         use log4rs::append::file::FileAppender;
+        use log4rs::encode::pattern::PatternEncoder;
 
         // disable logging if not enabled in the config
         if !CONFIG.logging.enabled {
@@ -41,11 +42,19 @@ impl Logger {
 
         let wiki_tui = FileAppender::builder()
             .append(false)
+            .encoder(Box::new(PatternEncoder::new("{d} {l} {M} - {m}{n}")))
             .build(CONFIG.logging.log_dir.as_path())
             .context("failed building the FileAppender")?;
 
+        // disable logging for specific crates
         let default_config = Config::builder()
             .appender(Appender::builder().build("wiki_tui", Box::new(wiki_tui)))
+            .logger(log4rs::config::Logger::builder().build("cursive_core", LevelFilter::Off))
+            .logger(log4rs::config::Logger::builder().build("html5ever", LevelFilter::Off))
+            .logger(
+                log4rs::config::Logger::builder()
+                    .build("cursive_buffered_backend", LevelFilter::Off),
+            )
             .build(
                 Root::builder()
                     .appender("wiki_tui")
@@ -54,7 +63,7 @@ impl Logger {
             .context("failed building the default config")?;
 
         self.handle.set_config(default_config);
-        log::info!("successfully initialized the logging system");
+        info!("successfully initialized the logging system");
         Ok(())
     }
 }

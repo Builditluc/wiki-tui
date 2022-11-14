@@ -67,11 +67,6 @@ pub struct LinesWrapper {
 impl LinesWrapper {
     /// Creates a new LinesWrapper with a content and constraint
     pub fn new(width: usize, elements: Rc<Vec<ArticleElement>>) -> Self {
-        log::debug!(
-            "creating a new LinesWrapper with '{}' elements and a width of '{}'",
-            elements.len(),
-            width
-        );
         LinesWrapper {
             current_line: Line::new(),
             current_width: 0,
@@ -105,7 +100,7 @@ impl LinesWrapper {
     /// Wraps the lines and returns the required width. This method is way cheaper than wrap_lines
     /// because it only calculates the required width and nothing else
     pub fn required_width(mut self) -> usize {
-        log::debug!("required_width was called");
+        debug!("calculating the required with");
         // go through every elment
         for element in self.elements.iter() {
             // does this element go onto a new line?
@@ -135,21 +130,18 @@ impl LinesWrapper {
             }
 
             // if it doesn't fit, return 0
-            log::debug!("required_width finished successfully with a width of '0'");
+            debug!("the lines are wrapped, returning 0");
             return 0;
         }
 
-        log::debug!(
-            "required_width finished successfully with a width of '{}'",
-            self.max_width
-        );
+        debug!("finished with a required size of '{}'", self.max_width);
         self.max_width
     }
 
     /// Starts the wrapping process
     #[must_use]
     pub fn wrap_lines(mut self) -> Self {
-        log::debug!("wrap_lines was called");
+        debug!("wrapping the lines");
 
         // go through every element
         for element in self.elements.clone().iter() {
@@ -265,18 +257,14 @@ impl LinesWrapper {
         }
 
         if let Some(ref header_y) = self.header_y {
-            log::debug!("total headers registered: '{}'", header_y.len());
+            debug!("'{}' headers registered", header_y.len());
         }
-
-        log::debug!(
-            "wrap_lines finished successfully, wrapping '{}' lines",
-            self.rendered_lines.len()
-        );
 
         if let Some(ref link_handler) = self.link_handler {
-            log::debug!("total links found: '{}'", link_handler.registered_links());
+            debug!("'{}' links found", link_handler.registered_links());
         }
 
+        debug!("wrapped '{}' lines", self.rendered_lines.len());
         self
     }
 

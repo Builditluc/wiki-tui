@@ -127,5 +127,49 @@ highlight_text = "white"
 text = "black"
 ```
 
+## Configure the borders
+
+:fontawesome-solid-microchip: pre-release
+:octicons-milestone-16: Default: `default` | `thin`
+
+!!! warning
+    Depending on your font, some border styles may differ from the examples below
+
+You can change the look of the borders in wiki-tui. Available styles are:
+
+* `thin` | `default`
+* `heavy`
+* `round`
+
+> The excat unicode characters used for the borders can be found in the following file: `src/ui/panel.rs`
+
+??? example "Thin / Default"
+    ```toml
+    theme.border = "default"
+    ```
+    or
+    ```toml
+    theme.border = "thin"
+    ```
+
+    ![Border-Thin-1](../assets/images/border-thin-1.png)
+    ![Border-Thin-2](../assets/images/border-thin-2.png)
+
+??? example "Heavy"
+    ```toml
+    theme.border = "heavy"
+    ```
+
+    ![Border-Heavy-1](../assets/images/border-heavy-1.png)
+    ![Border-Heavy-2](../assets/images/border-heavy-2.png)
+
+??? example "Round"
+    ```toml
+    theme.border = "round"
+    ```
+
+    ![Border-Round-1](../assets/images/border-round-1.png)
+    ![Border-Round-2](../assets/images/border-round-2.png)
+
 [release-0.3.0]: https://github.com/Builditluc/wiki-tui/releases/tag/v0.3
 [release-0.4.0]: https://github.com/Builditluc/wiki-tui/releases/tag/v0.4

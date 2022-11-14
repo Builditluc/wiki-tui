@@ -26,7 +26,12 @@ A simple and easy to use Wikipedia Text User Interface
 <center>
 ![Preview-1](assets/images/preview-1.png)
 ![Preview-2](assets/images/preview-2.png)
+![Preview-3](assets/images/preview-3.png)
 </center>
+
+??? note "About those Screenshots"
+    They were taken on MacOS (iTerm2) with the gruvbox terminal colorscheme. The only
+    configuration change that was done is setting the borders to round
 
 # What can I do with it?
 

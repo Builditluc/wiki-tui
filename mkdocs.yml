@@ -8,6 +8,7 @@ repo_url: https://github.com/builditluc/wiki-tui
 
 theme:
   name: material
+  custom_dir: overrides
   icon:
     logo: material/console
     repo: fontawesome/brands/github
@@ -18,6 +19,7 @@ theme:
     - navigation.top
     - navigation.sections
     - navigation.indexes
+    - announce.dismiss
   palette:
     - media: "(prefers-color-scheme: light)"
       scheme: default
@@ -40,7 +42,7 @@ nav:
   - Configuration:
     - configuration/index.md
     - Api Settings: configuration/api.md
-    - Changing the Colors: configuration/theme.md
+    - Changing the Theme: configuration/theme.md
     - Configure the Logging: configuration/logging.md
     - Features: configuration/features.md
     - Keybindings: configuration/keybindings.md

@@ -1,19 +1,20 @@
-use crate::ui::utils::remove_view_from_layout;
+use crate::ui::panel::WithPanel;
+use crate::ui::search::bar_popup::open_search_bar;
+use crate::ui::utils::display_error;
 use crate::wiki::{
     article::{parser::DefaultParser, Article, ArticleBuilder},
     search::SearchResult,
 };
 use crate::{
-    config::{self, TocPosition, CONFIG},
-    ui::{self, RootLayout},
-    view_with_theme,
+    config::CONFIG,
+    ui::{self, views::RootLayout},
 };
 
-use anyhow::{bail, Context, Result};
+use anyhow::{Context, Result};
 use cursive::align::HAlign;
 use cursive::direction::Orientation;
 use cursive::view::{Nameable, Scrollable};
-use cursive::views::{Dialog, TextView};
+use cursive::views::{Dialog, OnEventView, TextView};
 use cursive::Cursive;
 
 mod content;
@@ -25,78 +26,36 @@ pub type ArticleView = view::ArticleView;
 /// Fetches an article from a given SearchResult and displays it. It's the on_submit callback for
 /// the search results view
 pub fn on_article_submit(siv: &mut Cursive, search_result: &SearchResult) {
-    log::info!("on_article_submit was called");
-
-    // fetch the article
-    log::info!(
-        "fetching the article '{}' with the id '{}'",
-        search_result.title(),
-        search_result.page_id()
-    );
-    let article = match ArticleBuilder::new(
-        *search_result.page_id(),
-        None,
-        &CONFIG.api_config.base_url,
-    )
-    .build(&mut DefaultParser::new(&CONFIG.settings.toc))
-    {
+    let article = match fetch_article(*search_result.page_id(), None) {
         Ok(article) => article,
         Err(error) => {
-            // log the error
-            log::warn!("{}", error);
-
-            // display an error message
-            siv.add_layer(
-                Dialog::info("A Problem occurred while fetching the article.\nCheck the logs for further information")
-                    .title("Error")
-                    .title_position(HAlign::Center)
-            );
-            log::info!("on_article_submit failed to finish");
+            warn!("{:?}", error);
+            display_error(siv, error);
             return;
         }
     };
-
-    // display the article
-    log::info!(
-        "displaying the article '{}'",
-        if search_result.title().is_empty() {
-            search_result.page_id().to_string()
-        } else {
-            search_result.title().to_string()
-        }
-    );
     if let Err(error) = display_article(siv, article) {
-        // log the error
-        log::warn!("{}", error);
-
-        // display an error message
-        siv.add_layer(
-            Dialog::info("A Problem occurred while displaying the article.\nCheck the logs for further information")
-                .title("Error")
-                .title_position(HAlign::Center)
-        );
-        log::info!("on_article_submit failed to finish");
-        return;
+        warn!("{:?}", error);
+        display_error(siv, error)
     }
+}
 
-    log::info!("on_article_submit finished successfully");
+fn fetch_article(page_id: i32, target: Option<String>) -> Result<Article> {
+    info!("fetching the article");
+    ArticleBuilder::new(page_id, target, &CONFIG.api_config.base_url)
+        .build(&mut DefaultParser::new(&CONFIG.settings.toc))
 }
 
 /// Fetches an article from a given link and displays it. It's the on_submit callback for the
 /// article view
 pub fn on_link_submit(siv: &mut Cursive, target: String) {
-    log::info!(
-        "on_link_submit was called with the target link '{}'",
-        target
-    );
-
     // convert the target into a human-friendly format
     let target_human = {
         let target = target.strip_prefix("/wiki/").unwrap_or(&target);
         target.replace('_', " ")
     };
 
-    log::info!("requesting confirmation from the user");
+    info!("requesting confirmation to open the link '{}'", target);
     siv.add_layer(
         // create a dialog that asks the user for confirmation whether he really wants to open this
         // link
@@ -106,37 +65,33 @@ pub fn on_link_submit(siv: &mut Cursive, target: String) {
                 target_human
             )))
             .button("Yep", move |s| {
-                log::info!("on_link_submit - user said yes :) continuing...");
-                // the human wants us to open the link for him... we will comply...
+                info!("opening the link '{}'", target);
+
+                // hide the confirmation dialog
+                s.pop_layer();
+                debug!("removed the confirmation dialog");
+
+                // open the link
                 open_link(s, target.clone())
             })
             .button("Nope", move |s| {
-                log::info!("on_link_submit - said no :/ aborting...");
                 // so he doesn't want us to open the link... delete the whole dialog and pretend it
                 // didn't happen
                 s.pop_layer();
             }),
         ),
     );
-
-    log::info!("on_link_submit finished successfully");
 }
 
 /// Helper function for fetching and displaying an article from a given link
 fn open_link(siv: &mut Cursive, target: String) {
-    log::debug!("open_link was called");
-
-    // hide the confirmation dialog
-    siv.pop_layer();
-
     // fetch the article
-    log::debug!("fetching the article");
     let article = match ArticleBuilder::new(0, Some(target), &CONFIG.api_config.base_url)
         .build(&mut DefaultParser::new(&CONFIG.settings.toc))
     {
         Ok(article) => article,
         Err(error) => {
-            log::warn!("{:?}", error);
+            warn!("{:?}", error);
 
             // display an error message
             siv.add_layer(
@@ -144,16 +99,14 @@ fn open_link(siv: &mut Cursive, target: String) {
                     .title("Error")
                     .title_position(HAlign::Center)
             );
-
-            log::debug!("open_link failed to finish");
             return;
         }
     };
+    debug!("fetched the article");
 
     // display the article
-    log::debug!("displaying the article");
     if let Err(error) = display_article(siv, article) {
-        log::warn!("{:?}", error);
+        warn!("{:?}", error);
 
         // display an error message
         siv.add_layer(
@@ -162,80 +115,66 @@ fn open_link(siv: &mut Cursive, target: String) {
                 .title_position(HAlign::Center)
         );
 
-        log::debug!("open_link failed to finish");
         return;
     }
-
-    log::debug!("open_link finished successfully");
+    debug!("displayed the article");
 }
 
 /// Helper function for displaying an article on the screen. This includes creating an article view
 /// and any errors it encountred are returned
 fn display_article(siv: &mut Cursive, article: Article) -> Result<()> {
-    log::debug!("display_article was called");
-
     // if the search layer still exists, then remove it
     if siv
         .find_name::<TextView>("search_results_preview")
         .is_some()
     {
         siv.pop_layer();
-        log::debug!("removed the search_results_preview layer");
+        debug!("removed the last layer")
     }
 
-    // remove views
-    remove_view_from_layout(siv, "logo_view", "article_layout");
-    remove_view_from_layout(siv, "article_view", "article_layout");
-    remove_view_from_layout(siv, "toc_view", "article_layout");
+    // get the amount of layers, this is used as an id for the new article layout so we don't have
+    // multiple layouts with the same name
+
+    let layer_len = siv.screen_mut().len() + 1;
+
+    let article_layout_name = format!("article_layout-{}", layer_len);
+    let article_view_name = format!("article_view-{}", layer_len);
+
+    debug!("article_layout name '{}'", article_layout_name);
+    debug!("artilce_view name '{}'", article_view_name);
+
+    // create the article view
+    let article_view = ArticleView::new(article.clone())
+        .with_name(&article_view_name)
+        .scrollable()
+        .with_panel()
+        .title("wiki-tui");
+    debug!("created the article view");
+
+    let article_layout = RootLayout::horizontal(CONFIG.keybindings.clone())
+        .child(article_view)
+        .with_name(&article_layout_name);
+    debug!("created the article layout");
+
+    siv.add_fullscreen_layer(OnEventView::new(article_layout).on_event('S', open_search_bar));
+    debug!("created a new fullscreen layer and added the article layout to it");
 
     // display the toc if there is one
     if let Some(toc) = article.toc() {
-        log::info!("displaying the table of contents");
-        ui::toc::add_table_of_contents(siv, toc);
-    }
-
-    // check if the article has a toc
-    let has_toc = article.toc().is_some();
-
-    // create the article view
-    let article_view = ArticleView::new(article);
-    log::debug!("created an instance of ArticleView");
-
-    // get the index of the article view (this index determines the location of the toc)
-    let index = match CONFIG.settings.toc.position {
-        TocPosition::LEFT => 1,
-        TocPosition::RIGHT => 0,
-    };
-
-    // add the article view to the screen
-    let result = siv.call_on_name("article_layout", |view: &mut RootLayout| {
-        if CONFIG.features.toc && has_toc {
-            view.insert_child(
-                index,
-                view_with_theme!(
-                    CONFIG.theme.article_view,
-                    Dialog::around(article_view.with_name("article_view").scrollable())
-                ),
-            );
+        if let Err(error) = ui::toc::add_table_of_contents(siv, toc)
+            .context("failed displaying the table of contents")
+        {
+            warn!("{:?}", error);
+            display_error(siv, error);
         } else {
-            view.add_child(view_with_theme!(
-                CONFIG.theme.article_view,
-                Dialog::around(article_view.with_name("article_view").scrollable())
-            ));
+            debug!("displayed the table of contents");
         }
-    });
-    if result.is_none() {
-        log::debug!("display_article failed to finish");
-        bail!("Couldn't find the article layout");
     }
-    log::debug!("added the ArticleView to the screen");
 
     // focus the article view
-    siv.focus_name("article_view").with_context(|| {
-        log::debug!("display_article failed to finish");
-        "Failed to focus the article view"
-    })?;
+    siv.focus_name(&article_view_name)
+        .context("failed focussing the article view")?;
 
-    log::debug!("display_article finished successfully");
+    debug!("focussed the article view");
     Ok(())
 }

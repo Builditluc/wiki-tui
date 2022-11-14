@@ -32,7 +32,7 @@ pub struct DefaultParser {
 impl DefaultParser {
     /// Creates a new DefaultParser with a given toc configuration
     pub fn new(toc_settings: &TocSettings) -> Self {
-        log::debug!("creating a new instance of DefaultParser");
+        debug!("creating a new instance of DefaultParser");
         Self {
             elements: Vec::new(),
             toc_settings: toc_settings.clone(),
@@ -43,10 +43,10 @@ impl DefaultParser {
     /// TableOfContents can be found in the document, it returns Ok(None). Any errors it
     /// encounters are returned
     fn parse_toc(&self, document: &Document) -> Result<Option<TableOfContents>> {
-        log::debug!("parse_toc was called");
+        debug!("parse_toc was called");
 
         // get the toc node from the document if it exists
-        log::debug!("retrieving the required nodes from the document");
+        debug!("retrieving the required nodes from the document");
         let toc_node = document
             .find(Attr("id", "toc"))
             .next()
@@ -54,20 +54,20 @@ impl DefaultParser {
 
         // get the title of the toc
         let toc_title = match self.toc_settings.title {
-            TocTitle::DEFAULT => toc_node
+            TocTitle::Default => toc_node
                 .find(Class("toctitle"))
                 .next()
                 .context("No toc title was found")?
                 .text(),
-            TocTitle::ARTICLE => self.get_title(document)?,
-            TocTitle::CUSTOM => self
+            TocTitle::Article => self.get_title(document)?,
+            TocTitle::Custom => self
                 .toc_settings
                 .title_custom
                 .clone()
                 .unwrap_or_else(|| "NONE".to_string()),
         };
 
-        log::debug!("parsing the toc now");
+        debug!("parsing the toc now");
         let mut toc_items: Vec<TableOfContentsItem> = Vec::new();
 
         // parse every child of the toc node
@@ -83,7 +83,7 @@ impl DefaultParser {
             }
         }
 
-        log::debug!("parse_toc finished successfully");
+        debug!("parse_toc finished successfully");
         Ok(Some(TableOfContents::new(toc_title, toc_items)))
     }
 
@@ -310,15 +310,15 @@ impl Parser for DefaultParser {
     /// Tries to parse a given html document into an Article. Any errors it encounters will be
     /// returned
     fn parse<R: Read>(&mut self, html: R) -> Result<Article> {
-        log::debug!("parse was called");
+        debug!("parse was called");
 
         // load the document
         let document = Document::from_read(html).context("failed reading the document")?;
-        log::debug!("loaded the document");
+        debug!("loaded the document");
 
         // retrieve the title of the article
         let title = self.get_title(&document)?;
-        log::debug!("retrieved the title '{}' from the document", &title);
+        debug!("retrieved the title '{}' from the document", &title);
         self.push_header(title, false);
 
         // parse the article content
@@ -341,12 +341,12 @@ impl Parser for DefaultParser {
             .context("Couldn't find the node 'mw-parser-output'")?
             .children()
             .map(|child| {
-                log::debug!("parsing the node {:?}", child);
+                debug!("parsing the node {:?}", child);
                 self.parse_node(child)
             })
             .count();
 
-        log::debug!(
+        debug!(
             "parsed '{}' nodes into '{}' elements",
             &parsed_count,
             self.elements.len()
@@ -359,12 +359,12 @@ impl Parser for DefaultParser {
             match self.parse_toc(&document) {
                 Ok(_toc) => toc = _toc,
                 Err(error) => {
-                    log::warn!("{}", error);
+                    warn!("{}", error);
                 }
             };
         }
 
-        log::debug!("parse finished successfully");
+        debug!("parse finished successfully");
         Ok(Article::new(std::mem::take(&mut self.elements), toc))
     }
 }

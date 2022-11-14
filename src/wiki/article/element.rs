@@ -17,6 +17,7 @@ pub struct ArticleElement {
     attributes: HashMap<String, String>,
 }
 
+#[allow(dead_code)]
 impl ArticleElement {
     /// Creates a new element. This should not be used directly
     pub fn new(id: i32, width: usize, style: Style, content: String) -> Self {

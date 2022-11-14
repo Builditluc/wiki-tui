@@ -16,7 +16,7 @@ pub struct ArticleBuilder {
 impl ArticleBuilder {
     /// Creates a new Articlebuilder
     pub fn new(page_id: i32, target: Option<String>, base_url: &str) -> ArticleBuilder {
-        log::debug!("creating a new instance of ArticleBuilder");
+        debug!("creating a new instance of ArticleBuilder");
         ArticleBuilder {
             page_id,
             target,
@@ -26,13 +26,13 @@ impl ArticleBuilder {
 
     /// Fetches the article and parses it with a given parser. Any errors it encounters will be returned
     pub fn build(&self, parser: &mut impl Parser) -> Result<Article> {
-        log::info!("beginning the build process");
+        info!("beginning the build process");
         let url = self.build_url();
 
-        log::info!("making the request to '{}'", url);
+        info!("making the request to '{}'", url);
         let response = self.make_request(&url)?;
 
-        log::info!("parsing the article");
+        info!("parsing the article");
         self.parse_response(parser, response)
     }
 

@@ -32,6 +32,7 @@ panic-message = "0.3.0"
 backtrace = "0.3"
 toml = "0.5.9"
 structopt = "0.3.25"
+chrono = "0.4"
 
 [dependencies.cursive]
 version = "0.17"
@@ -39,6 +40,9 @@ default-features = false
 
 [dependencies.cursive_buffered_backend]
 # git = "https://github.com/gyscos/cursive_buffered_backend"
+version = "0.6.0"
+
+[dependencies.cursive-aligned-view]
 version = "0.6.0"
 
 [dependencies.reqwest]

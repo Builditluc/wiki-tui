@@ -25,8 +25,9 @@
 ## Preview
 ### How it looks
 
-![image](https://user-images.githubusercontent.com/37375448/139769364-46a69dce-f386-4369-a82e-4a45adac3b52.png)
-![image](https://user-images.githubusercontent.com/37375448/139769469-0b2e9f01-f758-4bb2-8227-4186f658cfcc.png) <br>
+![preview-1](docs/assets/images/preview-1.png)
+![preview-2](docs/assets/images/preview-2.png)
+![preview-3](docs/assets/images/preview-3.png)
 > Note: These Screenshots were taken on [iTerm2](https://iterm2.com) (MacOS) with the [Fira Code](https://github.com/tonsky/FiraCode) font
 
 For more information, please visit the [website](https://builditluc.github.io/wiki-tui/)

@@ -30,7 +30,7 @@ pub struct ArticleView {
 impl ArticleView {
     /// Creates a new ArticleView with a given article as its content
     pub fn new(article: Article) -> Self {
-        log::debug!("creating a new instance of ArticleView");
+        debug!("creating a new instance of ArticleView");
         ArticleView {
             content: ArticleContent::new(article),
             last_size: Vec2::zero(),
@@ -41,6 +41,7 @@ impl ArticleView {
 
     /// Moves the viewport by a given amount in a given direction
     fn scroll(&mut self, direction: Absolute, amount: usize) -> EventResult {
+        debug!("scrolling '{:?}' with an amount of '{}'", direction, amount);
         match direction {
             Absolute::Up => self
                 .viewport_offset
@@ -65,7 +66,6 @@ impl ArticleView {
         // y-position
         if link_pos.y <= viewport_top {
             let move_amount = viewport_top.saturating_sub(link_pos.y);
-            log::debug!("moving the link down by '{}'", move_amount);
             self.content.move_selected_link(Absolute::Down, move_amount);
 
             return EventResult::Consumed(None);
@@ -78,7 +78,6 @@ impl ArticleView {
         let viewport_bottom = viewport_top.saturating_add(self.viewport_size.get().y);
         if link_pos.y >= viewport_bottom {
             let move_amount = link_pos.y.saturating_sub(viewport_bottom);
-            log::debug!("moving the link up by '{}'", move_amount);
             self.content.move_selected_link(Absolute::Up, move_amount);
 
             return EventResult::Consumed(None);
@@ -92,7 +91,7 @@ impl ArticleView {
         if !CONFIG.features.toc {
             return;
         }
-        log::info!("selecting the header number '{}'", index);
+        info!("selecting the header '{}'", index);
 
         // get the position of the header and the viewport top and bottom
         let header_pos = self
@@ -101,11 +100,17 @@ impl ArticleView {
             .unwrap_or_else(|| self.viewport_offset.get());
         let viewport_top = self.viewport_offset.get();
 
+        debug!(
+            "header_pos: '{}' viewport_top: '{}'",
+            header_pos, viewport_top
+        );
+
         // if the header is above the viewport, then get the difference between the header and the
         // viewport and scroll up by that amount
         if header_pos < viewport_top {
             let move_amount = viewport_top.saturating_sub(header_pos);
             self.scroll(Absolute::Up, move_amount);
+            debug!("scrolled '{}' up", move_amount);
             return;
         }
 
@@ -113,6 +118,7 @@ impl ArticleView {
         // viewport and scroll down by that amount
         let move_amount = header_pos.saturating_sub(viewport_top);
         self.scroll(Absolute::Down, move_amount);
+        debug!("scrolled '{}' down", move_amount);
     }
 }
 
@@ -155,7 +161,7 @@ impl View for ArticleView {
         if self.last_size == size {
             return;
         }
-        log::debug!("final size for the view is '({},{})'", size.x, size.y);
+        debug!("final size for the view is '({},{})'", size.x, size.y);
 
         // save the new size and compute the lines
         self.last_size = size;
@@ -164,11 +170,6 @@ impl View for ArticleView {
 
     fn required_size(&mut self, constraint: Vec2) -> Vec2 {
         // calculate and return the required size
-        log::debug!(
-            "calculating the required size for '({},{})'",
-            constraint.x,
-            constraint.y
-        );
         self.content.required_size(constraint)
     }
 
@@ -238,24 +239,24 @@ impl View for ArticleView {
                 EventResult::Consumed(None)
             }
             Event::Key(Key::Enter) if CONFIG.features.links => {
-                log::info!("opening the link");
+                info!("opening the selected link");
 
                 // get current link and retrieve the ArticleElement linked to it
                 let current_link = self.content.current_link();
-                log::debug!("current link is '{:?}'", current_link);
+                debug!("current link id is '{:?}'", current_link);
 
                 if let Some(element) = self.content.element_by_id(current_link) {
-                    log::debug!("found the element");
+                    debug!("found the corresponding element of the link");
 
                     // get target link from the article element
                     let target = match element.get_attribute("target") {
                         Some(t) => t.to_string(),
                         None => return EventResult::Ignored,
                     };
-                    log::info!("target article is '{}'", target);
+                    debug!("target article is '{}'", target);
 
                     // return the callback
-                    log::debug!("returning the callback to open the link");
+                    debug!("returning the callback to open the link");
                     return EventResult::Consumed(Some(Callback::from_fn(move |s| {
                         on_link_submit(s, target.clone())
                     })));
@@ -276,21 +277,24 @@ impl View for ArticleView {
                     match element.get_attribute("type") {
                         // if it's a link, check if it's valid and then open it
                         Some("link") if CONFIG.features.links => {
-                            log::info!("detected a mouse event over the link '{}'", element.id());
+                            debug!("opening the clicked link");
                             let target = match element.get_attribute("target") {
                                 Some(t) => t.to_string(),
                                 None => {
-                                    log::warn!("the link '{}' is not valid!", element.id());
+                                    warn!("the link '{}' is not valid!", element.id());
                                     return EventResult::Consumed(None);
                                 }
                             };
-                            log::info!("target article is '{}'", target);
+                            debug!("target article is '{}'", target);
+                            debug!("link id is '{}'", element.id());
 
                             // select this link
                             let element_id = *element.id();
                             self.content.set_current_link(element_id);
+                            debug!("selected the clicked link");
 
                             // return the callback
+                            debug!("returning the callback to open the link");
                             return EventResult::Consumed(Some(Callback::from_fn(move |s| {
                                 on_link_submit(s, target.clone())
                             })));
@@ -298,7 +302,7 @@ impl View for ArticleView {
 
                         // if it's a button, don't do anything for now
                         Some("button") => {
-                            log::error!("wow, you've found a secret!")
+                            error!("wow, you've found a secret!")
                         }
 
                         // this element doesn't support mouse clicking
