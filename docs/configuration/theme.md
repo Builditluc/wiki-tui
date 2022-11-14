@@ -129,7 +129,7 @@ text = "black"
 
 ## Configure the borders
 
-:fontawesome-solid-microchip: pre-release
+[:octicons-tag-24: 0.6.0][release-0.6.0]
 :octicons-milestone-16: Default: `default` | `thin`
 
 !!! warning
@@ -173,3 +173,4 @@ You can change the look of the borders in wiki-tui. Available styles are:
 
 [release-0.3.0]: https://github.com/Builditluc/wiki-tui/releases/tag/v0.3
 [release-0.4.0]: https://github.com/Builditluc/wiki-tui/releases/tag/v0.4
+[release-0.6.0]: https://github.com/Builditluc/wiki-tui/releases/tag/v0.6

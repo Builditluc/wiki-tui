@@ -43,8 +43,8 @@ The following modes are supported
 | Scroll Up               | `up`         | ++up++             | [:octicons-tag-24: 0.5.0][release-0.5.0]  |
 | Scroll / Select Left    | `left`       | ++left++           | [:octicons-tag-24: 0.5.0][release-0.5.0]  |
 | Scroll / Select Right   | `right`      | ++right++          | [:octicons-tag-24: 0.5.0][release-0.5.0]  |
-| Focus the next view     | `focus_next` | ++tab++            | :fontawesome-solid-microchip: pre-release |
-| Focus the previous view | `focus_prev` | ++shift+tab++      | :fontawesome-solid-microchip: pre-release |
+| Focus the next view     | `focus_next` | ++tab++            | [:octicons-tag-24: 0.6.0][release-0.6.0]  |
+| Focus the previous view | `focus_prev` | ++shift+tab++      | [:octicons-tag-24: 0.6.0][release-0.6.0]  |
 
 ## Sample Remap
 
@@ -67,3 +67,4 @@ right.key = "l"
 ```
 
 [release-0.5.0]: https://github.com/Builditluc/wiki-tui/releases/tag/v0.5.0
+[release-0.6.0]: https://github.com/Builditluc/wiki-tui/releases/tag/v0.6.0

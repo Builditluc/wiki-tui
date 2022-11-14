@@ -47,6 +47,7 @@ actions can be remapped in the config
 |  `DOWN`        | ++down++           | :material-check: |
 |  `LEFT`        | ++left++           | :material-check: |
 |  `RIGHT`       | ++right++          | :material-check: |
-|  `SWITCH TAB`  | ++tab++            |                  |
+|  `NEXT TAB`    | ++tab++            | :material-check: |
+|  `PREV TAB`    | ++shift+tab++      | :material-check: |
 |  `OPEN`        | ++return++         |                  |
 |  `QUIT`        | ++q++              |                  |
