@@ -35,7 +35,7 @@ pub struct SearchBuilder {
 #[doc(hidden)]
 struct JsonResponse {
     #[serde(rename = "continue")]
-    continue_code: JsonResponseContinue,
+    continue_code: Option<JsonResponseContinue>,
 
     query: JsonResponseQuery,
 }
@@ -241,7 +241,10 @@ impl SearchBuilder {
             serde_json::from_str(&json).context("failed to deserialize the response")?;
 
         // retrieve the values of importance
-        let search_offset = deserialized_json.continue_code.offset as usize;
+        let search_offset = match deserialized_json.continue_code {
+            Some(continue_code) => Some(continue_code.offset as usize),
+            None => None,
+        };
         let search_info = self.deserialize_search_info(deserialized_json.query.info.take());
         let search_results =
             self.deserialize_search_results(std::mem::take(&mut deserialized_json.query.search));

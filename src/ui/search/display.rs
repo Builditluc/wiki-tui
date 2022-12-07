@@ -83,7 +83,7 @@ pub fn display_search_results(siv: &mut Cursive, search: Search, query: &str) ->
     // create the continue button (Button)
     let search_continue_button = {
         let query = query.to_string();
-        let offset = search.search_offset().to_owned();
+        let offset = search.search_offset().unwrap_or(&0).to_owned();
         Button::new("Show more results...", move |s| {
             on_continue_submit(s, &query, &offset)
         })
@@ -91,7 +91,7 @@ pub fn display_search_results(siv: &mut Cursive, search: Search, query: &str) ->
     };
 
     // create the preview view (TextView)
-    let search_result_preview = TextView::new("Test")
+    let search_result_preview = TextView::new("")
         .h_align(HAlign::Left)
         .with_name(search_result_preview_name)
         .with_panel()
@@ -203,8 +203,9 @@ pub fn display_more_search_results(
     // modify the callback of the continue button so we don't search for the same thing again
     {
         let query = search_query.to_string();
-        search_continue_button
-            .set_callback(move |s| on_continue_submit(s, &query, search.search_offset()));
+        search_continue_button.set_callback(move |s| {
+            on_continue_submit(s, &query, search.search_offset().unwrap_or(&0))
+        });
     }
     debug!("set the new callback of the continue button");
 

@@ -9,6 +9,8 @@ use crate::{
 use anyhow::{Context, Result};
 use cursive::Cursive;
 
+use super::utils::{display_dialog, display_message};
+
 pub mod bar_popup;
 mod display;
 mod select;
@@ -16,7 +18,7 @@ mod select;
 /// Returns the default SearchBuilder
 fn build_search() -> SearchBuilder {
     SearchBuilder::new(&config::CONFIG.api_config.base_url)
-        .info(SearchMetadata::new().total_hits())
+        .info(SearchMetadata::new().total_hits().suggestion())
         .prop(SearchProperties::new().snippet().wordcount().timestamp())
         .sort(SearchSortOrder::JustMatch)
 }
@@ -34,8 +36,39 @@ pub fn on_search(siv: &mut Cursive, query: &str) {
         }
     };
 
+    // if we've found no results, display the appropriate message
+    if search.is_empty() && search.info().suggestion().is_none() {
+        warn!("could'nt find any search results and no query suggestion was given");
+        display_message(
+            siv,
+            "Warning",
+            &format!("Couldn't find any results for '{}'", query),
+        );
+        return;
+    }
+
+    // if we've found no results, but have a suggestion for another query, display a dialog
+    if search.is_empty() && search.info().suggestion().is_some() {
+        info!(
+            "no results are available, suggesting a new query, '{}'",
+            search.info().suggestion().unwrap()
+        );
+
+        display_dialog(
+            siv,
+            "Information",
+            &format!(
+                "No results for '{}' were found. Do you want to search for '{}' instead?",
+                query,
+                search.info().suggestion().unwrap()
+            ),
+            move |siv| on_search(siv, search.info().suggestion().unwrap()),
+        );
+        return;
+    }
+
     // display the found search results
-    if let Err(error) = display::display_search_results(siv, search, query)
+    if let Err(error) = display::display_search_results(siv, search.clone(), query)
         .with_context(|| format!("failed to display the search results for '{}'", query))
     {
         warn!("{:?}", error);

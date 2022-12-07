@@ -5,7 +5,7 @@ use crate::wiki::search::{info::SearchInfo, result::SearchResult};
 #[derive(Clone)]
 pub struct Search {
     /// Use this offset to continue the search
-    search_offset: usize,
+    search_offset: Option<usize>,
     /// The metada of the search
     info: SearchInfo,
     /// The results of the search
@@ -14,7 +14,7 @@ pub struct Search {
 
 impl Search {
     /// Creates a new Search with a given offset, metadata and resutls
-    pub fn new(search_offset: usize, info: SearchInfo, results: Vec<SearchResult>) -> Self {
+    pub fn new(search_offset: Option<usize>, info: SearchInfo, results: Vec<SearchResult>) -> Self {
         Search {
             search_offset,
             info,
@@ -23,8 +23,8 @@ impl Search {
     }
 
     /// The search offset required for the next search
-    pub fn search_offset(&self) -> &usize {
-        &self.search_offset
+    pub fn search_offset(&self) -> Option<&usize> {
+        self.search_offset.as_ref()
     }
 
     /// The metadata of the search
@@ -34,5 +34,10 @@ impl Search {
     /// The results of the search
     pub fn results(&self) -> impl Iterator<Item = &SearchResult> {
         self.results.iter()
+    }
+
+    /// Checks whether the search contains results
+    pub fn is_empty(&self) -> bool {
+        self.results.is_empty()
     }
 }
