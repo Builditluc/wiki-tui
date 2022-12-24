@@ -4,8 +4,8 @@
 [![Stargazers](https://img.shields.io/github/stars/Builditluc/wiki-tui.svg?style=for-the-badge)](https://github.com/Builditluc/wiki-tui/stargazers)
 [![Issues](https://img.shields.io/github/issues/Builditluc/wiki-tui.svg?style=for-the-badge)](https://github.com/Builditluc/wiki-tui/issues)
 [![MIT license](https://img.shields.io/github/license/Builditluc/wiki-tui?style=for-the-badge)](https://github.com/Builditluc/wiki-tui/blob/stable/LICENSE.txt)
-![GitHub Workflow Status](https://img.shields.io/github/workflow/status/Builditluc/wiki-tui/Rust?style=for-the-badge)
-![Lines of code](https://img.shields.io/tokei/lines/github/Builditluc/wiki-tui?style=for-the-badge)
+[![Continuous Integration](https://img.shields.io/github/actions/workflow/status/builditluc/wiki-tui/ci.yml?label=Continuous%20Integration&style=for-the-badge)](https://github.com/Builditluc/wiki-tui/actions/workflows/ci.yml)
+[![Continuous Deployment](https://img.shields.io/github/actions/workflow/status/builditluc/wiki-tui/cd.yml?label=Continuous%20Deployment&style=for-the-badge)](https://github.com/Builditluc/wiki-tui/actions/workflows/cd.yml)
 
 <br />
 <p align="center">
