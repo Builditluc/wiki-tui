@@ -18,6 +18,8 @@ pub fn generate_and_display_preview(
     let snippet = item.snippet().unwrap();
     let mut preview = StyledString::new();
 
+    log::debug!("snippet: '{}'", snippet);
+
     // add the title of the item to the preview
     preview.append_plain(format!("{}\n", item.title()));
 

@@ -1,4 +1,5 @@
 use crate::config::{self, TocPosition, CONFIG};
+use crate::ui::panel::WithPanel;
 use crate::ui::utils::display_error;
 use crate::ui::{self, article::ArticleView, views::RootLayout};
 use crate::view_with_theme;
@@ -9,7 +10,7 @@ use anyhow::{Context, Result};
 use cursive::event::{Event, Key};
 use cursive::traits::Scrollable;
 use cursive::view::{Nameable, Resizable};
-use cursive::views::{Dialog, SelectView};
+use cursive::views::SelectView;
 use cursive::Cursive;
 
 /// Adds a table of contents to a given layout
@@ -103,15 +104,14 @@ pub fn add_table_of_contents(siv: &mut Cursive, toc: &TableOfContents) -> Result
         toc_layout_index,
         view_with_theme!(
             config::CONFIG.theme.toc_view,
-            Dialog::around(
-                toc_view
-                    .with_name(toc_view_name)
-                    .scrollable()
-                    .scroll_x(config::CONFIG.settings.toc.scroll_x)
-                    .scroll_y(config::CONFIG.settings.toc.scroll_y)
-                    .full_height()
-            )
-            .title(toc.title())
+            toc_view
+                .with_name(toc_view_name)
+                .scrollable()
+                .scroll_x(config::CONFIG.settings.toc.scroll_x)
+                .scroll_y(config::CONFIG.settings.toc.scroll_y)
+                .full_height()
+                .with_panel()
+                .title(toc.title())
         )
         .min_width(config::CONFIG.settings.toc.min_width)
         .max_width(config::CONFIG.settings.toc.max_width),
