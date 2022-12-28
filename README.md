@@ -8,7 +8,7 @@
 <br />
 <p align="center">
   <a href="https://github.com/Builditluc/wiki-tui">
-    <img src= "logo.png" alt="Logo" width="234" height="167">
+    <img src= "https://raw.githubusercontent.com/Builditluc/wiki-tui/bug/fix-large-release-size/logo.png" alt="Logo" width="234" height="167">
   </a>
 
   <h3 align="center">WIKI-TUI</h3>
@@ -23,9 +23,9 @@
 ## Preview
 ### How it looks
 
-![preview-1](docs/assets/images/preview-1.png)
-![preview-2](docs/assets/images/preview-2.png)
-![preview-3](docs/assets/images/preview-3.png)
+[![preview-1](https://raw.githubusercontent.com/Builditluc/wiki-tui/main/docs/assets/images/preview-1.png)](docs/assets/images/preview-1.png)
+[![preview-2](https://raw.githubusercontent.com/Builditluc/wiki-tui/main/docs/assets/images/preview-2.png)](docs/assets/images/preview-2.png)
+[![preview-3](https://raw.githubusercontent.com/Builditluc/wiki-tui/main/docs/assets/images/preview-3.png)](docs/assets/images/preview-3.png)
 > Note: These Screenshots were taken on [iTerm2](https://iterm2.com) (MacOS) with the [Fira Code](https://github.com/tonsky/FiraCode) font
 
 For more information, please visit the [website](https://builditluc.github.io/wiki-tui/)

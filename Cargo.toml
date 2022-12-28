@@ -10,10 +10,7 @@ readme = "README.md"
 
 include = [
   "Cargo.*",
-  "logo.png",
-  "LICENSE.txt",
   "src/",
-  "docs/assets/images/preview*",
 ]
 
 
