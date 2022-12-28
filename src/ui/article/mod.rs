@@ -1,6 +1,6 @@
 use crate::ui::panel::WithPanel;
 use crate::ui::search::bar_popup::open_search_bar;
-use crate::ui::utils::display_error;
+use crate::ui::utils::{display_dialog, display_error};
 use crate::wiki::{
     article::{parser::DefaultParser, Article, ArticleBuilder},
     search::SearchResult,
@@ -46,7 +46,7 @@ fn fetch_article(page_id: i32, target: Option<String>) -> Result<Article> {
         .build(&mut DefaultParser::new(&CONFIG.settings.toc))
 }
 
-/// Fetches an article from a given link and displays it. It's the on_submit callback for the
+/// Displays a confirmation dialog on whether to open the link. It's the on_submit callback for the
 /// article view
 pub fn on_link_submit(siv: &mut Cursive, target: String) {
     // convert the target into a human-friendly format
@@ -56,31 +56,15 @@ pub fn on_link_submit(siv: &mut Cursive, target: String) {
     };
 
     info!("requesting confirmation to open the link '{}'", target);
-    siv.add_layer(
-        // create a dialog that asks the user for confirmation whether he really wants to open this
-        // link
-        RootLayout::new(Orientation::Vertical, CONFIG.keybindings.clone()).child(
-            Dialog::around(TextView::new(format!(
-                "Do you want to open the article '{}'?",
-                target_human
-            )))
-            .button("Yep", move |s| {
-                info!("opening the link '{}'", target);
 
-                // hide the confirmation dialog
-                s.pop_layer();
-                debug!("removed the confirmation dialog");
+    let title = String::new();
+    let body = format!("Do you want to open the artilce '{}'?", target_human);
 
-                // open the link
-                open_link(s, target.clone())
-            })
-            .button("Nope", move |s| {
-                // so he doesn't want us to open the link... delete the whole dialog and pretend it
-                // didn't happen
-                s.pop_layer();
-            }),
-        ),
-    );
+    display_dialog(siv, &title, &body, move |siv| {
+        info!("opening the link '{}'", target);
+        // open the link
+        open_link(siv, target.clone())
+    });
 }
 
 /// Helper function for fetching and displaying an article from a given link
