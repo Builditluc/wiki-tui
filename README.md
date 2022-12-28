@@ -8,7 +8,7 @@
 <br />
 <p align="center">
   <a href="https://github.com/Builditluc/wiki-tui">
-    <img src= "logo.png" alt="Logo" width="234" height="167">
+    <img src= "https://raw.githubusercontent.com/Builditluc/wiki-tui/bug/fix-large-release-size/logo.png" alt="Logo" width="234" height="167">
   </a>
 
   <h3 align="center">WIKI-TUI</h3>
