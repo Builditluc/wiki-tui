@@ -13,7 +13,7 @@ use crate::{
 use anyhow::{Context, Result};
 use cursive::align::HAlign;
 use cursive::direction::Orientation;
-use cursive::view::{Nameable, Scrollable};
+use cursive::view::{Nameable, Resizable, Scrollable};
 use cursive::views::{Dialog, OnEventView, TextView};
 use cursive::Cursive;
 
@@ -137,7 +137,8 @@ fn display_article(siv: &mut Cursive, article: Article) -> Result<()> {
 
     let article_layout = RootLayout::horizontal(CONFIG.keybindings.clone())
         .child(article_view)
-        .with_name(&article_layout_name);
+        .with_name(&article_layout_name)
+        .full_screen();
     debug!("created the article layout");
 
     siv.add_fullscreen_layer(OnEventView::new(article_layout).on_event('S', open_search_bar));
