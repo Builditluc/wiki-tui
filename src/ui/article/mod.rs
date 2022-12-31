@@ -57,7 +57,7 @@ pub fn on_link_submit(siv: &mut Cursive, target: String) {
     info!("requesting confirmation to open the link '{}'", target);
 
     let title = String::new();
-    let body = format!("Do you want to open the artilce '{}'?", target_human);
+    let body = format!("Do you want to open the article '{}'?", target_human);
 
     display_dialog(siv, &title, &body, move |siv| {
         info!("opening the link '{}'", target);
