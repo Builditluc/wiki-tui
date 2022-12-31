@@ -7,7 +7,7 @@ name: Continuous Integration
 jobs:
   build:
     name: Build
-    if: ${{ (contains(github.event.pull_request.labels.*.name, 'bug')) || (contains(github.event.pull_request.labels.*.name, 'enhancement')) }}
+    if: ${{ (contains(github.event.pull_request.labels.*.name, 'type: bug')) || (contains(github.event.pull_request.labels.*.name, 'type: feature')) }}
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -28,7 +28,7 @@ jobs:
 
   check:
     name: Clippy Check
-    if: ${{ (contains(github.event.pull_request.labels.*.name, 'bug')) || (contains(github.event.pull_request.labels.*.name, 'enhancement')) }}
+    if: ${{ (contains(github.event.pull_request.labels.*.name, 'type: bug')) || (contains(github.event.pull_request.labels.*.name, 'type: feature')) }}
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -49,7 +49,7 @@ jobs:
 
   test:
     name: Run Tests
-    if: ${{ (contains(github.event.pull_request.labels.*.name, 'bug')) || (contains(github.event.pull_request.labels.*.name, 'enhancement')) }}
+    if: ${{ (contains(github.event.pull_request.labels.*.name, 'type: bug')) || (contains(github.event.pull_request.labels.*.name, 'type: feature')) }}
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -70,7 +70,7 @@ jobs:
 
   format:
     name: Check formatting
-    if: ${{ (contains(github.event.pull_request.labels.*.name, 'bug')) || (contains(github.event.pull_request.labels.*.name, 'enhancement')) }}
+    if: ${{ (contains(github.event.pull_request.labels.*.name, 'type: bug')) || (contains(github.event.pull_request.labels.*.name, 'type: feature')) }}
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -91,7 +91,7 @@ jobs:
           args: --all -- --check
   documentation:
     name: Rebuild Documentation
-    if: ${{ (github.event.pull_request.merged == true) && (contains(github.event.pull_request.labels.*.name, 'documentation')) }}
+    if: ${{ (github.event.pull_request.merged == true) && (contains(github.event.pull_request.labels.*.name, 'type: documentation')) }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
