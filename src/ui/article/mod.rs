@@ -12,7 +12,6 @@ use crate::{
 
 use anyhow::{Context, Result};
 use cursive::align::HAlign;
-use cursive::direction::Orientation;
 use cursive::view::{Nameable, Resizable, Scrollable};
 use cursive::views::{Dialog, OnEventView, TextView};
 use cursive::Cursive;
@@ -78,6 +77,7 @@ fn open_link(siv: &mut Cursive, target: String) {
             warn!("{:?}", error);
 
             // display an error message
+            // TODO: use builtin helper function for error message here
             siv.add_layer(
                 Dialog::info("A Problem occurred while fetching the article.\nCheck the logs for further information")
                     .title("Error")
@@ -93,6 +93,7 @@ fn open_link(siv: &mut Cursive, target: String) {
         warn!("{:?}", error);
 
         // display an error message
+        // TODO: use builtin helper function for error message here
         siv.add_layer(
             Dialog::info("A Problem occurred while displaying the article.\nCheck the logs for further information")
                 .title("Error")
