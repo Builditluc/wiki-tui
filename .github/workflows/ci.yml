@@ -7,7 +7,6 @@ name: Continuous Integration
 jobs:
   build:
     name: Build
-    if: ${{ (contains(github.event.pull_request.labels.*.name, 'bug')) || (contains(github.event.pull_request.labels.*.name, 'enhancement')) }}
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -28,7 +27,6 @@ jobs:
 
   check:
     name: Clippy Check
-    if: ${{ (contains(github.event.pull_request.labels.*.name, 'bug')) || (contains(github.event.pull_request.labels.*.name, 'enhancement')) }}
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -49,7 +47,6 @@ jobs:
 
   test:
     name: Run Tests
-    if: ${{ (contains(github.event.pull_request.labels.*.name, 'bug')) || (contains(github.event.pull_request.labels.*.name, 'enhancement')) }}
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -70,7 +67,6 @@ jobs:
 
   format:
     name: Check formatting
-    if: ${{ (contains(github.event.pull_request.labels.*.name, 'bug')) || (contains(github.event.pull_request.labels.*.name, 'enhancement')) }}
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -91,7 +87,7 @@ jobs:
           args: --all -- --check
   documentation:
     name: Rebuild Documentation
-    if: ${{ (github.event.pull_request.merged == true) && (contains(github.event.pull_request.labels.*.name, 'documentation')) }}
+    if: ${{ (github.event.pull_request.merged == true) }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
