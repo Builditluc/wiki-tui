@@ -10,13 +10,16 @@ changelog:
         - breaking-change
     - title: Exciting New Features 🎉
       labels:
-        - enhancement
+        - "type: feature"
     - title: Bug Fixes 🐛
       labels:
-        - bug
+        - "type: bug"
     - title: Documentation Changes
       labels:
-        - documentation
+        - "type: documentation"
+    - title: Style and Structure Changes
+      labels:
+        - "type: refactor"
     - title: Other Changes
       labels:
         - "*"
