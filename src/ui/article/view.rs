@@ -1,5 +1,7 @@
 use crate::{
-    config::CONFIG, ui::article::content::ArticleContent, ui::article::on_link_submit,
+    config::CONFIG,
+    ui::article::content::ArticleContent,
+    ui::{article::on_link_submit, utils::display_message},
     wiki::article::Article,
 };
 
@@ -120,6 +122,53 @@ impl ArticleView {
         self.scroll(Absolute::Down, move_amount);
         debug!("scrolled '{}' down", move_amount);
     }
+
+    /// Check if the link can safely be opened and open it
+    fn check_and_open_link(&self) -> EventResult {
+        // get current link and retrieve the ArticleElement linked to it
+        let current_link = self.content.current_link();
+        debug!("current link is '{:?}'", current_link);
+
+        if let Some(element) = self.content.element_by_id(current_link) {
+            debug!("found the element of the link");
+
+            // get target link from the article element
+            let target = match element.get_attribute("target") {
+                Some(t) => t.to_string(),
+                None => {
+                    warn!("missing attribute 'target' from element '{}'", element.id());
+                    warn!("the link '{}' is not valid", element.id());
+                    return EventResult::Ignored;
+                }
+            };
+            debug!("target link is '{}'", target);
+
+            // check whether this link pointing to another wikipedia article
+            if element.get_attribute("external").is_some() {
+                warn!("element '{}' contains attribute 'external'", element.id());
+                warn!("the link '{}' is external", element.id());
+                return EventResult::Consumed(Some(Callback::from_fn(move |s| {
+                    let title = "Information";
+                    let message = format!("This link doesn't point to another article. \nInstead, it leads to the following external webpage and therefore, cannot be opened: \n\n> {}", target);
+                    display_message(s, title, &message);
+                })));
+            }
+            debug!("target link is pointing to another wikipedia article");
+
+            // return the callback
+            debug!("returning the callback to open the link");
+            info!(
+                "opening the link '{}' with the target '{}'",
+                element.id(),
+                target
+            );
+            return EventResult::Consumed(Some(Callback::from_fn(move |s| {
+                on_link_submit(s, target.clone())
+            })));
+        }
+
+        return EventResult::Ignored;
+    }
 }
 
 impl View for ArticleView {
@@ -238,32 +287,7 @@ impl View for ArticleView {
 
                 EventResult::Consumed(None)
             }
-            Event::Key(Key::Enter) if CONFIG.features.links => {
-                info!("opening the selected link");
-
-                // get current link and retrieve the ArticleElement linked to it
-                let current_link = self.content.current_link();
-                debug!("current link id is '{:?}'", current_link);
-
-                if let Some(element) = self.content.element_by_id(current_link) {
-                    debug!("found the corresponding element of the link");
-
-                    // get target link from the article element
-                    let target = match element.get_attribute("target") {
-                        Some(t) => t.to_string(),
-                        None => return EventResult::Ignored,
-                    };
-                    debug!("target article is '{}'", target);
-
-                    // return the callback
-                    debug!("returning the callback to open the link");
-                    return EventResult::Consumed(Some(Callback::from_fn(move |s| {
-                        on_link_submit(s, target.clone())
-                    })));
-                }
-
-                EventResult::Ignored
-            }
+            Event::Key(Key::Enter) if CONFIG.features.links => self.check_and_open_link(),
             Event::Mouse {
                 event: MouseEvent::Release(MouseButton::Left),
                 position,
@@ -274,42 +298,30 @@ impl View for ArticleView {
                     .content
                     .get_element_at_position(position.saturating_sub(offset))
                 {
-                    match element.get_attribute("type") {
+                    return match element.get_attribute("type") {
                         // if it's a link, check if it's valid and then open it
                         Some("link") if CONFIG.features.links => {
-                            debug!("opening the clicked link");
-                            let target = match element.get_attribute("target") {
-                                Some(t) => t.to_string(),
-                                None => {
-                                    warn!("the link '{}' is not valid!", element.id());
-                                    return EventResult::Consumed(None);
-                                }
-                            };
-                            debug!("target article is '{}'", target);
-                            debug!("link id is '{}'", element.id());
-
                             // select this link
                             let element_id = *element.id();
                             self.content.set_current_link(element_id);
                             debug!("selected the clicked link");
 
-                            // return the callback
-                            debug!("returning the callback to open the link");
-                            return EventResult::Consumed(Some(Callback::from_fn(move |s| {
-                                on_link_submit(s, target.clone())
-                            })));
+                            self.check_and_open_link()
                         }
 
                         // if it's a button, don't do anything for now
                         Some("button") => {
-                            error!("wow, you've found a secret!")
+                            error!("wow, you've found a secret!");
+                            EventResult::Ignored
                         }
 
                         // this element doesn't support mouse clicking
-                        _ => {}
-                    }
+                        _ => EventResult::Ignored,
+                    };
                 }
-                EventResult::Consumed(None)
+
+                // if there isn't an element at the event position, ignore the event altogether
+                EventResult::Ignored
             }
             _ => EventResult::Ignored,
         }

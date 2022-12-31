@@ -217,16 +217,24 @@ impl DefaultParser {
     /// A helper function that adds a new link to the elements. It constructs an ArticleElement
     /// from the given content and target and then adds it to the array
     fn push_link(&mut self, content: String, target: &str) {
-        self.elements.push(
-            ArticleElement::new(
-                self.get_id(),
-                content.chars().count(),
-                Style::from(CONFIG.theme.text).combine(Effect::Underline),
-                content,
-            )
-            .attribute("type", "link")
-            .attribute("target", target),
-        );
+        // TODO: remove this hack for a better and more robust system that allows multiple link
+        // types
+
+        let mut element = ArticleElement::new(
+            self.get_id(),
+            content.chars().count(),
+            Style::from(CONFIG.theme.text).combine(Effect::Underline),
+            content,
+        )
+        .attribute("type", "link")
+        .attribute("target", target);
+
+        // check whether this link points to an wikipedia article
+        if target.starts_with("https://") || target.starts_with("http://") {
+            element.set_attribute("external", "");
+        }
+
+        self.elements.push(element);
     }
 
     /// A helper function that adds normal, optionally styled text to the elements. It constructs an
