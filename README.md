@@ -20,13 +20,12 @@
 
 > Note: wiki-tui is still under active development and breaking changes can occur. Please always check the release notes before upgrading
 
-## Preview
-### How it looks
+You can find the **installation instructions**, **configuration options**, **more preview images**, **a feature overview** and more on our website, [builditluc.github.io/wiki-tui](https://builditluc.github.io/wiki-tui/)
+
+## How it looks
 
 [![preview-3](https://raw.githubusercontent.com/Builditluc/wiki-tui/main/docs/assets/images/preview-3.png)](docs/assets/images/preview-3.png)
 > Note: This screenshot was taken on [iTerm2](https://iterm2.com) (MacOS) with the [Fira Code](https://github.com/tonsky/FiraCode) font
-
-For more information, please visit the [website](https://builditluc.github.io/wiki-tui/)
 
 ## Similar Projects
 
