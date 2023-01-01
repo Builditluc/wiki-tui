@@ -35,7 +35,9 @@ You can find the **installation instructions**, **configuration options**, **mor
 ## Acknowledgements
 
 * [cursive](https://github.com/gyscos/cursive)
-* [Best-README-Template](https://github.com/0fakhri/Best-README-Template)
+* [rust](https://www.rust-lang.org/)
+* [mkdocs](https://www.mkdocs.org/)
+* [mkdocs-material](https://github.com/squidfunk/mkdocs-material)
 
 ## Contributors ✨
 
