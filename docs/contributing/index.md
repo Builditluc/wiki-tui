@@ -7,7 +7,7 @@ Welcome to the Contributing Guide for wiki-tui!
 </center>
 
 We welcome contributions of any size and kind from the community. Whether you have contributed in
-the past or a looking to get started, we are greateful for your help in improving the project.
+the past or looking to get started, we are grateful for your help in improving the project.
 
 The following pages will give you an overview of how to contribute to the project. We encourage you
 to dive in and start contributing!
@@ -22,9 +22,9 @@ to dive in and start contributing!
 If you have found a bug or experienced a crash while using wiki-tui, we encourage you to file an
 issue. When filing a bug or crash report, please make sure to select and fill out
 the correct issue template. If you're not sure what to include in your report, take a look at other
-bug or crash reports, as well as issues labeled "good first issue," for guidance. If your still
+bug or crash reports, as well as issues labeled "good first issue," for guidance. If you are still
 unsure how to write the report, it's okay to go ahead and submit it anyway. We will be happy to 
-help you out and ask for furhter information as needed. Thank you for helping us improve wiki-tui!
+help you out and ask for further information as needed. Thank you for helping us improve wiki-tui!
 
 You can create a new issue [over here](https://github.com/Builditluc/wiki-tui/issues/new/choose) and
 some good first issues can be found
@@ -40,7 +40,7 @@ possibility of a certain feature or improvement. Be sure to always check if othe
 made for the same feature or improvement before submitting a new one.
 
 You can create a new issue [over here](https://github.com/Builditluc/wiki-tui/issues/new/choose).
-Just select the corresponding issue template and fill it out to your best accords.
+Just select the corresponding issue template and fill it out to your best accord.
 
 ## Modify the project
 
@@ -65,7 +65,7 @@ Just select the corresponding issue template and fill it out to your best accord
     * `chore: update contributors badge style`
 
 * Create a commit for each change you have made. <br/><br/> There is no strict 
-  convention for commit messages, but it's helpful to begin with the type of change (e.g. `fix,` 
+  convention for commit messages, but it's helpful, to begin with the type of change (e.g. `fix,` 
   `feature,` `improvement,` etc.) and then describe the change itself. 
 
 !!! important
