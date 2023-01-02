@@ -49,6 +49,7 @@ nav:
     - Table of Contents: configuration/toc.md
   - Contributing: 
     - contributing/index.md
+    - Maintainers Guides: contributing/maintainers.md
 
 edit_uri: edit/main/docs/
 
