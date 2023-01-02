@@ -6,7 +6,7 @@ Welcome to the Contributing Guide for wiki-tui!
 </b>
 </center>
 
-We weolcome contributions of any size and kind from the community. Whether you have contributed in
+We welcome contributions of any size and kind from the community. Whether you have contributed in
 the past or a looking to get started, we are greateful for your help in improving the project.
 
 The following pages will give you an overview of how to contribute to the project. We encourage you
