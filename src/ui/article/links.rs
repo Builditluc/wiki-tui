@@ -100,7 +100,20 @@ impl LinkHandler {
             return;
         }
 
-        self.current_link = self.current_link.saturating_sub(amount);
+        let current_link = &self.links[self.current_link];
+        debug!("current link: {:?}", current_link);
+
+        if let Some(link) = self
+            .links
+            .iter()
+            .take(self.links.len() - self.current_link)
+            .rev()
+            .skip(amount)
+            .find(|&x| x.id < current_link.id)
+        {
+            self.current_link = self.links.iter().position(|x| x == link).unwrap();
+            debug!("new link: {:?}", self.links[self.current_link]);
+        }
     }
 
     /// Moves the selection right by a given amount
@@ -113,13 +126,18 @@ impl LinkHandler {
             return;
         }
 
-        // if we don't have enough links on the right, just select the last one
-        if self.current_link + amount >= self.links.len() {
-            self.current_link = self.links.len().saturating_sub(1);
-            return;
-        }
+        let current_link = &self.links[self.current_link];
+        debug!("current link: {:?}", current_link);
 
-        self.current_link += amount
+        if let Some(link) = self
+            .links
+            .iter()
+            .skip(self.current_link + amount)
+            .find(|&x| x.id > current_link.id)
+        {
+            self.current_link = self.links.iter().position(|x| x == link).unwrap();
+            debug!("new link: {:?}", self.links[self.current_link]);
+        }
     }
 
     /// Overrides the current link
@@ -147,6 +165,7 @@ impl LinkHandler {
 
 /// A struct representing a Link. It contains an id to reference it to an ArticleElement and
 /// relative x and y coordinates
+#[derive(Debug, PartialEq)]
 struct Link {
     /// The id of the Link. This is also used to reference it to an ArticleElement
     id: i32,
