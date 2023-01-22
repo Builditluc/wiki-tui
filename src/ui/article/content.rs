@@ -132,7 +132,12 @@ impl ArticleContent {
         )
         .wrap_lines();
 
-        self.link_handler = lines_wrapper.link_handler;
+        if let Some(ref mut link_handler) = self.link_handler {
+            link_handler.update(lines_wrapper.link_handler);
+        } else {
+            self.link_handler = lines_wrapper.link_handler;
+        }
+
         self.rendered_lines = lines_wrapper.rendered_lines;
 
         if let Some(ref header_y) = lines_wrapper.header_y {

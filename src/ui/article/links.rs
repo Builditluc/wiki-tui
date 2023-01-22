@@ -18,6 +18,23 @@ impl LinkHandler {
         }
     }
 
+    /// Updates the links while trying to save the currently selected link
+    pub fn update(&mut self, other: Option<LinkHandler>) {
+        if other.is_none() {
+            return;
+        }
+
+        let other = other.unwrap();
+
+        if let Some(current_link_id) = self.get_current_link() {
+            self.links = other.links;
+            self.set_current_link(current_link_id);
+        } else {
+            self.links = other.links;
+            self.current_link = other.current_link;
+        }
+    }
+
     /// Returns the total number of registered links
     pub fn registered_links(&self) -> usize {
         self.links.len()

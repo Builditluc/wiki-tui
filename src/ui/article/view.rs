@@ -215,6 +215,9 @@ impl View for ArticleView {
         // save the new size and compute the lines
         self.last_size = size;
         self.content.compute_lines(size);
+
+        debug!("current link id: {:?}", self.content.current_link());
+        debug!("current link pos: {:?}", self.content.current_link_pos());
     }
 
     fn required_size(&mut self, constraint: Vec2) -> Vec2 {
@@ -284,6 +287,8 @@ impl View for ArticleView {
                     // then scroll that amount
                     self.scroll(Absolute::Down, move_amount);
                 }
+
+                debug!("link pos after selection: {:?}", current_link_pos);
 
                 EventResult::Consumed(None)
             }
