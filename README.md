@@ -5,6 +5,11 @@
 [![Continuous Integration](https://img.shields.io/github/actions/workflow/status/builditluc/wiki-tui/ci.yml?label=Continuous%20Integration&style=for-the-badge)](https://github.com/Builditluc/wiki-tui/actions/workflows/ci.yml)
 [![Continuous Deployment](https://img.shields.io/github/actions/workflow/status/builditluc/wiki-tui/cd.yml?label=Continuous%20Deployment&style=for-the-badge)](https://github.com/Builditluc/wiki-tui/actions/workflows/cd.yml)
 
+<h1><b>Important Information!</b></h1>
+Wikipedia recently changed the layout of their articles and caused the toc parsing to break (All
+other features are working as intended). Please check out https://github.com/Builditluc/wiki-tui/issues/143 for more information and progress 
+updates
+
 <br />
 <p align="center">
   <a href="https://github.com/Builditluc/wiki-tui">
