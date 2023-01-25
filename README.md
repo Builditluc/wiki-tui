@@ -7,7 +7,7 @@
 
 <h1><b>Important Information!</b></h1>
 Wikipedia recently changed the layout of their articles and caused the toc parsing to break (All
-other features are working as intended). Please check out #143 for more information and progress 
+other features are working as intended). Please check out https://github.com/Builditluc/wiki-tui/issues/143 for more information and progress 
 updates
 
 <br />
