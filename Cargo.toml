@@ -5,6 +5,7 @@ authors = ["builditluc <37375448+Builditluc@users.noreply.github.com>"]
 edition = "2018"
 repository = "https://github.com/Builditluc/wiki-tui"
 description = "A simple and easy to use Wikipedia Text User Interface"
+keywords = ["tui", "wikipedia"]
 license = "MIT"
 readme = "README.md"
 
