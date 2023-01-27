@@ -8,7 +8,6 @@ repo_url: https://github.com/builditluc/wiki-tui
 
 theme:
   name: material
-  custom_dir: overrides
   icon:
     logo: material/console
     repo: fontawesome/brands/github

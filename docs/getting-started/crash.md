@@ -15,4 +15,4 @@ The name of the report-file is generated like this
 crash_report-{UUID}.log
 ```
 
-Next, please [file a bug report](../contributing/bug-report.md) and upload the crash report so we can work on fixing the problem.
+Next, please [file a bug report](../contributing/index.md) and upload the crash report so we can work on fixing the problem.
