@@ -158,7 +158,32 @@ impl Mediawiki {
         )
         .map_err(|_| Error::JSONError)?;
 
-        let parse_json = res_json
+        self.article_from_json(res_json)
+    }
+
+    pub fn article_from_id(&self, id: u64) -> Result<Article, Error> {
+        let res_json: serde_json::Value = serde_json::from_str(
+            &self
+                .client
+                .get(self.url.to_owned())
+                .query(&[
+                    ("format", "json"),
+                    ("action", "parse"),
+                    ("pageid", &id.to_string()),
+                    ("prop", "sections|text"),
+                ])
+                .send()
+                .map_err(|_| Error::HTTPError)?
+                .text()
+                .map_err(|_| Error::HTTPError)?,
+        )
+        .map_err(|_| Error::JSONError)?;
+
+        self.article_from_json(res_json)
+    }
+
+    fn article_from_json(&self, json: serde_json::Value) -> Result<Article, Error> {
+        let parse_json = json
             .as_object()
             .ok_or(Error::JSONError)?
             .get("parse")
