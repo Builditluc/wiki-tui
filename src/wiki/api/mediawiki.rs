@@ -35,6 +35,23 @@ pub struct SearchResult {
 }
 
 #[derive(Debug)]
+pub struct Article {
+    title: String,
+    id: u64,
+    text: Option<String>,
+    pub sections: Option<Vec<Section>>,
+    // pub sections: Option<Vec<serde_json::Value>>,
+}
+
+#[derive(Debug, serde::Deserialize)]
+pub struct Section {
+    number: String,
+    #[serde(rename = "line")]
+    text: String,
+    anchor: String,
+}
+
+#[derive(Debug)]
 pub struct Mediawiki {
     url: String,
     client: Client,
@@ -120,6 +137,68 @@ impl Mediawiki {
             info: search_info,
             origin: &self,
             result: search_results,
+        })
+    }
+
+    pub fn article_from_title(&self, title: &str) -> Result<Article, Error> {
+        let res_json: serde_json::Value = serde_json::from_str(
+            &self
+                .client
+                .get(self.url.to_owned())
+                .query(&[
+                    ("format", "json"),
+                    ("action", "parse"),
+                    ("page", title),
+                    ("prop", "sections|text"),
+                ])
+                .send()
+                .map_err(|_| Error::HTTPError)?
+                .text()
+                .map_err(|_| Error::HTTPError)?,
+        )
+        .map_err(|_| Error::JSONError)?;
+
+        let parse_json = res_json
+            .as_object()
+            .ok_or(Error::JSONError)?
+            .get("parse")
+            .ok_or(Error::JSONError)?;
+
+        // retrieve the title
+        let article_title = parse_json.get("title").ok_or(Error::JSONError)?.to_string();
+
+        // retrieve the id
+        let article_id = parse_json
+            .get("pageid")
+            .and_then(|x| x.as_u64())
+            .ok_or(Error::JSONError)?;
+
+        // retrieve the text
+        let article_text = parse_json
+            .get("text")
+            .and_then(|x| x.get("*"))
+            .and_then(|x| x.as_str())
+            .map(|x| x.to_string());
+
+        // retrieve the sections
+        let mut section_vec: Vec<Section> = Vec::new();
+        if let Some(sections) = parse_json.get("sections").and_then(|x| x.as_array()) {
+            let sections = sections.to_owned();
+            for section in sections {
+                section_vec.push(serde_json::from_value(section).unwrap());
+            }
+        }
+
+        let mut article_sections: Option<Vec<Section>> = None;
+        if !section_vec.is_empty() {
+            article_sections = Some(section_vec);
+        }
+
+        Ok(Article {
+            title: article_title,
+            id: article_id,
+            text: article_text,
+            sections: article_sections,
         })
     }
 }
