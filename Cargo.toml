@@ -62,3 +62,6 @@ features = ["derive"]
 [dependencies.uuid]
 version = "0.8.2"
 features = ["v4"]
+
+[dev-dependencies]
+httpmock = "0.6.7"
