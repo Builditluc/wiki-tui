@@ -7,48 +7,44 @@ pub enum Error {
 }
 
 #[derive(Debug)]
-pub struct Search<'a> {
-    offset: Option<u64>,
-    info: SearchInfo,
-    result: Vec<SearchResult>,
-    origin: &'a Mediawiki,
+pub struct Search {
+    pub offset: Option<u64>,
+    pub info: SearchInfo,
+    pub result: Vec<SearchResult>,
 }
 
 #[derive(Debug)]
 pub struct SearchInfo {
-    total_hits: Option<u64>,
-    suggestion: Option<String>,
-    rewritten_query: Option<String>,
+    pub total_hits: Option<u64>,
+    pub suggestion: Option<String>,
+    pub rewritten_query: Option<String>,
 }
 
 #[derive(Debug, serde::Deserialize)]
 pub struct SearchResult {
-    #[serde(rename = "ns")]
-    namespace: u64,
-    title: String,
+    pub title: String,
     #[serde(rename = "pageid")]
-    id: u64,
-    size: Option<u64>,
-    wordcount: Option<u64>,
-    snippet: Option<String>,
-    timestamp: Option<String>,
+    pub id: u64,
+    pub size: Option<u64>,
+    pub wordcount: Option<u64>,
+    pub snippet: Option<String>,
+    pub timestamp: Option<String>,
 }
 
 #[derive(Debug)]
 pub struct Article {
-    title: String,
-    id: u64,
-    text: Option<String>,
+    pub title: String,
+    pub id: u64,
+    pub text: Option<String>,
     pub sections: Option<Vec<Section>>,
-    // pub sections: Option<Vec<serde_json::Value>>,
 }
 
 #[derive(Debug, serde::Deserialize)]
 pub struct Section {
-    number: String,
+    pub number: String,
     #[serde(rename = "line")]
-    text: String,
-    anchor: String,
+    pub text: String,
+    pub anchor: String,
 }
 
 #[derive(Debug)]
@@ -140,7 +136,6 @@ impl Mediawiki {
         Ok(Search {
             offset: search_offset,
             info: search_info,
-            origin: &self,
             result: search_results,
         })
     }
@@ -194,23 +189,19 @@ impl Mediawiki {
             .get("parse")
             .ok_or(Error::JSONError)?;
 
-        // retrieve the title
         let article_title = parse_json.get("title").ok_or(Error::JSONError)?.to_string();
 
-        // retrieve the id
         let article_id = parse_json
             .get("pageid")
             .and_then(|x| x.as_u64())
             .ok_or(Error::JSONError)?;
 
-        // retrieve the text
         let article_text = parse_json
             .get("text")
             .and_then(|x| x.get("*"))
             .and_then(|x| x.as_str())
             .map(|x| x.to_string());
 
-        // retrieve the sections
         let article_sections = parse_json
             .get("sections")
             .and_then(|x| x.as_array())
