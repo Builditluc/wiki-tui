@@ -181,18 +181,15 @@ impl Mediawiki {
             .map(|x| x.to_string());
 
         // retrieve the sections
-        let mut section_vec: Vec<Section> = Vec::new();
-        if let Some(sections) = parse_json.get("sections").and_then(|x| x.as_array()) {
-            let sections = sections.to_owned();
-            for section in sections {
-                section_vec.push(serde_json::from_value(section).unwrap());
-            }
-        }
-
-        let mut article_sections: Option<Vec<Section>> = None;
-        if !section_vec.is_empty() {
-            article_sections = Some(section_vec);
-        }
+        let article_sections = parse_json
+            .get("sections")
+            .and_then(|x| x.as_array())
+            .map(|x| x.to_owned())
+            .map(|x| {
+                x.into_iter()
+                    .filter_map(|x| serde_json::from_value(x).ok())
+                    .collect::<Vec<Section>>()
+            });
 
         Ok(Article {
             title: article_title,
