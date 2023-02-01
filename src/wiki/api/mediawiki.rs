@@ -87,27 +87,20 @@ impl Mediawiki {
     }
 
     fn search_from_json(&self, json: serde_json::Value) -> Result<Search, Error> {
-        // retrieve the search offset, if there is one
-        let continue_json = json.as_object().ok_or(Error::JSONError)?.get("continue");
-
-        let search_offset = match continue_json {
-            Some(json) => Some(
-                json.get("sroffset")
-                    .ok_or(Error::JSONError)?
-                    .as_u64()
-                    .ok_or(Error::JSONError)?
-                    .to_owned(),
-            ),
-            None => None,
-        };
+        let search_offset = json
+            .as_object()
+            .ok_or(Error::JSONError)?
+            .get("continue")
+            .and_then(|x| x.get("sroffset"))
+            .and_then(|x| x.as_u64())
+            .map(|x| x.to_owned());
 
         let query_json = json
             .as_object()
             .ok_or(Error::JSONError)?
             .get("query")
-            .ok_or(Error::JSONError)?; // the query argument must always be there
+            .ok_or(Error::JSONError)?;
 
-        // retrieve the info about the search
         let search_info = SearchInfo {
             total_hits: query_json
                 .get("searchinfo")
