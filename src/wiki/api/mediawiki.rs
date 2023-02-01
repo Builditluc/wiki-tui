@@ -66,6 +66,10 @@ impl Mediawiki {
     }
 
     pub fn search(&self, query: &str) -> Result<Search, Error> {
+        self.search_at_offset(query, 0)
+    }
+
+    pub fn search_at_offset(&self, query: &str, offset: u64) -> Result<Search, Error> {
         let res_json: serde_json::Value = serde_json::from_str(
             &self
                 .client
@@ -75,6 +79,7 @@ impl Mediawiki {
                     ("action", "query"),
                     ("list", "search"),
                     ("srsearch", query),
+                    ("sroffset", &offset.to_string()),
                 ])
                 .send()
                 .map_err(|_| Error::HTTPError)?
@@ -82,12 +87,12 @@ impl Mediawiki {
                 .map_err(|_| Error::HTTPError)?,
         )
         .map_err(|_| Error::JSONError)?;
+        self.search_from_json(res_json)
+    }
 
+    fn search_from_json(&self, json: serde_json::Value) -> Result<Search, Error> {
         // retrieve the search offset, if there is one
-        let continue_json = res_json
-            .as_object()
-            .ok_or(Error::JSONError)?
-            .get("continue");
+        let continue_json = json.as_object().ok_or(Error::JSONError)?.get("continue");
 
         let search_offset = match continue_json {
             Some(json) => Some(
@@ -100,7 +105,7 @@ impl Mediawiki {
             None => None,
         };
 
-        let query_json = res_json
+        let query_json = json
             .as_object()
             .ok_or(Error::JSONError)?
             .get("query")
