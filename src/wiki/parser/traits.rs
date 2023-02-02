@@ -26,5 +26,5 @@ pub trait Element {
     fn id(&self) -> u32;
     fn content(&self) -> &str;
     fn content_width(&self) -> u32;
-    fn effects(&self) -> Vec<Effect>;
+    fn effects(&self) -> &Vec<Effect>;
 }
