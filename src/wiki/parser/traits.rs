@@ -1,15 +1,15 @@
-use crate::wiki::{article_new::Article, section::Section};
+use crate::wiki::article_new::Section;
 use std::io::Read;
 
 use cursive::theme::Effect;
 use select::node::Node;
 
 pub trait Parser {
-    fn parse_document<R: Read>(doc: R, sections: Vec<Section>) -> Article
+    fn parse_document<R: Read>(doc: R, sections: &Vec<Section>) -> Vec<Box<dyn Element>>
     where
         Self: Sized;
 
-    fn push_element(&mut self, element: dyn Element);
+    fn push_element(&mut self, element: Box<dyn Element>);
 
     fn push_effect(&mut self, effect: Effect);
     fn pop_effect(&mut self);

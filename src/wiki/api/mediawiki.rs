@@ -1,5 +1,7 @@
 use reqwest::blocking::Client;
 
+use crate::wiki::article_new::{Article, HeaderType, Section};
+
 #[derive(Debug)]
 pub enum Error {
     HTTPError(reqwest::Error),
@@ -42,6 +44,8 @@ pub struct MediawikiArticle {
 
 #[derive(Debug, serde::Deserialize)]
 pub struct MediawikiSection {
+    #[serde(rename = "toclevel")]
+    pub level: usize,
     pub number: String,
     #[serde(rename = "line")]
     pub text: String,
