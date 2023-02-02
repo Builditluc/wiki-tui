@@ -90,4 +90,8 @@ impl Article {
             sections,
         }
     }
+
+    pub fn section_from_id(&self, id: u32) -> Option<&Section> {
+        self.sections.iter().find(|x| x.id == id)
+    }
 }
