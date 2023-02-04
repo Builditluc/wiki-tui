@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use cursive::theme::Effect;
 
 use crate::wiki::article_new::Section;
@@ -7,13 +9,36 @@ use super::{
     traits::{Element, ElementParser, Parser},
 };
 
-pub struct MediawikiParser;
+pub struct MediawikiParser {
+    element_parser: HashMap<String, Box<dyn ElementParser>>,
+    unsupported_parser: Box<dyn ElementParser>,
+    effects: Vec<Effect>,
+    elements: Vec<Box<dyn Element>>,
+}
+
+impl MediawikiParser {
+    pub fn new() -> Self {
+        let mut element_parser = HashMap::new();
+        element_parser.insert(
+            "p".to_string(),
+            Box::new(MediawikiParagraphParser) as Box<dyn ElementParser>,
+        );
+
+        MediawikiParser {
+            element_parser,
+            unsupported_parser: Box::new(MediawikiUnsupportedElementParser),
+            effects: Vec::new(),
+            elements: Vec::new(),
+        }
+    }
+}
 
 impl Parser for MediawikiParser {
-    fn parse_document<R: std::io::Read>(doc: R, sections: &Vec<Section>) -> Vec<Box<dyn Element>>
-    where
-        Self: Sized,
-    {
+    fn parse_document<'a>(
+        &mut self,
+        doc: &'a [u8],
+        sections: &Vec<Section>,
+    ) -> Vec<Box<dyn Element>> {
         todo!()
     }
 

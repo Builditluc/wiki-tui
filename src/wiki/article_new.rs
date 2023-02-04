@@ -82,7 +82,8 @@ impl Article {
             );
         });
 
-        let content = MediawikiParser::parse_document(article.text.unwrap().as_bytes(), &sections);
+        let content =
+            MediawikiParser::new().parse_document(article.text.unwrap().as_bytes(), &sections);
         Article {
             title: article.title,
             id: article.id,

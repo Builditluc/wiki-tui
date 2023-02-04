@@ -5,10 +5,11 @@ use cursive::theme::Effect;
 use select::node::Node;
 
 pub trait Parser {
-    fn parse_document<R: Read>(doc: R, sections: &Vec<Section>) -> Vec<Box<dyn Element>>
-    where
-        Self: Sized;
-
+    fn parse_document<'a>(
+        &mut self,
+        doc: &'a [u8],
+        sections: &Vec<Section>,
+    ) -> Vec<Box<dyn Element>>;
     fn get_parser(&self, node_name: &str) -> Box<dyn ElementParser>;
 
     fn push_element(&mut self, element: Box<dyn Element>);
