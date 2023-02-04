@@ -1,3 +1,5 @@
+use cursive::theme::Effect;
+
 use crate::wiki::article_new::Section;
 
 use super::{
@@ -42,10 +44,7 @@ impl Parser for MediawikiParser {
 struct MediawikiParagraphParser;
 
 impl ElementParser for MediawikiParagraphParser {
-    fn parse_node(&self, node: select::node::Node, parser: &mut dyn Parser)
-    where
-        Self: Sized,
-    {
+    fn parse_node(&self, node: select::node::Node, parser: &mut dyn Parser) {
         for child in node.children() {
             if let Some(name) = child.name() {
                 let element_parser = parser.get_parser(name);
@@ -59,5 +58,17 @@ impl ElementParser for MediawikiParagraphParser {
 
             parser.push_element(Box::new(Text::new(id, content, effects)))
         }
+    }
+}
+
+struct MediawikiUnsupportedElementParser;
+
+impl ElementParser for MediawikiUnsupportedElementParser {
+    fn parse_node(&self, node: select::node::Node, parser: &mut dyn Parser) {
+        let id = parser.next_id();
+        let content = format!("<Unsupported Element '{}'>", node.name().unwrap_or("NONE"));
+        let effects = vec![Effect::Italic];
+
+        parser.push_element(Box::new(Text::new(id, content, effects)))
     }
 }
