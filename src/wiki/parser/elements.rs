@@ -15,7 +15,7 @@ macro_rules! elem_impl {
                 &self.content
             }
 
-            fn content_width(&self) -> u32 {
+            fn content_width(&self) -> usize {
                 self.content_width
             }
 
@@ -29,8 +29,19 @@ macro_rules! elem_impl {
 pub struct Text {
     id: u32,
     content: String,
-    content_width: u32,
+    content_width: usize,
     effects: Vec<Effect>,
+}
+
+impl Text {
+    pub fn new(id: u32, content: String, effects: Vec<Effect>) -> Self {
+        Text {
+            id,
+            content_width: content.chars().count(),
+            content,
+            effects,
+        }
+    }
 }
 
 elem_impl!(Text);
@@ -39,11 +50,21 @@ pub struct Header {
     id: u32,
     section_id: u32,
     content: String,
-    content_width: u32,
+    content_width: usize,
     effects: Vec<Effect>,
 }
 
 impl Header {
+    pub fn new(id: u32, section_id: u32, content: String, effects: Vec<Effect>) -> Self {
+        Header {
+            id,
+            section_id,
+            content_width: content.chars().count(),
+            content,
+            effects,
+        }
+    }
+
     pub fn section<'a>(&self, article: &'a Article) -> Option<&'a Section> {
         article.section_from_id(self.section_id)
     }

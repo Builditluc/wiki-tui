@@ -9,6 +9,8 @@ pub trait Parser {
     where
         Self: Sized;
 
+    fn get_parser(&self, node_name: &str) -> Box<dyn ElementParser>;
+
     fn push_element(&mut self, element: Box<dyn Element>);
 
     fn push_effect(&mut self, effect: Effect);
@@ -19,12 +21,12 @@ pub trait Parser {
 }
 
 pub trait ElementParser {
-    fn parse_node(node: Node, parser: &mut dyn Parser);
+    fn parse_node(&self, node: Node, parser: &mut dyn Parser);
 }
 
 pub trait Element {
     fn id(&self) -> u32;
     fn content(&self) -> &str;
-    fn content_width(&self) -> u32;
+    fn content_width(&self) -> usize;
     fn effects(&self) -> &Vec<Effect>;
 }
