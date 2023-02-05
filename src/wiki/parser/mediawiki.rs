@@ -6,13 +6,14 @@ use select::{document::Document, predicate::Class};
 use crate::wiki::article_new::Section;
 
 use super::{
-    elements::Text,
+    elements::{Header, Text},
     traits::{Element, ElementParser, Parser},
 };
 
 pub struct MediawikiParser {
     effects: Vec<Effect>,
     elements: Vec<Box<dyn Element>>,
+    sections: Vec<Section>,
 }
 
 impl MediawikiParser {
@@ -20,6 +21,7 @@ impl MediawikiParser {
         MediawikiParser {
             effects: Vec::new(),
             elements: Vec::new(),
+            sections: Vec::new(),
         }
     }
 }
@@ -30,6 +32,8 @@ impl Parser for MediawikiParser {
         doc: &'a [u8],
         sections: &Vec<Section>,
     ) -> Result<Vec<Box<dyn Element>>> {
+        self.sections = sections.to_vec();
+
         Document::from_read(doc)?
             .find(Class("mw-parser-output"))
             .into_selection()
@@ -41,12 +45,14 @@ impl Parser for MediawikiParser {
                     .parse_node(child, &mut self);
             })
             .count();
+
         Ok(self.elements)
     }
 
     fn get_parser(&self, node_name: &str) -> Box<dyn ElementParser> {
         match node_name {
             "p" => Box::new(MediawikiParagraphParser),
+            "h1" | "h2" | "h3" | "h4" | "h5" | "h6" => Box::new(MediawikiHeaderParser),
             _ => Box::new(MediawikiUnsupportedElementParser),
         }
     }
@@ -67,8 +73,12 @@ impl Parser for MediawikiParser {
         self.effects.clone()
     }
 
-    fn next_id(&mut self) -> u32 {
+    fn next_id(&self) -> u32 {
         (self.elements.len() + 1) as u32
+    }
+
+    fn section_from_anchor(&self, anchor: &str) -> Option<&Section> {
+        self.sections.iter().find(|x| x.anchor == anchor)
     }
 }
 
@@ -88,6 +98,25 @@ impl ElementParser for MediawikiParagraphParser {
             let effects = parser.effects();
 
             parser.push_element(Box::new(Text::new(id, content, effects)))
+        }
+    }
+}
+
+struct MediawikiHeaderParser;
+
+impl ElementParser for MediawikiHeaderParser {
+    fn parse_node(&self, node: select::node::Node, parser: &mut dyn Parser) {
+        if let Some(headline_node) = node.find(Class("mw-headline")).into_selection().first() {
+            if let Some(section) =
+                parser.section_from_anchor(headline_node.attr("id").unwrap_or_default())
+            {
+                parser.push_element(Box::new(Header::new(
+                    parser.next_id(),
+                    section.id,
+                    headline_node.text(),
+                    parser.effects(),
+                )))
+            }
         }
     }
 }

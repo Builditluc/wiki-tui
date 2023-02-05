@@ -6,12 +6,12 @@ use super::{
     parser::{mediawiki::MediawikiParser, traits::Parser},
 };
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Section {
-    id: u32,
+    pub id: u32,
     title: String,
     number: String,
-    anchor: String,
+    pub anchor: String,
     header_type: HeaderType,
 }
 
@@ -33,7 +33,7 @@ impl Section {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum HeaderType {
     Main,
     Sub,

@@ -18,7 +18,9 @@ pub trait Parser {
     fn pop_effect(&mut self);
 
     fn effects(&self) -> Vec<Effect>;
-    fn next_id(&mut self) -> u32;
+    fn next_id(&self) -> u32;
+
+    fn section_from_anchor(&self, anchor: &str) -> Option<&Section>;
 }
 
 pub trait ElementParser {
