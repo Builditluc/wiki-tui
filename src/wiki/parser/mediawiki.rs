@@ -1,6 +1,7 @@
-use std::collections::HashMap;
+use anyhow::{Context, Result};
 
 use cursive::theme::Effect;
+use select::{document::Document, predicate::Class};
 
 use crate::wiki::article_new::Section;
 
@@ -10,23 +11,13 @@ use super::{
 };
 
 pub struct MediawikiParser {
-    element_parser: HashMap<String, Box<dyn ElementParser>>,
-    unsupported_parser: Box<dyn ElementParser>,
     effects: Vec<Effect>,
     elements: Vec<Box<dyn Element>>,
 }
 
 impl MediawikiParser {
     pub fn new() -> Self {
-        let mut element_parser = HashMap::new();
-        element_parser.insert(
-            "p".to_string(),
-            Box::new(MediawikiParagraphParser) as Box<dyn ElementParser>,
-        );
-
         MediawikiParser {
-            element_parser,
-            unsupported_parser: Box::new(MediawikiUnsupportedElementParser),
             effects: Vec::new(),
             elements: Vec::new(),
         }
@@ -35,34 +26,49 @@ impl MediawikiParser {
 
 impl Parser for MediawikiParser {
     fn parse_document<'a>(
-        &mut self,
+        mut self,
         doc: &'a [u8],
         sections: &Vec<Section>,
-    ) -> Vec<Box<dyn Element>> {
-        todo!()
+    ) -> Result<Vec<Box<dyn Element>>> {
+        Document::from_read(doc)?
+            .find(Class("mw-parser-output"))
+            .into_selection()
+            .first()
+            .context("Couldn't find the node 'mw-parser-output'")?
+            .children()
+            .map(|child| {
+                self.get_parser(child.name().unwrap_or("NONE"))
+                    .parse_node(child, &mut self);
+            })
+            .count();
+        Ok(self.elements)
     }
 
     fn get_parser(&self, node_name: &str) -> Box<dyn ElementParser> {
-        todo!()
+        match node_name {
+            "p" => Box::new(MediawikiParagraphParser),
+            _ => Box::new(MediawikiUnsupportedElementParser),
+        }
     }
+
     fn push_element(&mut self, element: Box<dyn Element>) {
-        todo!()
+        self.elements.push(element)
     }
 
     fn push_effect(&mut self, effect: cursive::theme::Effect) {
-        todo!()
+        self.effects.push(effect)
     }
 
     fn pop_effect(&mut self) {
-        todo!()
+        self.effects.pop();
     }
 
     fn effects(&self) -> Vec<cursive::theme::Effect> {
-        todo!()
+        self.effects.clone()
     }
 
     fn next_id(&mut self) -> u32 {
-        todo!()
+        (self.elements.len() + 1) as u32
     }
 }
 

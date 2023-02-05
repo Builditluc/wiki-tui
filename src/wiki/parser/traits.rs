@@ -1,15 +1,15 @@
 use crate::wiki::article_new::Section;
-use std::io::Read;
 
+use anyhow::Result;
 use cursive::theme::Effect;
 use select::node::Node;
 
 pub trait Parser {
     fn parse_document<'a>(
-        &mut self,
+        self,
         doc: &'a [u8],
         sections: &Vec<Section>,
-    ) -> Vec<Box<dyn Element>>;
+    ) -> Result<Vec<Box<dyn Element>>>;
     fn get_parser(&self, node_name: &str) -> Box<dyn ElementParser>;
 
     fn push_element(&mut self, element: Box<dyn Element>);

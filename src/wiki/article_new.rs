@@ -1,10 +1,12 @@
 use crate::wiki::parser::traits::Element;
+use anyhow::Result;
 
 use super::{
     api::mediawiki::MediawikiArticle,
     parser::{mediawiki::MediawikiParser, traits::Parser},
 };
 
+#[derive(Debug)]
 pub struct Section {
     id: u32,
     title: String,
@@ -31,6 +33,7 @@ impl Section {
     }
 }
 
+#[derive(Debug)]
 pub enum HeaderType {
     Main,
     Sub,
@@ -62,7 +65,7 @@ pub struct Article {
 }
 
 impl Article {
-    pub fn from_mediawiki(article: MediawikiArticle) -> Self {
+    pub fn from_mediawiki(article: MediawikiArticle) -> Result<Self> {
         let mut sections: Vec<Section> = Vec::new();
         article.sections.map(|x| {
             sections.append(
@@ -83,16 +86,34 @@ impl Article {
         });
 
         let content =
-            MediawikiParser::new().parse_document(article.text.unwrap().as_bytes(), &sections);
-        Article {
+            MediawikiParser::new().parse_document(article.text.unwrap().as_bytes(), &sections)?;
+        Ok(Article {
             title: article.title,
             id: article.id,
             content,
             sections,
-        }
+        })
     }
 
     pub fn section_from_id(&self, id: u32) -> Option<&Section> {
         self.sections.iter().find(|x| x.id == id)
+    }
+
+    pub fn content(&self) -> &Vec<Box<dyn Element>> {
+        &self.content
+    }
+}
+
+impl std::fmt::Debug for Article {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "Article {{ title: {}, id: {}, content: Vec {:?}, sections: {:?} }}",
+            self.title,
+            self.id,
+            self.content.len(),
+            self.sections
+        )?;
+        Ok(())
     }
 }
