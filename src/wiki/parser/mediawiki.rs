@@ -56,6 +56,7 @@ impl Parser for MediawikiParser {
             "a" => Box::new(MediawikiLinkParser),
             "b" => Box::new(MediawikiBoldParser),
             "i" => Box::new(MediawikiItalicParser),
+            "ul" => Box::new(MediawikiListParser),
             _ => Box::new(MediawikiUnsupportedElementParser),
         }
     }
@@ -181,6 +182,20 @@ macro_rules! effect_element_parser {
 
 effect_element_parser!(Effect::Bold, MediawikiBoldParser);
 effect_element_parser!(Effect::Italic, MediawikiItalicParser);
+
+struct MediawikiListParser;
+
+impl ElementParser for MediawikiListParser {
+    fn parse_node(&self, node: select::node::Node, parser: &mut dyn Parser) {
+        for child in node.children().filter(|x| x.name() == Some("li")) {
+            let id = parser.next_id();
+            let content = format!("* {}", child.text());
+            let effects = parser.effects();
+
+            parser.push_element(Box::new(Text::new(id, content, effects)));
+        }
+    }
+}
 
 struct MediawikiUnsupportedElementParser;
 
