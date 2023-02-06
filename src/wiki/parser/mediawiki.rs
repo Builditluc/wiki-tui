@@ -6,7 +6,7 @@ use select::{document::Document, predicate::Class};
 use crate::wiki::article_new::Section;
 
 use super::{
-    elements::{Header, Text},
+    elements::{Header, Link, LinkType, Text},
     traits::{Element, ElementParser, Parser},
 };
 
@@ -53,6 +53,7 @@ impl Parser for MediawikiParser {
         match node_name {
             "p" => Box::new(MediawikiParagraphParser),
             "h1" | "h2" | "h3" | "h4" | "h5" | "h6" => Box::new(MediawikiHeaderParser),
+            "a" => Box::new(MediawikiLinkParser),
             _ => Box::new(MediawikiUnsupportedElementParser),
         }
     }
@@ -117,6 +118,35 @@ impl ElementParser for MediawikiHeaderParser {
                     parser.effects(),
                 )))
             }
+        }
+    }
+}
+
+struct MediawikiLinkParser;
+
+impl ElementParser for MediawikiLinkParser {
+    fn parse_node(&self, node: select::node::Node, parser: &mut dyn Parser) {
+        let target = node.attr("href");
+        let title = node.attr("title");
+
+        if target.is_some() && title.is_some() {
+            let mut link_type = LinkType::Wiki;
+            if target.unwrap().starts_with("https://") || target.unwrap().starts_with("http://") {
+                link_type = LinkType::External;
+            }
+
+            let id = parser.next_id();
+            let content = node.text();
+            let effects = parser.effects();
+
+            parser.push_element(Box::new(Link::new(
+                id,
+                content,
+                effects,
+                target.unwrap().to_string(),
+                title.unwrap().to_string(),
+                link_type,
+            )))
         }
     }
 }

@@ -71,3 +71,41 @@ impl Header {
 }
 
 elem_impl!(Header);
+
+pub struct Link {
+    id: u32,
+    content: String,
+    content_width: usize,
+    effects: Vec<Effect>,
+    title: String,
+    target: String,
+    link_type: LinkType,
+}
+
+pub enum LinkType {
+    Wiki,
+    External,
+}
+
+impl Link {
+    pub fn new(
+        id: u32,
+        content: String,
+        effects: Vec<Effect>,
+        title: String,
+        target: String,
+        link_type: LinkType,
+    ) -> Self {
+        Link {
+            id,
+            content_width: content.chars().count(),
+            content,
+            effects,
+            title,
+            target,
+            link_type,
+        }
+    }
+}
+
+elem_impl!(Link);
