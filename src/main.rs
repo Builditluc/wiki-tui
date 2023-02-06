@@ -38,6 +38,8 @@ pub const LOGO: &str = "
 ";
 
 fn main() {
+    println!("BEFORE MERGING THE BRANCH, RENAME `article_new.rs` TO `article.rs`");
+
     error::create_hook(|path, data| {
         if let Some(path) = path {
             let mut fs = fs::File::create(path).unwrap();

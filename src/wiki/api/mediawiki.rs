@@ -1,5 +1,7 @@
 use reqwest::blocking::Client;
 
+use crate::wiki::article_new::{Article, HeaderType, Section};
+
 #[derive(Debug)]
 pub enum Error {
     HTTPError(reqwest::Error),
@@ -8,21 +10,21 @@ pub enum Error {
 }
 
 #[derive(Debug)]
-pub struct Search {
+pub struct MediawikiSearch {
     pub offset: Option<u64>,
-    pub info: SearchInfo,
-    pub result: Vec<SearchResult>,
+    pub info: MediawikiSearchInfo,
+    pub result: Vec<MediawikiSearchResult>,
 }
 
 #[derive(Debug)]
-pub struct SearchInfo {
+pub struct MediawikiSearchInfo {
     pub total_hits: Option<u64>,
     pub suggestion: Option<String>,
     pub rewritten_query: Option<String>,
 }
 
 #[derive(Debug, serde::Deserialize)]
-pub struct SearchResult {
+pub struct MediawikiSearchResult {
     pub title: String,
     #[serde(rename = "pageid")]
     pub id: u64,
@@ -33,15 +35,17 @@ pub struct SearchResult {
 }
 
 #[derive(Debug)]
-pub struct Article {
+pub struct MediawikiArticle {
     pub title: String,
     pub id: u64,
     pub text: Option<String>,
-    pub sections: Option<Vec<Section>>,
+    pub sections: Option<Vec<MediawikiSection>>,
 }
 
 #[derive(Debug, serde::Deserialize)]
-pub struct Section {
+pub struct MediawikiSection {
+    #[serde(rename = "toclevel")]
+    pub level: usize,
     pub number: String,
     #[serde(rename = "line")]
     pub text: String,
@@ -77,11 +81,11 @@ impl Mediawiki {
         .map_err(Error::JSONError)
     }
 
-    pub fn search(&self, query: &str) -> Result<Search, Error> {
+    pub fn search(&self, query: &str) -> Result<MediawikiSearch, Error> {
         self.search_at_offset(query, 0)
     }
 
-    pub fn search_at_offset(&self, query: &str, offset: u64) -> Result<Search, Error> {
+    pub fn search_at_offset(&self, query: &str, offset: u64) -> Result<MediawikiSearch, Error> {
         let res_json = self.query(&[
             ("action", "query"),
             ("list", "search"),
@@ -91,7 +95,7 @@ impl Mediawiki {
         self.search_from_json(res_json)
     }
 
-    fn search_from_json(&self, json: serde_json::Value) -> Result<Search, Error> {
+    fn search_from_json(&self, json: serde_json::Value) -> Result<MediawikiSearch, Error> {
         let search_offset = json
             .get("continue")
             .and_then(|x| x.get("sroffset"))
@@ -102,7 +106,7 @@ impl Mediawiki {
             .get("query")
             .ok_or(Error::JSONPathError("missing element '$.query'".into()))?;
 
-        let search_info = SearchInfo {
+        let search_info = MediawikiSearchInfo {
             total_hits: query_json
                 .get("searchinfo")
                 .and_then(|x| x.get("totalhits"))
@@ -120,7 +124,7 @@ impl Mediawiki {
         };
 
         // retrieve the search results
-        let search_results: Vec<SearchResult> = serde_json::from_value(
+        let search_results: Vec<MediawikiSearchResult> = serde_json::from_value(
             query_json
                 .get("search")
                 .ok_or(Error::JSONPathError(
@@ -130,14 +134,14 @@ impl Mediawiki {
         )
         .map_err(Error::JSONError)?;
 
-        Ok(Search {
+        Ok(MediawikiSearch {
             offset: search_offset,
             info: search_info,
             result: search_results,
         })
     }
 
-    pub fn article_from_title(&self, title: &str) -> Result<Article, Error> {
+    pub fn article_from_title(&self, title: &str) -> Result<MediawikiArticle, Error> {
         let res_json = self.query(&[
             ("action", "parse"),
             ("page", title),
@@ -146,7 +150,7 @@ impl Mediawiki {
         self.article_from_json(res_json)
     }
 
-    pub fn article_from_id(&self, id: u64) -> Result<Article, Error> {
+    pub fn article_from_id(&self, id: u64) -> Result<MediawikiArticle, Error> {
         let res_json = self.query(&[
             ("format", "json"),
             ("action", "parse"),
@@ -156,7 +160,7 @@ impl Mediawiki {
         self.article_from_json(res_json)
     }
 
-    fn article_from_json(&self, json: serde_json::Value) -> Result<Article, Error> {
+    fn article_from_json(&self, json: serde_json::Value) -> Result<MediawikiArticle, Error> {
         let parse_json = json
             .get("parse")
             .ok_or(Error::JSONPathError("missing element '$.parse'".into()))?;
@@ -189,10 +193,10 @@ impl Mediawiki {
             .map(|x| {
                 x.into_iter()
                     .filter_map(|x| serde_json::from_value(x).ok())
-                    .collect::<Vec<Section>>()
+                    .collect::<Vec<MediawikiSection>>()
             });
 
-        Ok(Article {
+        Ok(MediawikiArticle {
             title: article_title,
             id: article_id,
             text: article_text,
