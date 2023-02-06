@@ -54,6 +54,8 @@ impl Parser for MediawikiParser {
             "p" => Box::new(MediawikiParagraphParser),
             "h1" | "h2" | "h3" | "h4" | "h5" | "h6" => Box::new(MediawikiHeaderParser),
             "a" => Box::new(MediawikiLinkParser),
+            "b" => Box::new(MediawikiBoldParser),
+            "i" => Box::new(MediawikiItalicParser),
             _ => Box::new(MediawikiUnsupportedElementParser),
         }
     }
@@ -150,6 +152,35 @@ impl ElementParser for MediawikiLinkParser {
         }
     }
 }
+
+macro_rules! effect_element_parser {
+    ($effect: expr, $name: ident) => {
+        struct $name;
+
+        impl ElementParser for $name {
+            fn parse_node(&self, node: select::node::Node, parser: &mut dyn Parser) {
+                parser.push_effect($effect);
+                for child in node.children() {
+                    if let Some(name) = child.name() {
+                        let element_parser = parser.get_parser(name);
+                        element_parser.parse_node(child, parser);
+                        continue;
+                    }
+
+                    let id = parser.next_id();
+                    let content = child.text();
+                    let effects = parser.effects();
+
+                    parser.push_element(Box::new(Text::new(id, content, effects)))
+                }
+                parser.pop_effect()
+            }
+        }
+    };
+}
+
+effect_element_parser!(Effect::Bold, MediawikiBoldParser);
+effect_element_parser!(Effect::Italic, MediawikiItalicParser);
 
 struct MediawikiUnsupportedElementParser;
 
