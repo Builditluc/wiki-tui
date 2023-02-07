@@ -19,7 +19,6 @@ use std::fs;
 use std::io::Write;
 
 use crate::backend::backend;
-use crate::wiki::search::SearchResult;
 
 mod backend;
 mod cli;
@@ -38,8 +37,6 @@ pub const LOGO: &str = "
 ";
 
 fn main() {
-    println!("BEFORE MERGING THE BRANCH, RENAME `article_new.rs` TO `article.rs`");
-
     error::create_hook(|path, data| {
         if let Some(path) = path {
             let mut fs = fs::File::create(path).unwrap();
@@ -103,30 +100,31 @@ fn handle_arguments() -> Box<dyn FnOnce(&mut Cursive) + Send> {
         return Box::new(move |siv: &mut Cursive| {
             ui::search::on_search(siv, search_query);
         });
-    } else if let Some(article_id) = config::CONFIG.get_args().article_id {
-        info!("opening the article: {}", article_id);
-        return Box::new(move |siv: &mut Cursive| {
-            ui::article::on_article_submit(
-                siv,
-                &SearchResult::new(
-                    String::new(),
-                    0,
-                    article_id,
-                    None,
-                    None,
-                    None,
-                    None,
-                    None,
-                    None,
-                    None,
-                    None,
-                    None,
-                    None,
-                    None,
-                ),
-            );
-        });
     }
+    // else if let Some(article_id) = config::CONFIG.get_args().article_id {
+    //     info!("opening the article: {}", article_id);
+    //     return Box::new(move |siv: &mut Cursive| {
+    //         ui::article::on_article_submit(
+    //             siv,
+    //             &SearchResult::new(
+    //                 String::new(),
+    //                 0,
+    //                 article_id,
+    //                 None,
+    //                 None,
+    //                 None,
+    //                 None,
+    //                 None,
+    //                 None,
+    //                 None,
+    //                 None,
+    //                 None,
+    //                 None,
+    //                 None,
+    //             ),
+    //         );
+    //     });
+    // }
 
     Box::new(|_: &mut Cursive| {})
 }

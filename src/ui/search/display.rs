@@ -1,6 +1,7 @@
 use anyhow::{Context, Result};
 use cursive::{
     align::HAlign,
+    event::{Event, Key},
     view::{Nameable, Resizable, Scrollable},
     views::{Button, LinearLayout, SelectView, TextView},
     Cursive,
@@ -8,10 +9,7 @@ use cursive::{
 
 use crate::{
     config::CONFIG,
-    ui::{
-        article::on_article_submit, panel::WithPanel, search::on_continue_submit,
-        utils::percentage, views::RootLayout,
-    },
+    ui::{panel::WithPanel, search::on_continue_submit, utils::percentage, views::RootLayout},
     wiki::search::{Search, SearchResult},
 };
 
@@ -24,8 +22,8 @@ const PREVIEW_HEIGHT_PERCENTAGE: f32 = 0.5;
 const SEARCH_RESULTS_PERCENTAGE: f32 = 0.3;
 
 /// Displays the search results and returns an error if anything went wrong
-pub fn display_search_results(siv: &mut Cursive, search: Search, query: &str) -> Result<()> {
-    info!("displaying '{}' search results", search.results().count());
+pub fn display_search_results(siv: &mut Cursive, mut search: Search, query: &str) -> Result<()> {
+    info!("displaying '{}' search results", search.results().len());
 
     // calculate the necessary size values
     let screen_size = siv.screen_size();
@@ -64,14 +62,12 @@ pub fn display_search_results(siv: &mut Cursive, search: Search, query: &str) ->
 
     // create the results view (SelectView)
     let search_results_view = {
-        let mut search_results_view = SelectView::<SearchResult>::new()
-            .on_select(on_result_select)
-            .on_submit(on_article_submit);
+        let mut search_results_view = SelectView::<SearchResult>::new().on_select(on_result_select);
+        // .on_submit(on_article_submit);
 
         // fill results view with results
-        for search_result in search.results() {
-            search_results_view
-                .add_item(search_result.title().to_string(), search_result.to_owned());
+        for search_result in search.take_results() {
+            search_results_view.add_item(search_result.title().to_string(), search_result);
         }
         search_results_view
     }
@@ -83,7 +79,7 @@ pub fn display_search_results(siv: &mut Cursive, search: Search, query: &str) ->
     // create the continue button (Button)
     let search_continue_button = {
         let query = query.to_string();
-        let offset = search.search_offset().unwrap_or(&0).to_owned();
+        let offset = search.continue_offset().unwrap_or(0);
         Button::new("Show more results...", move |s| {
             on_continue_submit(s, &query, &offset)
         })
@@ -109,7 +105,7 @@ pub fn display_search_results(siv: &mut Cursive, search: Search, query: &str) ->
         let mut search_status_view = TextView::empty();
 
         // fill status view with the status
-        if let Some(total_hits) = search.info().total_hits() {
+        if let Some(total_hits) = search.total_hits() {
             search_status_view.set_content(format!(
                 "Found {} articles matching your search",
                 total_hits
@@ -152,14 +148,8 @@ pub fn display_search_results(siv: &mut Cursive, search: Search, query: &str) ->
     debug!("added the layouts to a new layer");
 
     // send the callback to select the first search result
-    if let Err(error) = siv.cb_sink().send(Box::new(move |s| {
-        if let Some(search_result) = search.results().next() {
-            on_result_select(s, search_result);
-        }
-    })) {
-        warn!("{:?}", error);
-        bail!("couldn't send the callback to select the first search result");
-    }
+    siv.on_event(Event::Key(Key::Down));
+    siv.on_event(Event::Key(Key::Up));
 
     debug!("send the callback for selecting the first search result");
 
@@ -169,12 +159,12 @@ pub fn display_search_results(siv: &mut Cursive, search: Search, query: &str) ->
 /// Adds more search results to the already existing search panel
 pub fn display_more_search_results(
     siv: &mut Cursive,
-    search: Search,
+    mut search: Search,
     search_query: &str,
 ) -> Result<()> {
     info!(
         "displaying '{}' more search results",
-        search.results().count()
+        search.results().len()
     );
 
     let layer_len = siv.screen_mut().len();
@@ -195,8 +185,8 @@ pub fn display_more_search_results(
     debug!("found the search_continue_button");
 
     // add the new results to the view
-    for search_result in search.results() {
-        search_results_views.add_item(search_result.title(), search_result.clone())
+    for search_result in search.take_results() {
+        search_results_views.add_item(search_result.title().to_string(), search_result)
     }
     debug!("added the results to the results view");
 
@@ -204,7 +194,7 @@ pub fn display_more_search_results(
     {
         let query = search_query.to_string();
         search_continue_button.set_callback(move |s| {
-            on_continue_submit(s, &query, search.search_offset().unwrap_or(&0))
+            on_continue_submit(s, &query, &search.continue_offset().unwrap_or(0))
         });
     }
     debug!("set the new callback of the continue button");
