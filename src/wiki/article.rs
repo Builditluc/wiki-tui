@@ -88,30 +88,34 @@ impl Element {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Deserialize)]
 pub struct LanguageLink {
+    #[serde(rename = "langname")]
     name: String,
+    #[serde(rename = "lang")]
     language: String,
     autonym: String,
     title: String,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Deserialize)]
 pub struct Category {
     sortkey: String,
     category: String,
-    hidden: bool,
+    hidden: Option<bool>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Deserialize)]
 pub struct Link {
+    #[serde(rename = "ns")]
     namespace: Namespace,
     title: String,
     exists: bool,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Deserialize)]
 pub struct Template {
+    #[serde(rename = "ns")]
     namespace: Namespace,
     title: String,
     exists: bool,
@@ -162,7 +166,7 @@ impl Section {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Deserialize)]
 pub struct InterwikiLink {
     prefix: String,
     url: String,
@@ -183,8 +187,8 @@ pub struct Article {
     language_links: Option<Vec<LanguageLink>>,
     categories: Option<Vec<Category>>,
     categories_html: Option<String>,
-    links: Option<Link>,
-    templates: Option<Template>,
+    links: Option<Vec<Link>>,
+    templates: Option<Vec<Template>>,
     images: Option<Vec<String>>,
     external_links: Option<Vec<String>>,
     sections: Option<Vec<Section>>,
@@ -401,6 +405,78 @@ impl<I, P> ArticleBuilder<I, P> {
             .map(|x| Parser::parse_document(x, &title).ok())
             .flatten();
 
+        let language_links = res_json
+            .get("parse")
+            .and_then(|x| x.get("langlinks"))
+            .and_then(|x| x.as_array())
+            .map(|x| x.to_owned())
+            .map(|x| {
+                x.into_iter()
+                    .filter_map(|x| serde_json::from_value(x).ok())
+                    .collect::<Vec<LanguageLink>>()
+            });
+
+        let categories = res_json
+            .get("parse")
+            .and_then(|x| x.get("categories"))
+            .and_then(|x| x.as_array())
+            .map(|x| x.to_owned())
+            .map(|x| {
+                x.into_iter()
+                    .filter_map(|x| serde_json::from_value(x).ok())
+                    .collect::<Vec<Category>>()
+            });
+
+        let categories_html = res_json
+            .get("parse")
+            .and_then(|x| x.get("categorieshtml"))
+            .and_then(|x| x.as_str())
+            .map(|x| x.to_owned());
+
+        let links = res_json
+            .get("parse")
+            .and_then(|x| x.get("links"))
+            .and_then(|x| x.as_array())
+            .map(|x| x.to_owned())
+            .map(|x| {
+                x.into_iter()
+                    .filter_map(|x| serde_json::from_value(x).ok())
+                    .collect::<Vec<Link>>()
+            });
+
+        let templates = res_json
+            .get("parse")
+            .and_then(|x| x.get("templates"))
+            .and_then(|x| x.as_array())
+            .map(|x| x.to_owned())
+            .map(|x| {
+                x.into_iter()
+                    .filter_map(|x| serde_json::from_value(x).ok())
+                    .collect::<Vec<Template>>()
+            });
+
+        let images = res_json
+            .get("parse")
+            .and_then(|x| x.get("images"))
+            .and_then(|x| x.as_array())
+            .map(|x| x.to_owned())
+            .map(|x| {
+                x.into_iter()
+                    .filter_map(|x| x.as_str().map(|x| x.to_owned()))
+                    .collect::<Vec<String>>()
+            });
+
+        let external_links = res_json
+            .get("parse")
+            .and_then(|x| x.get("externallinks"))
+            .and_then(|x| x.as_array())
+            .map(|x| x.to_owned())
+            .map(|x| {
+                x.into_iter()
+                    .filter_map(|x| x.as_str().map(|x| x.to_owned()))
+                    .collect::<Vec<String>>()
+            });
+
         let sections = res_json
             .get("parse")
             .and_then(|x| x.get("sections"))
@@ -431,25 +507,66 @@ impl<I, P> ArticleBuilder<I, P> {
                 x
             });
 
+        let revision_id = res_json
+            .get("parse")
+            .and_then(|x| x.get("revid"))
+            .and_then(|x| x.as_u64())
+            .map(|x| x as usize);
+
+        let display_title = res_json
+            .get("parse")
+            .and_then(|x| x.get("displaytitle"))
+            .and_then(|x| x.as_str())
+            .map(|x| x.to_string());
+
+        let subtitle = res_json
+            .get("parse")
+            .and_then(|x| x.get("subtitle"))
+            .and_then(|x| x.as_str())
+            .map(|x| x.to_string());
+
+        let head_html = res_json
+            .get("parse")
+            .and_then(|x| x.get("headhtml"))
+            .and_then(|x| x.as_str())
+            .map(|x| x.to_string());
+
+        let interwiki_links = res_json
+            .get("parse")
+            .and_then(|x| x.get("iwlinks"))
+            .and_then(|x| x.as_array())
+            .map(|x| x.to_owned())
+            .map(|x| {
+                x.into_iter()
+                    .filter_map(|x| serde_json::from_value(x).ok())
+                    .collect::<Vec<InterwikiLink>>()
+            });
+
+        let wikitext = res_json
+            .get("parse")
+            .and_then(|x| x.get("wikitext"))
+            .and_then(|x| x.as_str())
+            .map(|x| x.to_string());
+
         Ok(Article {
             title,
             pageid,
             content,
-            language_links: None,
-            categories: None,
-            categories_html: None,
-            links: None,
-            templates: None,
-            images: None,
-            external_links: None,
+            language_links,
+            categories,
+            categories_html,
+            links,
+            templates,
+            images,
+            external_links,
             sections,
-            revision_id: None,
-            display_title: None,
-            subtitle: None,
-            head_html: None,
+            revision_id,
+            display_title,
+            subtitle,
+            head_html,
             indicators: None,
-            interwiki_links: None,
-            wikitext: None,
+            interwiki_links,
+            wikitext,
             properties: None,
             limit_report_data: None,
             limit_report_html: None,
