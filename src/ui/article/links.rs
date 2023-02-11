@@ -43,12 +43,12 @@ impl LinkHandler {
     /// Adds a new link with the given id and position
     /// It is required to add the links from left to right and top to bottom in order for the
     /// selection to work
-    pub fn push_link(&mut self, id: i32, x: usize, y: usize) {
+    pub fn push_link(&mut self, id: usize, x: usize, y: usize) {
         self.links.push(Link { id, x, y })
     }
 
     /// Retrieves the id of the currently selected link. If there are no links, None will be returned
-    pub fn get_current_link(&self) -> Option<i32> {
+    pub fn get_current_link(&self) -> Option<usize> {
         if self.links.is_empty() {
             return None;
         }
@@ -158,7 +158,7 @@ impl LinkHandler {
     }
 
     /// Overrides the current link
-    pub fn set_current_link(&mut self, id: i32) {
+    pub fn set_current_link(&mut self, id: usize) {
         if self.links.is_empty() {
             warn!(
                 "no links are registered, abort setting the current link to '{}'",
@@ -185,7 +185,7 @@ impl LinkHandler {
 #[derive(Debug, PartialEq)]
 struct Link {
     /// The id of the Link. This is also used to reference it to an ArticleElement
-    id: i32,
+    id: usize,
 
     /// The relative x coordinate of the Link
     x: usize,

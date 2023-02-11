@@ -1,6 +1,6 @@
 use crate::config::CONFIG;
 use crate::ui::article::links::LinkHandler;
-use crate::wiki::article::ArticleElement;
+use crate::wiki::article::{Element, ElementType};
 
 use cursive::theme::Style;
 use std::collections::HashMap;
@@ -12,7 +12,7 @@ use std::rc::Rc;
 #[derive(Debug)]
 pub struct RenderedElement {
     /// The id of the ArticleElement this element belongs to
-    pub id: i32,
+    pub id: usize,
     /// The content of the element
     pub content: String,
     /// The style of the element
@@ -53,7 +53,7 @@ pub struct LinesWrapper {
     pub is_wrapped: bool,
 
     /// A referece to the article elements
-    elements: Rc<Vec<ArticleElement>>,
+    elements: Rc<Vec<Element>>,
     /// The rendered lines
     pub rendered_lines: Vec<Line>,
 
@@ -61,12 +61,12 @@ pub struct LinesWrapper {
     pub link_handler: Option<LinkHandler>,
 
     /// The y coordinates of the headers, it is only created and used when enabled in the config
-    pub header_y: Option<HashMap<i32, usize>>,
+    pub header_y: Option<HashMap<usize, usize>>,
 }
 
 impl LinesWrapper {
     /// Creates a new LinesWrapper with a content and constraint
-    pub fn new(width: usize, elements: Rc<Vec<ArticleElement>>) -> Self {
+    pub fn new(width: usize, elements: Rc<Vec<Element>>) -> Self {
         LinesWrapper {
             current_line: Line::new(),
             current_width: 0,
@@ -104,14 +104,14 @@ impl LinesWrapper {
         // go through every elment
         for element in self.elements.iter() {
             // does this element go onto a new line?
-            if element.get_attribute("type").unwrap_or("text") == "newline" {
+            if element.kind() == ElementType::Newline {
                 // "add" the element onto a new line
                 self.current_line = Line::new();
-                self.current_width = *element.width();
+                self.current_width = element.width();
 
                 // store the width of the element if it is the biggest one yet
-                if element.width() > &self.max_width {
-                    self.max_width = *element.width();
+                if element.width() > self.max_width {
+                    self.max_width = element.width();
                     continue;
                 }
             }
@@ -123,8 +123,8 @@ impl LinesWrapper {
                 self.current_width += element.width();
 
                 // store the width of the element if it is the biggest one yet
-                if element.width() > &self.max_width {
-                    self.max_width = *element.width();
+                if element.width() > self.max_width {
+                    self.max_width = element.width();
                     continue;
                 }
             }
@@ -145,25 +145,17 @@ impl LinesWrapper {
 
         // go through every element
         for element in self.elements.clone().iter() {
-            // get the type of the element
-            let element_type = element.get_attribute("type").unwrap_or("text");
-
             // is this a link?
-            let is_link = element_type == "link" && element.get_attribute("target").is_some();
+            let is_link = element.kind() == ElementType::Link;
 
             // is this a toc header?
-            let is_toc_header = element_type == "header"
-                && element.get_attribute("is_toc_header").unwrap_or("false") == "true";
+            let is_header = element.kind() == ElementType::Header;
 
             // does this element go onto a new line?
-            if element_type == "newline" {
+            if element.kind() == ElementType::Newline {
                 // fill the current line and make the next one blank
                 self.fill_line();
                 self.newline();
-
-                self.fill_line();
-                self.newline();
-
                 continue;
             }
 
@@ -173,8 +165,8 @@ impl LinesWrapper {
             // we run out of words.
 
             let mut merged_element = RenderedElement {
-                id: *element.id(),
-                style: *element.style(),
+                id: element.id(),
+                style: element.style(),
                 content: String::new(),
                 width: 0,
             };
@@ -210,20 +202,20 @@ impl LinesWrapper {
 
                 // if its a link, add it
                 if is_link {
-                    self.register_link(*element.id())
+                    self.register_link(element.id())
                 }
 
                 // if its a toc header, register it
-                if is_toc_header {
-                    self.register_header(element.id().to_owned(), self.rendered_lines.len());
+                if is_header {
+                    self.register_header(element.id(), self.rendered_lines.len());
                 }
 
                 self.fill_line();
                 self.newline();
 
                 merged_element = RenderedElement {
-                    id: *element.id(),
-                    style: *element.style(),
+                    id: element.id(),
+                    style: element.style(),
                     content: String::new(),
                     width: 0,
                 };
@@ -247,11 +239,11 @@ impl LinesWrapper {
                 self.current_line.push(merged_element);
 
                 if is_link {
-                    self.register_link(*element.id());
+                    self.register_link(element.id());
                 }
 
-                if is_toc_header {
-                    self.register_header(element.id().to_owned(), self.rendered_lines.len());
+                if is_header {
+                    self.register_header(element.id(), self.rendered_lines.len());
                 }
             }
         }
@@ -269,7 +261,7 @@ impl LinesWrapper {
     }
 
     // Registers a new header. If the headers is already registered, it won't be registered again
-    fn register_header(&mut self, id: i32, y_pos: usize) {
+    fn register_header(&mut self, id: usize, y_pos: usize) {
         if let Some(ref mut header_y) = self.header_y {
             if header_y.contains_key(&id) {
                 return;
@@ -279,7 +271,7 @@ impl LinesWrapper {
     }
 
     /// Registers a new link with the given id
-    fn register_link(&mut self, id: i32) {
+    fn register_link(&mut self, id: usize) {
         if let Some(ref mut link_handler) = self.link_handler {
             link_handler.push_link(
                 id,
@@ -303,7 +295,7 @@ impl LinesWrapper {
 
         // create a rendered element with the id -1 and push it to the current line
         self.push_element(RenderedElement {
-            id: -1,
+            id: usize::MAX,
             content: " ".to_string(),
             style: Style::from(CONFIG.theme.text),
             width: 1,
@@ -332,7 +324,7 @@ impl LinesWrapper {
         // just create an empty element that filles the whole line
         let remaining_width = self.width - self.current_width;
         self.create_rendered_element(
-            &-1,
+            &usize::MAX,
             &Style::none(),
             &" ".repeat(remaining_width),
             &remaining_width,
@@ -340,7 +332,7 @@ impl LinesWrapper {
     }
 
     /// Creates a rendered element and adds it to the current line
-    fn create_rendered_element(&mut self, id: &i32, style: &Style, content: &str, width: &usize) {
+    fn create_rendered_element(&mut self, id: &usize, style: &Style, content: &str, width: &usize) {
         // we can just clone the whole thing and call the push_element function
         self.push_element(RenderedElement {
             id: *id,

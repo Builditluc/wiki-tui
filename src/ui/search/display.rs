@@ -9,7 +9,10 @@ use cursive::{
 
 use crate::{
     config::CONFIG,
-    ui::{panel::WithPanel, search::on_continue_submit, utils::percentage, views::RootLayout},
+    ui::{
+        article::on_article_submit, panel::WithPanel, search::on_continue_submit,
+        utils::percentage, views::RootLayout,
+    },
     wiki::search::{Search, SearchResult},
 };
 
@@ -62,8 +65,9 @@ pub fn display_search_results(siv: &mut Cursive, mut search: Search, query: &str
 
     // create the results view (SelectView)
     let search_results_view = {
-        let mut search_results_view = SelectView::<SearchResult>::new().on_select(on_result_select);
-        // .on_submit(on_article_submit);
+        let mut search_results_view = SelectView::<SearchResult>::new()
+            .on_select(on_result_select)
+            .on_submit(|siv, x| on_article_submit(siv, x.pageid()));
 
         // fill results view with results
         for search_result in search.take_results() {

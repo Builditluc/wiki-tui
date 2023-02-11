@@ -6,7 +6,7 @@ use std::fmt::Display;
 
 use crate::config;
 
-fn query(params: Vec<(&str, String)>) -> Result<Response> {
+fn action_query(params: Vec<(&str, String)>) -> Result<Response> {
     Client::new()
         .get(format!("{}/w/api.php", config::CONFIG.api_config.base_url))
         .query(&[
@@ -418,7 +418,7 @@ impl SearchBuilder<Query> {
             params.push(("srsort", sort_order.to_string()));
         }
 
-        let response = query(params)?
+        let response = action_query(params)?
             .error_for_status()
             .context("recieved an error")?;
 

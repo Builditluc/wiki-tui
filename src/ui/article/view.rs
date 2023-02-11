@@ -2,7 +2,7 @@ use crate::{
     config::CONFIG,
     ui::article::content::ArticleContent,
     ui::{article::on_link_submit, utils::display_message},
-    wiki::article::Article,
+    wiki::article::{Article, ElementType},
 };
 
 use cursive::{
@@ -89,7 +89,7 @@ impl ArticleView {
     }
 
     /// Select a header by moving the viewport to its coordinates
-    pub fn select_header(&mut self, index: usize) {
+    pub fn select_section(&mut self, index: usize) {
         if !CONFIG.features.toc {
             return;
         }
@@ -133,7 +133,7 @@ impl ArticleView {
             debug!("found the element of the link");
 
             // get target link from the article element
-            let target = match element.get_attribute("target") {
+            let target = match element.attr("target") {
                 Some(t) => t.to_string(),
                 None => {
                     warn!("missing attribute 'target' from element '{}'", element.id());
@@ -144,7 +144,7 @@ impl ArticleView {
             debug!("target link is '{}'", target);
 
             // check whether this link pointing to another wikipedia article
-            if element.get_attribute("external").is_some() {
+            if element.attr("external").is_some() {
                 warn!("element '{}' contains attribute 'external'", element.id());
                 warn!("the link '{}' is external", element.id());
                 return EventResult::Consumed(Some(Callback::from_fn(move |s| {
@@ -303,21 +303,14 @@ impl View for ArticleView {
                     .content
                     .get_element_at_position(position.saturating_sub(offset))
                 {
-                    return match element.get_attribute("type") {
+                    return match element.kind() {
                         // if it's a link, check if it's valid and then open it
-                        Some("link") if CONFIG.features.links => {
+                        ElementType::Link if CONFIG.features.links => {
                             // select this link
-                            let element_id = *element.id();
-                            self.content.set_current_link(element_id);
+                            self.content.set_current_link(element.id());
                             debug!("selected the clicked link");
 
                             self.check_and_open_link()
-                        }
-
-                        // if it's a button, don't do anything for now
-                        Some("button") => {
-                            error!("wow, you've found a secret!");
-                            EventResult::Ignored
                         }
 
                         // this element doesn't support mouse clicking

@@ -1,7 +1,7 @@
 use cursive::{direction::Absolute, Vec2};
 use std::rc::Rc;
 
-use crate::wiki::article::{Article, ArticleElement};
+use crate::wiki::article::{Article, Element};
 use crate::{
     config::CONFIG,
     ui::article::{
@@ -38,16 +38,19 @@ impl ArticleContent {
 
     /// Returns the ArticleElement from a given id
     /// Accepts an optional id so it can be easily linked with current_link
-    pub fn element_by_id(&self, id: Option<i32>) -> Option<&ArticleElement> {
+    pub fn element_by_id(&self, id: Option<usize>) -> Option<&Element> {
         if let Some(id) = id {
             // get every element with that id and return the first one
-            return self.article.elements().find(|e| e.id() == &id);
+            return self
+                .article
+                .content()
+                .and_then(|mut x| x.find(|e| e.id() == id));
         }
         None
     }
 
     /// Returns the id of the current link
-    pub fn current_link(&self) -> Option<i32> {
+    pub fn current_link(&self) -> Option<usize> {
         if let Some(ref link_handler) = self.link_handler {
             return link_handler.get_current_link();
         }
@@ -55,7 +58,7 @@ impl ArticleContent {
     }
 
     /// Overrides the current link
-    pub fn set_current_link(&mut self, id: i32) {
+    pub fn set_current_link(&mut self, id: usize) {
         if let Some(ref mut link_handler) = self.link_handler {
             link_handler.set_current_link(id);
         }
@@ -83,16 +86,21 @@ impl ArticleContent {
 
     /// Calculates and returns the required size
     pub fn required_size(&mut self, size: Vec2) -> Vec2 {
+        let content = self
+            .article
+            .content()
+            .map(|x| x.cloned())
+            .map(|x| x.collect::<Vec<Element>>());
+
+        if content.is_none() {
+            return Vec2::zero();
+        }
+
         // get the required width from a LinesWrapper
         let required_width = LinesWrapper::new(
             size.x,
             // we have to clone all of the elements
-            Rc::new(
-                self.article
-                    .elements()
-                    .cloned()
-                    .collect::<Vec<ArticleElement>>(),
-            ),
+            Rc::new(content.unwrap()),
         )
         .required_width();
 
@@ -119,16 +127,22 @@ impl ArticleContent {
     /// Renders the article with a given constraint
     pub fn compute_lines(&mut self, size: Vec2) {
         debug!("rendering the article with a size constraint of {:?}", size);
+
+        let content = self
+            .article
+            .content()
+            .map(|x| x.cloned())
+            .map(|x| x.collect::<Vec<Element>>());
+
+        if content.is_none() {
+            return;
+        }
+
         // render the lines
         let lines_wrapper = LinesWrapper::new(
             size.x,
             // we have to clone all the elements
-            Rc::new(
-                self.article
-                    .elements()
-                    .cloned()
-                    .collect::<Vec<ArticleElement>>(),
-            ),
+            Rc::new(content.unwrap()),
         )
         .wrap_lines();
 
@@ -172,7 +186,7 @@ impl ArticleContent {
 
     /// Retrieves the element at the given position. If no element could be found at that position,
     /// none is returned
-    pub fn get_element_at_position(&self, position: Vec2) -> Option<&ArticleElement> {
+    pub fn get_element_at_position(&self, position: Vec2) -> Option<&Element> {
         // check if y-pos is outside of the bounds
         if position.y >= self.rendered_lines.len() || self.rendered_lines.is_empty() {
             return None;
