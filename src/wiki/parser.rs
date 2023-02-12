@@ -109,10 +109,12 @@ impl Parser {
     fn parse_text(&mut self, node: Node) {
         for child in node.children() {
             if child.name().is_some() {
+                info!("parsing node {:?} {}", child.name(), child.text());
                 self.parse_node(child);
                 continue;
             }
 
+            info!("pushing text {}", child.text());
             self.elements.push(Element::new(
                 self.next_id(),
                 ElementType::Text,
@@ -125,9 +127,8 @@ impl Parser {
 
     fn parse_link(&mut self, node: Node) {
         let target = node.attr("href");
-        let title = node.attr("title");
 
-        if target.is_none() || title.is_none() {
+        if target.is_none() {
             return;
         }
 
@@ -166,7 +167,7 @@ impl Parser {
                 self.combine_effects(Style::from(config::CONFIG.theme.text)),
                 HashMap::new(),
             ));
-            self.parse_text(child);
+            self.parse_text(child)
         }
         self.push_newline();
         self.push_newline();

@@ -499,7 +499,7 @@ impl<I, P> ArticleBuilder<I, P> {
                     Section {
                         index: 0,
                         header_type: HeaderType::Main,
-                        text: "Top".to_string(),
+                        text: "(Top)".to_string(),
                         number: "".to_string(),
                         anchor: "Content_Top".to_string(),
                     },
