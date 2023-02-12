@@ -1,6 +1,6 @@
 [package]
 name = "wiki-tui"
-version = "0.6.1"
+version = "0.6.2"
 authors = ["builditluc <37375448+Builditluc@users.noreply.github.com>"]
 edition = "2018"
 repository = "https://github.com/Builditluc/wiki-tui"
@@ -63,6 +63,3 @@ features = ["derive"]
 [dependencies.uuid]
 version = "0.8.2"
 features = ["v4"]
-
-[dev-dependencies]
-httpmock = "0.6.7"
