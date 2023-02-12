@@ -1,9 +1,6 @@
 use crate::{
-    config,
     ui::utils::display_error,
-    wiki::search::{
-        Search, SearchBuilder, SearchMetadata, SearchProperties, SearchResult, SearchSortOrder,
-    },
+    wiki::search::{Search, SearchResult},
 };
 
 use anyhow::{Context, Result};
@@ -15,19 +12,15 @@ pub mod bar_popup;
 mod display;
 mod select;
 
-/// Returns the default SearchBuilder
-fn build_search() -> SearchBuilder {
-    SearchBuilder::new(&config::CONFIG.api_config.base_url)
-        .info(SearchMetadata::new().total_hits().suggestion())
-        .prop(SearchProperties::new().snippet().wordcount().timestamp())
-        .sort(SearchSortOrder::JustMatch)
-}
-
 /// Callback that searches for a given query and adds the results to a new layer
 /// Displays any error that occurred and aborts the search (does not crash)
 pub fn on_search(siv: &mut Cursive, query: &str) {
     // search for the query
-    let search = match search(query).with_context(|| format!("failed to search for '{}'", query)) {
+    let search = match Search::builder()
+        .query(query)
+        .search()
+        .with_context(|| format!("failed to search for '{}'", query))
+    {
         Ok(search) => search,
         Err(error) => {
             warn!("{:?}", error);
@@ -37,7 +30,7 @@ pub fn on_search(siv: &mut Cursive, query: &str) {
     };
 
     // if we've found no results, display the appropriate message
-    if search.is_empty() && search.info().suggestion().is_none() {
+    if search.is_empty() && search.suggestion().is_none() {
         warn!("could'nt find any search results and no query suggestion was given");
         display_message(
             siv,
@@ -48,10 +41,10 @@ pub fn on_search(siv: &mut Cursive, query: &str) {
     }
 
     // if we've found no results, but have a suggestion for another query, display a dialog
-    if search.is_empty() && search.info().suggestion().is_some() {
+    if search.is_empty() && search.suggestion().is_some() {
         info!(
             "no results are available, suggesting a new query, '{}'",
-            search.info().suggestion().unwrap()
+            search.suggestion().unwrap()
         );
 
         display_dialog(
@@ -60,27 +53,20 @@ pub fn on_search(siv: &mut Cursive, query: &str) {
             &format!(
                 "No results for '{}' were found. Do you want to search for '{}' instead?",
                 query,
-                search.info().suggestion().unwrap()
+                search.suggestion().unwrap()
             ),
-            move |siv| on_search(siv, search.info().suggestion().unwrap()),
+            move |siv| on_search(siv, search.suggestion().unwrap()),
         );
         return;
     }
 
     // display the found search results
-    if let Err(error) = display::display_search_results(siv, search.clone(), query)
+    if let Err(error) = display::display_search_results(siv, search, query)
         .with_context(|| format!("failed to display the search results for '{}'", query))
     {
         warn!("{:?}", error);
         display_error(siv, error);
     }
-}
-
-/// Searches for a given query and returns the results. Returns an error if something went wrong.
-fn search(query: &str) -> Result<Search> {
-    info!("searching for '{}'", query);
-    // do the search and if something went wrong, return the error
-    build_search().query(query.to_string()).search()
 }
 
 /// Generates and displays a preview of a given search result. It's used as a callback for the
@@ -89,7 +75,7 @@ fn on_result_select(siv: &mut Cursive, item: &SearchResult) {
     info!(
         "selecting the item '{}', page id: '{}'",
         item.title(),
-        item.page_id()
+        item.pageid()
     );
 
     let layer_len = siv.screen_mut().len();
@@ -149,8 +135,8 @@ fn continue_search(search_query: &str, search_offset: &usize) -> Result<Search> 
     info!("fetching more search results for '{}'", search_query);
 
     // fetch more results
-    build_search()
-        .query(search_query.to_string())
+    Search::builder()
+        .query(search_query)
         .offset(*search_offset)
         .search()
 }

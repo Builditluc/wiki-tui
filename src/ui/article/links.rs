@@ -43,12 +43,12 @@ impl LinkHandler {
     /// Adds a new link with the given id and position
     /// It is required to add the links from left to right and top to bottom in order for the
     /// selection to work
-    pub fn push_link(&mut self, id: i32, x: usize, y: usize) {
+    pub fn push_link(&mut self, id: usize, x: usize, y: usize) {
         self.links.push(Link { id, x, y })
     }
 
     /// Retrieves the id of the currently selected link. If there are no links, None will be returned
-    pub fn get_current_link(&self) -> Option<i32> {
+    pub fn get_current_link(&self) -> Option<usize> {
         if self.links.is_empty() {
             return None;
         }
@@ -118,14 +118,25 @@ impl LinkHandler {
         }
 
         let current_link = &self.links[self.current_link];
-        debug!("current link: {:?}", current_link);
+        debug!(
+            "current link: {:?}, index: {}, total len: {}",
+            current_link,
+            self.current_link,
+            self.links.len()
+        );
 
         if let Some(link) = self
             .links
             .iter()
-            .take(self.links.len() - self.current_link)
             .rev()
-            .skip(amount)
+            .skip(
+                amount
+                    + (self
+                        .links
+                        .len()
+                        .saturating_sub(1)
+                        .saturating_sub(self.current_link)),
+            )
             .find(|&x| x.id < current_link.id)
         {
             self.current_link = self.links.iter().position(|x| x == link).unwrap();
@@ -158,7 +169,7 @@ impl LinkHandler {
     }
 
     /// Overrides the current link
-    pub fn set_current_link(&mut self, id: i32) {
+    pub fn set_current_link(&mut self, id: usize) {
         if self.links.is_empty() {
             warn!(
                 "no links are registered, abort setting the current link to '{}'",
@@ -176,7 +187,7 @@ impl LinkHandler {
             "replacing the current link '{}', with '{}'",
             self.current_link, new_selection
         );
-        self.current_link = new_selection as usize;
+        self.current_link = new_selection;
     }
 }
 
@@ -185,7 +196,7 @@ impl LinkHandler {
 #[derive(Debug, PartialEq)]
 struct Link {
     /// The id of the Link. This is also used to reference it to an ArticleElement
-    id: i32,
+    id: usize,
 
     /// The relative x coordinate of the Link
     x: usize,

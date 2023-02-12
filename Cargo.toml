@@ -28,6 +28,7 @@ blt-backend = ["cursive/blt-backend"]
 [dependencies]
 syn = "=1.0.57"
 serde_json = "1.0.61"
+serde_repr = "0.1"
 log = "0.4.13"
 dirs = "3.0.1"
 anyhow = "1.0"
@@ -62,3 +63,6 @@ features = ["derive"]
 [dependencies.uuid]
 version = "0.8.2"
 features = ["v4"]
+
+[dev-dependencies]
+httpmock = "0.6.7"

@@ -1,19 +1,15 @@
+use crate::config;
 use crate::ui::panel::WithPanel;
 use crate::ui::search::bar_popup::open_search_bar;
+use crate::ui::toc::display_toc;
 use crate::ui::utils::{display_dialog, display_error};
-use crate::wiki::{
-    article::{parser::DefaultParser, Article, ArticleBuilder},
-    search::SearchResult,
-};
-use crate::{
-    config::CONFIG,
-    ui::{self, views::RootLayout},
-};
+use crate::wiki::article::{Article, Property};
+use crate::{config::CONFIG, ui::views::RootLayout};
 
 use anyhow::{Context, Result};
 use cursive::align::HAlign;
 use cursive::view::{Nameable, Resizable, Scrollable};
-use cursive::views::{Dialog, OnEventView, TextView};
+use cursive::views::{Dialog, LastSizeView, OnEventView, TextView};
 use cursive::Cursive;
 
 mod content;
@@ -22,10 +18,14 @@ mod links;
 mod view;
 pub type ArticleView = view::ArticleView;
 
-/// Fetches an article from a given SearchResult and displays it. It's the on_submit callback for
+/// Fetches an article from a given id and displays it. It's the on_submit callback for
 /// the search results view
-pub fn on_article_submit(siv: &mut Cursive, search_result: &SearchResult) {
-    let article = match fetch_article(*search_result.page_id(), None) {
+pub fn on_article_submit(siv: &mut Cursive, pageid: usize) {
+    let article = match Article::builder()
+        .pageid(pageid)
+        .properties(vec![Property::Text, Property::Sections])
+        .fetch()
+    {
         Ok(article) => article,
         Err(error) => {
             warn!("{:?}", error);
@@ -39,20 +39,12 @@ pub fn on_article_submit(siv: &mut Cursive, search_result: &SearchResult) {
     }
 }
 
-fn fetch_article(page_id: i32, target: Option<String>) -> Result<Article> {
-    info!("fetching the article");
-    ArticleBuilder::new(page_id, target, &CONFIG.api_config.base_url)
-        .build(&mut DefaultParser::new(&CONFIG.settings.toc))
-}
-
 /// Displays a confirmation dialog on whether to open the link. It's the on_submit callback for the
 /// article view
 pub fn on_link_submit(siv: &mut Cursive, target: String) {
     // convert the target into a human-friendly format
-    let target_human = {
-        let target = target.strip_prefix("/wiki/").unwrap_or(&target);
-        target.replace('_', " ")
-    };
+    let target = target.strip_prefix("/wiki/").unwrap_or(&target).to_string();
+    let target_human = target.replace('_', " ");
 
     info!("requesting confirmation to open the link '{}'", target);
 
@@ -69,8 +61,11 @@ pub fn on_link_submit(siv: &mut Cursive, target: String) {
 /// Helper function for fetching and displaying an article from a given link
 fn open_link(siv: &mut Cursive, target: String) {
     // fetch the article
-    let article = match ArticleBuilder::new(0, Some(target), &CONFIG.api_config.base_url)
-        .build(&mut DefaultParser::new(&CONFIG.settings.toc))
+    let article = match Article::builder()
+        .page(target)
+        .properties(vec![Property::Text, Property::Sections])
+        .fetch()
+        .context("failed fetching the article")
     {
         Ok(article) => article,
         Err(error) => {
@@ -128,26 +123,12 @@ fn display_article(siv: &mut Cursive, article: Article) -> Result<()> {
     debug!("article_layout name '{}'", article_layout_name);
     debug!("artilce_view name '{}'", article_view_name);
 
-    // create the article view
-    let article_view = ArticleView::new(article.clone())
-        .with_name(&article_view_name)
-        .scrollable()
-        .with_panel()
-        .title("wiki-tui");
-    debug!("created the article view");
-
-    let article_layout = RootLayout::horizontal(CONFIG.keybindings.clone())
-        .child(article_view)
-        .with_name(&article_layout_name)
-        .full_screen();
+    let mut article_layout = RootLayout::horizontal(CONFIG.keybindings.clone());
     debug!("created the article layout");
 
-    siv.add_fullscreen_layer(OnEventView::new(article_layout).on_event('S', open_search_bar));
-    debug!("created a new fullscreen layer and added the article layout to it");
-
     // display the toc if there is one
-    if let Some(toc) = article.toc() {
-        if let Err(error) = ui::toc::add_table_of_contents(siv, toc)
+    if let Some(sections) = article.sections() {
+        if let Err(error) = display_toc(siv, &mut article_layout, sections)
             .context("failed displaying the table of contents")
         {
             warn!("{:?}", error);
@@ -156,6 +137,27 @@ fn display_article(siv: &mut Cursive, article: Article) -> Result<()> {
             debug!("displayed the table of contents");
         }
     }
+
+    // create the article view
+    let article_view = LastSizeView::new(
+        ArticleView::new(article)
+            .with_name(&article_view_name)
+            .scrollable()
+            .with_panel()
+            .title("wiki-tui"),
+    );
+
+    match config::CONFIG.settings.toc.position {
+        config::TocPosition::Left => article_layout.add_child(article_view),
+        config::TocPosition::Right => article_layout.insert_child(0, article_view),
+    }
+    debug!("created the article view");
+
+    siv.add_fullscreen_layer(
+        OnEventView::new(article_layout.with_name(&article_layout_name).full_screen())
+            .on_event('S', open_search_bar),
+    );
+    debug!("created a new fullscreen layer and added the article layout to it");
 
     // focus the article view
     siv.focus_name(&article_view_name)
