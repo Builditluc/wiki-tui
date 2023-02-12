@@ -70,7 +70,7 @@ impl Search {
     }
 
     pub fn take_results(&mut self) -> Vec<SearchResult> {
-        std::mem::replace(&mut self.results, Vec::new())
+        std::mem::take(&mut self.results)
     }
 }
 
@@ -108,17 +108,11 @@ impl SearchResult {
     }
 
     pub fn snippet(&self) -> Option<&str> {
-        match self.snippet {
-            Some(ref x) => Some(x),
-            None => None,
-        }
+        self.snippet.as_ref().map(|x| x as _)
     }
 
     pub fn timestamp(&self) -> Option<&str> {
-        match self.timestamp {
-            Some(ref x) => Some(x),
-            None => None,
-        }
+        self.timestamp.as_ref().map(|x| x as _)
     }
 }
 
@@ -153,7 +147,7 @@ pub enum Namespace {
 
 impl Display for Namespace {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", (self.clone()).to_string())
+        write!(f, "{}", self.clone())
     }
 }
 
@@ -459,7 +453,7 @@ impl SearchBuilder<Query> {
         .context("failed deserializing the search results")?;
 
         Ok(Search {
-            complete: !continue_offset.is_some(),
+            complete: continue_offset.is_none(),
             continue_offset,
             total_hits,
             suggestion,

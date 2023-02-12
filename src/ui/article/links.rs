@@ -118,14 +118,25 @@ impl LinkHandler {
         }
 
         let current_link = &self.links[self.current_link];
-        debug!("current link: {:?}", current_link);
+        debug!(
+            "current link: {:?}, index: {}, total len: {}",
+            current_link,
+            self.current_link,
+            self.links.len()
+        );
 
         if let Some(link) = self
             .links
             .iter()
-            .take(self.links.len() - self.current_link)
             .rev()
-            .skip(amount)
+            .skip(
+                amount
+                    + (self
+                        .links
+                        .len()
+                        .saturating_sub(1)
+                        .saturating_sub(self.current_link)),
+            )
             .find(|&x| x.id < current_link.id)
         {
             self.current_link = self.links.iter().position(|x| x == link).unwrap();
@@ -176,7 +187,7 @@ impl LinkHandler {
             "replacing the current link '{}', with '{}'",
             self.current_link, new_selection
         );
-        self.current_link = new_selection as usize;
+        self.current_link = new_selection;
     }
 }
 

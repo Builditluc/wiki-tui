@@ -53,7 +53,7 @@ impl Element {
         Element {
             id,
             kind,
-            width: content.bytes().count(),
+            width: content.len(),
             content,
             style: style.into(),
             attributes,
@@ -80,7 +80,7 @@ impl Element {
         self.width
     }
 
-    pub fn attr<'a>(&self, name: &'a str) -> Option<&str> {
+    pub fn attr(&self, name: &str) -> Option<&str> {
         match self.attributes.get(name) {
             Some(value) => Some(value),
             None => None,
@@ -402,8 +402,7 @@ impl<I, P> ArticleBuilder<I, P> {
             .get("parse")
             .and_then(|x| x.get("text"))
             .and_then(|x| x.as_str())
-            .map(|x| Parser::parse_document(x, &title).ok())
-            .flatten();
+            .and_then(|x| Parser::parse_document(x, &title).ok());
 
         let language_links = res_json
             .get("parse")

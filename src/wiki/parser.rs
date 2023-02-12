@@ -54,7 +54,7 @@ impl Parser {
             "b" => self.parse_effect(node, Effect::Bold),
             "i" => self.parse_effect(node, Effect::Italic),
             "ul" => self.parse_list(node),
-            "" => return,
+            "" => (),
             _ if SHOW_UNSUPPORTED => {
                 self.elements.push(Element::new(
                     self.next_id(),
@@ -64,7 +64,7 @@ impl Parser {
                     HashMap::new(),
                 ));
             }
-            _ => return,
+            _ => (),
         }
     }
 
@@ -109,12 +109,10 @@ impl Parser {
     fn parse_text(&mut self, node: Node) {
         for child in node.children() {
             if child.name().is_some() {
-                info!("parsing node {:?} {}", child.name(), child.text());
                 self.parse_node(child);
                 continue;
             }
 
-            info!("pushing text {}", child.text());
             self.elements.push(Element::new(
                 self.next_id(),
                 ElementType::Text,

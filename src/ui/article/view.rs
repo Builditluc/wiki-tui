@@ -63,6 +63,8 @@ impl ArticleView {
         let link_pos = self.content.current_link_pos().unwrap_or_default();
         let viewport_top = self.viewport_offset.get();
 
+        debug!("link pos is {:?}", link_pos);
+
         // if the link is above the viewport (aka its y-pos is smaller than the viewport offset),
         // then increase the links position by the difference between the viewport offset and its
         // y-position
@@ -78,7 +80,7 @@ impl ArticleView {
         // then decrease the links position by the difference between its y-position and the
         // viewport offset
         let viewport_bottom = viewport_top.saturating_add(self.viewport_size.get().y);
-        if link_pos.y >= viewport_bottom {
+        if link_pos.y > viewport_bottom {
             let move_amount = link_pos.y.saturating_sub(viewport_bottom);
             self.content.move_selected_link(Absolute::Up, move_amount);
 
@@ -167,7 +169,7 @@ impl ArticleView {
             })));
         }
 
-        return EventResult::Ignored;
+        EventResult::Ignored
     }
 }
 
@@ -265,6 +267,7 @@ impl View for ArticleView {
                 EventResult::Consumed(None)
             }
             Event::Key(Key::Right) if CONFIG.features.links => {
+                debug!("moving to the right");
                 self.content.move_selected_link(Absolute::Right, 1);
                 // if the current link is outside of the viewport, then scroll
                 // get the current links position
@@ -280,6 +283,10 @@ impl View for ArticleView {
                     .get()
                     .saturating_add(self.viewport_size.get().y);
                 if current_link_pos.y >= viewport_bottom {
+                    debug!(
+                        "link is below the viewport, current_link_pos: {:?} viewport_bottom: {}",
+                        current_link_pos, viewport_bottom
+                    );
                     // so the link is below the viewport... great...
                     // calculate how much below the viewport the link is
                     let move_amount = current_link_pos.y.saturating_sub(viewport_bottom);
@@ -288,7 +295,10 @@ impl View for ArticleView {
                     self.scroll(Absolute::Down, move_amount);
                 }
 
-                debug!("link pos after selection: {:?}", current_link_pos);
+                debug!(
+                    "link pos after selection: {:?}",
+                    self.content.current_link_pos()
+                );
 
                 EventResult::Consumed(None)
             }
