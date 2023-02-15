@@ -1,6 +1,7 @@
 use anyhow::{Context, Result};
 use cursive::theme::Style;
 use reqwest::blocking::{Client, Response};
+use select::document::Document;
 use serde::Deserialize;
 use serde_repr::Deserialize_repr;
 use std::{collections::HashMap, fmt::Display};
@@ -487,6 +488,11 @@ impl<I, P> ArticleBuilder<I, P> {
                     .filter_map(|(i, x)| {
                         serde_json::from_value(x).ok().map(|mut x: Section| {
                             x.index = i + 1;
+                            let doc = Document::from(x.text());
+                            // TODO: render html tags in the toc
+                            if let Some(text) = doc.nth(0).map(|x| x.text()) {
+                                x.text = text;
+                            }
                             x
                         })
                     })
