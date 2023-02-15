@@ -143,6 +143,8 @@ impl LinesWrapper {
     pub fn wrap_lines(mut self) -> Self {
         debug!("wrapping the lines");
 
+        let mut last_type: ElementType = ElementType::Text;
+
         // go through every element
         for element in self.elements.clone().iter() {
             // is this a link?
@@ -156,6 +158,8 @@ impl LinesWrapper {
                 // fill the current line and make the next one blank
                 self.fill_line();
                 self.newline();
+
+                last_type = element.kind();
                 continue;
             }
 
@@ -176,7 +180,9 @@ impl LinesWrapper {
 
             // if the element does not have a leading special character and we are not at the beginning
             // of a line, add a leading whitespace
-            if !element.content().starts_with([',', '.', ';', ':']) && !self.current_line.is_empty()
+            if (!element.content().starts_with([',', '.', ';', ':'])
+                && !self.current_line.is_empty())
+                || last_type == ElementType::ListMarker
             {
                 self.push_whitespace();
             }
@@ -190,6 +196,7 @@ impl LinesWrapper {
                     }
                     // then add it to the merged element
                     merged_element.push_str(span);
+                    last_type = element.kind();
                     continue;
                 }
 
@@ -228,6 +235,7 @@ impl LinesWrapper {
                     }
                     // then add it to the merged element
                     merged_element.push_str(span);
+                    last_type = element.kind();
                     continue;
                 }
             }

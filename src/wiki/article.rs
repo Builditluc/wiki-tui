@@ -30,6 +30,7 @@ pub enum ElementType {
     Link,
     Header,
     Unsupported,
+    ListMarker,
 }
 
 #[derive(Debug, Clone)]
