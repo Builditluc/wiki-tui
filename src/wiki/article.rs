@@ -22,7 +22,7 @@ fn action_parse(params: Vec<(&str, String)>) -> Result<Response> {
         .context("failed sending the request")
 }
 
-#[derive(Debug, PartialEq, Clone, Copy)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub enum ElementType {
     Text,
     Newline,
@@ -389,14 +389,14 @@ impl<I, P> ArticleBuilder<I, P> {
             .and_then(|x| x.get("title"))
             .and_then(|x| x.as_str())
             .map(|x| x.to_string())
-            .ok_or(anyhow!("missing the title"))?;
+            .ok_or_else(|| anyhow!("missing the title"))?;
 
         let pageid = res_json
             .get("parse")
             .and_then(|x| x.get("pageid"))
             .and_then(|x| x.as_u64())
             .map(|x| x as usize)
-            .ok_or(anyhow!("missing the pageid"))?;
+            .ok_or_else(|| anyhow!("missing the pageid"))?;
 
         let content = res_json
             .get("parse")

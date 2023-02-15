@@ -9,6 +9,7 @@ use crate::config;
 use super::article::{Element, ElementType};
 
 const SHOW_UNSUPPORTED: bool = false;
+const LIST_MARKER: char = '-';
 
 pub struct Parser {
     elements: Vec<Element>,
@@ -77,6 +78,23 @@ impl Parser {
             style = style.combine(*effect);
         });
         style
+    }
+
+    fn push_newline(&mut self) {
+        self.elements.push(Element::new(
+            self.next_id(),
+            ElementType::Newline,
+            "",
+            Style::none(),
+            HashMap::new(),
+        ));
+    }
+
+    fn is_last_newline(&self) -> bool {
+        self.elements
+            .last()
+            .map(|x| x.kind() == ElementType::Newline)
+            .unwrap_or(false)
     }
 
     fn parse_header(&mut self, node: Node) {
@@ -157,11 +175,16 @@ impl Parser {
             .children()
             .filter(|x| x.name().unwrap_or_default() == "li")
         {
-            self.push_newline();
+            // to avoid having large gaps between lists and other elements, we only want to add a
+            // newline when there isn't another one already added
+            if !self.is_last_newline() {
+                self.push_newline();
+            }
+
             self.elements.push(Element::new(
                 self.next_id(),
                 ElementType::Text,
-                "\t-".to_string(),
+                format!("\t{}", LIST_MARKER),
                 self.combine_effects(Style::from(config::CONFIG.theme.text)),
                 HashMap::new(),
             ));
@@ -169,15 +192,5 @@ impl Parser {
         }
         self.push_newline();
         self.push_newline();
-    }
-
-    fn push_newline(&mut self) {
-        self.elements.push(Element::new(
-            self.next_id(),
-            ElementType::Newline,
-            "",
-            Style::none(),
-            HashMap::new(),
-        ));
     }
 }
