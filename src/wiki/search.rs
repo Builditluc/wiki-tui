@@ -447,7 +447,7 @@ impl SearchBuilder<Query> {
             res_json
                 .get("query")
                 .and_then(|x| x.get("search"))
-                .ok_or(anyhow!("missing the search results"))?
+                .ok_or_else(|| anyhow!("missing the search results"))?
                 .to_owned(),
         )
         .context("failed deserializing the search results")?;
