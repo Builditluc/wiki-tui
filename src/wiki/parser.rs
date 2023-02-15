@@ -183,8 +183,8 @@ impl Parser {
 
             self.elements.push(Element::new(
                 self.next_id(),
-                ElementType::Text,
-                format!("\t{}", LIST_MARKER),
+                ElementType::ListMarker,
+                format!("\t{} ", LIST_MARKER),
                 self.combine_effects(Style::from(config::CONFIG.theme.text)),
                 HashMap::new(),
             ));
