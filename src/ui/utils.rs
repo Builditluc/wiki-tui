@@ -29,7 +29,8 @@ macro_rules! view_with_theme {
 
 /// Displays a given error
 pub fn display_error(siv: &mut Cursive, error: Error) {
-    const ERROR_MESSAGE: &str = "An error occurred during the search\nCheck the logs for more information\n\nError: {ERROR}";
+    const ERROR_MESSAGE: &str =
+        "An error occurred\nCheck the logs for more information\n\nError: {ERROR}";
 
     let title = "Warning";
     let body = ERROR_MESSAGE.replace("{ERROR}", &error.to_string());
