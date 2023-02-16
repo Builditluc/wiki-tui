@@ -1,7 +1,12 @@
 {
   "plugins": [
     "crates",
-    "first-time-contributor"
+    "first-time-contributor",
+    "omit-release-notes",
+    {
+      "name": "allcontributors",
+      "labels": "ignore-release"
+    }
   ],
   "owner": "builditluc",
   "repo": "wiki-tui",
