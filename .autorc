@@ -17,5 +17,7 @@
     { "name": "type: refactor", "description": "Changes to the style and structure of the codebase or project", "changelogTitle": "Structure and Style Changes", "releaseType": "none", "color": "#bfdadc" },
     { "name": "type: testing", "description": "Changes to the tests", "changelogTitle": "Tests", "releaseType": "none", "color": "#f9d0c4" },
     { "name": "ignore-release", "description": "This won't be included in the release notes", "releaseType": "skip", "color": "#5ceb33" }
-  ]
+  ],
+
+  "changelog": { "message": "Update Changelog" }
 }
