@@ -7,9 +7,8 @@ use crate::wiki::article::{Article, Property};
 use crate::{config::CONFIG, ui::views::RootLayout};
 
 use anyhow::{Context, Result};
-use cursive::align::HAlign;
 use cursive::view::{Nameable, Resizable, Scrollable};
-use cursive::views::{Dialog, LastSizeView, OnEventView, TextView};
+use cursive::views::{LastSizeView, OnEventView, TextView};
 use cursive::Cursive;
 
 mod content;
@@ -72,12 +71,7 @@ fn open_link(siv: &mut Cursive, target: String) {
             warn!("{:?}", error);
 
             // display an error message
-            // TODO: use builtin helper function for error message here
-            siv.add_layer(
-                Dialog::info("A Problem occurred while fetching the article.\nCheck the logs for further information")
-                    .title("Error")
-                    .title_position(HAlign::Center)
-            );
+            display_error(siv, error);
             return;
         }
     };
@@ -89,12 +83,7 @@ fn open_link(siv: &mut Cursive, target: String) {
 
         // display an error message
         // TODO: use builtin helper function for error message here
-        siv.add_layer(
-            Dialog::info("A Problem occurred while displaying the article.\nCheck the logs for further information")
-                .title("Error")
-                .title_position(HAlign::Center)
-        );
-
+        display_error(siv, error);
         return;
     }
     debug!("displayed the article");
