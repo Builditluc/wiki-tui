@@ -120,6 +120,9 @@ impl Parser {
     }
 
     fn parse_paragraph(&mut self, node: Node) {
+        if let Some("mw-empty-elt") = node.attr("class") {
+            return;
+        }
         self.parse_text(node);
         self.push_newline();
         self.push_newline();
