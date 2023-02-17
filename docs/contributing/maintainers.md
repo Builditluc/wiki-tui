@@ -36,18 +36,23 @@ To create a new release of wiki-tui, follow these steps:
     * For any formatting issues or warnings using the following commands:
         * `cargo clippy`
         * `cargo fmt`
-    * Run tests with `cargo test` to ensure that the code is working as expected
-* Run `cargo update` to update any dependencies, and then run `cargo build` to build the project. 
-  Make sure that both of these commands succeed without any errors.
+* Run `cargo build` to build the project. 
 * Bump the version number in `Cargo.toml` to the next release version.
 * Run `cargo build` again to build the project with the updated version number. Don't forget to `git 
-  add Cargo.lock` so that the build is reproducible.
-* Create a commit with the message `bump to <version>`, where <version> is the new release version. 
-  For example, `bump to v0.6.2`.
+  add Cargo.lock` so that the build stays reproducible.
+* Update the changelog using `auto changelog --from <old-version> --to <version>`, where
+  <old-version> is the last version released and <version> is the new release version.
+* Amend the `Cargo.toml` and `Cargo.lock` changes to the commit `auto` generated and rename the
+  commit to `bump to <version>`, where <version> is the new release version using `git commit
+  --amend`
+  For example `bump to v0.6.2`
+* Create a tag using `git tag <version>`, where <version> is the new release version.
 * Push the commit using `git push`.
 * Push the tag with `git push --tags`.
-* Wait for the continuous integration (CI) process to complete.
-* Check that the release notes have been generated properly and contain all the relevant information 
-  about the new release.
+* Create a new release using `auto --from <old-version> --to <version>`
+    * Test the new release body with `--dry-run` and verify that everything is correct
+    * Release it without the `--dry-run` flag
+* Publish the release to crates.io using `cargo publish`
+* Wait for the continuous integration (CI) process to complete building the precompiled binaries.
 * Finally, run `cargo install wiki-tui` to install the new release onto your local machine, and 
   verify that it is working correctly.
