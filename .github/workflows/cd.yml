@@ -71,20 +71,6 @@ jobs:
             target/${{ matrix.target }}/release/wiki-tui-${{ matrix.artifact_prefix }}.tar.gz
             target/${{ matrix.target }}/release/wiki-tui-${{ matrix.artifact_prefix }}.sha256
             LICENSE.txt
-          generate_release_notes: true
+          generate_release_notes: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  publish:
-    name: Publish to crates.io
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-          override: true
-      - uses: actions-rs/cargo@v1
-        with:
-          command: publish
-          args: --token ${{ secrets.CRATES_TOKEN }}
