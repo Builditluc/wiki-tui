@@ -10,6 +10,7 @@ use super::article::{Element, ElementType};
 
 const SHOW_UNSUPPORTED: bool = false;
 const LIST_MARKER: char = '-';
+const DISAMBIGUATION_MARKER: char = '|';
 
 pub struct Parser {
     elements: Vec<Element>,
@@ -55,7 +56,22 @@ impl Parser {
             "b" => self.parse_effect(node, Effect::Bold),
             "i" => self.parse_effect(node, Effect::Italic),
             "ul" => self.parse_list(node),
-            "div" if node.attr("class") == Some("redirectMsg") => self.parse_redirect_msg(node),
+            "div"
+                if node
+                    .attr("class")
+                    .map(|x| x.contains("hatnote"))
+                    .unwrap_or(false) =>
+            {
+                self.parse_disambiguation(node)
+            }
+            "div"
+                if node
+                    .attr("class")
+                    .map(|x| x.contains("redirectMsg"))
+                    .unwrap_or(false) =>
+            {
+                self.parse_redirect_msg(node)
+            }
             "" => (),
             _ if SHOW_UNSUPPORTED => {
                 self.elements.push(Element::new(
@@ -202,5 +218,18 @@ impl Parser {
         for child in node.children() {
             self.parse_node(child)
         }
+    }
+
+    fn parse_disambiguation(&mut self, node: Node) {
+        self.elements.push(Element::new(
+            self.next_id(),
+            ElementType::Text,
+            DISAMBIGUATION_MARKER.to_string(),
+            self.combine_effects(Style::from(config::CONFIG.theme.text)),
+            HashMap::new(),
+        ));
+        self.parse_effect(node, Effect::Italic);
+        self.push_newline();
+        self.push_newline();
     }
 }
