@@ -55,6 +55,7 @@ impl Parser {
             "b" => self.parse_effect(node, Effect::Bold),
             "i" => self.parse_effect(node, Effect::Italic),
             "ul" => self.parse_list(node),
+            "div" if node.attr("class") == Some("redirectMsg") => self.parse_redirect_msg(node),
             "" => (),
             _ if SHOW_UNSUPPORTED => {
                 self.elements.push(Element::new(
@@ -192,5 +193,11 @@ impl Parser {
         }
         self.push_newline();
         self.push_newline();
+    }
+
+    fn parse_redirect_msg(&mut self, node: Node) {
+        for child in node.children() {
+            self.parse_node(child)
+        }
     }
 }
