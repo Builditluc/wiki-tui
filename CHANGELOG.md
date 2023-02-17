@@ -1,3 +1,21 @@
+# v0.6.4 (Fri Feb 17 2023)
+
+#### Bug Fixes 🐛
+
+- Fix disambiguations not being shown [#160](https://github.com/Builditluc/wiki-tui/pull/160) ([@Builditluc](https://github.com/Builditluc))
+- Fix whitespace at the top of some articles [#159](https://github.com/Builditluc/wiki-tui/pull/159) ([@Builditluc](https://github.com/Builditluc))
+- Fix no redirect messages being shown [#158](https://github.com/Builditluc/wiki-tui/pull/158) ([@Builditluc](https://github.com/Builditluc))
+
+#### CI Pipeline and Dependency Updates
+
+- Add changelog and use auto for creating releases [#156](https://github.com/Builditluc/wiki-tui/pull/156) ([@Builditluc](https://github.com/Builditluc))
+
+#### Authors: 1
+
+- [@Builditluc](https://github.com/Builditluc)
+
+---
+
 # v0.6.3 (Thu Feb 16 2023)
 
 #### Bug Fixes 🐛
