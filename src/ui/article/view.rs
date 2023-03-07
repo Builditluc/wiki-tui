@@ -1,140 +1,113 @@
 use crate::{
     config::CONFIG,
-    ui::article::content::ArticleContent,
-    ui::{article::on_link_submit, utils::display_message},
+    ui::{
+        article::{content::ArticleContent, on_link_submit},
+        utils::display_message,
+    },
     wiki::article::{Article, ElementType},
 };
 
 use cursive::{
-    direction::Absolute,
     event::{Callback, Event, EventResult, Key, MouseButton, MouseEvent},
-    view::CannotFocus,
+    view::{
+        scroll::{self, Core},
+        CannotFocus, ScrollStrategy,
+    },
     Rect, Vec2, View,
 };
 
-use std::cell::Cell;
+const SCROLL_STRATEGY: ScrollStrategy = ScrollStrategy::KeepRow;
+const SCROLL_WHEEL_DOWN: usize = 3;
+const SCROLL_WHEEL_UP: usize = 3;
+const SCROLL_PAGE_UP: usize = 10;
+const SCROLL_PAGE_DOWN: usize = 10;
 
 /// A view displaying an article
 pub struct ArticleView {
     /// The content of the view
     content: ArticleContent,
 
-    /// The last size the view had
+    scroll: Core,
+
     last_size: Vec2,
-
-    /// The offset of the viewport
-    viewport_offset: Cell<usize>,
-
-    /// The size of the viewport
-    viewport_size: Cell<Vec2>,
 }
-
 impl ArticleView {
     /// Creates a new ArticleView with a given article as its content
     pub fn new(article: Article) -> Self {
         debug!("creating a new instance of ArticleView");
         ArticleView {
             content: ArticleContent::new(article),
+            scroll: Core::new(),
             last_size: Vec2::zero(),
-            viewport_offset: Cell::new(0),
-            viewport_size: Cell::new(Vec2::zero()),
         }
     }
 
-    /// Moves the viewport by a given amount in a given direction
-    fn scroll(&mut self, direction: Absolute, amount: usize) -> EventResult {
-        debug!("scrolling '{:?}' with an amount of '{}'", direction, amount);
-        match direction {
-            Absolute::Up => self
-                .viewport_offset
-                .set(self.viewport_offset.get().saturating_sub(amount)),
-            Absolute::Down => self
-                .viewport_offset
-                .set(self.viewport_offset.get().saturating_add(amount)),
-            _ => return EventResult::Ignored,
+    pub fn select_anchor(&mut self, anchor: &str) {
+        if let Some(anchor_coord) = self.content.anchor(anchor) {
+            self.scroll.set_offset((0, anchor_coord));
         }
-
-        // if the links are enabled, check if the current link is out of the viewport
-        if !CONFIG.features.links {
-            return EventResult::Consumed(None);
-        }
-
-        // get the position of the current link and the top of the viewport
-        let link_pos = self.content.current_link_pos().unwrap_or_default();
-        let viewport_top = self.viewport_offset.get();
-
-        debug!("link pos is {:?}", link_pos);
-
-        // if the link is above the viewport (aka its y-pos is smaller than the viewport offset),
-        // then increase the links position by the difference between the viewport offset and its
-        // y-position
-        if link_pos.y <= viewport_top {
-            let move_amount = viewport_top.saturating_sub(link_pos.y);
-            self.content.move_selected_link(Absolute::Down, move_amount);
-
-            return EventResult::Consumed(None);
-        }
-
-        // if the link is below the viewport (aka its y-pos is bigger than the viewport offset plus
-        // its size),
-        // then decrease the links position by the difference between its y-position and the
-        // viewport offset
-        let viewport_bottom = viewport_top.saturating_add(self.viewport_size.get().y);
-        if link_pos.y > viewport_bottom {
-            let move_amount = link_pos.y.saturating_sub(viewport_bottom);
-            self.content.move_selected_link(Absolute::Up, move_amount);
-
-            return EventResult::Consumed(None);
-        }
-
-        EventResult::Consumed(None)
     }
 
-    /// Select a header by moving the viewport to its coordinates
-    pub fn select_section(&mut self, index: usize) {
-        if !CONFIG.features.toc {
-            return;
-        }
-        info!("selecting the header '{}'", index);
-
-        // get the position of the header and the viewport top and bottom
-        let header_pos = self
-            .content
-            .header_y_pos(index)
-            .unwrap_or_else(|| self.viewport_offset.get());
-        let viewport_top = self.viewport_offset.get();
-
-        debug!(
-            "header_pos: '{}' viewport_top: '{}'",
-            header_pos, viewport_top
-        );
-
-        // if the header is above the viewport, then get the difference between the header and the
-        // viewport and scroll up by that amount
-        if header_pos < viewport_top {
-            let move_amount = viewport_top.saturating_sub(header_pos);
-            self.scroll(Absolute::Up, move_amount);
-            debug!("scrolled '{}' up", move_amount);
+    /// Checks if the current link is out of the viewport and moves the selection accordingly. If
+    /// no links could be found in the current viewport, the selection stays as it was
+    fn check_and_update_selection(&mut self) {
+        if !self.content.has_links() {
             return;
         }
 
-        // if the header is below the viewport, then get the difference between the header and the
-        // viewport and scroll down by that amount
-        let move_amount = header_pos.saturating_sub(viewport_top);
-        self.scroll(Absolute::Down, move_amount);
-        debug!("scrolled '{}' down", move_amount);
+        let selection_coords = self.content.current_link_coords();
+        let viewport = self.scroll.content_viewport();
+
+        if viewport.contains(selection_coords) {
+            return;
+        }
+
+        if selection_coords.y < viewport.top() {
+            let (id, _) = self
+                .content
+                .links()
+                .skip(self.content.current_link_idx())
+                .filter(|(_, pos)| viewport.contains(*pos))
+                .next()
+                .map(|x| x.to_owned())
+                .unwrap_or((self.content.current_link_element_id(), Vec2::zero()));
+            self.content.select_link_by_id(id);
+            return;
+        }
+        if selection_coords.y > viewport.bottom() {
+            let (id, _) = self
+                .content
+                .links()
+                .rev()
+                .filter(|(_, pos)| viewport.contains(*pos))
+                .next()
+                .map(|x| x.to_owned())
+                .unwrap_or((self.content.current_link_element_id(), Vec2::zero()));
+            self.content.select_link_by_id(id);
+        }
     }
 
-    /// Check if the link can safely be opened and open it
+    /// Checks if the current viewport shows the selected link and if not, moves it so the link is
+    /// visible
+    fn check_and_update_viewport(&mut self) {
+        if !self.content.has_links() {
+            return;
+        }
+
+        let selection_coords = self.content.current_link_coords();
+        self.scroll.scroll_to_y(selection_coords.y);
+        self.scroll.scroll_to_x(selection_coords.x);
+    }
+
+    /// Check if the link can be opened and opens it if it can
     fn check_and_open_link(&self) -> EventResult {
-        // get current link and retrieve the ArticleElement linked to it
-        let current_link = self.content.current_link();
-        debug!("current link is '{:?}'", current_link);
-
-        if let Some(element) = self.content.element_by_id(current_link) {
+        if let Some(element) = self
+            .content
+            .element_by_id(self.content.current_link_element_id())
+        {
             debug!("found the element of the link");
 
-            // get target link from the article element
+            // get the target link from the element
             let target = match element.attr("target") {
                 Some(t) => t.to_string(),
                 None => {
@@ -143,22 +116,19 @@ impl ArticleView {
                     return EventResult::Ignored;
                 }
             };
-            debug!("target link is '{}'", target);
+            debug!("target is '{}'", target);
 
-            // check whether this link pointing to another wikipedia article
+            // check whether the link is pointing to another wikipedia article or if its external
             if element.attr("external").is_some() {
                 warn!("element '{}' contains attribute 'external'", element.id());
                 warn!("the link '{}' is external", element.id());
                 return EventResult::Consumed(Some(Callback::from_fn(move |s| {
-                    let title = "Information";
-                    let message = format!("This link doesn't point to another article. \nInstead, it leads to the following external webpage and therefore, cannot be opened: \n\n> {}", target);
-                    display_message(s, title, &message);
+                    display_message(
+                        s, "Information", &format!("This link doensn't point to another article. \nInstead, it leads to the following external webpage and therefore, cannot be opened: \n\n> {}", target)
+                    );
                 })));
             }
-            debug!("target link is pointing to another wikipedia article");
-
-            // return the callback
-            debug!("returning the callback to open the link");
+            debug!("target link is not external, continuing");
             info!(
                 "opening the link '{}' with the target '{}'",
                 element.id(),
@@ -168,37 +138,29 @@ impl ArticleView {
                 on_link_submit(s, target.clone())
             })));
         }
-
         EventResult::Ignored
     }
 }
 
 impl View for ArticleView {
     fn draw(&self, printer: &cursive::Printer) {
-        // get the start and end y coordinates so that we only draw the lines visible
-        let miny = printer.content_offset.y;
-        let maxy = printer.content_offset.y + printer.output_size.y;
-
-        // update the viewport
-        self.viewport_offset.set(miny);
-        self.viewport_size.set(printer.output_size);
+        let printer = self.scroll.sub_printer(printer);
+        let viewport = self.scroll.content_viewport();
 
         // go through every line and print it to the screen
         for (y, line) in self
             .content
             .get_rendered_lines()
             .enumerate()
-            .filter(|(y, _)| &miny <= y && y <= &maxy)
+            .filter(|(y, _)| &viewport.top() <= y && y <= &viewport.bottom())
         {
             // go through every element in the line and print it with its style
             let mut x = 0;
             for element in line {
                 let mut style = element.style;
-
-                if Some(element.id) == self.content.current_link() {
-                    style = style.combine(CONFIG.theme.highlight);
+                if element.id == self.content.current_link_element_id() && CONFIG.features.links {
+                    style = style.combine(CONFIG.theme.highlight)
                 }
-
                 printer.with_style(style, |printer| {
                     printer.print((x, y), &element.content);
                     x += element.width;
@@ -208,18 +170,20 @@ impl View for ArticleView {
     }
 
     fn layout(&mut self, size: Vec2) {
-        // is this the same size as before? stop recalculating things!
         if self.last_size == size {
             return;
         }
-        debug!("final size for the view is '({},{})'", size.x, size.y);
 
-        // save the new size and compute the lines
-        self.last_size = size;
         self.content.compute_lines(size);
-
-        debug!("current link id: {:?}", self.content.current_link());
-        debug!("current link pos: {:?}", self.content.current_link_pos());
+        scroll::layout(
+            self,
+            size,
+            self.needs_relayout(),
+            |s, size| s.content.compute_lines(size),
+            |s, constraint| s.content.required_size(constraint),
+        );
+        self.last_size = size;
+        debug!("final size for the view is '({},{})'", size.x, size.y);
     }
 
     fn required_size(&mut self, constraint: Vec2) -> Vec2 {
@@ -227,111 +191,115 @@ impl View for ArticleView {
         self.content.required_size(constraint)
     }
 
+    fn needs_relayout(&self) -> bool {
+        self.scroll.needs_relayout()
+    }
+
+    fn important_area(&self, view_size: Vec2) -> cursive::Rect {
+        scroll::important_area(self, view_size, |_, si| Rect::from_size((0, 0), si))
+    }
+
     fn take_focus(&mut self, _: cursive::direction::Direction) -> Result<EventResult, CannotFocus> {
         // this view is always focusable
         Ok(EventResult::Consumed(None))
     }
 
-    fn important_area(&self, _: Vec2) -> cursive::Rect {
-        // return the viewport
-        Rect::from_size(
-            Vec2::new(0, self.viewport_offset.get()),
-            self.viewport_size.get(),
-        )
-    }
+    fn on_event(&mut self, event: cursive::event::Event) -> EventResult {
+        macro_rules! scroll_event {
+            ($func: expr) => {{
+                $func;
+                self.scroll.set_scroll_strategy(SCROLL_STRATEGY);
+                self.check_and_update_selection();
+                EventResult::consumed()
+            }};
+        }
 
-    fn on_event(&mut self, event: Event) -> EventResult {
         match event {
-            Event::Key(Key::Up) => self.scroll(Absolute::Up, 1),
-            Event::Key(Key::Down) => self.scroll(Absolute::Down, 1),
-            Event::Key(Key::Left) if CONFIG.features.links => {
-                self.content.move_selected_link(Absolute::Left, 1);
-                // if the current link is outside of the viewport, then scroll
-                // get the current links position
-                let current_link_pos = self
-                    .content
-                    .current_link_pos()
-                    .unwrap_or_else(|| (0, 0).into());
-
-                // we've moved the link to the left, so we only need to check if the link is above
-                // the viewport
-                let viewport_top = self.viewport_offset.get();
-                if current_link_pos.y <= viewport_top {
-                    // so the link is below the viewport... great...
-                    // calculate how much below the viewport the link is
-                    let move_amount = viewport_top.saturating_sub(current_link_pos.y);
-
-                    // then scroll that amount
-                    self.scroll(Absolute::Up, move_amount);
-                }
-                EventResult::Consumed(None)
+            Event::Mouse {
+                event: MouseEvent::WheelUp,
+                ..
+            } if self.scroll.can_scroll_up() => {
+                scroll_event!(self.scroll.scroll_up(SCROLL_WHEEL_UP))
             }
-            Event::Key(Key::Right) if CONFIG.features.links => {
-                debug!("moving to the right");
-                self.content.move_selected_link(Absolute::Right, 1);
-                // if the current link is outside of the viewport, then scroll
-                // get the current links position
-                let current_link_pos = self
-                    .content
-                    .current_link_pos()
-                    .unwrap_or_else(|| (0, 0).into());
-
-                // we've moved the link to the right, so we only need to check if the link is below
-                // the viewport
-                let viewport_bottom = self
-                    .viewport_offset
-                    .get()
-                    .saturating_add(self.viewport_size.get().y);
-                if current_link_pos.y >= viewport_bottom {
-                    debug!(
-                        "link is below the viewport, current_link_pos: {:?} viewport_bottom: {}",
-                        current_link_pos, viewport_bottom
-                    );
-                    // so the link is below the viewport... great...
-                    // calculate how much below the viewport the link is
-                    let move_amount = current_link_pos.y.saturating_sub(viewport_bottom);
-
-                    // then scroll that amount
-                    self.scroll(Absolute::Down, move_amount);
-                }
-
-                debug!(
-                    "link pos after selection: {:?}",
-                    self.content.current_link_pos()
-                );
-
-                EventResult::Consumed(None)
+            Event::Mouse {
+                event: MouseEvent::WheelDown,
+                ..
+            } if self.scroll.can_scroll_down() => {
+                scroll_event!(self.scroll.scroll_down(SCROLL_WHEEL_DOWN))
             }
-            Event::Key(Key::Enter) if CONFIG.features.links => self.check_and_open_link(),
+            Event::Mouse {
+                event: MouseEvent::Press(MouseButton::Left),
+                position,
+                offset,
+            } if self.scroll.get_show_scrollbars()
+                && position
+                    .checked_sub(offset)
+                    .map(|position| self.scroll.start_drag(position))
+                    .unwrap_or(false) =>
+            {
+                EventResult::consumed()
+            }
+            Event::Mouse {
+                event: MouseEvent::Hold(MouseButton::Left),
+                position,
+                offset,
+            } if self.scroll.get_show_scrollbars() => {
+                scroll_event!({
+                    let position = position.saturating_sub(offset);
+                    self.scroll.drag(position);
+                })
+            }
             Event::Mouse {
                 event: MouseEvent::Release(MouseButton::Left),
                 position,
                 offset,
             } => {
-                // get what element was clicked
-                if let Some(element) = self
-                    .content
-                    .get_element_at_position(position.saturating_sub(offset))
+                if let Some(element) = self.content.element_by_pos(position.saturating_sub(offset))
                 {
                     return match element.kind() {
-                        // if it's a link, check if it's valid and then open it
                         ElementType::Link if CONFIG.features.links => {
-                            // select this link
-                            self.content.set_current_link(element.id());
-                            debug!("selected the clicked link");
-
+                            self.content.select_link_by_id(element.id());
                             self.check_and_open_link()
                         }
-
-                        // this element doesn't support mouse clicking
                         _ => EventResult::Ignored,
                     };
                 }
-
-                // if there isn't an element at the event position, ignore the event altogether
-                EventResult::Ignored
+                scroll_event!(self.scroll.release_grab())
             }
+            Event::Key(Key::Home) if self.scroll.is_enabled().any() => scroll_event!({
+                self.scroll.scroll_to_left();
+                self.scroll.scroll_to_top();
+            }),
+            Event::Key(Key::End) if self.scroll.is_enabled().any() => scroll_event!({
+                self.scroll.scroll_to_right();
+                self.scroll.scroll_to_bottom();
+            }),
+            Event::Key(Key::PageUp) if self.scroll.can_scroll_up() => {
+                scroll_event!(self.scroll.scroll_up(SCROLL_PAGE_UP))
+            }
+            Event::Key(Key::PageDown) if self.scroll.can_scroll_down() => {
+                scroll_event!(self.scroll.scroll_down(SCROLL_PAGE_DOWN))
+            }
+            Event::Key(Key::Down) if self.scroll.can_scroll_down() => {
+                scroll_event!(self.scroll.scroll_down(1))
+            }
+            Event::Key(Key::Up) if self.scroll.can_scroll_up() => {
+                scroll_event!(self.scroll.scroll_up(1))
+            }
+            Event::Key(Key::Left) if CONFIG.features.links => {
+                self.content.select_prev_link();
+                self.check_and_update_viewport();
+                EventResult::consumed()
+            }
+            Event::Key(Key::Right) if CONFIG.features.links => {
+                self.content.select_next_link();
+                self.check_and_update_viewport();
+                EventResult::consumed()
+            }
+            Event::Key(Key::Enter) if CONFIG.features.links => self.check_and_open_link(),
             _ => EventResult::Ignored,
         }
     }
 }
+
+impl_scroller!(ArticleView::scroll);

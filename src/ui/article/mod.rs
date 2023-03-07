@@ -7,13 +7,12 @@ use crate::wiki::article::{Article, Property};
 use crate::{config::CONFIG, ui::views::RootLayout};
 
 use anyhow::{Context, Result};
-use cursive::view::{Nameable, Resizable, Scrollable};
+use cursive::view::{Nameable, Resizable};
 use cursive::views::{LastSizeView, OnEventView, TextView};
 use cursive::Cursive;
 
 mod content;
 mod lines;
-mod links;
 mod view;
 pub type ArticleView = view::ArticleView;
 
@@ -131,7 +130,6 @@ fn display_article(siv: &mut Cursive, article: Article) -> Result<()> {
     let article_view = LastSizeView::new(
         ArticleView::new(article)
             .with_name(&article_view_name)
-            .scrollable()
             .with_panel()
             .title("wiki-tui"),
     );

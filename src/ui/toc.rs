@@ -23,15 +23,15 @@ pub fn display_toc<'a>(
     let toc_view_name = format!("toc_view-{}", layer_len);
     debug!("toc_view name '{}'", toc_view_name);
 
-    let mut toc_view = SelectView::<usize>::new().on_submit(|siv, id| {
-        debug!("jumping to '{}'", id);
+    let mut toc_view = SelectView::<String>::new().on_submit(|siv, anchor| {
+        debug!("jumping to '{}'", anchor);
 
         let layer_len = siv.screen_mut().len();
         let article_view_name = format!("article_view-{}", layer_len);
 
         // select the header in the article view
         if let Some(mut view) = siv.find_name::<ArticleView>(&article_view_name) {
-            view.select_section(*id);
+            view.select_anchor(anchor);
             debug!("selected the header in the article view");
         }
 
@@ -56,7 +56,7 @@ pub fn display_toc<'a>(
         // add the item to the select_view
         let label = format!("{} {}", section.number(), section.text());
         debug!("added the item: '{}' to the toc_view", label);
-        toc_view.add_item(label, section.index());
+        toc_view.add_item(label, section.anchor().to_string());
     }
     debug!("added the items to the table of contents");
 

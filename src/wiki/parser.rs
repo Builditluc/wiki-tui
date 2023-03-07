@@ -31,7 +31,11 @@ impl Parser {
             ElementType::Header,
             title.to_string(),
             config::CONFIG.theme.title,
-            HashMap::new(),
+            {
+                let mut attrs = HashMap::new();
+                attrs.insert("anchor".to_string(), "Content_Top".to_string());
+                attrs
+            },
         ));
         parser.push_newline();
         parser.push_newline();
