@@ -3,6 +3,7 @@ pub mod models;
 pub mod panel;
 mod root;
 mod scroll;
+mod scroll_view;
 pub mod search;
 mod theme_view;
 pub mod toc;

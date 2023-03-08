@@ -2,7 +2,7 @@ use anyhow::{Context, Result};
 use cursive::{
     align::HAlign,
     event::{Event, Key},
-    view::{Nameable, Resizable, Scrollable},
+    view::{Nameable, Resizable},
     views::{Button, LinearLayout, SelectView, TextView},
     Cursive,
 };
@@ -10,8 +10,8 @@ use cursive::{
 use crate::{
     config::CONFIG,
     ui::{
-        article::on_article_submit, panel::WithPanel, search::on_continue_submit,
-        utils::percentage, views::RootLayout,
+        article::on_article_submit, panel::WithPanel, scroll_view::Scrollable,
+        search::on_continue_submit, utils::percentage, views::RootLayout,
     },
     wiki::search::{Search, SearchResult},
 };

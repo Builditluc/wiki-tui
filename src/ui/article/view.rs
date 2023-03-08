@@ -2,7 +2,7 @@ use crate::{
     config::CONFIG,
     ui::{
         article::{content::ArticleContent, on_link_submit},
-        scroll::{important_area, on_event},
+        scroll,
         utils::display_message,
     },
     wiki::article::{Article, ElementType},
@@ -10,10 +10,7 @@ use crate::{
 
 use cursive::{
     event::{Callback, Event, EventResult, Key, MouseButton, MouseEvent},
-    view::{
-        scroll::{self, Core},
-        CannotFocus,
-    },
+    view::CannotFocus,
     Rect, Vec2, View,
 };
 
@@ -22,7 +19,7 @@ pub struct ArticleView {
     /// The content of the view
     content: ArticleContent,
 
-    scroll: Core,
+    scroll: scroll::Core,
 
     last_size: Vec2,
 }
@@ -32,7 +29,7 @@ impl ArticleView {
         debug!("creating a new instance of ArticleView");
         ArticleView {
             content: ArticleContent::new(article),
-            scroll: Core::new(),
+            scroll: scroll::Core::new(),
             last_size: Vec2::zero(),
         }
     }
@@ -189,7 +186,7 @@ impl View for ArticleView {
     }
 
     fn important_area(&self, view_size: Vec2) -> cursive::Rect {
-        important_area(self, view_size, |_, si| Rect::from_size((0, 0), si))
+        scroll::important_area(self, view_size, |_, si| Rect::from_size((0, 0), si))
     }
 
     fn take_focus(&mut self, _: cursive::direction::Direction) -> Result<EventResult, CannotFocus> {
@@ -198,7 +195,7 @@ impl View for ArticleView {
     }
 
     fn on_event(&mut self, event: cursive::event::Event) -> EventResult {
-        on_event(
+        scroll::on_event(
             self,
             event,
             |s, ev| match ev {

@@ -1,6 +1,5 @@
 use cursive::{
     event::{Event, EventResult, Key, MouseButton, MouseEvent},
-    view::{scroll::Scroller, ScrollStrategy},
     Rect, Vec2,
 };
 
@@ -9,6 +8,8 @@ const SCROLL_WHEEL_DOWN: usize = 3;
 const SCROLL_WHEEL_UP: usize = 3;
 const SCROLL_PAGE_UP: usize = 10;
 const SCROLL_PAGE_DOWN: usize = 10;
+
+pub use cursive::view::scroll::{draw, layout, required_size, Core, ScrollStrategy, Scroller};
 
 /// Implements `View::important_area` on the given model
 pub fn important_area<T, ImportantArea>(

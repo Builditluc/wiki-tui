@@ -1,5 +1,6 @@
 use crate::config;
 use crate::ui::panel::WithPanel;
+use crate::ui::scroll_view::Scrollable;
 use crate::ui::utils::display_error;
 use crate::ui::{self, article::ArticleView, views::RootLayout};
 use crate::view_with_theme;
@@ -7,7 +8,6 @@ use crate::wiki::article::Section;
 use anyhow::Result;
 
 use cursive::event::{Event, Key};
-use cursive::traits::Scrollable;
 use cursive::view::{Nameable, Resizable};
 use cursive::views::SelectView;
 use cursive::Cursive;
