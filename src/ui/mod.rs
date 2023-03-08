@@ -2,6 +2,7 @@ pub mod article;
 pub mod models;
 pub mod panel;
 mod root;
+mod scroll;
 pub mod search;
 mod theme_view;
 pub mod toc;

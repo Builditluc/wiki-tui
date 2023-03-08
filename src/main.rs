@@ -66,7 +66,7 @@ fn start_application() {
     let mut siv = Cursive::new();
     siv.add_global_callback('q', Cursive::quit);
     siv.add_global_callback(Key::Esc, |s| {
-        if s.pop_layer().is_none() || s.screen().len() == 0 {
+        if s.pop_layer().is_none() || s.screen().is_empty() {
             s.quit();
         };
     });
