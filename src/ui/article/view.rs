@@ -2,7 +2,7 @@ use crate::{
     config::CONFIG,
     ui::{
         article::{content::ArticleContent, on_link_submit},
-        scroll::on_event,
+        scroll::{important_area, on_event},
         utils::display_message,
     },
     wiki::article::{Article, ElementType},
@@ -189,7 +189,7 @@ impl View for ArticleView {
     }
 
     fn important_area(&self, view_size: Vec2) -> cursive::Rect {
-        scroll::important_area(self, view_size, |_, si| Rect::from_size((0, 0), si))
+        important_area(self, view_size, |_, si| Rect::from_size((0, 0), si))
     }
 
     fn take_focus(&mut self, _: cursive::direction::Direction) -> Result<EventResult, CannotFocus> {

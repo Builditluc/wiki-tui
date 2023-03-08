@@ -10,6 +10,26 @@ const SCROLL_WHEEL_UP: usize = 3;
 const SCROLL_PAGE_UP: usize = 10;
 const SCROLL_PAGE_DOWN: usize = 10;
 
+/// Implements `View::important_area` on the given model
+pub fn important_area<T, ImportantArea>(
+    scroller: &T,
+    size: Vec2,
+    mut important_area: ImportantArea,
+) -> Rect
+where
+    T: Scroller,
+    ImportantArea: FnMut(&T, Vec2) -> Rect,
+{
+    let viewport = scroller.get_scroller().content_viewport();
+    let area = important_area(scroller, size);
+    let top_left = area.top_left().saturating_sub(viewport.top_left());
+    let bot_right = area
+        .bottom_right()
+        .saturating_sub(viewport.top_left())
+        .or_min(viewport.bottom_right());
+    Rect::from_corners(top_left, bot_right)
+}
+
 /// Implements `View::on_event` on the given model
 pub fn on_event<T, OnEvent, OnScroll, ImportantArea>(
     scroller: &mut T,
