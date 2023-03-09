@@ -199,12 +199,12 @@ impl View for ArticleView {
             self,
             event,
             |s, ev| match ev {
-                Event::Key(Key::Right) if CONFIG.features.links => {
+                key if key == CONFIG.keybindings.right && CONFIG.features.links => {
                     s.content.select_next_link();
                     s.check_and_update_viewport();
                     EventResult::consumed()
                 }
-                Event::Key(Key::Left) if CONFIG.features.links => {
+                key if key == CONFIG.keybindings.left && CONFIG.features.links => {
                     s.content.select_prev_link();
                     s.check_and_update_viewport();
                     EventResult::consumed()

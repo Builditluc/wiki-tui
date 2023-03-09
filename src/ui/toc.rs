@@ -2,14 +2,16 @@ use crate::config;
 use crate::ui::panel::WithPanel;
 use crate::ui::scroll_view::Scrollable;
 use crate::ui::utils::display_error;
-use crate::ui::{self, article::ArticleView, views::RootLayout};
+use crate::ui::{
+    self,
+    article::ArticleView,
+    views::{RootLayout, SelectView},
+};
 use crate::view_with_theme;
 use crate::wiki::article::Section;
 use anyhow::Result;
 
-use cursive::event::{Event, Key};
 use cursive::view::{Nameable, Resizable};
-use cursive::views::SelectView;
 use cursive::Cursive;
 
 /// Adds a table of contents to a given layout
@@ -42,12 +44,6 @@ pub fn display_toc<'a>(
             return;
         }
         debug!("focussed the article view");
-
-        // update the article view
-        siv.on_event(Event::Key(Key::Down));
-        siv.on_event(Event::Key(Key::Up));
-
-        debug!("send the callback to update the article view");
     });
     debug!("created the toc view");
 

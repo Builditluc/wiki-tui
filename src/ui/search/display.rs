@@ -1,17 +1,20 @@
 use anyhow::{Context, Result};
 use cursive::{
     align::HAlign,
-    event::{Event, Key},
     view::{Nameable, Resizable},
-    views::{Button, LinearLayout, SelectView, TextView},
+    views::{Button, LinearLayout, TextView},
     Cursive,
 };
 
 use crate::{
     config::CONFIG,
     ui::{
-        article::on_article_submit, panel::WithPanel, scroll_view::Scrollable,
-        search::on_continue_submit, utils::percentage, views::RootLayout,
+        article::on_article_submit,
+        panel::WithPanel,
+        scroll_view::Scrollable,
+        search::on_continue_submit,
+        utils::percentage,
+        views::{RootLayout, SelectView},
     },
     wiki::search::{Search, SearchResult},
 };
@@ -151,11 +154,8 @@ pub fn display_search_results(siv: &mut Cursive, mut search: Search, query: &str
 
     debug!("added the layouts to a new layer");
 
-    // send the callback to select the first search result
-    siv.on_event(Event::Key(Key::Down));
-    siv.on_event(Event::Key(Key::Up));
-
-    debug!("send the callback for selecting the first search result");
+    siv.on_event(CONFIG.keybindings.down.clone());
+    siv.on_event(CONFIG.keybindings.up.clone());
 
     Ok(())
 }

@@ -11,6 +11,8 @@ const SCROLL_PAGE_DOWN: usize = 10;
 
 pub use cursive::view::scroll::{draw, layout, required_size, Core, ScrollStrategy, Scroller};
 
+use crate::config::CONFIG;
+
 /// Implements `View::important_area` on the given model
 pub fn important_area<T, ImportantArea>(
     scroller: &T,
@@ -72,16 +74,24 @@ where
                 Event::Key(Key::PageDown) if scroller.get_scroller_mut().can_scroll_down() => {
                     scroller.get_scroller_mut().scroll_down(SCROLL_PAGE_DOWN)
                 }
-                Event::Key(Key::Down) if scroller.get_scroller_mut().can_scroll_down() => {
+                key if key == CONFIG.keybindings.down
+                    && scroller.get_scroller_mut().can_scroll_down() =>
+                {
                     scroller.get_scroller_mut().scroll_down(1)
                 }
-                Event::Key(Key::Up) if scroller.get_scroller_mut().can_scroll_up() => {
+                key if key == CONFIG.keybindings.up
+                    && scroller.get_scroller_mut().can_scroll_up() =>
+                {
                     scroller.get_scroller_mut().scroll_up(1)
                 }
-                Event::Key(Key::Left) if scroller.get_scroller_mut().can_scroll_left() => {
+                key if key == CONFIG.keybindings.left
+                    && scroller.get_scroller_mut().can_scroll_left() =>
+                {
                     scroller.get_scroller_mut().scroll_left(1);
                 }
-                Event::Key(Key::Right) if scroller.get_scroller_mut().can_scroll_right() => {
+                key if key == CONFIG.keybindings.right
+                    && scroller.get_scroller_mut().can_scroll_right() =>
+                {
                     scroller.get_scroller_mut().scroll_right(1);
                 }
                 Event::Mouse {
