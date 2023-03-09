@@ -73,12 +73,7 @@ impl ViewWrapper for RootLayout {
             Event::Key(Key::Del) if self.input_mode => self.layout.on_event(ch),
             Event::Key(Key::Enter) if self.input_mode => self.layout.on_event(ch),
 
-            // movement
-            key if key == self.keybindings.up => self.layout.on_event(Event::Key(Key::Up)),
-            key if key == self.keybindings.down => self.layout.on_event(Event::Key(Key::Down)),
-            key if key == self.keybindings.left => self.layout.on_event(Event::Key(Key::Left)),
-            key if key == self.keybindings.right => self.layout.on_event(Event::Key(Key::Right)),
-
+            // movement is now handled directly in the ScrollView. See `scroll::on_event`
             // focus
             key if key == self.keybindings.focus_next => self.layout.on_event(Event::Key(Key::Tab)),
             key if key == self.keybindings.focus_prev => {

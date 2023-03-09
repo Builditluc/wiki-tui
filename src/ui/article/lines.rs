@@ -1,8 +1,8 @@
 use crate::config::CONFIG;
-use crate::ui::article::links::LinkHandler;
 use crate::wiki::article::{Element, ElementType};
 
 use cursive::theme::Style;
+use cursive::Vec2;
 use std::collections::HashMap;
 use std::mem;
 use std::rc::Rc;
@@ -57,11 +57,11 @@ pub struct LinesWrapper {
     /// The rendered lines
     pub rendered_lines: Vec<Line>,
 
-    /// The link handler, it is only created and used when enabled in the config
-    pub link_handler: Option<LinkHandler>,
+    /// The y-coordinates of every anchor encountered
+    pub anchors: HashMap<String, usize>,
 
-    /// The y coordinates of the headers, it is only created and used when enabled in the config
-    pub header_y: Option<HashMap<usize, usize>>,
+    /// The ids and positions of the links
+    pub links: Vec<(usize, Vec2)>,
 }
 
 impl LinesWrapper {
@@ -79,21 +79,8 @@ impl LinesWrapper {
             elements,
             rendered_lines: Vec::new(),
 
-            link_handler: {
-                if CONFIG.features.links {
-                    Some(LinkHandler::new())
-                } else {
-                    None
-                }
-            },
-
-            header_y: {
-                if CONFIG.features.toc {
-                    Some(HashMap::new())
-                } else {
-                    None
-                }
-            },
+            links: Vec::new(),
+            anchors: HashMap::new(),
         }
     }
 
@@ -149,9 +136,6 @@ impl LinesWrapper {
         for element in self.elements.clone().iter() {
             // is this a link?
             let is_link = element.kind() == ElementType::Link;
-
-            // is this a toc header?
-            let is_header = element.kind() == ElementType::Header;
 
             // does this element go onto a new line?
             if element.kind() == ElementType::Newline {
@@ -212,9 +196,9 @@ impl LinesWrapper {
                     self.register_link(element.id())
                 }
 
-                // if its a toc header, register it
-                if is_header {
-                    self.register_header(element.id(), self.rendered_lines.len());
+                if let Some(anchor) = element.attr("anchor") {
+                    self.anchors
+                        .insert(anchor.to_string(), self.rendered_lines.len());
                 }
 
                 self.fill_line();
@@ -250,43 +234,23 @@ impl LinesWrapper {
                     self.register_link(element.id());
                 }
 
-                if is_header {
-                    self.register_header(element.id(), self.rendered_lines.len());
+                if let Some(anchor) = element.attr("anchor") {
+                    self.anchors
+                        .insert(anchor.to_string(), self.rendered_lines.len());
                 }
             }
         }
 
-        if let Some(ref header_y) = self.header_y {
-            debug!("'{}' headers registered", header_y.len());
-        }
-
-        if let Some(ref link_handler) = self.link_handler {
-            debug!("'{}' links found", link_handler.registered_links());
-        }
-
+        debug!("'{}' anchors found and registered", self.anchors.len());
+        debug!("'{}' links found", self.links.len());
         debug!("wrapped '{}' lines", self.rendered_lines.len());
         self
     }
 
-    // Registers a new header. If the headers is already registered, it won't be registered again
-    fn register_header(&mut self, id: usize, y_pos: usize) {
-        if let Some(ref mut header_y) = self.header_y {
-            if header_y.contains_key(&id) {
-                return;
-            }
-            header_y.insert(id, y_pos);
-        }
-    }
-
     /// Registers a new link with the given id
     fn register_link(&mut self, id: usize) {
-        if let Some(ref mut link_handler) = self.link_handler {
-            link_handler.push_link(
-                id,
-                self.current_line.len().saturating_sub(1),
-                self.rendered_lines.len().saturating_sub(1),
-            );
-        }
+        self.links
+            .push((id, Vec2::new(self.current_width, self.rendered_lines.len())))
     }
     /// Adds an element to the current line and if needed, registers a link to it
     fn push_element(&mut self, element: RenderedElement) {

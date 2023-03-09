@@ -1,28 +1,26 @@
-use cursive::{direction::Absolute, Vec2};
+use cursive::Vec2;
+use std::collections::HashMap;
 use std::rc::Rc;
 
+use crate::ui::article::lines::{Line, LinesWrapper};
 use crate::wiki::article::{Article, Element};
-use crate::{
-    config::CONFIG,
-    ui::article::{
-        lines::{Line, LinesWrapper},
-        links::LinkHandler,
-    },
-};
 
 /// The content of an ArticleView. Handles text formatting
 pub struct ArticleContent {
     /// The article
     article: Article,
+
     /// Wrapped lines, ready for drawing
     rendered_lines: Vec<Line>,
 
-    /// The y-coordinates of the headers, only created and used when it's enabled in the
-    /// configuration
-    header_y_coords: Option<Vec<usize>>,
+    /// The coordinates of every anchor found
+    anchors: HashMap<String, usize>,
 
-    /// The LinkHandler, only created and used when it's enabled in the configuration
-    link_handler: Option<LinkHandler>,
+    /// All of the links, with their position and element id
+    links: Vec<(usize, Vec2)>,
+
+    /// The index of the currently selected link
+    current_link: usize,
 }
 
 impl ArticleContent {
@@ -31,57 +29,11 @@ impl ArticleContent {
         ArticleContent {
             article,
             rendered_lines: Vec::new(),
-            header_y_coords: None,
-            link_handler: None,
-        }
-    }
+            anchors: HashMap::new(),
 
-    /// Returns the ArticleElement from a given id
-    /// Accepts an optional id so it can be easily linked with current_link
-    pub fn element_by_id(&self, id: Option<usize>) -> Option<&Element> {
-        if let Some(id) = id {
-            // get every element with that id and return the first one
-            return self
-                .article
-                .content()
-                .and_then(|mut x| x.find(|e| e.id() == id));
+            links: Vec::new(),
+            current_link: 0,
         }
-        None
-    }
-
-    /// Returns the id of the current link
-    pub fn current_link(&self) -> Option<usize> {
-        if let Some(ref link_handler) = self.link_handler {
-            return link_handler.get_current_link();
-        }
-        None
-    }
-
-    /// Overrides the current link
-    pub fn set_current_link(&mut self, id: usize) {
-        if let Some(ref mut link_handler) = self.link_handler {
-            link_handler.set_current_link(id);
-        }
-    }
-
-    /// Returns the position of the current link
-    pub fn current_link_pos(&self) -> Option<Vec2> {
-        if let Some(ref link_handler) = self.link_handler {
-            return link_handler.get_current_link_pos();
-        }
-        None
-    }
-
-    /// Returns the y-position of a given header
-    pub fn header_y_pos(&self, index: usize) -> Option<usize> {
-        if let Some(ref header_y_coords) = self.header_y_coords {
-            if header_y_coords.len() <= index {
-                warn!("couldn't retrieve the header y-position, headers_len: '{}' <= header_index '{}'", header_y_coords.len(), index);
-                return None;
-            }
-            return Some(header_y_coords[index]);
-        }
-        None
     }
 
     /// Calculates and returns the required size
@@ -146,19 +98,14 @@ impl ArticleContent {
         )
         .wrap_lines();
 
-        if let Some(ref mut link_handler) = self.link_handler {
-            link_handler.update(lines_wrapper.link_handler);
-        } else {
-            self.link_handler = lines_wrapper.link_handler;
-        }
-
         self.rendered_lines = lines_wrapper.rendered_lines;
+        self.anchors = lines_wrapper.anchors;
 
-        if let Some(ref header_y) = lines_wrapper.header_y {
-            let mut header_y_coords = header_y.clone().into_values().collect::<Vec<usize>>();
-            header_y_coords.sort_unstable();
-            self.header_y_coords = Some(header_y_coords);
-        }
+        // try to keep the link selection after layout change
+        let link_id = self.current_link_element_id();
+        self.links = lines_wrapper.links;
+        self.select_link_by_id(link_id);
+
         debug!("sucessfully rendered '{}' lines", self.rendered_lines.len());
     }
 
@@ -167,48 +114,97 @@ impl ArticleContent {
         self.rendered_lines.iter()
     }
 
-    /// Moves the selected link by in a direction by a given amount
-    pub fn move_selected_link(&mut self, direction: Absolute, amount: usize) {
-        if !CONFIG.features.links {
-            return;
-        }
+    /// Returns the coordinate of an anchor, if it could be found
+    pub fn anchor(&self, anchor: &str) -> Option<usize> {
+        self.anchors.get(anchor).copied()
+    }
 
-        if let Some(ref mut link_handler) = self.link_handler {
-            match direction {
-                Absolute::Left => link_handler.move_left(amount),
-                Absolute::Up => link_handler.move_up(amount),
-                Absolute::Right => link_handler.move_right(amount),
-                Absolute::Down => link_handler.move_down(amount),
-                Absolute::None => {}
-            }
+    /// Returns the element id of the currently selected link
+    pub fn current_link_element_id(&self) -> usize {
+        if self.links.len() <= self.current_link {
+            return 0;
+        }
+        self.links[self.current_link].0
+    }
+
+    /// Return the coordinates of the currently selected link
+    pub fn current_link_coords(&self) -> Vec2 {
+        if self.links.len() <= self.current_link {
+            return Vec2::zero();
+        }
+        self.links[self.current_link].1
+    }
+
+    /// Selects the link corredsponding to the element id
+    pub fn select_link_by_id(&mut self, id: usize) {
+        if let Some(new_link) = self.links.iter().position(|x| x.0 == id) {
+            self.current_link = new_link;
         }
     }
 
-    /// Retrieves the element at the given position. If no element could be found at that position,
-    /// none is returned
-    pub fn get_element_at_position(&self, position: Vec2) -> Option<&Element> {
-        // check if y-pos is outside of the bounds
-        if position.y >= self.rendered_lines.len() || self.rendered_lines.is_empty() {
+    /// Returns an iterator over every link
+    pub fn links(&self) -> impl Iterator<Item = &(usize, Vec2)> + DoubleEndedIterator {
+        self.links.iter()
+    }
+
+    /// Returns the index of the current link
+    pub fn current_link_idx(&self) -> usize {
+        self.current_link
+    }
+
+    /// Returns true if we have links
+    pub fn has_links(&self) -> bool {
+        !self.links.is_empty()
+    }
+
+    /// Selects the next link, if selection is possible
+    pub fn select_next_link(&mut self) {
+        if self.current_link + 1 >= self.links.len() {
+            return;
+        }
+        self.current_link = self
+            .links
+            .iter()
+            .position(|(id, _)| id > &self.current_link_element_id())
+            .unwrap_or(self.current_link);
+    }
+
+    /// Selects the previous link, if selection is possible
+    pub fn select_prev_link(&mut self) {
+        if let Some(link) = self
+            .links
+            .iter()
+            .rev()
+            .skip(self.links.len().saturating_sub(self.current_link))
+            .find(|(id, _)| id < &self.current_link_element_id())
+        {
+            let position = self.links.iter().position(|x| x == link).unwrap();
+            self.current_link = position;
+        }
+    }
+
+    /// Retrieves the Element with the id
+    pub fn element_by_id(&self, id: usize) -> Option<Element> {
+        self.article
+            .content()
+            .and_then(|mut x| x.find(|e| e.id() == id))
+            .cloned()
+    }
+
+    /// Retrieves the Element at the given position
+    pub fn element_by_pos(&self, pos: Vec2) -> Option<Element> {
+        if pos.y >= self.rendered_lines.len() || self.rendered_lines.is_empty() {
             return None;
         }
 
-        // get the line at the given y coordinate
-        let line = &self.rendered_lines[position.y];
+        let line = &self.rendered_lines[pos.y];
         let mut x_offset = 0;
-
-        // iterate through every element in that line
         for element in line {
-            // if the x position is inside of the bounds of the element, get its ArticleElement and
-            // return it
-            if position.x >= x_offset && position.x <= x_offset.saturating_add(element.width) {
-                return self.element_by_id(Some(element.id));
+            if pos.x >= x_offset && pos.x <= x_offset.saturating_add(element.width) {
+                return self.element_by_id(element.id);
             }
-
-            // increment the offset
             x_offset += element.width;
         }
-
-        // no element could be found at that position
         None
     }
 }
