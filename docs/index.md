@@ -7,9 +7,10 @@ hide:
 
 #
 
-<center>
+<figure markdown>
 ![Logo](assets/images/logo.png)
 
+  <figcaption markdown>
 **WIKI-TUI**
 
 A simple and easy to use Wikipedia Text User Interface
@@ -18,16 +19,22 @@ A simple and easy to use Wikipedia Text User Interface
     wiki-tui is still under active-development (v0.x.x) and that means breaking changes, altough relatively rare at the moment, can occur. 
 
     Please always check the release notes on GitHub before upgrading to a new version!
-
-</center>
+  </figcaption>
+</figure>
 
 # How does it look?
 
-<center>
+<figure markdown>
 ![Preview-1](assets/images/preview-1.png)
+</figure>
+
+<figure markdown>
 ![Preview-2](assets/images/preview-2.png)
+</figure>
+
+<figure markdown>
 ![Preview-3](assets/images/preview-3.png)
-</center>
+</figure>
 
 ??? note "About those Screenshots"
     They were taken on MacOS (iTerm2) with the gruvbox terminal colorscheme. The only

@@ -21,6 +21,9 @@ theme:
     - navigation.sections
     - navigation.indexes
     - announce.dismiss
+    - content.action.edit
+    - content.action.view
+    - content.code.copy
   palette:
     - media: "(prefers-color-scheme: light)"
       scheme: default
@@ -51,6 +54,9 @@ nav:
   - Contributing: 
     - contributing/index.md
     - Maintainers Guides: contributing/maintainers.md
+  - Changelog:
+    - changelog/index.md
+    - How to upgrade: changelog/upgrade.md
 
 edit_uri: edit/main/docs/
 
@@ -72,6 +78,9 @@ markdown_extensions:
 
 plugins:
   - tags
+  - social
+  - git-revision-date-localized:
+      enable_creation_date: true
 
 extra:
   version:
@@ -80,4 +89,4 @@ extra:
     - icon: fontawesome/brands/github
       link: https://github.com/builditluc/
 
-copyright: Copyright &copy; 2021 - 2022 Builditluc
+copyright: Copyright &copy; 2021 - 2023 Builditluc
