@@ -74,6 +74,7 @@ markdown_extensions:
 
 plugins:
   - tags
+  - social
   - git-revision-date-localized:
       enable_creation_date: true
 
