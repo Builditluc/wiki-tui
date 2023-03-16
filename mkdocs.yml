@@ -23,6 +23,7 @@ theme:
     - announce.dismiss
     - content.action.edit
     - content.action.view
+    - content.code.copy
   palette:
     - media: "(prefers-color-scheme: light)"
       scheme: default
