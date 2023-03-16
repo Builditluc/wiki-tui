@@ -2,12 +2,14 @@
 
 site_name: wiki-tui
 site_url: https://builditluc.github.io/wiki-tui
+site_author: Builditluc
 
 repo_name: builditluc/wiki-tui
 repo_url: https://github.com/builditluc/wiki-tui
 
 theme:
   name: material
+  custom_dir: docs/.overrides
   icon:
     logo: material/console
     repo: fontawesome/brands/github
@@ -72,6 +74,8 @@ plugins:
   - tags
 
 extra:
+  version:
+    provider: mike
   social:
     - icon: fontawesome/brands/github
       link: https://github.com/builditluc/
