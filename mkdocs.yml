@@ -21,6 +21,8 @@ theme:
     - navigation.sections
     - navigation.indexes
     - announce.dismiss
+    - content.action.edit
+    - content.action.view
   palette:
     - media: "(prefers-color-scheme: light)"
       scheme: default
