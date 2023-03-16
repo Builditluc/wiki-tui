@@ -53,6 +53,9 @@ nav:
   - Contributing: 
     - contributing/index.md
     - Maintainers Guides: contributing/maintainers.md
+  - Changelog:
+    - changelog/index.md
+    - How to upgrade: changelog/upgrade.md
 
 edit_uri: edit/main/docs/
 
