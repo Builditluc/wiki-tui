@@ -12,7 +12,7 @@ use super::{parser::Parser, search::Namespace};
 
 fn action_parse(params: Vec<(&str, String)>) -> Result<Response> {
     Client::new()
-        .get(format!("{}/w/api.php", config::CONFIG.api_config.base_url))
+        .get(format!("{}/w/api.php", config::CONFIG.api_config.url()))
         .query(&[
             ("action", "parse"),
             ("format", "json"),

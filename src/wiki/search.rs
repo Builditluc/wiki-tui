@@ -8,7 +8,7 @@ use crate::config;
 
 fn action_query(params: Vec<(&str, String)>) -> Result<Response> {
     Client::new()
-        .get(format!("{}/w/api.php", config::CONFIG.api_config.base_url))
+        .get(format!("{}/w/api.php", config::CONFIG.api_config.url()))
         .query(&[
             ("action", "query"),
             ("format", "json"),

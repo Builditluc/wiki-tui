@@ -17,6 +17,7 @@ use cursive::Cursive;
 use home::display_home;
 use std::fs;
 use std::io::Write;
+use ui::language_selector::language_selection_popup;
 
 use crate::backend::backend;
 
@@ -70,6 +71,7 @@ fn start_application() {
             s.quit();
         };
     });
+    siv.add_global_callback(Key::F2, language_selection_popup);
 
     // get and apply the color theme
     let theme = Theme {
