@@ -4,10 +4,11 @@ use anyhow::{bail, Context, Result};
 use cursive::{
     event::{Event, Key},
     theme::{BaseColor, Color},
+    Cursive,
 };
 use log::LevelFilter;
 use serde::{ser::SerializeStruct, Deserialize, Serialize};
-use std::{path::PathBuf, str::FromStr};
+use std::{cell::RefCell, path::PathBuf, rc::Rc, str::FromStr};
 #[cfg(not(test))]
 use structopt::StructOpt;
 use toml::from_str;
@@ -201,6 +202,8 @@ pub struct Keybindings {
 
     pub focus_next: Event,
     pub focus_prev: Event,
+
+    pub toggle_language_selection: Event,
 }
 
 impl Serialize for Keybindings {
@@ -324,6 +327,8 @@ impl Serialize for Keybindings {
 
         serialize_event!(focus_next);
         serialize_event!(focus_prev);
+
+        serialize_event!(toggle_language_selection);
 
         s.end()
     }
@@ -460,6 +465,8 @@ struct UserKeybindings {
 
     focus_next: Option<UserKeybinding>,
     focus_prev: Option<UserKeybinding>,
+
+    toggle_language_selection: Option<UserKeybinding>,
 }
 
 #[derive(Deserialize, Debug)]
@@ -474,7 +481,7 @@ impl Config {
         let mut config = Config {
             api_config: ApiConfig {
                 pre_language: "https://".to_string(),
-                post_language: ".wikipedia.org".to_string(),
+                post_language: ".wikipedia.org/w/api.php".to_string(),
                 language: Language::default(),
             },
             theme: Theme {
@@ -512,6 +519,8 @@ impl Config {
 
                 focus_next: Event::Key(Key::Tab),
                 focus_prev: Event::Shift(Key::Tab),
+
+                toggle_language_selection: Event::Key(Key::F2),
             },
             settings: Settings {
                 toc: TocSettings {
@@ -546,6 +555,18 @@ impl Config {
 
         // return the config
         config
+    }
+
+    /// Returns the configuration stored in `Cursive`. If none could be found, it
+    /// creates a new `Config` and stores it into `Cursvie`.
+    pub fn from_siv(siv: &mut Cursive) -> Rc<RefCell<Config>> {
+        match siv.user_data::<Rc<RefCell<Config>>>() {
+            Some(config) => config.clone(),
+            None => {
+                siv.set_user_data(Rc::new(RefCell::new(Config::new())));
+                siv.user_data::<Rc<RefCell<Config>>>().unwrap().clone()
+            }
+        }
     }
 
     fn load_config(&mut self) -> Result<()> {
@@ -901,6 +922,20 @@ impl Config {
                 Ok(event_key) => {
                     self.keybindings.focus_prev = event_key;
                     log::debug!("loaded 'keybindings.focus_prev'");
+                }
+                Err(error) => {
+                    warn!("{:?}", error)
+                }
+            }
+        }
+        if let Some(keybinding) = &user_keybindings.toggle_language_selection {
+            match parse_keybinding(
+                &keybinding.key,
+                keybinding.mode.as_ref().unwrap_or(&"normal".to_string()),
+            ) {
+                Ok(event_key) => {
+                    self.keybindings.toggle_language_selection = event_key;
+                    log::debug!("loaded 'keybindings.toggle_language_selection'");
                 }
                 Err(error) => {
                     warn!("{:?}", error)

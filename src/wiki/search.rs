@@ -4,11 +4,9 @@ use serde::Deserialize;
 use serde_repr::Deserialize_repr;
 use std::fmt::Display;
 
-use crate::config;
-
-fn action_query(params: Vec<(&str, String)>) -> Result<Response> {
+fn action_query(params: Vec<(&str, String)>, url: String) -> Result<Response> {
     Client::new()
-        .get(format!("{}/w/api.php", config::CONFIG.api_config.url()))
+        .get(url)
         .query(&[
             ("action", "query"),
             ("format", "json"),
@@ -31,7 +29,7 @@ pub struct Search {
 }
 
 impl Search {
-    pub fn builder() -> SearchBuilder<NoQuery> {
+    pub fn builder() -> SearchBuilder<NoQuery, NoUrl> {
         SearchBuilder::default()
     }
 
@@ -271,13 +269,18 @@ impl Display for SortOrder {
     }
 }
 
-pub struct Query(String);
+pub struct WithQuery(String);
 #[derive(Default)]
 pub struct NoQuery;
 
+pub struct WithUrl(String);
 #[derive(Default)]
-pub struct SearchBuilder<Q> {
+pub struct NoUrl;
+
+#[derive(Default)]
+pub struct SearchBuilder<Q, U> {
     query: Q,
+    url: U,
     namespace: Option<Namespace>,
     limit: Option<usize>,
     offset: Option<usize>,
@@ -290,10 +293,11 @@ pub struct SearchBuilder<Q> {
     sort_order: Option<SortOrder>,
 }
 
-impl SearchBuilder<NoQuery> {
-    pub fn query(self, query: impl Into<String>) -> SearchBuilder<Query> {
+impl<U> SearchBuilder<NoQuery, U> {
+    pub fn query(self, query: impl Into<String>) -> SearchBuilder<WithQuery, U> {
         SearchBuilder {
-            query: Query(query.into()),
+            query: WithQuery(query.into()),
+            url: self.url,
             namespace: self.namespace,
             limit: self.limit,
             offset: self.offset,
@@ -308,7 +312,26 @@ impl SearchBuilder<NoQuery> {
     }
 }
 
-impl SearchBuilder<Query> {
+impl<Q> SearchBuilder<Q, NoUrl> {
+    pub fn url(self, url: impl Into<String>) -> SearchBuilder<Q, WithUrl> {
+        SearchBuilder {
+            query: self.query,
+            url: WithUrl(url.into()),
+            namespace: self.namespace,
+            limit: self.limit,
+            offset: self.offset,
+            qiprofile: self.qiprofile,
+            search_type: self.search_type,
+            info: self.info,
+            properties: self.properties,
+            interwiki: self.interwiki,
+            rewrites: self.rewrites,
+            sort_order: self.sort_order,
+        }
+    }
+}
+
+impl<Q, U> SearchBuilder<Q, U> {
     pub fn namespace(mut self, namespace: Namespace) -> Self {
         self.namespace = Some(namespace);
         self
@@ -358,7 +381,9 @@ impl SearchBuilder<Query> {
         self.sort_order = Some(sort_order);
         self
     }
+}
 
+impl SearchBuilder<WithQuery, WithUrl> {
     pub fn search(self) -> Result<Search> {
         let mut params = vec![("list", "search".to_string()), ("srsearch", self.query.0)];
 
@@ -412,7 +437,7 @@ impl SearchBuilder<Query> {
             params.push(("srsort", sort_order.to_string()));
         }
 
-        let response = action_query(params)?
+        let response = action_query(params, self.url.0)?
             .error_for_status()
             .context("recieved an error")?;
 

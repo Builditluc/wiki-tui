@@ -11,12 +11,15 @@ extern crate log;
 extern crate cursive;
 
 use anyhow::Context;
+use config::Config;
 use cursive::event::Key;
 use cursive::theme::*;
 use cursive::Cursive;
 use home::display_home;
+use std::cell::RefCell;
 use std::fs;
 use std::io::Write;
+use std::rc::Rc;
 use ui::language_selector::language_selection_popup;
 
 use crate::backend::backend;
@@ -64,6 +67,8 @@ fn initialize() {
 }
 
 fn start_application() {
+    let config = Config::new();
+
     let mut siv = Cursive::new();
     siv.add_global_callback('q', Cursive::quit);
     siv.add_global_callback(Key::Esc, |s| {
@@ -71,7 +76,10 @@ fn start_application() {
             s.quit();
         };
     });
-    siv.add_global_callback(Key::F2, language_selection_popup);
+    siv.add_global_callback(
+        config.keybindings.toggle_language_selection.clone(),
+        language_selection_popup,
+    );
 
     // get and apply the color theme
     let theme = Theme {
@@ -90,6 +98,8 @@ fn start_application() {
     if let Err(error) = siv.cb_sink().send(argument_callback) {
         error!("{:?}", error);
     }
+
+    siv.set_user_data(Rc::new(RefCell::new(config)));
 
     let siv_box = std::sync::Mutex::new(siv);
     #[allow(clippy::redundant_closure)]

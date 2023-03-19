@@ -6,13 +6,11 @@ use serde::Deserialize;
 use serde_repr::Deserialize_repr;
 use std::{collections::HashMap, fmt::Display};
 
-use crate::config;
-
 use super::{parser::Parser, search::Namespace};
 
-fn action_parse(params: Vec<(&str, String)>) -> Result<Response> {
+fn action_parse(params: Vec<(&str, String)>, url: String) -> Result<Response> {
     Client::new()
-        .get(format!("{}/w/api.php", config::CONFIG.api_config.url()))
+        .get(url)
         .query(&[
             ("action", "parse"),
             ("format", "json"),
@@ -210,7 +208,7 @@ pub struct Article {
 }
 
 impl Article {
-    pub fn builder() -> ArticleBuilder<NoPageID, NoPage> {
+    pub fn builder() -> ArticleBuilder<NoPageID, NoPage, NoUrl> {
         ArticleBuilder::default()
     }
 
@@ -308,21 +306,27 @@ pub struct Page(String);
 #[derive(Default)]
 pub struct NoPage;
 
+pub struct WithUrl(String);
 #[derive(Default)]
-pub struct ArticleBuilder<I, P> {
+pub struct NoUrl;
+
+#[derive(Default)]
+pub struct ArticleBuilder<I, P, U> {
     pageid: I,
     page: P,
+    url: U,
     revision: Option<usize>,
     redirects: Option<bool>,
     properties: Option<Vec<Property>>,
 }
 
-impl ArticleBuilder<NoPageID, NoPage> {
+impl<U> ArticleBuilder<NoPageID, NoPage, U> {
     /// Parse content of this page
-    pub fn pageid(self, pageid: usize) -> ArticleBuilder<PageID, NoPage> {
+    pub fn pageid(self, pageid: usize) -> ArticleBuilder<PageID, NoPage, U> {
         ArticleBuilder {
             pageid: PageID(pageid),
             page: self.page,
+            url: self.url,
             revision: self.revision,
             redirects: self.redirects,
             properties: self.properties,
@@ -330,10 +334,11 @@ impl ArticleBuilder<NoPageID, NoPage> {
     }
 
     /// Parse content of this page
-    pub fn page(self, page: impl Into<String>) -> ArticleBuilder<NoPageID, Page> {
+    pub fn page(self, page: impl Into<String>) -> ArticleBuilder<NoPageID, Page, U> {
         ArticleBuilder {
             pageid: self.pageid,
             page: Page(page.into()),
+            url: self.url,
             revision: self.revision,
             redirects: self.redirects,
             properties: self.properties,
@@ -341,7 +346,20 @@ impl ArticleBuilder<NoPageID, NoPage> {
     }
 }
 
-impl<I, P> ArticleBuilder<I, P> {
+impl<I, P> ArticleBuilder<I, P, NoUrl> {
+    pub fn url(self, url: impl Into<String>) -> ArticleBuilder<I, P, WithUrl> {
+        ArticleBuilder {
+            pageid: self.pageid,
+            page: self.page,
+            url: WithUrl(url.into()),
+            revision: self.revision,
+            redirects: self.redirects,
+            properties: self.properties,
+        }
+    }
+}
+
+impl<I, P, U> ArticleBuilder<I, P, U> {
     /// Revision ID, for `{{REVISIONID}}` and similar variables
     pub fn revision(mut self, revision: usize) -> Self {
         self.revision = Some(revision);
@@ -359,7 +377,9 @@ impl<I, P> ArticleBuilder<I, P> {
         self.properties = Some(properties);
         self
     }
+}
 
+impl<I, P> ArticleBuilder<I, P, WithUrl> {
     fn fetch_with_params(self, mut params: Vec<(&str, String)>) -> Result<Article> {
         if let Some(revision) = self.revision {
             params.push(("revid", revision.to_string()));
@@ -378,7 +398,7 @@ impl<I, P> ArticleBuilder<I, P> {
             params.push(("prop", prop_str));
         }
 
-        let response = action_parse(params)?
+        let response = action_parse(params, self.url.0)?
             .error_for_status()
             .context("recieved an error")?;
 
@@ -583,14 +603,14 @@ impl<I, P> ArticleBuilder<I, P> {
     }
 }
 
-impl ArticleBuilder<PageID, NoPage> {
+impl ArticleBuilder<PageID, NoPage, WithUrl> {
     pub fn fetch(self) -> Result<Article> {
         let param = vec![("pageid", self.pageid.0.to_string())];
         self.fetch_with_params(param)
     }
 }
 
-impl ArticleBuilder<NoPageID, Page> {
+impl ArticleBuilder<NoPageID, Page, WithUrl> {
     pub fn fetch(self) -> Result<Article> {
         let param = vec![("page", self.page.0.to_string())];
         self.fetch_with_params(param)

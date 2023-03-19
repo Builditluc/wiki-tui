@@ -37,14 +37,19 @@ The following modes are supported
 
 ## Supported Actions
 
-| Action                  | Config Name  | Default Keybinding | Changeable Since                          |
-|-------------------------|--------------|--------------------|-------------------------------------------|
-| Scroll Down             | `down`       | ++down++           | [:octicons-tag-24: 0.5.0][release-0.5.0]  |
-| Scroll Up               | `up`         | ++up++             | [:octicons-tag-24: 0.5.0][release-0.5.0]  |
-| Scroll / Select Left    | `left`       | ++left++           | [:octicons-tag-24: 0.5.0][release-0.5.0]  |
-| Scroll / Select Right   | `right`      | ++right++          | [:octicons-tag-24: 0.5.0][release-0.5.0]  |
-| Focus the next view     | `focus_next` | ++tab++            | [:octicons-tag-24: 0.6.0][release-0.6.0]  |
-| Focus the previous view | `focus_prev` | ++shift+tab++      | [:octicons-tag-24: 0.6.0][release-0.6.0]  |
+| Action                  | Config Name  | Default Keybinding |
+|-------------------------|--------------|--------------------|
+| Scroll Down             | `down`       | ++down++           |
+| Scroll Up               | `up`         | ++up++             |
+| Scroll / Select Left    | `left`       | ++left++           |
+| Scroll / Select Right   | `right`      | ++right++          |
+| Focus the next view     | `focus_next` | ++tab++            |
+| Focus the previous view | `focus_prev` | ++shift+tab++      |
+| Toggle the language selection | `toggle_language_selection` | ++f2++ |
+
+> When updating the language via the selection popup, existing search results and links in articles
+> won't work until you've changed the language back to what it was then opening the article /
+> starting the search
 
 ## Sample Remap
 

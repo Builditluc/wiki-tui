@@ -36,9 +36,9 @@ macro_rules! language {
 
         impl From<&str> for Language {
             fn from(s: &str) -> Self {
-                match s.to_ascii_lowercase().as_ref() {
+                match s.as_ref() {
                     $(
-                    stringify!($lang_code) => Language::$lang,
+                    stringify!($lang_code) | stringify!($lang_name) => Language::$lang,
                     )*
                     _ => Language::default()
                 }
