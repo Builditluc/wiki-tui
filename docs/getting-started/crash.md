@@ -1,6 +1,8 @@
 When a crash in wiki-tui occurrs you will see the following output being shown in your terminal.
 
+<figure markdown>
 ![Crash Message](../assets/images/crash-1.png)
+</figure>
 
 You will then see a crash report in you current working directory. It contains:
 
