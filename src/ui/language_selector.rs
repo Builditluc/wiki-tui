@@ -9,6 +9,7 @@ use crate::{
 
 use super::{
     panel::WithPanel,
+    scroll_view::Scrollable,
     views::{RootLayout, SelectView},
 };
 
@@ -32,7 +33,7 @@ pub fn language_selection_popup(siv: &mut Cursive) {
     language_selection.add_all(LANGUAGES.iter().map(|l| (l.name(), l)));
     siv.add_layer(
         RootLayout::vertical(CONFIG.keybindings.clone())
-            .child(language_selection)
+            .child(language_selection.scrollable())
             .input(true)
             .with_name(POPUP_NAME)
             .with_panel()
