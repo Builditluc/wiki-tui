@@ -1,4 +1,8 @@
-use std::{collections::HashMap, fs::File, io::BufReader};
+use std::{
+    collections::{BTreeMap, HashMap},
+    fs::File,
+    io::BufReader,
+};
 
 use proc_macro::TokenStream;
 use serde::{de::IgnoredAny, Deserialize, Serialize};
@@ -45,7 +49,7 @@ pub fn parse_languages(input: TokenStream) -> TokenStream {
             .site_matrix
             .languages
             .into_iter()
-            .fold(HashMap::new(), |mut acc, e| {
+            .fold(BTreeMap::new(), |mut acc, e| {
                 let mut e = e.1;
                 let name = if acc.contains_key(&e.localname) {
                     normalize_string(&(e.localname.clone() + &e.code))
@@ -71,11 +75,11 @@ pub fn parse_languages(input: TokenStream) -> TokenStream {
         };
         language_data_arms = quote! {
             #language_data_arms
-            Language::#ident => (stringify!(#en_name), stringify!(#lang_name), stringify!(#lang_code)),
+            Language::#ident => (#en_name, #lang_name, #lang_code),
         };
         from_str_arms = quote! {
             #from_str_arms
-            stringify!(#lang_code) | stringify!(#lang_name) => Language::#ident,
+            #lang_code | #lang_name => Language::#ident,
         };
         array_def = quote! {
             #array_def
