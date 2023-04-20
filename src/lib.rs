@@ -79,7 +79,7 @@ pub fn parse_languages(input: TokenStream) -> TokenStream {
         };
         from_str_arms = quote! {
             #from_str_arms
-            #lang_code | #lang_name => Language::#ident,
+            #lang_code | #lang_name | #en_name => Language::#ident,
         };
         array_def = quote! {
             #array_def
