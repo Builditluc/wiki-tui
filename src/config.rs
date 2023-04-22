@@ -167,6 +167,7 @@ pub struct ApiConfig {
     pre_language: String,
     post_language: String,
     pub language: Language,
+    pub language_changed_popup: bool,
 }
 
 impl ApiConfig {
@@ -441,6 +442,7 @@ struct UserApiConfig {
     pre_language: Option<String>,
     post_language: Option<String>,
     language: Option<String>,
+    language_changed_popup: Option<bool>,
 }
 
 #[derive(Deserialize, Debug)]
@@ -483,6 +485,7 @@ impl Config {
                 pre_language: "https://".to_string(),
                 post_language: ".wikipedia.org/w/api.php".to_string(),
                 language: Language::default(),
+                language_changed_popup: true,
             },
             theme: Theme {
                 background: Color::Dark(BaseColor::Black),
@@ -688,6 +691,11 @@ impl Config {
         if let Some(language) = &user_api_config.language {
             self.api_config.language = Language::from(language.as_str());
             debug!("loaded 'langugae'")
+        }
+
+        if let Some(language_changed_popup) = &user_api_config.language_changed_popup {
+            self.api_config.language_changed_popup = language_changed_popup.to_owned();
+            debug!("loaded 'language_changed_popup")
         }
     }
 

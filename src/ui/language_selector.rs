@@ -14,7 +14,7 @@ use crate::{
 use super::{
     panel::WithPanel,
     scroll_view::Scrollable,
-    utils::percentage,
+    utils::{display_message, percentage},
     views::{RootLayout, SelectView},
 };
 
@@ -25,11 +25,20 @@ const SELECTION_WIDTH_PERCENTAGE: f32 = 0.2;
 const SELECTION_HEIGHT_PERCENTAGE: f32 = 0.5;
 
 fn change_lang(siv: &mut Cursive, lang: impl Into<Language>) {
-    siv.with_user_data(|c: &mut Rc<RefCell<Config>>| {
-        let language = lang.into();
-        info!("changing the language to '{:?}'", language);
-        c.borrow_mut().api_config.language = language;
-    });
+    let language: Language = lang.into();
+    let success_msg = format!("Changed the language to {}", language.name());
+
+    if siv
+        .with_user_data(|c: &mut Rc<RefCell<Config>>| {
+            info!("changing the language to '{:?}'", language);
+            c.borrow_mut().api_config.language = language;
+            true
+        })
+        .is_some()
+        && CONFIG.api_config.language_changed_popup
+    {
+        display_message(siv, "Information", &success_msg);
+    }
 }
 
 /// Displays a popup that lets the user chosse a new language

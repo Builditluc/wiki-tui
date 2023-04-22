@@ -16,6 +16,16 @@ config file. The default language is english
     api.langugae = "German"
     ```
 
+### Hiding the language changed popup
+
+:octicons-milestone-16: Default: `true`
+
+You can hide the 'Changed language to ...' popup by disabling the following setting
+
+```toml
+api.language_changed_popup = false
+```
+
 ### Supported Langugaes
 
 A list of all languages can be found here:
