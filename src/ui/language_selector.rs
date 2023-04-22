@@ -39,29 +39,41 @@ pub fn language_selection_popup(siv: &mut Cursive) {
         return;
     }
 
-    let language_search = EditView::new().on_edit(|siv, text, _| {
-        let sorted_languages = LANGUAGES
-            .iter()
-            .filter(|lang| {
-                let lang = lang.name().to_lowercase();
-                let query = text.to_lowercase();
-                lang.contains(&query)
-            })
-            .map(|lang| lang.to_owned())
-            .collect::<Vec<Language>>();
+    let language_search = EditView::new()
+        .on_edit(|siv, text, _| {
+            let sorted_languages = LANGUAGES
+                .iter()
+                .filter(|lang| {
+                    let lang = lang.name().to_lowercase();
+                    let query = text.to_lowercase();
+                    lang.contains(&query)
+                })
+                .map(|lang| lang.to_owned())
+                .collect::<Vec<Language>>();
 
-        siv.call_on_name(
-            LANGUAGE_SELECTION_NAME,
-            |language_selection: &mut SelectView<String>| {
-                language_selection.clear();
-                language_selection.add_all(
-                    sorted_languages
-                        .iter()
-                        .map(|l| (l.name(), l.code().to_owned())),
-                );
-            },
-        );
-    });
+            siv.call_on_name(
+                LANGUAGE_SELECTION_NAME,
+                |language_selection: &mut SelectView<String>| {
+                    language_selection.clear();
+                    language_selection.add_all(
+                        sorted_languages
+                            .iter()
+                            .map(|l| (l.name(), l.code().to_owned())),
+                    );
+                },
+            );
+        })
+        .on_submit(|siv, _| {
+            if let Some(selected_language) = siv.call_on_name(
+                LANGUAGE_SELECTION_NAME,
+                |language_selection: &mut SelectView<String>| {
+                    language_selection.selection().unwrap_or_default()
+                },
+            ) {
+                siv.pop_layer();
+                change_lang(siv, selected_language.as_str());
+            }
+        });
 
     let mut language_selection: SelectView<String> =
         SelectView::new().on_submit(|s, item: &String| {
