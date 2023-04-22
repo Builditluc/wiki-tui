@@ -18,12 +18,13 @@ config file. The default language is english
 
 ### Supported Langugaes
 
-| Language name in english | Native Language name | Value |
-|--------------------------|----------------------|-------|
-| Abkhaz                   | аԥсшәа               | ab    |
-| Acehnese                 | Acèh                 | ace   |
-| English                  | English              | en    |
-| German                   | Deutsch              | de    |
+A list of all languages can be found here:
+
+[https://en.wikipedia.org/wiki/List_of_Wikipedias](https://en.wikipedia.org/wiki/List_of_Wikipedias#Basic_list)
+
+!!! important "About the support of languages"
+    Some versions of Wikipedia have **custom formatting** different from the main wikipedia site. That means changing the language
+    to something other than `English` can lead to incorrect formatting or missing data. A fix is planned but will take time
 
 ## Changing the site
 
