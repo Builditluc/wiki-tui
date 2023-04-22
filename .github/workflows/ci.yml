@@ -8,18 +8,11 @@ jobs:
   build:
     name: Build
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        rust:
-          - stable
-          - beta
-          - nightly
     steps:
       - uses: actions/checkout@v2
       - uses: actions-rs/toolchain@v1
         with:
-          toolchain: ${{ matrix.rust }}
-          override: true
+          profile: minimal
       - uses: actions-rs/cargo@v1
         with:
           command: build
@@ -28,38 +21,24 @@ jobs:
   check:
     name: Clippy Check
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        rust:
-          - stable
-          - beta
-          - nightly
     steps:
       - uses: actions/checkout@v2
       - uses: actions-rs/toolchain@v1
-        with:
-          toolchain: ${{ matrix.rust }}
+        with: 
+          profile: minimal
           components: clippy
-          override: true
-      - uses: actions-rs/clippy-check@v1
+      - uses: actions-rs/cargo@v1
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          command: clippy
 
   test:
     name: Run Tests
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        rust:
-          - stable
-          - beta
-          - nightly
     steps:
       - uses: actions/checkout@v2
       - uses: actions-rs/toolchain@v1
         with:
-          toolchain: ${{ matrix.rust }}
-          override: true
+          profile: minimal
       - uses: actions-rs/cargo@v1
         with:
           command: test
@@ -68,19 +47,12 @@ jobs:
   format:
     name: Check formatting
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        rust:
-          - stable
-          - beta
-          - nightly
     steps:
       - uses: actions/checkout@v2
       - uses: actions-rs/toolchain@v1
-        with:
-          toolchain: ${{ matrix.rust }}
+        with: 
+          profile: minimal
           components: rustfmt
-          override: true
       - uses: actions-rs/cargo@v1
         with:
           command: fmt
