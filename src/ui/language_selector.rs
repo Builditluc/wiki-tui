@@ -1,7 +1,7 @@
 use std::{cell::RefCell, rc::Rc};
 
 use cursive::{
-    view::Nameable,
+    view::{Nameable, Resizable},
     views::{DummyView, EditView},
     Cursive,
 };
@@ -14,11 +14,15 @@ use crate::{
 use super::{
     panel::WithPanel,
     scroll_view::Scrollable,
+    utils::percentage,
     views::{RootLayout, SelectView},
 };
 
 const POPUP_NAME: &str = "language_selection_popup";
 const LANGUAGE_SELECTION_NAME: &str = "language_selection";
+
+const SELECTION_WIDTH_PERCENTAGE: f32 = 0.2;
+const SELECTION_HEIGHT_PERCENTAGE: f32 = 0.5;
 
 fn change_lang(siv: &mut Cursive, lang: impl Into<Language>) {
     siv.with_user_data(|c: &mut Rc<RefCell<Config>>| {
@@ -67,6 +71,11 @@ pub fn language_selection_popup(siv: &mut Cursive) {
 
     language_selection.add_all(LANGUAGES.iter().map(|l| (l.name(), l.code().to_owned())));
 
+    let screen_size = siv.screen_size();
+
+    let selection_width = percentage(screen_size.x, SELECTION_WIDTH_PERCENTAGE);
+    let selection_height = percentage(screen_size.y, SELECTION_HEIGHT_PERCENTAGE);
+
     siv.add_layer(
         RootLayout::vertical(CONFIG.keybindings.clone())
             .child(language_search)
@@ -79,6 +88,7 @@ pub fn language_selection_popup(siv: &mut Cursive) {
             .input(true)
             .with_name(POPUP_NAME)
             .with_panel()
-            .title("Change Language"),
+            .title("Change Language")
+            .fixed_size((selection_width, selection_height)),
     );
 }
