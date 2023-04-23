@@ -69,6 +69,11 @@ pub fn parse_languages(input: TokenStream) -> TokenStream {
         let en_name = value.localname.clone();
         let lang_name = value.name.clone();
         let lang_code = value.code.clone();
+
+        let en_name_lowercase = en_name.to_lowercase();
+        let lang_name_lowercase = lang_name.to_lowercase();
+        let lang_code_lowercase = lang_code.to_lowercase();
+
         variants = quote! {
             #variants
             #ident,
@@ -79,7 +84,7 @@ pub fn parse_languages(input: TokenStream) -> TokenStream {
         };
         from_str_arms = quote! {
             #from_str_arms
-            #lang_code | #lang_name | #en_name => Language::#ident,
+            #lang_code_lowercase | #lang_name_lowercase | #en_name_lowercase => Language::#ident,
         };
         array_def = quote! {
             #array_def
@@ -120,7 +125,7 @@ pub fn parse_languages(input: TokenStream) -> TokenStream {
 
         impl From<&str> for Language {
             fn from(s: &str) -> Self {
-                match s.as_ref() {
+                match s.to_lowercase().as_ref() {
                     #from_str_arms
                     _ => Language::default()
                 }

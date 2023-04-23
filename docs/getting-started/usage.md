@@ -41,10 +41,12 @@ wiki-tui --language <language-code>
 ```
 
 !!! example
-    If you want to change the language to German, simply pass its language code `de` as a argument
+    If you want to change the language to German, simply pass it in as a argument
     
     ```
     wiki-tui --language de
+    wiki-tui --language german
+    wiki-tui --language deutsch
     ```
 
     It will open wiki-tui with the language set to German

@@ -12,9 +12,16 @@ config file. The default language is English.
     api.language = "de"
     ```
 
-> Only the language codes can be used to change the language. Any non-supported code will result in a
-> fallback to the default language
+    Using the language name in english aswell as the local language is also supported
     
+    ```toml
+    api.language = "german"
+    ```
+
+    ```toml
+    api.language = "deutsch"
+    ```
+   
 
 ### Hiding the language changed popup
 
