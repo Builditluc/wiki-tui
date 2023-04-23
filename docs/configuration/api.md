@@ -5,16 +5,16 @@
 :octicons-milestone-16: Default: `en`
 
 You can change the language of the articles and search by changing the `api.language` setting in you
-config file. The default language is english
+config file. The default language is English. 
 
 !!! example "Changing the language to German"
     ```toml
     api.language = "de"
     ```
-    Using the langugae name in english is also supported
-    ```toml
-    api.langugae = "German"
-    ```
+
+> Only the language codes can be used to change the language. Any non-supported code will result in a
+> fallback to the default language
+    
 
 ### Hiding the language changed popup
 

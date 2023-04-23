@@ -615,6 +615,12 @@ impl Config {
             self.load_settings(&user_settings);
         }
 
+        self.load_cli_arguments();
+
+        Ok(())
+    }
+
+    fn load_cli_arguments(&mut self) {
         // override the log level
         if let Some(log_level) = self.args.level.as_ref() {
             let level = match log_level {
@@ -632,7 +638,16 @@ impl Config {
             self.logging.log_level = level;
         }
 
-        Ok(())
+        if let Some(language) = self.args.language.as_ref() {
+            let language = Language::from(language.as_str());
+            info!(
+                "overriding the configured language from '{}' to '{}'",
+                self.api_config.language.name(),
+                language.name()
+            );
+
+            self.api_config.language = language;
+        }
     }
 
     fn load_or_create_config_paths(&mut self) -> Result<bool> {

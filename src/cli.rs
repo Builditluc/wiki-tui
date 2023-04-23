@@ -16,4 +16,8 @@ pub struct Cli {
     /// - Warn: 2
     /// - Error: 3
     pub level: Option<i32>,
+
+    #[structopt(long = "language")]
+    /// Override the configured language of wikipeida. The value must be the language code
+    pub language: Option<String>,
 }

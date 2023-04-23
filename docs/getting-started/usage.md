@@ -34,7 +34,21 @@ wiki-tui <search-query>
 
     It will open wiki-tui and already start the search so you don't have to type it into the search bar
 
-At the time being there is only this argument that really improves the usability (for the other ones please refer to `wiki-tui --help`) but in future versions there will be more arguments
+### Changing the language
+
+```
+wiki-tui --language <language-code>
+```
+
+!!! example
+    If you want to change the language to German, simply pass its language code `de` as a argument
+    
+    ```
+    wiki-tui --language de
+    ```
+
+    It will open wiki-tui with the language set to German
+
 
 ## Keybindings and Controls
 
