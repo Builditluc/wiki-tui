@@ -1,4 +1,4 @@
-use crate::config;
+use crate::config::{self, Config};
 use crate::ui::panel::WithPanel;
 use crate::ui::search::bar_popup::open_search_bar;
 use crate::ui::toc::display_toc;
@@ -21,6 +21,7 @@ pub type ArticleView = view::ArticleView;
 pub fn on_article_submit(siv: &mut Cursive, pageid: usize) {
     let article = match Article::builder()
         .pageid(pageid)
+        .url(Config::from_siv(siv).borrow().api_config.url())
         .properties(vec![Property::Text, Property::Sections])
         .fetch()
     {
@@ -61,6 +62,7 @@ fn open_link(siv: &mut Cursive, target: String) {
     // fetch the article
     let article = match Article::builder()
         .page(target)
+        .url(Config::from_siv(siv).borrow().api_config.url())
         .properties(vec![Property::Text, Property::Sections])
         .fetch()
         .context("failed fetching the article")

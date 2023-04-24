@@ -1,13 +1,14 @@
-use crate::cli::Cli;
+use crate::{cli::Cli, wiki::language::Language};
 
 use anyhow::{bail, Context, Result};
 use cursive::{
     event::{Event, Key},
     theme::{BaseColor, Color},
+    Cursive,
 };
 use log::LevelFilter;
 use serde::{ser::SerializeStruct, Deserialize, Serialize};
-use std::{path::PathBuf, str::FromStr};
+use std::{cell::RefCell, path::PathBuf, rc::Rc, str::FromStr};
 #[cfg(not(test))]
 use structopt::StructOpt;
 use toml::from_str;
@@ -163,7 +164,21 @@ impl ViewTheme {
 
 #[derive(Clone, Debug, Serialize)]
 pub struct ApiConfig {
-    pub base_url: String,
+    pre_language: String,
+    post_language: String,
+    pub language: Language,
+    pub language_changed_popup: bool,
+}
+
+impl ApiConfig {
+    pub fn url(&self) -> String {
+        format!(
+            "{}{}{}",
+            self.pre_language,
+            self.language.code(),
+            self.post_language
+        )
+    }
 }
 
 #[derive(Serialize)]
@@ -188,6 +203,8 @@ pub struct Keybindings {
 
     pub focus_next: Event,
     pub focus_prev: Event,
+
+    pub toggle_language_selection: Event,
 }
 
 impl Serialize for Keybindings {
@@ -312,6 +329,8 @@ impl Serialize for Keybindings {
         serialize_event!(focus_next);
         serialize_event!(focus_prev);
 
+        serialize_event!(toggle_language_selection);
+
         s.end()
     }
 }
@@ -420,7 +439,10 @@ struct UserViewTheme {
 
 #[derive(Deserialize, Debug)]
 struct UserApiConfig {
-    base_url: Option<String>,
+    pre_language: Option<String>,
+    post_language: Option<String>,
+    language: Option<String>,
+    language_changed_popup: Option<bool>,
 }
 
 #[derive(Deserialize, Debug)]
@@ -445,6 +467,8 @@ struct UserKeybindings {
 
     focus_next: Option<UserKeybinding>,
     focus_prev: Option<UserKeybinding>,
+
+    toggle_language_selection: Option<UserKeybinding>,
 }
 
 #[derive(Deserialize, Debug)]
@@ -458,7 +482,10 @@ impl Config {
         // initialize the configuration with the defaults
         let mut config = Config {
             api_config: ApiConfig {
-                base_url: "https://en.wikipedia.org/".to_string(),
+                pre_language: "https://".to_string(),
+                post_language: ".wikipedia.org/w/api.php".to_string(),
+                language: Language::default(),
+                language_changed_popup: true,
             },
             theme: Theme {
                 background: Color::Dark(BaseColor::Black),
@@ -495,6 +522,8 @@ impl Config {
 
                 focus_next: Event::Key(Key::Tab),
                 focus_prev: Event::Shift(Key::Tab),
+
+                toggle_language_selection: Event::Key(Key::F2),
             },
             settings: Settings {
                 toc: TocSettings {
@@ -529,6 +558,18 @@ impl Config {
 
         // return the config
         config
+    }
+
+    /// Returns the configuration stored in `Cursive`. If none could be found, it
+    /// creates a new `Config` and stores it into `Cursvie`.
+    pub fn from_siv(siv: &mut Cursive) -> Rc<RefCell<Config>> {
+        match siv.user_data::<Rc<RefCell<Config>>>() {
+            Some(config) => config.clone(),
+            None => {
+                siv.set_user_data(Rc::new(RefCell::new(Config::new())));
+                siv.user_data::<Rc<RefCell<Config>>>().unwrap().clone()
+            }
+        }
     }
 
     fn load_config(&mut self) -> Result<()> {
@@ -574,6 +615,12 @@ impl Config {
             self.load_settings(&user_settings);
         }
 
+        self.load_cli_arguments();
+
+        Ok(())
+    }
+
+    fn load_cli_arguments(&mut self) {
         // override the log level
         if let Some(log_level) = self.args.level.as_ref() {
             let level = match log_level {
@@ -591,7 +638,16 @@ impl Config {
             self.logging.log_level = level;
         }
 
-        Ok(())
+        if let Some(language) = self.args.language.as_ref() {
+            let language = Language::from(language.as_str());
+            info!(
+                "overriding the configured language from '{}' to '{}'",
+                self.api_config.language.name(),
+                language.name()
+            );
+
+            self.api_config.language = language;
+        }
     }
 
     fn load_or_create_config_paths(&mut self) -> Result<bool> {
@@ -637,19 +693,25 @@ impl Config {
     fn load_api_config(&mut self, user_api_config: &UserApiConfig) {
         info!("loading the api configuration");
 
-        // define the macro for loading individual api settings
-        macro_rules! to_api_setting {
-            ($setting: ident) => {
-                if user_api_config.$setting.is_some() {
-                    debug!("loading {}", stringify!($setting));
-                    self.api_config.$setting =
-                        user_api_config.$setting.as_ref().unwrap().to_string();
-                    log::debug!("loaded '{}'", stringify!(api.$setting));
-                }
-            };
+        if let Some(pre_language) = &user_api_config.pre_language {
+            self.api_config.pre_language = pre_language.to_string();
+            debug!("loaded 'pre_language'");
         }
 
-        to_api_setting!(base_url);
+        if let Some(post_language) = &user_api_config.post_language {
+            self.api_config.post_language = post_language.to_string();
+            debug!("loaded 'post_language'");
+        }
+
+        if let Some(language) = &user_api_config.language {
+            self.api_config.language = Language::from(language.as_str());
+            debug!("loaded 'langugae'")
+        }
+
+        if let Some(language_changed_popup) = &user_api_config.language_changed_popup {
+            self.api_config.language_changed_popup = language_changed_popup.to_owned();
+            debug!("loaded 'language_changed_popup")
+        }
     }
 
     fn load_theme(&mut self, user_theme: &UserTheme) -> Result<()> {
@@ -883,6 +945,20 @@ impl Config {
                 Ok(event_key) => {
                     self.keybindings.focus_prev = event_key;
                     log::debug!("loaded 'keybindings.focus_prev'");
+                }
+                Err(error) => {
+                    warn!("{:?}", error)
+                }
+            }
+        }
+        if let Some(keybinding) = &user_keybindings.toggle_language_selection {
+            match parse_keybinding(
+                &keybinding.key,
+                keybinding.mode.as_ref().unwrap_or(&"normal".to_string()),
+            ) {
+                Ok(event_key) => {
+                    self.keybindings.toggle_language_selection = event_key;
+                    log::debug!("loaded 'keybindings.toggle_language_selection'");
                 }
                 Err(error) => {
                     warn!("{:?}", error)

@@ -1,9 +1,10 @@
 use crate::{
+    config::Config,
     ui::utils::display_error,
     wiki::search::{Search, SearchResult},
 };
 
-use anyhow::{Context, Result};
+use anyhow::Context;
 use cursive::Cursive;
 
 use super::utils::{display_dialog, display_message};
@@ -18,6 +19,7 @@ pub fn on_search(siv: &mut Cursive, query: &str) {
     // search for the query
     let search = match Search::builder()
         .query(query)
+        .url(Config::from_siv(siv).borrow().api_config.url())
         .search()
         .with_context(|| format!("failed to search for '{}'", query))
     {
@@ -104,7 +106,11 @@ fn on_result_select(siv: &mut Cursive, item: &SearchResult) {
 /// for the continue button and displays an error if something went wrong
 fn on_continue_submit(siv: &mut Cursive, search_query: &str, search_offset: &usize) {
     // continue the search and fetch more results
-    let search = match continue_search(search_query, search_offset)
+    let search = match Search::builder()
+        .query(search_query)
+        .url(Config::from_siv(siv).borrow().api_config.url())
+        .offset(*search_offset)
+        .search()
         .with_context(|| format!("failed to fetch more search results for '{}'", search_query))
     {
         Ok(search) => search,
@@ -127,16 +133,4 @@ fn on_continue_submit(siv: &mut Cursive, search_query: &str, search_offset: &usi
         warn!("{:?}", error);
         display_error(siv, error);
     }
-}
-
-/// Continues the search and fetches more search results for a given query. Returns an error
-/// if something went wrong
-fn continue_search(search_query: &str, search_offset: &usize) -> Result<Search> {
-    info!("fetching more search results for '{}'", search_query);
-
-    // fetch more results
-    Search::builder()
-        .query(search_query)
-        .offset(*search_offset)
-        .search()
 }

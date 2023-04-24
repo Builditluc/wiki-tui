@@ -2,15 +2,55 @@
 
 ## Changing the Language
 
-[:octicons-tag-24: 0.1.0][release-0.1.0] ·
-:octicons-milestone-16: Default: `https://en.wikipedia.org/`
+:octicons-milestone-16: Default: `en`
 
-wiki-tui uses the base url to make calls to the wikipedia api. If you want to change the language of the articles and search results, you can change it here in your base url. 
+You can change the language of the articles and search by changing the `api.language` setting in you
+config file. The default language is English. 
 
-For example if you want to change to the german version of wikipedia, you can just change the base url
+!!! example "Changing the language to German"
+    ```toml
+    api.language = "de"
+    ```
+
+    Using the language name in english aswell as the local language is also supported
+    
+    ```toml
+    api.language = "german"
+    ```
+
+    ```toml
+    api.language = "deutsch"
+    ```
+   
+
+### Hiding the language changed popup
+
+:octicons-milestone-16: Default: `true`
+
+You can hide the 'Changed language to ...' popup by disabling the following setting
 
 ```toml
-api.base_url = "https://de.wikipedia.org/"
+api.language_changed_popup = false
 ```
 
-[release-0.1.0]: https://github.com/Builditluc/wiki-tui/releases/tag/v0.1
+### Supported Languages
+
+A list of all languages can be found here:
+
+[https://en.wikipedia.org/wiki/List_of_Wikipedias](https://en.wikipedia.org/wiki/List_of_Wikipedias#Basic_list)
+
+!!! important "About the support of languages"
+    Some versions of Wikipedia have **custom formatting** different from the main wikipedia site. That means changing the language
+    to something other than `English` can lead to incorrect formatting or missing data. A fix is planned but will take time
+
+## Changing the site
+
+The options `api.pre_language` and `api.post_language` allow you to change the wiki site to,
+theoretically, any Mediawiki based site. Make sure that `api.post_language` points to the api
+endpoint of the site, otherwise wiki-tui won't work.
+
+!!! default
+    ```toml
+    api.pre_language = "https://"
+    api.post_language = ".wikipedia.org/w/api.php"
+    ```
