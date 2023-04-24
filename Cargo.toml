@@ -12,6 +12,7 @@ readme = "README.md"
 include = [
   "Cargo.*",
   "src/",
+  "data/",
 ]
 
 [lib]
