@@ -1,3 +1,5 @@
+use std::{cell::RefCell, rc::Rc};
+
 use anyhow::{Context, Result};
 use cursive::{
     align::HAlign,
@@ -7,7 +9,7 @@ use cursive::{
 };
 
 use crate::{
-    config::CONFIG,
+    config::{Config, CONFIG},
     ui::{
         article::on_article_submit,
         panel::WithPanel,
@@ -108,14 +110,21 @@ pub fn display_search_results(siv: &mut Cursive, mut search: Search, query: &str
         .full_height();
 
     // create the status view (TextView)
+    let language = siv
+        .with_user_data(|config: &mut Rc<RefCell<Config>>| {
+            config.borrow().api_config.language.clone()
+        })
+        .unwrap_or_default();
+
     let search_status_view = {
         let mut search_status_view = TextView::empty();
 
         // fill status view with the status
         if let Some(total_hits) = search.total_hits() {
             search_status_view.set_content(format!(
-                "Found {} articles matching your search",
-                total_hits
+                "Found {} articles on the {} Wikipedia matching your search",
+                total_hits,
+                language.name()
             ));
         }
         search_status_view

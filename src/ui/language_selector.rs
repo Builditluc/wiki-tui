@@ -28,15 +28,15 @@ fn change_lang(siv: &mut Cursive, lang: impl Into<Language>) {
     let language: Language = lang.into();
     let success_msg = format!("Changed the language to {}", language.name());
 
-    if siv
+    let user_data_changed = siv
         .with_user_data(|c: &mut Rc<RefCell<Config>>| {
             info!("changing the language to '{:?}'", language);
             c.borrow_mut().api_config.language = language;
             true
         })
-        .is_some()
-        && CONFIG.api_config.language_changed_popup
-    {
+        .is_some();
+
+    if user_data_changed && CONFIG.api_config.language_changed_popup {
         display_message(siv, "Information", &success_msg);
     }
 }
