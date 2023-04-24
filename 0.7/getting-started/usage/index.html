@@ -450,6 +450,13 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#changing-the-language" class="md-nav__link">
+    Changing the language
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -819,6 +826,13 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#changing-the-language" class="md-nav__link">
+    Changing the language
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -894,7 +908,25 @@ send after the action finishes</p>
 </code></pre></div>
 <p>It will open wiki-tui and already start the search so you don't have to type it into the search bar</p>
 </div>
-<p>At the time being there is only this argument that really improves the usability (for the other ones please refer to <code>wiki-tui --help</code>) but in future versions there will be more arguments</p>
+<h3 id="changing-the-language">Changing the language</h3>
+<div class="highlight"><pre><span></span><code>wiki-tui --language &lt;language-code&gt;
+</code></pre></div>
+<div class="admonition example">
+<p class="admonition-title">Example</p>
+<p>If you want to change the language to German, simply pass it in as a argument</p>
+<div class="highlight"><pre><span></span><code>wiki-tui --language de
+wiki-tui --language german
+wiki-tui --language deutsch
+</code></pre></div>
+<p>It will open wiki-tui with the language set to German</p>
+</div>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>You can also use the short variant of this argument <code>-l</code> to change the language</p>
+<div class="highlight"><pre><span></span><code>wiki-tui -l de
+</code></pre></div>
+</div>
+<p>For more information about language changing, view <a href="../../configuration/api/#supported-languages">this page</a> of the docs</p>
 <h2 id="keybindings-and-controls">Keybindings and Controls</h2>
 <p>This is a list of all available actions and what the default keybinding for that action is. Configurable
 actions can be remapped in the config</p>
@@ -955,7 +987,7 @@ actions can be remapped in the config</p>
   <small>
     
       Last update:
-      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">November 14, 2022</span>
+      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">April 24, 2023</span>
       
         <br>
         Created:

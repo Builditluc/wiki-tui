@@ -547,6 +547,33 @@
     Changing the Language
   </a>
   
+    <nav class="md-nav" aria-label="Changing the Language">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#hiding-the-language-changed-popup" class="md-nav__link">
+    Hiding the language changed popup
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#supported-languages" class="md-nav__link">
+    Supported Languages
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#changing-the-site" class="md-nav__link">
+    Changing the site
+  </a>
+  
 </li>
       
     </ul>
@@ -795,6 +822,33 @@
     Changing the Language
   </a>
   
+    <nav class="md-nav" aria-label="Changing the Language">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#hiding-the-language-changed-popup" class="md-nav__link">
+    Hiding the language changed popup
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#supported-languages" class="md-nav__link">
+    Supported Languages
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#changing-the-site" class="md-nav__link">
+    Changing the site
+  </a>
+  
 </li>
       
     </ul>
@@ -833,19 +887,49 @@
 
 <h1 id="api-settings">Api Settings</h1>
 <h2 id="changing-the-language">Changing the Language</h2>
-<p><a href="https://github.com/Builditluc/wiki-tui/releases/tag/v0.1"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M7.75 6.5a1.25 1.25 0 1 0 0 2.5 1.25 1.25 0 0 0 0-2.5Z"/><path d="M2.5 1h8.44a1.5 1.5 0 0 1 1.06.44l10.25 10.25a1.5 1.5 0 0 1 0 2.12l-8.44 8.44a1.5 1.5 0 0 1-2.12 0L1.44 12A1.497 1.497 0 0 1 1 10.94V2.5A1.5 1.5 0 0 1 2.5 1Zm0 1.5v8.44l10.25 10.25 8.44-8.44L10.94 2.5Z"/></svg></span> 0.1.0</a> ·
-<span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path d="M7.75 0a.75.75 0 0 1 .75.75V3h3.634c.414 0 .814.147 1.13.414l2.07 1.75a1.75 1.75 0 0 1 0 2.672l-2.07 1.75a1.75 1.75 0 0 1-1.13.414H8.5v5.25a.75.75 0 0 1-1.5 0V10H2.75A1.75 1.75 0 0 1 1 8.25v-3.5C1 3.784 1.784 3 2.75 3H7V.75A.75.75 0 0 1 7.75 0Zm4.384 8.5a.25.25 0 0 0 .161-.06l2.07-1.75a.248.248 0 0 0 0-.38l-2.07-1.75a.25.25 0 0 0-.161-.06H2.75a.25.25 0 0 0-.25.25v3.5c0 .138.112.25.25.25h9.384Z"/></svg></span> Default: <code>https://en.wikipedia.org/</code></p>
-<p>wiki-tui uses the base url to make calls to the wikipedia api. If you want to change the language of the articles and search results, you can change it here in your base url. </p>
-<p>For example if you want to change to the german version of wikipedia, you can just change the base url</p>
-<div class="highlight"><pre><span></span><code><span class="n">api</span><span class="p">.</span><span class="n">base_url</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;https://de.wikipedia.org/&quot;</span>
+<p><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path d="M7.75 0a.75.75 0 0 1 .75.75V3h3.634c.414 0 .814.147 1.13.414l2.07 1.75a1.75 1.75 0 0 1 0 2.672l-2.07 1.75a1.75 1.75 0 0 1-1.13.414H8.5v5.25a.75.75 0 0 1-1.5 0V10H2.75A1.75 1.75 0 0 1 1 8.25v-3.5C1 3.784 1.784 3 2.75 3H7V.75A.75.75 0 0 1 7.75 0Zm4.384 8.5a.25.25 0 0 0 .161-.06l2.07-1.75a.248.248 0 0 0 0-.38l-2.07-1.75a.25.25 0 0 0-.161-.06H2.75a.25.25 0 0 0-.25.25v3.5c0 .138.112.25.25.25h9.384Z"/></svg></span> Default: <code>en</code></p>
+<p>You can change the language of the articles and search by changing the <code>api.language</code> setting in you
+config file. The default language is English. </p>
+<div class="admonition example">
+<p class="admonition-title">Changing the language to German</p>
+<div class="highlight"><pre><span></span><code><span class="n">api</span><span class="p">.</span><span class="n">language</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;de&quot;</span>
 </code></pre></div>
+<p>Using the language name in english aswell as the local language is also supported</p>
+<div class="highlight"><pre><span></span><code><span class="n">api</span><span class="p">.</span><span class="n">language</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;german&quot;</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><span class="n">api</span><span class="p">.</span><span class="n">language</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;deutsch&quot;</span>
+</code></pre></div>
+</div>
+<h3 id="hiding-the-language-changed-popup">Hiding the language changed popup</h3>
+<p><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path d="M7.75 0a.75.75 0 0 1 .75.75V3h3.634c.414 0 .814.147 1.13.414l2.07 1.75a1.75 1.75 0 0 1 0 2.672l-2.07 1.75a1.75 1.75 0 0 1-1.13.414H8.5v5.25a.75.75 0 0 1-1.5 0V10H2.75A1.75 1.75 0 0 1 1 8.25v-3.5C1 3.784 1.784 3 2.75 3H7V.75A.75.75 0 0 1 7.75 0Zm4.384 8.5a.25.25 0 0 0 .161-.06l2.07-1.75a.248.248 0 0 0 0-.38l-2.07-1.75a.25.25 0 0 0-.161-.06H2.75a.25.25 0 0 0-.25.25v3.5c0 .138.112.25.25.25h9.384Z"/></svg></span> Default: <code>true</code></p>
+<p>You can hide the 'Changed language to ...' popup by disabling the following setting</p>
+<div class="highlight"><pre><span></span><code><span class="n">api</span><span class="p">.</span><span class="n">language_changed_popup</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">false</span>
+</code></pre></div>
+<h3 id="supported-languages">Supported Languages</h3>
+<p>A list of all languages can be found here:</p>
+<p><a href="https://en.wikipedia.org/wiki/List_of_Wikipedias#Basic_list">https://en.wikipedia.org/wiki/List_of_Wikipedias</a></p>
+<div class="admonition important">
+<p class="admonition-title">About the support of languages</p>
+<p>Some versions of Wikipedia have <strong>custom formatting</strong> different from the main wikipedia site. That means changing the language
+to something other than <code>English</code> can lead to incorrect formatting or missing data. A fix is planned but will take time</p>
+</div>
+<h2 id="changing-the-site">Changing the site</h2>
+<p>The options <code>api.pre_language</code> and <code>api.post_language</code> allow you to change the wiki site to,
+theoretically, any Mediawiki based site. Make sure that <code>api.post_language</code> points to the api
+endpoint of the site, otherwise wiki-tui won't work.</p>
+<div class="admonition default">
+<p class="admonition-title">Default</p>
+<div class="highlight"><pre><span></span><code><span class="n">api</span><span class="p">.</span><span class="n">pre_language</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;https://&quot;</span>
+<span class="n">api</span><span class="p">.</span><span class="n">post_language</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;.wikipedia.org/w/api.php&quot;</span>
+</code></pre></div>
+</div>
 
   <hr>
 <div class="md-source-file">
   <small>
     
       Last update:
-      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">April 22, 2023</span>
+      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">April 24, 2023</span>
       
         <br>
         Created:

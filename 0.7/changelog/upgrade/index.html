@@ -98,6 +98,11 @@
     <label class="md-overlay" for="__drawer"></label>
     <div data-md-component="skip">
       
+        
+        <a href="#upgrade-from-v06x-to-v07x" class="md-skip">
+          Skip to content
+        </a>
+      
     </div>
     <div data-md-component="announce">
       
@@ -709,9 +714,71 @@
       
       
       
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          How to upgrade
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
       <a href="./" class="md-nav__link md-nav__link--active">
         How to upgrade
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#upgrade-from-v06x-to-v07x" class="md-nav__link">
+    Upgrade from v0.6.x to v0.7.x
+  </a>
+  
+    <nav class="md-nav" aria-label="Upgrade from v0.6.x to v0.7.x">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#changes-to-configtoml" class="md-nav__link">
+    Changes to config.toml
+  </a>
+  
+    <nav class="md-nav" aria-label="Changes to config.toml">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#apibase_url" class="md-nav__link">
+    api.base_url
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#change-of-the-l-cli-argument" class="md-nav__link">
+    Change of the -l CLI argument
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
       
     </li>
   
@@ -741,6 +808,54 @@
   
   
   
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#upgrade-from-v06x-to-v07x" class="md-nav__link">
+    Upgrade from v0.6.x to v0.7.x
+  </a>
+  
+    <nav class="md-nav" aria-label="Upgrade from v0.6.x to v0.7.x">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#changes-to-configtoml" class="md-nav__link">
+    Changes to config.toml
+  </a>
+  
+    <nav class="md-nav" aria-label="Changes to config.toml">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#apibase_url" class="md-nav__link">
+    api.base_url
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#change-of-the-l-cli-argument" class="md-nav__link">
+    Change of the -l CLI argument
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
   
 </nav>
                   </div>
@@ -779,13 +894,34 @@
 <p>Show the currently installed version with:
 <div class="highlight"><pre><span></span><code>wiki-tui<span class="w"> </span>--version
 </code></pre></div></p>
+<h2 id="upgrade-from-v06x-to-v07x">Upgrade from v0.6.x to v0.7.x</h2>
+<h3 id="changes-to-configtoml">Changes to <code>config.toml</code></h3>
+<h4 id="apibase_url"><code>api.base_url</code></h4>
+<p>This option was removed completely and instead replaced by the following three options:</p>
+<ul>
+<li><code>api.pre_language</code></li>
+<li><code>api.post_language</code></li>
+<li><code>api.language</code></li>
+</ul>
+<blockquote>
+<p>You only have to <a href="../../configuration/api/#changing-the-language">modify</a> the <code>api.language</code> option
+change the language</p>
+</blockquote>
+<p>You most likely never have to change the <code>api.pre_language</code> and <code>api.post_language</code> options, but
+they'll allow changing the site wiki-tui uses (theoretically, every Wikimedia based site works), for
+more, read their <a href="../../configuration/api/#changing-the-site">docs</a></p>
+<h3 id="change-of-the-l-cli-argument">Change of the <code>-l</code> CLI argument</h3>
+<p>This CLI argument was used to override the log level on the fly. Now, it is used to change the language.</p>
+<blockquote>
+<p>The <code>--level</code> flag still exists to chaange the log level</p>
+</blockquote>
 
   <hr>
 <div class="md-source-file">
   <small>
     
       Last update:
-      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">March 16, 2023</span>
+      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">April 24, 2023</span>
       
         <br>
         Created:
