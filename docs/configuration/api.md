@@ -33,7 +33,7 @@ You can hide the 'Changed language to ...' popup by disabling the following sett
 api.language_changed_popup = false
 ```
 
-### Supported Langugaes
+### Supported Languages
 
 A list of all languages can be found here:
 

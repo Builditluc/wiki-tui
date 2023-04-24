@@ -51,6 +51,14 @@ wiki-tui --language <language-code>
 
     It will open wiki-tui with the language set to German
 
+!!! tip
+    You can also use the short variant of this argument `-l` to change the language
+    
+    ```
+    wiki-tui -l de
+    ```
+
+For more information about language changing, view [this page](../configuration/api.md#supported-languages) of the docs
 
 ## Keybindings and Controls
 

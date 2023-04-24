@@ -21,3 +21,9 @@ This option was removed completely and instead replaced by the following three o
 You most likely never have to change the `api.pre_language` and `api.post_language` options, but
 they'll allow changing the site wiki-tui uses (theoretically, every Wikimedia based site works), for
 more, read their [docs](../configuration/api.md#changing-the-site)
+
+### Change of the `-l` CLI argument
+
+This CLI argument was used to override the log level on the fly. Now, it is used to change the language.
+
+> The `--level` flag still exists to chaange the log level
