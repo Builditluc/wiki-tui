@@ -420,12 +420,6 @@ impl<I, P> ArticleBuilder<I, P, WithUrl> {
             .map(|x| x as usize)
             .ok_or_else(|| anyhow!("missing the pageid"))?;
 
-        let content = res_json
-            .get("parse")
-            .and_then(|x| x.get("text"))
-            .and_then(|x| x.as_str())
-            .and_then(|x| Parser::parse_document(x, &title).ok());
-
         let language_links = res_json
             .get("parse")
             .and_then(|x| x.get("langlinks"))
@@ -532,6 +526,12 @@ impl<I, P> ArticleBuilder<I, P, WithUrl> {
                 );
                 x
             });
+
+        let content = res_json
+            .get("parse")
+            .and_then(|x| x.get("text"))
+            .and_then(|x| x.as_str())
+            .and_then(|x| Parser::parse_document(x, &title, sections.as_ref()).ok());
 
         let revision_id = res_json
             .get("parse")

@@ -6,24 +6,30 @@ use select::{document::Document, node::Node, predicate::Class};
 
 use crate::config;
 
-use super::article::{Element, ElementType};
+use super::article::{Element, ElementType, Section};
 
 const SHOW_UNSUPPORTED: bool = false;
 const LIST_MARKER: char = '-';
 const DISAMBIGUATION_MARKER: char = '|';
 
-pub struct Parser {
+pub struct Parser<'a> {
     elements: Vec<Element>,
     current_effects: Vec<Effect>,
+    sections: Option<&'a Vec<Section>>,
 }
 
-impl Parser {
-    pub fn parse_document<'a>(document: &'a str, title: &'a str) -> Result<Vec<Element>> {
+impl<'a> Parser<'a> {
+    pub fn parse_document(
+        document: &'a str,
+        title: &'a str,
+        sections: Option<&Vec<Section>>,
+    ) -> Result<Vec<Element>> {
         let document = Document::from(document);
 
         let mut parser = Parser {
             elements: Vec::new(),
             current_effects: Vec::new(),
+            sections,
         };
 
         parser.elements.push(Element::new(
@@ -126,11 +132,25 @@ impl Parser {
                 attributes.insert("anchor".to_string(), anchor.to_string());
             }
 
+            let mut header = headline_node.text();
+
+            if let Some(sections) = self.sections {
+                sections
+                    .iter()
+                    .find_map(|section: &Section| {
+                        if Some(section.anchor()) != headline_node.attr("id") {
+                            return None;
+                        }
+                        Some(section)
+                    })
+                    .map(|section| header.insert_str(0, &format!("{} ", section.number())));
+            }
+
             self.push_newline();
             self.elements.push(Element::new(
                 self.next_id(),
                 ElementType::Header,
-                headline_node.text(),
+                header,
                 Style::from(config::CONFIG.theme.title).combine(Effect::Bold),
                 attributes,
             ));
