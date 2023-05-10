@@ -26,4 +26,4 @@ more, read their [docs](../configuration/api.md#changing-the-site)
 
 This CLI argument was used to override the log level on the fly. Now, it is used to change the language.
 
-> The `--level` flag still exists to chaange the log level
+> The `--level` flag still exists to change the log level
