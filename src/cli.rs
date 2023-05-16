@@ -1,6 +1,6 @@
 use structopt::StructOpt;
 
-#[derive(StructOpt, Debug, Default)]
+#[derive(StructOpt, Debug, Default, Clone)]
 pub struct Cli {
     /// Search for an article at startup with the given query
     pub search_query: Option<String>,
@@ -21,4 +21,12 @@ pub struct Cli {
     /// Override the configured language of wikipeida. The value can be either the language code or
     /// the name of the language in english or the name in its local language
     pub language: Option<String>,
+
+    #[structopt(long = "config-path")]
+    /// Print the path for the config file
+    pub print_config_path: bool,
+
+    #[structopt(long = "cache-dir")]
+    /// Print the cache directory where the log file and crash-reports are written to
+    pub print_cache_dir: bool,
 }

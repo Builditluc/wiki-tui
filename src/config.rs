@@ -12,10 +12,12 @@ use std::{cell::RefCell, path::PathBuf, rc::Rc, str::FromStr};
 #[cfg(not(test))]
 use structopt::StructOpt;
 use toml::from_str;
+use uuid::Uuid;
 
 const CONFIG_FILE: &str = "config.toml";
 const CONFIG_DIR: &str = ".config";
 const APP_DIR: &str = "wiki-tui";
+const LOG_FILE: &str = "wiki-tui.log";
 
 lazy_static! {
     pub static ref CONFIG: Config = Config::new();
@@ -46,6 +48,7 @@ fn color_to_string(color: &Color) -> String {
     }
 }
 
+#[derive(Clone)]
 pub struct Theme {
     pub text: Color,
     pub title: Color,
@@ -131,6 +134,7 @@ impl From<&String> for BorderStyle {
     }
 }
 
+#[derive(Clone)]
 pub struct ViewTheme {
     pub background: Color,
     pub text: Color,
@@ -181,14 +185,14 @@ impl ApiConfig {
     }
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, Clone)]
 pub struct Logging {
     pub enabled: bool,
-    pub log_dir: PathBuf,
+    pub log_path: PathBuf,
     pub log_level: LevelFilter,
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, Clone)]
 pub struct Features {
     pub links: bool,
     pub toc: bool,
@@ -335,7 +339,7 @@ impl Serialize for Keybindings {
     }
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, Clone)]
 pub struct Settings {
     pub toc: TocSettings,
 }
@@ -365,7 +369,7 @@ pub enum TocTitle {
     Article,
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, Clone)]
 pub struct Config {
     #[serde(rename(serialize = "api"))]
     pub api_config: ApiConfig,
@@ -377,7 +381,11 @@ pub struct Config {
     #[serde(skip_serializing)]
     config_path: PathBuf,
     #[serde(skip_serializing)]
+    cache_dir: PathBuf,
+    #[serde(skip_serializing)]
     args: Cli,
+    #[serde(skip_serializing)]
+    pub print_and_quit: String,
 }
 
 #[derive(Deserialize, Debug)]
@@ -448,7 +456,6 @@ struct UserApiConfig {
 #[derive(Deserialize, Debug)]
 struct UserLogging {
     enabled: Option<bool>,
-    log_dir: Option<String>,
     log_level: Option<String>,
 }
 
@@ -507,7 +514,7 @@ impl Config {
             },
             logging: Logging {
                 enabled: true,
-                log_dir: PathBuf::from("wiki_tui.log"),
+                log_path: PathBuf::new(),
                 log_level: LevelFilter::Info,
             },
             features: Features {
@@ -538,11 +545,13 @@ impl Config {
                 },
             },
             config_path: PathBuf::new(),
+            cache_dir: PathBuf::new(),
             #[cfg(not(test))]
             args: Cli::from_args(),
 
             #[cfg(test)]
             args: Cli::default(),
+            print_and_quit: String::new(),
         };
 
         // load the configuration from the file
@@ -620,7 +629,7 @@ impl Config {
         Ok(())
     }
 
-    fn load_cli_arguments(&mut self) {
+    pub fn load_cli_arguments(&mut self) {
         // override the log level
         if let Some(log_level) = self.args.level.as_ref() {
             let level = match log_level {
@@ -647,6 +656,26 @@ impl Config {
             );
 
             self.api_config.language = language;
+        }
+
+        if self.args.print_config_path {
+            self.print_and_quit.push_str(&format!(
+                "{}",
+                self.config_path
+                    .to_str()
+                    .unwrap_or("Invalid Path. Contains Unicode Characters"),
+            ));
+            return;
+        }
+
+        if self.args.print_cache_dir {
+            self.print_and_quit.push_str(&format!(
+                "{}",
+                self.cache_dir
+                    .to_str()
+                    .unwrap_or("Invalid Path. Contains Unicode Characters")
+            ));
+            return;
         }
     }
 
@@ -687,6 +716,17 @@ impl Config {
         }
 
         self.config_path = config_file_dir;
+
+        let cache_dir = match dirs::cache_dir() {
+            Some(cache_dir) => cache_dir,
+            None => {
+                bail!("couldn't find the cache directory")
+            }
+        };
+
+        self.logging.log_path = cache_dir.join(LOG_FILE);
+        self.cache_dir = cache_dir;
+
         Ok(true)
     }
 
@@ -833,13 +873,6 @@ impl Config {
         if let Some(enabled) = user_logging.enabled {
             self.logging.enabled = enabled;
             log::debug!("loaded 'logging.enabled'");
-        }
-
-        if let Some(log_dir) = user_logging.log_dir.as_ref() {
-            if let Ok(path) = PathBuf::from_str(log_dir) {
-                self.logging.log_dir = path;
-                log::debug!("loaded 'logging.log_dir'");
-            }
         }
 
         if let Some(log_level) = user_logging.log_level.as_ref() {
@@ -1030,6 +1063,13 @@ impl Config {
 
     pub fn get_args(&self) -> &Cli {
         &self.args
+    }
+
+    pub fn generate_crash_path(&self) -> PathBuf {
+        self.cache_dir.join(format!(
+            "wiki_tui-crash_report-{}.log",
+            Uuid::new_v4().to_hyphenated()
+        ))
     }
 }
 

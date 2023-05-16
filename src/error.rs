@@ -3,7 +3,6 @@ use std::collections::HashMap;
 use std::env;
 use std::fmt::Write;
 use std::panic::{set_hook, PanicInfo};
-use uuid::Uuid;
 
 use crate::config::CONFIG;
 
@@ -44,12 +43,7 @@ where
     }
 
     set_hook(Box::new(move |info: &PanicInfo| {
-        let path = env::current_dir()
-            .unwrap_or_else(|_| env::temp_dir())
-            .join(format!(
-                "crash_report-{}.log",
-                Uuid::new_v4().to_hyphenated()
-            ));
+        let path = CONFIG.generate_crash_path();
         log::error!("panic occurred, crash log is at: {}", path.display());
 
         let mut payload = String::new();
@@ -82,7 +76,7 @@ where
             None => payload.push_str("Panic location unknown.\n"),
         };
 
-        let logs = match std::fs::read_to_string(&CONFIG.logging.log_dir) {
+        let logs = match std::fs::read_to_string(&CONFIG.logging.log_path) {
             Ok(logs) => logs,
             Err(_) => "No logs available.".to_string(),
         };

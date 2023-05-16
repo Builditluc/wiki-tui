@@ -11,7 +11,6 @@ extern crate log;
 extern crate cursive;
 
 use anyhow::Context;
-use config::Config;
 use cursive::event::Key;
 use cursive::theme::*;
 use cursive::Cursive;
@@ -67,7 +66,7 @@ fn initialize() {
 }
 
 fn start_application() {
-    let config = Config::new();
+    let config = config::CONFIG.clone();
 
     let mut siv = Cursive::new();
     siv.add_global_callback('q', Cursive::quit);
@@ -97,6 +96,11 @@ fn start_application() {
     let argument_callback = handle_arguments();
     if let Err(error) = siv.cb_sink().send(argument_callback) {
         error!("{:?}", error);
+    }
+
+    if !config.print_and_quit.is_empty() {
+        println!("{}", config.print_and_quit);
+        return;
     }
 
     siv.set_user_data(Rc::new(RefCell::new(config)));
