@@ -43,7 +43,7 @@ impl Logger {
         let wiki_tui = FileAppender::builder()
             .append(false)
             .encoder(Box::new(PatternEncoder::new("{d} {l} {M} - {m}{n}")))
-            .build(CONFIG.logging.log_dir.as_path())
+            .build(CONFIG.logging.log_path.as_path())
             .context("failed building the FileAppender")?;
 
         // disable logging for specific crates

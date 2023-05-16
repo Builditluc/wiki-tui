@@ -135,15 +135,12 @@ impl<'a> Parser<'a> {
             let mut header = headline_node.text();
 
             if let Some(sections) = self.sections {
-                sections
+                if let Some(section) = sections
                     .iter()
-                    .find_map(|section: &Section| {
-                        if Some(section.anchor()) != headline_node.attr("id") {
-                            return None;
-                        }
-                        Some(section)
-                    })
-                    .map(|section| header.insert_str(0, &format!("{} ", section.number())));
+                    .find(|&section| Some(section.anchor()) == headline_node.attr("id"))
+                {
+                    header.insert_str(0, &format!("{} ", section.number()))
+                };
             }
 
             self.push_newline();
