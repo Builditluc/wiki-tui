@@ -188,6 +188,7 @@ impl ApiConfig {
 #[derive(Serialize, Clone)]
 pub struct Logging {
     pub enabled: bool,
+    #[serde(skip_serializing)]
     pub log_path: PathBuf,
     pub log_level: LevelFilter,
 }

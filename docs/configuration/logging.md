@@ -1,6 +1,7 @@
 # Logging Settings
 
 wiki-tui writes everything it does (logs) into a so-called `logfile`. These logs are useful for debugging (so we as the developers can understand what wiki-tui was trying to do before it failed) and deliver some interesting insight into how wiki-tui works.
+The log file gets written to the cache-dir which can be found by running `wiki-tui --cache-dir`. The file is named `wiki_tui.log`
 
 ## Enable / Disable logging entirely
 
@@ -21,17 +22,6 @@ logging.enabled = true
     When a crash occurs or you encounter a bug, without the log file we cannot do very much if we cannot reproduce it. But even if we can reproduce your bug or crash, we can usually fix it much faster with the logs. 
 
     You don't need to have your `log_level` set to `INFO` (altough, we would appreciate it :)). Even if you only have the `log_level` set to `WARN`, it helps us so much more than no logs at all. So please, for you it is only a single file that gets overwritten when you start wiki-tui again. But for us, it means so much more.
-
-## Changing the Logging Path
-
-[:octicons-tag-24: 0.3.0][release-0.3.0] ·
-:octicons-milestone-16: Default: `wiki_tui.log`
-
-You can change the path the logfile gets written to. It is relative to the current working directory. With this you can, for example, rename the file
-
-```toml
-logging.log_dir = "wiki_tui.log"
-```
 
 ## Adjusting the Log Level
 

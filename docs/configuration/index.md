@@ -1,6 +1,12 @@
 # Configuration
 
-The configuration file can be found at the following path
+The path to the configuration file can be found by running this command
+
+```
+wiki-tui --config-path
+```
+
+It's usually this path:
 
 ```
 $HOME/.config/wiki-tui/config.toml
