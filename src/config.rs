@@ -659,23 +659,20 @@ impl Config {
         }
 
         if self.args.print_config_path {
-            self.print_and_quit.push_str(&format!(
-                "{}",
+            self.print_and_quit.push_str(
                 self.config_path
                     .to_str()
                     .unwrap_or("Invalid Path. Contains Unicode Characters"),
-            ));
+            );
             return;
         }
 
         if self.args.print_cache_dir {
-            self.print_and_quit.push_str(&format!(
-                "{}",
+            self.print_and_quit.push_str(
                 self.cache_dir
                     .to_str()
-                    .unwrap_or("Invalid Path. Contains Unicode Characters")
-            ));
-            return;
+                    .unwrap_or("Invalid Path. Contains Unicode Characters"),
+            );
         }
     }
 
