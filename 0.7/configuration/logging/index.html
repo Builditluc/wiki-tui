@@ -578,13 +578,6 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#changing-the-logging-path" class="md-nav__link">
-    Changing the Logging Path
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#adjusting-the-log-level" class="md-nav__link">
     Adjusting the Log Level
   </a>
@@ -812,13 +805,6 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#changing-the-logging-path" class="md-nav__link">
-    Changing the Logging Path
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#adjusting-the-log-level" class="md-nav__link">
     Adjusting the Log Level
   </a>
@@ -860,7 +846,8 @@
 
 
 <h1 id="logging-settings">Logging Settings</h1>
-<p>wiki-tui writes everything it does (logs) into a so-called <code>logfile</code>. These logs are useful for debugging (so we as the developers can understand what wiki-tui was trying to do before it failed) and deliver some interesting insight into how wiki-tui works.</p>
+<p>wiki-tui writes everything it does (logs) into a so-called <code>logfile</code>. These logs are useful for debugging (so we as the developers can understand what wiki-tui was trying to do before it failed) and deliver some interesting insight into how wiki-tui works.
+The log file gets written to the cache-dir which can be found by running <code>wiki-tui --cache-dir</code>. The file is named <code>wiki_tui.log</code></p>
 <h2 id="enable-disable-logging-entirely">Enable / Disable logging entirely</h2>
 <p><a href="https://github.com/Builditluc/wiki-tui/releases/tag/v0.3"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M7.75 6.5a1.25 1.25 0 1 0 0 2.5 1.25 1.25 0 0 0 0-2.5Z"/><path d="M2.5 1h8.44a1.5 1.5 0 0 1 1.06.44l10.25 10.25a1.5 1.5 0 0 1 0 2.12l-8.44 8.44a1.5 1.5 0 0 1-2.12 0L1.44 12A1.497 1.497 0 0 1 1 10.94V2.5A1.5 1.5 0 0 1 2.5 1Zm0 1.5v8.44l10.25 10.25 8.44-8.44L10.94 2.5Z"/></svg></span> 0.3.0</a> ·
 <span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path d="M7.75 0a.75.75 0 0 1 .75.75V3h3.634c.414 0 .814.147 1.13.414l2.07 1.75a1.75 1.75 0 0 1 0 2.672l-2.07 1.75a1.75 1.75 0 0 1-1.13.414H8.5v5.25a.75.75 0 0 1-1.5 0V10H2.75A1.75 1.75 0 0 1 1 8.25v-3.5C1 3.784 1.784 3 2.75 3H7V.75A.75.75 0 0 1 7.75 0Zm4.384 8.5a.25.25 0 0 0 .161-.06l2.07-1.75a.248.248 0 0 0 0-.38l-2.07-1.75a.25.25 0 0 0-.161-.06H2.75a.25.25 0 0 0-.25.25v3.5c0 .138.112.25.25.25h9.384Z"/></svg></span> Default: <code>true</code></p>
@@ -874,12 +861,6 @@
 <p>When a crash occurs or you encounter a bug, without the log file we cannot do very much if we cannot reproduce it. But even if we can reproduce your bug or crash, we can usually fix it much faster with the logs. </p>
 <p>You don't need to have your <code>log_level</code> set to <code>INFO</code> (altough, we would appreciate it :)). Even if you only have the <code>log_level</code> set to <code>WARN</code>, it helps us so much more than no logs at all. So please, for you it is only a single file that gets overwritten when you start wiki-tui again. But for us, it means so much more.</p>
 </div>
-<h2 id="changing-the-logging-path">Changing the Logging Path</h2>
-<p><a href="https://github.com/Builditluc/wiki-tui/releases/tag/v0.3"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M7.75 6.5a1.25 1.25 0 1 0 0 2.5 1.25 1.25 0 0 0 0-2.5Z"/><path d="M2.5 1h8.44a1.5 1.5 0 0 1 1.06.44l10.25 10.25a1.5 1.5 0 0 1 0 2.12l-8.44 8.44a1.5 1.5 0 0 1-2.12 0L1.44 12A1.497 1.497 0 0 1 1 10.94V2.5A1.5 1.5 0 0 1 2.5 1Zm0 1.5v8.44l10.25 10.25 8.44-8.44L10.94 2.5Z"/></svg></span> 0.3.0</a> ·
-<span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path d="M7.75 0a.75.75 0 0 1 .75.75V3h3.634c.414 0 .814.147 1.13.414l2.07 1.75a1.75 1.75 0 0 1 0 2.672l-2.07 1.75a1.75 1.75 0 0 1-1.13.414H8.5v5.25a.75.75 0 0 1-1.5 0V10H2.75A1.75 1.75 0 0 1 1 8.25v-3.5C1 3.784 1.784 3 2.75 3H7V.75A.75.75 0 0 1 7.75 0Zm4.384 8.5a.25.25 0 0 0 .161-.06l2.07-1.75a.248.248 0 0 0 0-.38l-2.07-1.75a.25.25 0 0 0-.161-.06H2.75a.25.25 0 0 0-.25.25v3.5c0 .138.112.25.25.25h9.384Z"/></svg></span> Default: <code>wiki_tui.log</code></p>
-<p>You can change the path the logfile gets written to. It is relative to the current working directory. With this you can, for example, rename the file</p>
-<div class="highlight"><pre><span></span><code><span class="n">logging</span><span class="p">.</span><span class="n">log_dir</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;wiki_tui.log&quot;</span>
-</code></pre></div>
 <h2 id="adjusting-the-log-level">Adjusting the Log Level</h2>
 <p><a href="https://github.com/Builditluc/wiki-tui/releases/tag/v0.3"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M7.75 6.5a1.25 1.25 0 1 0 0 2.5 1.25 1.25 0 0 0 0-2.5Z"/><path d="M2.5 1h8.44a1.5 1.5 0 0 1 1.06.44l10.25 10.25a1.5 1.5 0 0 1 0 2.12l-8.44 8.44a1.5 1.5 0 0 1-2.12 0L1.44 12A1.497 1.497 0 0 1 1 10.94V2.5A1.5 1.5 0 0 1 2.5 1Zm0 1.5v8.44l10.25 10.25 8.44-8.44L10.94 2.5Z"/></svg></span> 0.3.0</a> ·
 <span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path d="M7.75 0a.75.75 0 0 1 .75.75V3h3.634c.414 0 .814.147 1.13.414l2.07 1.75a1.75 1.75 0 0 1 0 2.672l-2.07 1.75a1.75 1.75 0 0 1-1.13.414H8.5v5.25a.75.75 0 0 1-1.5 0V10H2.75A1.75 1.75 0 0 1 1 8.25v-3.5C1 3.784 1.784 3 2.75 3H7V.75A.75.75 0 0 1 7.75 0Zm4.384 8.5a.25.25 0 0 0 .161-.06l2.07-1.75a.248.248 0 0 0 0-.38l-2.07-1.75a.25.25 0 0 0-.161-.06H2.75a.25.25 0 0 0-.25.25v3.5c0 .138.112.25.25.25h9.384Z"/></svg></span> Default: <code>Info</code></p>
@@ -926,7 +907,7 @@
   <small>
     
       Last update:
-      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">August 4, 2022</span>
+      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">May 16, 2023</span>
       
         <br>
         Created:

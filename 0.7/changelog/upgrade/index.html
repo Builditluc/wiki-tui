@@ -759,6 +759,13 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#logginglog_dir" class="md-nav__link">
+    logging.log_dir
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -767,6 +774,13 @@
           <li class="md-nav__item">
   <a href="#change-of-the-l-cli-argument" class="md-nav__link">
     Change of the -l CLI argument
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#changed-paths-for-the-crash-log-and-logfile" class="md-nav__link">
+    Changed paths for the crash log and logfile
   </a>
   
 </li>
@@ -838,6 +852,13 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#logginglog_dir" class="md-nav__link">
+    logging.log_dir
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -846,6 +867,13 @@
           <li class="md-nav__item">
   <a href="#change-of-the-l-cli-argument" class="md-nav__link">
     Change of the -l CLI argument
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#changed-paths-for-the-crash-log-and-logfile" class="md-nav__link">
+    Changed paths for the crash log and logfile
   </a>
   
 </li>
@@ -909,19 +937,25 @@ change the language</p>
 </blockquote>
 <p>You most likely never have to change the <code>api.pre_language</code> and <code>api.post_language</code> options, but
 they'll allow changing the site wiki-tui uses (theoretically, every Wikimedia based site works), for
-more, read their <a href="../../configuration/api/#changing-the-site">docs</a></p>
+more, read the <a href="../../configuration/api/#changing-the-site">docs</a></p>
+<h4 id="logginglog_dir"><code>logging.log_dir</code></h4>
+<p>This option was removed completely because of the fixed path of the log file inside of the cache directory
+(can be found when running <code>wiki-tui --cache-dir</code>)</p>
 <h3 id="change-of-the-l-cli-argument">Change of the <code>-l</code> CLI argument</h3>
 <p>This CLI argument was used to override the log level on the fly. Now, it is used to change the language.</p>
 <blockquote>
 <p>The <code>--level</code> flag still exists to change the log level</p>
 </blockquote>
+<h3 id="changed-paths-for-the-crash-log-and-logfile">Changed paths for the crash log and logfile</h3>
+<p>The logfile and the crash log have both moved to the cache directory (can be found using <code>wiki-tui --cache-dir</code>).
+The name of the crash log has also changed, more can be found in the corresponding <a href="../../getting-started/crash/">doc page</a></p>
 
   <hr>
 <div class="md-source-file">
   <small>
     
       Last update:
-      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">May 10, 2023</span>
+      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">May 16, 2023</span>
       
         <br>
         Created:
