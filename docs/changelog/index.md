@@ -1,3 +1,80 @@
+# v0.7.0 (Thu May 18 2023)
+
+:tada: This release contains work from new contributors! :tada:
+
+Thanks for all your work!
+
+:heart: Imgbot ([@ImgBotApp](https://github.com/ImgBotApp))
+
+:heart: null[@cshjsc](https://github.com/cshjsc)
+
+:heart: krixcrox ([@falkwitte](https://github.com/falkwitte))
+
+### Release Notes
+
+*Breaking Changes occurred, please check the [docs](https://builditluc.github.io/wiki-tui/0.7/changelog/upgrade/#upgrade-from-v06x-to-v07x)for instructions on how to upgrade*
+
+#### Change log directory ([#175](https://github.com/Builditluc/wiki-tui/pull/175))
+
+The path of the logfile and the crash report have changed, check the upgrading page to learn more
+
+#### Add Language Selection ([#168](https://github.com/Builditluc/wiki-tui/pull/168))
+
+You can now change the language on the fly either by using the new `-l` and `--language` cli arguments, or by pressing F2 in the tui and selecting a new language from the menu. This feature also includes several new configuration options, so be sure to check out the docs about them
+
+Please also check the docs to learn about what breaking changes have occurred since 0.6.x
+
+![image](https://user-images.githubusercontent.com/37375448/234084862-f317b52c-6031-4383-94f9-a87bfbe2cea4.png)
+> Language Switching Dialog
+
+---
+
+#### Breaking Changes 🛠
+
+- Change log directory [#175](https://github.com/Builditluc/wiki-tui/pull/175) ([@Builditluc](https://github.com/Builditluc))
+- Add Language Selection [#168](https://github.com/Builditluc/wiki-tui/pull/168) ([@Builditluc](https://github.com/Builditluc) [@cshjsc](https://github.com/cshjsc))
+
+#### Exciting New Features 🎉
+
+- Display header numbers in the article [#173](https://github.com/Builditluc/wiki-tui/pull/173) ([@Builditluc](https://github.com/Builditluc))
+- Added macro to create enum with all languages at compile time [#169](https://github.com/Builditluc/wiki-tui/pull/169) ([@cshjsc](https://github.com/cshjsc) [@Builditluc](https://github.com/Builditluc))
+- Exit when no layers are present anymore [#162](https://github.com/Builditluc/wiki-tui/pull/162) ([@cshjsc](https://github.com/cshjsc))
+
+#### Bug Fixes 🐛
+
+- Fix cargo publish [#172](https://github.com/Builditluc/wiki-tui/pull/172) ([@Builditluc](https://github.com/Builditluc))
+
+#### CI Pipeline and Dependency Updates
+
+- Improve speed of ci workflow [#171](https://github.com/Builditluc/wiki-tui/pull/171) ([@Builditluc](https://github.com/Builditluc))
+
+#### Documentation Changes
+
+- Update documentation [#174](https://github.com/Builditluc/wiki-tui/pull/174) ([@Builditluc](https://github.com/Builditluc))
+- Fix typo [#170](https://github.com/Builditluc/wiki-tui/pull/170) ([@falkwitte](https://github.com/falkwitte))
+- Update Documentation [#167](https://github.com/Builditluc/wiki-tui/pull/167) ([@Builditluc](https://github.com/Builditluc))
+- Add versioning to the documentation [#166](https://github.com/Builditluc/wiki-tui/pull/166) ([@Builditluc](https://github.com/Builditluc))
+- Add cshjsc as a contributor for code [#163](https://github.com/Builditluc/wiki-tui/pull/163) ([@allcontributors[bot]](https://github.com/allcontributors[bot]))
+
+#### Structure and Style Changes
+
+- Rework the Scrolling System [#164](https://github.com/Builditluc/wiki-tui/pull/164) ([@Builditluc](https://github.com/Builditluc))
+
+#### Other Changes
+
+- [ImgBot] Optimize images [#176](https://github.com/Builditluc/wiki-tui/pull/176) ([@ImgBotApp](https://github.com/ImgBotApp) [@imgbot[bot]](https://github.com/imgbot[bot]))
+
+#### Authors: 6
+
+- [@allcontributors[bot]](https://github.com/allcontributors[bot])
+- [@Builditluc](https://github.com/Builditluc)
+- [@cshjsc](https://github.com/cshjsc)
+- [@imgbot[bot]](https://github.com/imgbot[bot])
+- Imgbot ([@ImgBotApp](https://github.com/ImgBotApp))
+- krixcrox ([@falkwitte](https://github.com/falkwitte))
+
+---
+
 ## v0.6.4 (Fri Feb 17 2023)
 
 #### Bug Fixes 🐛
