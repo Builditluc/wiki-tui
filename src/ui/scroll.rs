@@ -76,6 +76,10 @@ where
                 Event::Key(Key::PageDown) if scroller.get_scroller_mut().can_scroll_down() => {
                     scroller.get_scroller_mut().scroll_down(SCROLL_PAGE_DOWN)
                 }
+                Event::Char('G') => scroller.get_scroller_mut().scroll_to_bottom(),
+                // TODO(enoumy): Make this be gg in short sequence.
+                Event::Char('g') => scroller.get_scroller_mut().scroll_to_top(),
+
                 Event::CtrlChar('d') => {
                     if scroller.get_scroller_mut().can_scroll_down() {
                         scroller
