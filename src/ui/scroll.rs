@@ -57,6 +57,8 @@ where
         EventResult::Ignored
     };
 
+    let half_viewport_height = scroller.get_scroller().content_viewport().height() / 2;
+
     match result {
         EventResult::Ignored => {
             match event {
@@ -73,6 +75,18 @@ where
                 }
                 Event::Key(Key::PageDown) if scroller.get_scroller_mut().can_scroll_down() => {
                     scroller.get_scroller_mut().scroll_down(SCROLL_PAGE_DOWN)
+                }
+                Event::CtrlChar('d') => {
+                    if scroller.get_scroller_mut().can_scroll_down() {
+                        scroller
+                            .get_scroller_mut()
+                            .scroll_down(half_viewport_height)
+                    }
+                }
+                Event::CtrlChar('u') => {
+                    if scroller.get_scroller_mut().can_scroll_up() {
+                        scroller.get_scroller_mut().scroll_up(half_viewport_height)
+                    }
                 }
                 key if key == CONFIG.keybindings.down
                     && scroller.get_scroller_mut().can_scroll_down() =>
