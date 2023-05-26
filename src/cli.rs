@@ -18,7 +18,7 @@ pub struct Cli {
     pub level: Option<i32>,
 
     #[structopt(short = "l", long = "language")]
-    /// Override the configured language of wikipeida. The value can be either the language code or
+    /// Override the configured language of wikipedia. The value can be either the language code or
     /// the name of the language in english or the name in its local language
     pub language: Option<String>,
 
