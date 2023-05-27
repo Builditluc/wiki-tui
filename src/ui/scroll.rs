@@ -1,10 +1,9 @@
-use std::time::{Duration, SystemTime};
-
 use cursive::{
     event::{Event, EventResult, Key, MouseButton, MouseEvent},
     Rect, Vec2,
 };
 use std::cell::RefCell;
+use std::time::{Duration, SystemTime};
 
 const SCROLL_STRATEGY: ScrollStrategy = ScrollStrategy::KeepRow;
 const SCROLL_WHEEL_DOWN: usize = 3;
