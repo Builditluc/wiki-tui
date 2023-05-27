@@ -82,7 +82,6 @@ where
                     scroller.get_scroller_mut().scroll_down(SCROLL_PAGE_DOWN)
                 }
                 Event::Char('G') => scroller.get_scroller_mut().scroll_to_bottom(),
-                // TODO(enoumy): Make this be gg in short sequence.
                 Event::Char('g') => {
                     let now = SystemTime::now();
                     LAST_TIME_G_WAS_PRESSED.with(|last_time| {
