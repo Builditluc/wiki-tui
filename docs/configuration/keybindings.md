@@ -45,6 +45,11 @@ The following modes are supported
 | Scroll / Select Right   | `right`      | ++right++          |
 | Focus the next view     | `focus_next` | ++tab++            |
 | Focus the previous view | `focus_prev` | ++shift+tab++      |
+| Go to Top               | N/a          | ++gg++             |
+| Go to Bottom            | N/a          | ++G++              |
+| Half page down          | N/a          | ++ctrl+d++         |
+| Half page up            | N/a          | ++ctrl+u++         |
+| Focus the previous view | `focus_prev` | ++shift+tab++      |
 | Toggle the language selection | `toggle_language_selection` | ++f2++ |
 
 > When updating the language via the selection popup, existing search results and links in articles
