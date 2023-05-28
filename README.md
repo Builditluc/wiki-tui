@@ -57,6 +57,9 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
       <td align="center" valign="top" width="14.28%"><a href="http://juans.dev"><img src="https://avatars.githubusercontent.com/u/47149574?v=4?s=100" width="100px;" alt="cshjsc"/><br /><sub><b>cshjsc</b></sub></a><br /><a href="https://github.com/Builditluc/wiki-tui/commits?author=cshjsc" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/non-descriptive"><img src="https://avatars.githubusercontent.com/u/5757533?v=4?s=100" width="100px;" alt="Dmitry Kozlovtsev"/><br /><sub><b>Dmitry Kozlovtsev</b></sub></a><br /><a href="https://github.com/Builditluc/wiki-tui/issues?q=author%3Anon-descriptive" title="Bug reports">🐛</a></td>
     </tr>
+    <tr>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/Enoumy"><img src="https://avatars.githubusercontent.com/u/45022810?v=4?s=100" width="100px;" alt="Enoumy"/><br /><sub><b>Enoumy</b></sub></a><br /><a href="https://github.com/Builditluc/wiki-tui/commits?author=Enoumy" title="Code">💻</a></td>
+    </tr>
   </tbody>
 </table>
 
