@@ -119,6 +119,15 @@ impl ArticleView {
                 })));
             }
             debug!("target link is not external, continuing");
+
+            // chek if there were any decoding errors
+            if element.attr("decoding_error").is_some() {
+                warn!("the parser couldn't decode the url correclty");
+                return EventResult::Consumed(Some(Callback::from_fn(move |s| {
+                    display_message(s, "Information", "The link points to a url which couldn't be decoded correctly to UTF-8. \nCheck the logs for further information");
+                })));
+            }
+
             info!(
                 "opening the link '{}' with the target '{}'",
                 element.id(),

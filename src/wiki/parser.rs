@@ -189,12 +189,23 @@ impl<'a> Parser<'a> {
             return;
         }
 
-        let mut attributes = HashMap::new();
-        attributes.insert("target".to_string(), target.unwrap().to_string());
+        let mut target = target.unwrap().to_string();
 
-        if target.unwrap().starts_with("https://") || target.unwrap().starts_with("http://") {
+        let mut attributes = HashMap::new();
+
+        match urlencoding::decode(target.as_ref()) {
+            Ok(decoded_target) => target = decoded_target.to_string(),
+            Err(err) => {
+                warn!("{:?}", err);
+                attributes.insert("decoding_error".to_string(), String::new());
+            }
+        };
+
+        if target.starts_with("https://") || target.starts_with("http://") {
             attributes.insert("external".to_string(), String::new());
         }
+
+        attributes.insert("target".to_string(), target);
 
         self.elements.push(Element::new(
             self.next_id(),
