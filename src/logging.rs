@@ -40,6 +40,8 @@ impl Logger {
             return Ok(());
         }
 
+        debug!("logging path: '{:?}'", CONFIG.logging.log_path);
+
         let wiki_tui = FileAppender::builder()
             .append(false)
             .encoder(Box::new(PatternEncoder::new("{d} {l} {M} - {m}{n}")))
