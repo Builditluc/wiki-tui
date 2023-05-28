@@ -2,12 +2,16 @@ use cursive::{
     event::{Event, EventResult, Key, MouseButton, MouseEvent},
     Rect, Vec2,
 };
+use std::cell::RefCell;
+use std::time::{Duration, SystemTime};
 
 const SCROLL_STRATEGY: ScrollStrategy = ScrollStrategy::KeepRow;
 const SCROLL_WHEEL_DOWN: usize = 3;
 const SCROLL_WHEEL_UP: usize = 3;
 const SCROLL_PAGE_UP: usize = 10;
 const SCROLL_PAGE_DOWN: usize = 10;
+
+thread_local!(static LAST_TIME_G_WAS_PRESSED : RefCell<Option<SystemTime>> = RefCell::new(None));
 
 pub use cursive::view::scroll::{draw, layout, required_size, Core, ScrollStrategy, Scroller};
 
@@ -57,6 +61,8 @@ where
         EventResult::Ignored
     };
 
+    let half_viewport_height = scroller.get_scroller().content_viewport().height() / 2;
+
     match result {
         EventResult::Ignored => {
             match event {
@@ -73,6 +79,34 @@ where
                 }
                 Event::Key(Key::PageDown) if scroller.get_scroller_mut().can_scroll_down() => {
                     scroller.get_scroller_mut().scroll_down(SCROLL_PAGE_DOWN)
+                }
+                Event::Char('G') => scroller.get_scroller_mut().scroll_to_bottom(),
+                Event::Char('g') => {
+                    let now = SystemTime::now();
+                    LAST_TIME_G_WAS_PRESSED.with(|last_time| {
+                        if let Some(last_time) = *last_time.borrow() {
+                            if let Ok(duration) = now.duration_since(last_time) {
+                                if duration < Duration::from_millis(300) {
+                                    scroller.get_scroller_mut().scroll_to_top()
+                                }
+                            }
+                        }
+                    });
+
+                    LAST_TIME_G_WAS_PRESSED.with(|last_time| *last_time.borrow_mut() = Some(now))
+                }
+
+                Event::CtrlChar('d') => {
+                    if scroller.get_scroller_mut().can_scroll_down() {
+                        scroller
+                            .get_scroller_mut()
+                            .scroll_down(half_viewport_height)
+                    }
+                }
+                Event::CtrlChar('u') => {
+                    if scroller.get_scroller_mut().can_scroll_up() {
+                        scroller.get_scroller_mut().scroll_up(half_viewport_height)
+                    }
                 }
                 key if key == CONFIG.keybindings.down
                     && scroller.get_scroller_mut().can_scroll_down() =>
