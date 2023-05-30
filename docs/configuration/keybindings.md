@@ -64,17 +64,5 @@ down.key = "j"
 down.mode = "shift"
 ```
 
-## Vim Bindings Config
-
-This is a simple keybinding configuration that lets you use the vim Keybindings (++h++/++j++/++k++/++l++) to navigate around wiki-tui.
-
-```toml
-[keybindings]
-down.key = "j"
-up.key = "k"
-left.key = "h"
-right.key = "l"
-```
-
 [release-0.5.0]: https://github.com/Builditluc/wiki-tui/releases/tag/v0.5.0
 [release-0.6.0]: https://github.com/Builditluc/wiki-tui/releases/tag/v0.6.0

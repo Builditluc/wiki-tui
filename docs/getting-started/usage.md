@@ -67,10 +67,10 @@ actions can be remapped in the config
 
 | Action         | Default Keybinding | Configurable?    |
 | -------------- | ------------------ | ---------------- |
-|  `UP`          | ++up++             | :material-check: |
-|  `DOWN`        | ++down++           | :material-check: |
-|  `LEFT`        | ++left++           | :material-check: |
-|  `RIGHT`       | ++right++          | :material-check: |
+|  `UP`          | ++k++             | :material-check: |
+|  `DOWN`        | ++j++           | :material-check: |
+|  `LEFT`        | ++h++           | :material-check: |
+|  `RIGHT`       | ++l++          | :material-check: |
 |  `NEXT TAB`    | ++tab++            | :material-check: |
 |  `PREV TAB`    | ++shift+tab++      | :material-check: |
 |  `OPEN`        | ++return++         |                  |
