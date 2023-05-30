@@ -523,10 +523,10 @@ impl Config {
                 toc: true,
             },
             keybindings: Keybindings {
-                down: Event::Key(Key::Down),
-                up: Event::Key(Key::Up),
-                left: Event::Key(Key::Left),
-                right: Event::Key(Key::Right),
+                down: Event::Char('j'),
+                up: Event::Char('k'),
+                left: Event::Char('h'),
+                right: Event::Char('l'),
 
                 focus_next: Event::Key(Key::Tab),
                 focus_prev: Event::Shift(Key::Tab),
