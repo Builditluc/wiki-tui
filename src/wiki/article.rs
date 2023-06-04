@@ -5,8 +5,9 @@ use select::document::Document;
 use serde::Deserialize;
 use serde_repr::Deserialize_repr;
 use std::{collections::HashMap, fmt::Display};
+use url::Url;
 
-use super::{parser::Parser, search::Namespace};
+use super::{language::Language, parser::Parser, search::Namespace};
 
 fn action_parse(params: Vec<(&str, String)>, url: String) -> Result<Response> {
     Client::new()
@@ -96,6 +97,7 @@ pub struct LanguageLink {
     language: String,
     autonym: String,
     title: String,
+    url: Url,
 }
 
 #[derive(Debug, Deserialize)]
@@ -184,6 +186,7 @@ pub struct Article {
     title: String,
     pageid: usize,
     content: Option<Vec<Element>>,
+    language: Language,
     language_links: Option<Vec<LanguageLink>>,
     categories: Option<Vec<Category>>,
     categories_html: Option<String>,
@@ -218,6 +221,21 @@ impl Article {
 
     pub fn sections(&self) -> Option<impl Iterator<Item = &Section>> {
         self.sections.as_ref().map(|x| x.iter())
+    }
+
+    pub fn title(&self) -> &str {
+        &self.title
+    }
+
+    pub fn language(&self) -> Language {
+        self.language.clone()
+    }
+
+    pub fn available_languages(&self) -> Option<usize> {
+        if let Some(ref links) = self.language_links {
+            return Some(links.len());
+        }
+        None
     }
 }
 
@@ -306,7 +324,7 @@ pub struct Page(String);
 #[derive(Default)]
 pub struct NoPage;
 
-pub struct WithUrl(String);
+pub struct WithUrl(String, Language);
 #[derive(Default)]
 pub struct NoUrl;
 
@@ -347,11 +365,19 @@ impl<U> ArticleBuilder<NoPageID, NoPage, U> {
 }
 
 impl<I, P> ArticleBuilder<I, P, NoUrl> {
-    pub fn url(self, url: impl Into<String>) -> ArticleBuilder<I, P, WithUrl> {
+    pub fn url(
+        self,
+        language: Language,
+        pre_language: &str,
+        post_language: &str,
+    ) -> ArticleBuilder<I, P, WithUrl> {
         ArticleBuilder {
             pageid: self.pageid,
             page: self.page,
-            url: WithUrl(url.into()),
+            url: WithUrl(
+                format!("{}{}{}", pre_language, language.code(), post_language),
+                language,
+            ),
             revision: self.revision,
             redirects: self.redirects,
             properties: self.properties,
@@ -578,6 +604,7 @@ impl<I, P> ArticleBuilder<I, P, WithUrl> {
             title,
             pageid,
             content,
+            language: self.url.1,
             language_links,
             categories,
             categories_html,

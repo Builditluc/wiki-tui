@@ -4,6 +4,8 @@ use serde::Deserialize;
 use serde_repr::Deserialize_repr;
 use std::fmt::Display;
 
+use super::language::{self, Language};
+
 fn action_query(params: Vec<(&str, String)>, url: String) -> Result<Response> {
     Client::new()
         .get(url)
@@ -313,10 +315,20 @@ impl<U> SearchBuilder<NoQuery, U> {
 }
 
 impl<Q> SearchBuilder<Q, NoUrl> {
-    pub fn url(self, url: impl Into<String>) -> SearchBuilder<Q, WithUrl> {
+    pub fn url(
+        self,
+        language: Language,
+        pre_language: &str,
+        post_language: &str,
+    ) -> SearchBuilder<Q, WithUrl> {
         SearchBuilder {
             query: self.query,
-            url: WithUrl(url.into()),
+            url: WithUrl(format!(
+                "{}{}{}",
+                pre_language,
+                language.code(),
+                post_language
+            )),
             namespace: self.namespace,
             limit: self.limit,
             offset: self.offset,

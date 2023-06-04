@@ -1,14 +1,16 @@
+use crate::config::CONFIG;
 use crate::config::{self, Config};
 use crate::ui::panel::WithPanel;
+use crate::ui::root::RootLayout;
 use crate::ui::search::bar_popup::open_search_bar;
 use crate::ui::toc::display_toc;
 use crate::ui::utils::{display_dialog, display_error};
-use crate::wiki::article::{Article, Property};
-use crate::{config::CONFIG, ui::views::RootLayout};
+use crate::ui::views::StatusBar;
+use crate::wiki::article::{Article, ArticleBuilder, NoPage, NoPageID, NoUrl, Property};
 
 use anyhow::{Context, Result};
 use cursive::view::{Nameable, Resizable};
-use cursive::views::{LastSizeView, OnEventView, TextView};
+use cursive::views::{LastSizeView, LinearLayout, OnEventView, TextView};
 use cursive::Cursive;
 
 mod content;
@@ -16,13 +18,26 @@ mod lines;
 mod view;
 pub type ArticleView = view::ArticleView;
 
+fn builder() -> ArticleBuilder<NoPageID, NoPage, NoUrl> {
+    Article::builder().properties(vec![
+        Property::Text,
+        Property::Sections,
+        Property::LangLinks,
+    ])
+}
+
 /// Fetches an article from a given id and displays it. It's the on_submit callback for
 /// the search results view
 pub fn on_article_submit(siv: &mut Cursive, pageid: usize) {
-    let article = match Article::builder()
+    let config = Config::from_siv(siv);
+
+    let article = match builder()
         .pageid(pageid)
-        .url(Config::from_siv(siv).borrow().api_config.url())
-        .properties(vec![Property::Text, Property::Sections])
+        .url(
+            config.borrow().api_config.language.clone(),
+            &config.borrow().api_config.pre_language,
+            &config.borrow().api_config.post_language,
+        )
         .fetch()
     {
         Ok(article) => article,
@@ -59,11 +74,16 @@ pub fn on_link_submit(siv: &mut Cursive, target: String) {
 
 /// Helper function for fetching and displaying an article from a given link
 fn open_link(siv: &mut Cursive, target: String) {
+    let config = Config::from_siv(siv);
+
     // fetch the article
-    let article = match Article::builder()
+    let article = match builder()
         .page(target)
-        .url(Config::from_siv(siv).borrow().api_config.url())
-        .properties(vec![Property::Text, Property::Sections])
+        .url(
+            config.borrow().api_config.language.clone(),
+            &config.borrow().api_config.pre_language,
+            &config.borrow().api_config.post_language,
+        )
         .fetch()
         .context("failed fetching the article")
     {
@@ -109,9 +129,11 @@ fn display_article(siv: &mut Cursive, article: Article) -> Result<()> {
 
     let article_layout_name = format!("article_layout-{}", layer_len);
     let article_view_name = format!("article_view-{}", layer_len);
+    let status_bar_name = format!("status_bar-{}", layer_len);
 
     debug!("article_layout name '{}'", article_layout_name);
-    debug!("artilce_view name '{}'", article_view_name);
+    debug!("article_view name '{}'", article_view_name);
+    debug!("status_bar name '{}'", status_bar_name);
 
     let mut article_layout = RootLayout::horizontal(CONFIG.keybindings.clone());
     debug!("created the article layout");
@@ -128,6 +150,14 @@ fn display_article(siv: &mut Cursive, article: Article) -> Result<()> {
         }
     }
 
+    let status_bar = StatusBar::new()
+        .article_title(article.title())
+        .language(article.language())
+        .available_languages(article.available_languages().unwrap_or_default())
+        .with_name(&status_bar_name)
+        .fixed_height(1)
+        .full_width();
+
     // create the article view
     let article_view = LastSizeView::new(
         ArticleView::new(article)
@@ -143,8 +173,14 @@ fn display_article(siv: &mut Cursive, article: Article) -> Result<()> {
     debug!("created the article view");
 
     siv.add_fullscreen_layer(
-        OnEventView::new(article_layout.with_name(&article_layout_name).full_screen())
-            .on_event('S', open_search_bar),
+        LinearLayout::vertical()
+            .child(
+                OnEventView::new(article_layout.with_name(&article_layout_name))
+                    .on_event('S', open_search_bar)
+                    .fixed_height(siv.screen_size().y.saturating_sub(1)),
+            )
+            .child(status_bar)
+            .full_screen(),
     );
     debug!("created a new fullscreen layer and added the article layout to it");
 

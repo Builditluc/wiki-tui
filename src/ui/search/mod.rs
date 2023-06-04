@@ -16,10 +16,16 @@ mod select;
 /// Callback that searches for a given query and adds the results to a new layer
 /// Displays any error that occurred and aborts the search (does not crash)
 pub fn on_search(siv: &mut Cursive, query: &str) {
+    let config = Config::from_siv(siv);
+
     // search for the query
     let search = match Search::builder()
         .query(query)
-        .url(Config::from_siv(siv).borrow().api_config.url())
+        .url(
+            config.borrow().api_config.language.clone(),
+            &config.borrow().api_config.pre_language,
+            &config.borrow().api_config.post_language,
+        )
         .search()
         .with_context(|| format!("failed to search for '{}'", query))
     {
@@ -105,10 +111,16 @@ fn on_result_select(siv: &mut Cursive, item: &SearchResult) {
 /// Searches for more results at a given offset and adds them to the results view. It's a callback
 /// for the continue button and displays an error if something went wrong
 fn on_continue_submit(siv: &mut Cursive, search_query: &str, search_offset: &usize) {
+    let config = Config::from_siv(siv);
+
     // continue the search and fetch more results
     let search = match Search::builder()
         .query(search_query)
-        .url(Config::from_siv(siv).borrow().api_config.url())
+        .url(
+            config.borrow().api_config.language.clone(),
+            &config.borrow().api_config.pre_language,
+            &config.borrow().api_config.post_language,
+        )
         .offset(*search_offset)
         .search()
         .with_context(|| format!("failed to fetch more search results for '{}'", search_query))

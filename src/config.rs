@@ -168,21 +168,10 @@ impl ViewTheme {
 
 #[derive(Clone, Debug, Serialize)]
 pub struct ApiConfig {
-    pre_language: String,
-    post_language: String,
+    pub pre_language: String,
+    pub post_language: String,
     pub language: Language,
     pub language_changed_popup: bool,
-}
-
-impl ApiConfig {
-    pub fn url(&self) -> String {
-        format!(
-            "{}{}{}",
-            self.pre_language,
-            self.language.code(),
-            self.post_language
-        )
-    }
 }
 
 #[derive(Serialize, Clone)]
