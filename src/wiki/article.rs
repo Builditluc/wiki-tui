@@ -237,6 +237,13 @@ impl Article {
         }
         None
     }
+
+    pub fn language_links(&self) -> Option<impl Iterator<Item = &LanguageLink>> {
+        if let Some(ref links) = self.language_links {
+            return Some(links.iter());
+        }
+        None
+    }
 }
 
 /// Which pieces of information to get about the article

@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use std::rc::Rc;
 
 use crate::ui::article::lines::{Line, LinesWrapper};
-use crate::wiki::article::{Article, Element};
+use crate::wiki::article::{Article, Element, LanguageLink};
 
 /// The content of an ArticleView. Handles text formatting
 pub struct ArticleContent {
@@ -206,5 +206,9 @@ impl ArticleContent {
             x_offset += element.width;
         }
         None
+    }
+
+    pub fn language_links(&self) -> Option<impl Iterator<Item = &LanguageLink>> {
+        self.article.language_links()
     }
 }

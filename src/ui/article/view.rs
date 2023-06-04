@@ -139,6 +139,25 @@ impl ArticleView {
         }
         EventResult::Ignored
     }
+
+    /// Lets the user choose from the available languages
+    fn list_article_language_switcher(&mut self) -> EventResult {
+        let available_languages = self.content.language_links();
+
+        if available_languages.is_none() {
+            warn!("no available languages for the article");
+            return EventResult::Consumed(Some(Callback::from_fn(move |s| {
+                display_message(
+                    s,
+                    "Information",
+                    "No alternate languages are available for the current article",
+                )
+            })));
+        }
+
+        let available_languages = available_languages.unwrap();
+        EventResult::Consumed(Some(Callback::from_fn(move |s| {})))
+    }
 }
 
 impl View for ArticleView {
@@ -218,6 +237,7 @@ impl View for ArticleView {
                     s.check_and_update_viewport();
                     EventResult::consumed()
                 }
+                Event::Key(Key::F3) => s.list_article_language_switcher(),
                 Event::Key(Key::Enter) if CONFIG.features.links => s.check_and_open_link(),
                 Event::Mouse {
                     event: MouseEvent::Release(MouseButton::Left),
