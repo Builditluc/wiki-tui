@@ -44,6 +44,7 @@ toml = "0.5.9"
 structopt = "0.3.25"
 chrono = "0.4"
 urlencoding = "2.1.2"
+url = { version = "2.3", features = ["serde"]}
 
 [dependencies.cursive]
 version = "0.20"

@@ -2022,6 +2022,7 @@ dependencies = [
  "form_urlencoded",
  "idna",
  "percent-encoding",
+ "serde",
 ]
 
 [[package]]
@@ -2190,6 +2191,7 @@ dependencies = [
  "structopt",
  "syn 1.0.57",
  "toml",
+ "url",
  "urlencoding",
  "uuid",
 ]
