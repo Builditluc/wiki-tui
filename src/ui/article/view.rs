@@ -128,6 +128,18 @@ impl ArticleView {
                 })));
             }
 
+            // check whether the page exists
+            if element.attr("new_page").is_some() {
+                warn!("the page doesn't exist yet");
+                return EventResult::Consumed(Some(Callback::from_fn(move |s| {
+                    display_message(
+                        s,
+                        "Information",
+                        "This page cannot be opened because it doesn't exist yet",
+                    )
+                })));
+            }
+
             info!(
                 "opening the link '{}' with the target '{}'",
                 element.id(),
