@@ -1,0 +1,1912 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+        <meta name="author" content="Builditluc">
+      
+      
+        <link rel="canonical" href="https://builditluc.github.io/wiki-tui/dev-0.8.0/changelog/">
+      
+      
+        <link rel="prev" href="../contributing/maintainers/">
+      
+      
+        <link rel="next" href="upgrade/">
+      
+      <link rel="icon" href="../assets/images/logo.png">
+      <meta name="generator" content="mkdocs-1.4.2, mkdocs-material-9.1.3">
+    
+    
+      
+        <title>v0.7.0 (Thu May 18 2023) - wiki-tui</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.c4a75a56.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.a0c5b2b5.min.css">
+      
+      
+
+    
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+      
+        <meta  property="og:type"  content="website" >
+      
+        <meta  property="og:title"  content="v0.7.0 (Thu May 18 2023) - wiki-tui" >
+      
+        <meta  property="og:description"  content="None" >
+      
+        <meta  property="og:image"  content="https://builditluc.github.io/wiki-tui/dev-0.8.0/assets/images/social/changelog/index.png" >
+      
+        <meta  property="og:image:type"  content="image/png" >
+      
+        <meta  property="og:image:width"  content="1200" >
+      
+        <meta  property="og:image:height"  content="630" >
+      
+        <meta  property="og:url"  content="https://builditluc.github.io/wiki-tui/dev-0.8.0/changelog/" >
+      
+        <meta  name="twitter:card"  content="summary_large_image" >
+      
+        <meta  name="twitter:title"  content="v0.7.0 (Thu May 18 2023) - wiki-tui" >
+      
+        <meta  name="twitter:description"  content="None" >
+      
+        <meta  name="twitter:image"  content="https://builditluc.github.io/wiki-tui/dev-0.8.0/assets/images/social/changelog/index.png" >
+      
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="" data-md-color-accent="">
+  
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&"object"==typeof palette.color)for(var key of Object.keys(palette.color))document.body.setAttribute("data-md-color-"+key,palette.color[key])</script>
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#v070-thu-may-18-2023" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+          <aside class="md-banner md-banner--warning">
+            <div class="md-banner__inner md-grid md-typeset">
+              
+  You're not viewing the latest version.
+  <a href="../..">
+    <strong>Click here to go to the latest.</strong>
+  </a>
+
+            </div>
+            <script>var el=document.querySelector("[data-md-component=outdated]"),outdated=__md_get("__outdated",sessionStorage);!0===outdated&&el&&(el.hidden=!1)</script>
+          </aside>
+        
+      </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="wiki-tui" class="md-header__button md-logo" aria-label="wiki-tui" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 19V7H4v12h16m0-16a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h16m-7 14v-2h5v2h-5m-3.42-4L5.57 9H8.4l3.3 3.3c.39.39.39 1.03 0 1.42L8.42 17H5.59l3.99-4Z"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            wiki-tui
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              v0.7.0 (Thu May 18 2023)
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      <form class="md-header__option" data-md-component="palette">
+        
+          
+          <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="" data-md-color-accent=""  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+          
+            <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_2" hidden>
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M17 6H7c-3.31 0-6 2.69-6 6s2.69 6 6 6h10c3.31 0 6-2.69 6-6s-2.69-6-6-6zm0 10H7c-2.21 0-4-1.79-4-4s1.79-4 4-4h10c2.21 0 4 1.79 4 4s-1.79 4-4 4zM7 9c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
+            </label>
+          
+        
+          
+          <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="" data-md-color-accent=""  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_2">
+          
+            <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M17 7H7a5 5 0 0 0-5 5 5 5 0 0 0 5 5h10a5 5 0 0 0 5-5 5 5 0 0 0-5-5m0 8a3 3 0 0 1-3-3 3 3 0 0 1 3-3 3 3 0 0 1 3 3 3 3 0 0 1-3 3Z"/></svg>
+            </label>
+          
+        
+      </form>
+    
+    
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/builditluc/wiki-tui" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.3.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    builditluc/wiki-tui
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+    
+      
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+
+
+  <li class="md-tabs__item">
+    <a href=".." class="md-tabs__link">
+      Home
+    </a>
+  </li>
+
+      
+        
+  
+  
+
+
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../getting-started/installation/" class="md-tabs__link">
+        Getting Started
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+
+
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../configuration/" class="md-tabs__link">
+        Configuration
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+
+
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../contributing/" class="md-tabs__link">
+        Contributing
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+    
+  
+
+
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="./" class="md-tabs__link md-tabs__link--active">
+        Changelog
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="wiki-tui" class="md-nav__button md-logo" aria-label="wiki-tui" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 19V7H4v12h16m0-16a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h16m-7 14v-2h5v2h-5m-3.42-4L5.57 9H8.4l3.3 3.3c.39.39.39 1.03 0 1.42L8.42 17H5.59l3.99-4Z"/></svg>
+
+    </a>
+    wiki-tui
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/builditluc/wiki-tui" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.3.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    builditluc/wiki-tui
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        Home
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+      
+      
+        
+          
+        
+          
+        
+          
+        
+          
+        
+      
+      
+        <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+          Getting Started
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_2">
+          <span class="md-nav__icon md-icon"></span>
+          Getting Started
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../getting-started/installation/" class="md-nav__link">
+        Installation
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../getting-started/usage/" class="md-nav__link">
+        Usage
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../getting-started/crash/" class="md-nav__link">
+        What to do if a crash occurs
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../getting-started/license/" class="md-nav__link">
+        License
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+      
+      
+        
+          
+            
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+      
+      
+        
+        
+        <div class="md-nav__link md-nav__link--index ">
+          <a href="../configuration/">Configuration</a>
+          
+            <label for="__nav_3">
+              <span class="md-nav__icon md-icon"></span>
+            </label>
+          
+        </div>
+      
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_3">
+          <span class="md-nav__icon md-icon"></span>
+          Configuration
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../configuration/api/" class="md-nav__link">
+        Api Settings
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../configuration/theme/" class="md-nav__link">
+        Changing the Theme
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../configuration/logging/" class="md-nav__link">
+        Configure the Logging
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../configuration/features/" class="md-nav__link">
+        Features
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../configuration/keybindings/" class="md-nav__link">
+        Keybindings
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../configuration/toc/" class="md-nav__link">
+        Table of Contents
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+      
+      
+        
+          
+            
+          
+        
+          
+        
+      
+      
+        
+        
+        <div class="md-nav__link md-nav__link--index ">
+          <a href="../contributing/">Contributing</a>
+          
+            <label for="__nav_4">
+              <span class="md-nav__icon md-icon"></span>
+            </label>
+          
+        </div>
+      
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_4">
+          <span class="md-nav__icon md-icon"></span>
+          Contributing
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../contributing/maintainers/" class="md-nav__link">
+        Maintainers Guides
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+    
+  
+  
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" checked>
+      
+      
+        
+          
+            
+          
+        
+          
+        
+      
+      
+        
+        
+        <div class="md-nav__link md-nav__link--index md-nav__link--active">
+          <a href="./">Changelog</a>
+          
+            <label for="__nav_5">
+              <span class="md-nav__icon md-icon"></span>
+            </label>
+          
+        </div>
+      
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="true">
+        <label class="md-nav__title" for="__nav_5">
+          <span class="md-nav__icon md-icon"></span>
+          Changelog
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="upgrade/" class="md-nav__link">
+        How to upgrade
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#release-notes" class="md-nav__link">
+    Release Notes
+  </a>
+  
+    <nav class="md-nav" aria-label="Release Notes">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#change-log-directory-175" class="md-nav__link">
+    Change log directory (#175)
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#add-language-selection-168" class="md-nav__link">
+    Add Language Selection (#168)
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#breaking-changes" class="md-nav__link">
+    Breaking Changes 🛠
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#exciting-new-features" class="md-nav__link">
+    Exciting New Features 🎉
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bug-fixes" class="md-nav__link">
+    Bug Fixes 🐛
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ci-pipeline-and-dependency-updates" class="md-nav__link">
+    CI Pipeline and Dependency Updates
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#documentation-changes" class="md-nav__link">
+    Documentation Changes
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#structure-and-style-changes" class="md-nav__link">
+    Structure and Style Changes
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#other-changes" class="md-nav__link">
+    Other Changes
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#authors-6" class="md-nav__link">
+    Authors: 6
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#v064-fri-feb-17-2023" class="md-nav__link">
+    v0.6.4 (Fri Feb 17 2023)
+  </a>
+  
+    <nav class="md-nav" aria-label="v0.6.4 (Fri Feb 17 2023)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bug-fixes_1" class="md-nav__link">
+    Bug Fixes 🐛
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ci-pipeline-and-dependency-updates_1" class="md-nav__link">
+    CI Pipeline and Dependency Updates
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#authors-1" class="md-nav__link">
+    Authors: 1
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#v063-thu-feb-16-2023" class="md-nav__link">
+    v0.6.3 (Thu Feb 16 2023)
+  </a>
+  
+    <nav class="md-nav" aria-label="v0.6.3 (Thu Feb 16 2023)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bug-fixes_2" class="md-nav__link">
+    Bug Fixes 🐛
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#authors-1_1" class="md-nav__link">
+    Authors: 1
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#v062-sun-feb-12-2023" class="md-nav__link">
+    v0.6.2 (Sun Feb 12 2023)
+  </a>
+  
+    <nav class="md-nav" aria-label="v0.6.2 (Sun Feb 12 2023)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bug-fixes_3" class="md-nav__link">
+    Bug Fixes 🐛
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ci-pipeline-and-dependency-updates_2" class="md-nav__link">
+    CI Pipeline and Dependency Updates
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#documentation-changes_1" class="md-nav__link">
+    Documentation Changes
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#structure-and-style-changes_1" class="md-nav__link">
+    Structure and Style Changes
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#authors-1_2" class="md-nav__link">
+    Authors: 1
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#v061-sat-dec-31-2022" class="md-nav__link">
+    v0.6.1 (Sat Dec 31 2022)
+  </a>
+  
+    <nav class="md-nav" aria-label="v0.6.1 (Sat Dec 31 2022)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bug-fixes_4" class="md-nav__link">
+    Bug Fixes 🐛
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ci-pipeline-and-dependency-updates_3" class="md-nav__link">
+    CI Pipeline and Dependency Updates
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#structure-and-style-changes_2" class="md-nav__link">
+    Structure and Style Changes
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#other-changes_1" class="md-nav__link">
+    Other Changes
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#authors-3" class="md-nav__link">
+    Authors: 3
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+  
+
+
+
+  
+    <a href="https://github.com/builditluc/wiki-tui/edit/main/docs/changelog/index.md" title="Edit this page" class="md-content__button md-icon">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4v-2m10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1 2.1 2.1Z"/></svg>
+    </a>
+  
+  
+    
+      
+    
+    <a href="https://github.com/builditluc/wiki-tui/raw/main/docs/changelog/index.md" title="View source of this page" class="md-content__button md-icon">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M17 18c.56 0 1 .44 1 1s-.44 1-1 1-1-.44-1-1 .44-1 1-1m0-3c-2.73 0-5.06 1.66-6 4 .94 2.34 3.27 4 6 4s5.06-1.66 6-4c-.94-2.34-3.27-4-6-4m0 6.5a2.5 2.5 0 0 1-2.5-2.5 2.5 2.5 0 0 1 2.5-2.5 2.5 2.5 0 0 1 2.5 2.5 2.5 2.5 0 0 1-2.5 2.5M9.27 20H6V4h7v5h5v4.07c.7.08 1.36.25 2 .49V8l-6-6H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h4.5a8.15 8.15 0 0 1-1.23-2Z"/></svg>
+    </a>
+  
+
+
+<h1 id="v070-thu-may-18-2023">v0.7.0 (Thu May 18 2023)</h1>
+<p><img alt="🎉" class="twemoji" src="https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/svg/1f389.svg" title=":tada:" /> This release contains work from new contributors! <img alt="🎉" class="twemoji" src="https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/svg/1f389.svg" title=":tada:" /></p>
+<p>Thanks for all your work!</p>
+<p><img alt="❤" class="twemoji" src="https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/svg/2764.svg" title=":heart:" /> Imgbot (<a href="https://github.com/ImgBotApp">@ImgBotApp</a>)</p>
+<p><img alt="❤" class="twemoji" src="https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/svg/2764.svg" title=":heart:" /> null<a href="https://github.com/cshjsc">@cshjsc</a></p>
+<p><img alt="❤" class="twemoji" src="https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/svg/2764.svg" title=":heart:" /> krixcrox (<a href="https://github.com/falkwitte">@falkwitte</a>)</p>
+<h3 id="release-notes">Release Notes</h3>
+<p><em>Breaking Changes occurred, please check the <a href="https://builditluc.github.io/wiki-tui/0.7/changelog/upgrade/#upgrade-from-v06x-to-v07x">docs</a>for instructions on how to upgrade</em></p>
+<h4 id="change-log-directory-175">Change log directory (<a href="https://github.com/Builditluc/wiki-tui/pull/175">#175</a>)</h4>
+<p>The path of the logfile and the crash report have changed, check the upgrading page to learn more</p>
+<h4 id="add-language-selection-168">Add Language Selection (<a href="https://github.com/Builditluc/wiki-tui/pull/168">#168</a>)</h4>
+<p>You can now change the language on the fly either by using the new <code>-l</code> and <code>--language</code> cli arguments, or by pressing F2 in the tui and selecting a new language from the menu. This feature also includes several new configuration options, so be sure to check out the docs about them</p>
+<p>Please also check the docs to learn about what breaking changes have occurred since 0.6.x</p>
+<p><img alt="image" src="https://user-images.githubusercontent.com/37375448/234084862-f317b52c-6031-4383-94f9-a87bfbe2cea4.png" /></p>
+<blockquote>
+<p>Language Switching Dialog</p>
+</blockquote>
+<hr />
+<h4 id="breaking-changes">Breaking Changes 🛠</h4>
+<ul>
+<li>Change log directory <a href="https://github.com/Builditluc/wiki-tui/pull/175">#175</a> (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Add Language Selection <a href="https://github.com/Builditluc/wiki-tui/pull/168">#168</a> (<a href="https://github.com/Builditluc">@Builditluc</a> <a href="https://github.com/cshjsc">@cshjsc</a>)</li>
+</ul>
+<h4 id="exciting-new-features">Exciting New Features 🎉</h4>
+<ul>
+<li>Display header numbers in the article <a href="https://github.com/Builditluc/wiki-tui/pull/173">#173</a> (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Added macro to create enum with all languages at compile time <a href="https://github.com/Builditluc/wiki-tui/pull/169">#169</a> (<a href="https://github.com/cshjsc">@cshjsc</a> <a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Exit when no layers are present anymore <a href="https://github.com/Builditluc/wiki-tui/pull/162">#162</a> (<a href="https://github.com/cshjsc">@cshjsc</a>)</li>
+</ul>
+<h4 id="bug-fixes">Bug Fixes 🐛</h4>
+<ul>
+<li>Fix cargo publish <a href="https://github.com/Builditluc/wiki-tui/pull/172">#172</a> (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+</ul>
+<h4 id="ci-pipeline-and-dependency-updates">CI Pipeline and Dependency Updates</h4>
+<ul>
+<li>Improve speed of ci workflow <a href="https://github.com/Builditluc/wiki-tui/pull/171">#171</a> (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+</ul>
+<h4 id="documentation-changes">Documentation Changes</h4>
+<ul>
+<li>Update documentation <a href="https://github.com/Builditluc/wiki-tui/pull/174">#174</a> (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Fix typo <a href="https://github.com/Builditluc/wiki-tui/pull/170">#170</a> (<a href="https://github.com/falkwitte">@falkwitte</a>)</li>
+<li>Update Documentation <a href="https://github.com/Builditluc/wiki-tui/pull/167">#167</a> (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Add versioning to the documentation <a href="https://github.com/Builditluc/wiki-tui/pull/166">#166</a> (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Add cshjsc as a contributor for code <a href="https://github.com/Builditluc/wiki-tui/pull/163">#163</a> (<a href="https://github.com/allcontributors[bot]">@allcontributors[bot]</a>)</li>
+</ul>
+<h4 id="structure-and-style-changes">Structure and Style Changes</h4>
+<ul>
+<li>Rework the Scrolling System <a href="https://github.com/Builditluc/wiki-tui/pull/164">#164</a> (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+</ul>
+<h4 id="other-changes">Other Changes</h4>
+<ul>
+<li>[ImgBot] Optimize images <a href="https://github.com/Builditluc/wiki-tui/pull/176">#176</a> (<a href="https://github.com/ImgBotApp">@ImgBotApp</a> <a href="https://github.com/imgbot[bot]">@imgbot[bot]</a>)</li>
+</ul>
+<h4 id="authors-6">Authors: 6</h4>
+<ul>
+<li><a href="https://github.com/allcontributors[bot]">@allcontributors[bot]</a></li>
+<li><a href="https://github.com/Builditluc">@Builditluc</a></li>
+<li><a href="https://github.com/cshjsc">@cshjsc</a></li>
+<li><a href="https://github.com/imgbot[bot]">@imgbot[bot]</a></li>
+<li>Imgbot (<a href="https://github.com/ImgBotApp">@ImgBotApp</a>)</li>
+<li>krixcrox (<a href="https://github.com/falkwitte">@falkwitte</a>)</li>
+</ul>
+<hr />
+<h2 id="v064-fri-feb-17-2023">v0.6.4 (Fri Feb 17 2023)</h2>
+<h4 id="bug-fixes_1">Bug Fixes 🐛</h4>
+<ul>
+<li>Fix disambiguations not being shown <a href="https://github.com/Builditluc/wiki-tui/pull/160">#160</a> (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Fix whitespace at the top of some articles <a href="https://github.com/Builditluc/wiki-tui/pull/159">#159</a> (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Fix no redirect messages being shown <a href="https://github.com/Builditluc/wiki-tui/pull/158">#158</a> (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+</ul>
+<h4 id="ci-pipeline-and-dependency-updates_1">CI Pipeline and Dependency Updates</h4>
+<ul>
+<li>Add changelog and use auto for creating releases <a href="https://github.com/Builditluc/wiki-tui/pull/156">#156</a> (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+</ul>
+<h4 id="authors-1">Authors: 1</h4>
+<ul>
+<li><a href="https://github.com/Builditluc">@Builditluc</a></li>
+</ul>
+<hr />
+<h2 id="v063-thu-feb-16-2023">v0.6.3 (Thu Feb 16 2023)</h2>
+<h4 id="bug-fixes_2">Bug Fixes 🐛</h4>
+<ul>
+<li>Fix wrong error origin in dialogs <a href="https://github.com/Builditluc/wiki-tui/pull/155">#155</a> (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Fix incorrect error message formatting when opening links <a href="https://github.com/Builditluc/wiki-tui/pull/154">#154</a> (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Fix missing whitespace on list items starting with a special character <a href="https://github.com/Builditluc/wiki-tui/pull/153">#153</a> (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Fix html tags in toc <a href="https://github.com/Builditluc/wiki-tui/pull/152">#152</a> (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Fix large gaps before and after lists <a href="https://github.com/Builditluc/wiki-tui/pull/151">#151</a> (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+</ul>
+<h4 id="authors-1_1">Authors: 1</h4>
+<ul>
+<li><a href="https://github.com/Builditluc">@Builditluc</a></li>
+</ul>
+<hr />
+<h2 id="v062-sun-feb-12-2023">v0.6.2 (Sun Feb 12 2023)</h2>
+<h4 id="bug-fixes_3">Bug Fixes 🐛</h4>
+<ul>
+<li>Fix link selection reset on layout change <a href="https://github.com/Builditluc/wiki-tui/pull/142">#142</a> (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Fix link selection of mulit-line links <a href="https://github.com/Builditluc/wiki-tui/pull/141">#141</a> (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+</ul>
+<h4 id="ci-pipeline-and-dependency-updates_2">CI Pipeline and Dependency Updates</h4>
+<ul>
+<li>Add keywords to the cargo manifest <a href="https://github.com/Builditluc/wiki-tui/pull/145">#145</a> (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+</ul>
+<h4 id="documentation-changes_1">Documentation Changes</h4>
+<ul>
+<li>Fix broken link on documentation site <a href="https://github.com/Builditluc/wiki-tui/pull/146">#146</a> (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Add important notice to readme <a href="https://github.com/Builditluc/wiki-tui/pull/144">#144</a> (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Improve Contribution Documentation <a href="https://github.com/Builditluc/wiki-tui/pull/139">#139</a> (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Simplify Readme <a href="https://github.com/Builditluc/wiki-tui/pull/138">#138</a> (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+</ul>
+<h4 id="structure-and-style-changes_1">Structure and Style Changes</h4>
+<ul>
+<li>Rework backend <a href="https://github.com/Builditluc/wiki-tui/pull/150">#150</a> (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Create new parser system <a href="https://github.com/Builditluc/wiki-tui/pull/149">#149</a> (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Create Api Handler <a href="https://github.com/Builditluc/wiki-tui/pull/147">#147</a> (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Update label configurations in workflows <a href="https://github.com/Builditluc/wiki-tui/pull/128">#128</a> (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Update default labels in the issue templates <a href="https://github.com/Builditluc/wiki-tui/pull/127">#127</a> (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+</ul>
+<h4 id="authors-1_2">Authors: 1</h4>
+<ul>
+<li><a href="https://github.com/Builditluc">@Builditluc</a></li>
+</ul>
+<hr />
+<h2 id="v061-sat-dec-31-2022">v0.6.1 (Sat Dec 31 2022)</h2>
+<p><img alt="🎉" class="twemoji" src="https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/svg/1f389.svg" title=":tada:" /> This release contains work from a new contributor! <img alt="🎉" class="twemoji" src="https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/svg/1f389.svg" title=":tada:" /></p>
+<p>Thank you, Imgbot (<a href="https://github.com/ImgBotApp">@ImgBotApp</a>), for all your work!</p>
+<h4 id="bug-fixes_4">Bug Fixes 🐛</h4>
+<ul>
+<li>Fix external links not being recognized <a href="https://github.com/Builditluc/wiki-tui/pull/121">#121</a> (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Fix short articles having a limited size <a href="https://github.com/Builditluc/wiki-tui/pull/120">#120</a> (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Fix multiple views not displaying the correct border <a href="https://github.com/Builditluc/wiki-tui/pull/118">#118</a> (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Fix error when no results are available <a href="https://github.com/Builditluc/wiki-tui/pull/105">#105</a> (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+</ul>
+<h4 id="ci-pipeline-and-dependency-updates_3">CI Pipeline and Dependency Updates</h4>
+<ul>
+<li>Update lockfile dependencies <a href="https://github.com/Builditluc/wiki-tui/pull/122">#122</a> (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Fix large release size <a href="https://github.com/Builditluc/wiki-tui/pull/119">#119</a> (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Bump cursive to 0.20 <a href="https://github.com/Builditluc/wiki-tui/pull/106">#106</a> (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+</ul>
+<h4 id="structure-and-style-changes_2">Structure and Style Changes</h4>
+<ul>
+<li>Fix spelling error <a href="https://github.com/Builditluc/wiki-tui/pull/123">#123</a> (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+</ul>
+<h4 id="other-changes_1">Other Changes</h4>
+<ul>
+<li>Update contributors badge style <a href="https://github.com/Builditluc/wiki-tui/pull/108">#108</a> (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Change GitHub workflow badge routes <a href="https://github.com/Builditluc/wiki-tui/pull/107">#107</a> (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>[ImgBot] Optimize images <a href="https://github.com/Builditluc/wiki-tui/pull/103">#103</a> (<a href="https://github.com/ImgBotApp">@ImgBotApp</a> <a href="https://github.com/imgbot[bot]">@imgbot[bot]</a>)</li>
+</ul>
+<h4 id="authors-3">Authors: 3</h4>
+<ul>
+<li><a href="https://github.com/Builditluc">@Builditluc</a></li>
+<li><a href="https://github.com/imgbot[bot]">@imgbot[bot]</a></li>
+<li>Imgbot (<a href="https://github.com/ImgBotApp">@ImgBotApp</a>)</li>
+</ul>
+<hr />
+<h1 id="v060-mon-nov-14-2022">v0.6.0 (Mon Nov 14 2022)</h1>
+<p><img alt="🎉" class="twemoji" src="https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/svg/1f389.svg" title=":tada:" /> This release contains work from a new contributor! <img alt="🎉" class="twemoji" src="https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/svg/1f389.svg" title=":tada:" /></p>
+<p>Thank you, Nuno Teixeira (<a href="https://github.com/nunotexbsd">@nunotexbsd</a>), for all your work!</p>
+<h4 id="exciting-new-features_1">Exciting New Features 🎉</h4>
+<ul>
+<li>Overhaul the UI <a href="https://github.com/Builditluc/wiki-tui/pull/81">#81</a> (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Create config file if not existent <a href="https://github.com/Builditluc/wiki-tui/pull/88">#88</a> (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Better logging messages <a href="https://github.com/Builditluc/wiki-tui/pull/83">#83</a> (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Add focus keybindings to the config <a href="https://github.com/Builditluc/wiki-tui/pull/79">#79</a> (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+</ul>
+<h4 id="bug-fixes_5">Bug Fixes 🐛</h4>
+<ul>
+<li>Fix crash on non writable directory <a href="https://github.com/Builditluc/wiki-tui/pull/99">#99</a> (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Disable logging if not enabled in the config <a href="https://github.com/Builditluc/wiki-tui/pull/91">#91</a> (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Fix no article being displayed <a href="https://github.com/Builditluc/wiki-tui/pull/73">#73</a> (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+</ul>
+<h4 id="ci-pipeline-and-dependency-updates_4">CI Pipeline and Dependency Updates</h4>
+<ul>
+<li>Fix documentation action <a href="https://github.com/Builditluc/wiki-tui/pull/101">#101</a> (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Bump toml dependency to 0.5.9 <a href="https://github.com/Builditluc/wiki-tui/pull/85">#85</a> (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+</ul>
+<h4 id="documentation-changes_2">Documentation Changes</h4>
+<ul>
+<li>Add FreeBSD install instructions <a href="https://github.com/Builditluc/wiki-tui/pull/86">#86</a> (<a href="https://github.com/nunotexbsd">@nunotexbsd</a>)</li>
+<li>Change Branch naming <a href="https://github.com/Builditluc/wiki-tui/pull/76">#76</a> (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Add toc configuration documentation <a href="https://github.com/Builditluc/wiki-tui/pull/75">#75</a> (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Add mkdocs documentation website <a href="https://github.com/Builditluc/wiki-tui/pull/54">#54</a> (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Change config usage <a href="https://github.com/Builditluc/wiki-tui/pull/77">#77</a> (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+</ul>
+<h4 id="other-changes_2">Other Changes</h4>
+<ul>
+<li>Add label to exclude PRs from release notes <a href="https://github.com/Builditluc/wiki-tui/pull/72">#72</a> (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+</ul>
+<h4 id="authors-2">Authors: 2</h4>
+<ul>
+<li><a href="https://github.com/Builditluc">@Builditluc</a></li>
+<li>Nuno Teixeira (<a href="https://github.com/nunotexbsd">@nunotexbsd</a>)</li>
+</ul>
+<hr />
+<h1 id="v051-mon-aug-1-2022">v0.5.1 (Mon Aug 1 2022)</h1>
+<h4 id="exciting-new-features_2">Exciting New Features 🎉</h4>
+<ul>
+<li>Add more toc settings <a href="https://github.com/Builditluc/wiki-tui/pull/66">#66</a> (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Add toc position setting <a href="https://github.com/Builditluc/wiki-tui/pull/65">#65</a> (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+</ul>
+<h4 id="bug-fixes_6">Bug Fixes 🐛</h4>
+<ul>
+<li>Fix the crash that occurs when no links or headers exist <a href="https://github.com/Builditluc/wiki-tui/pull/70">#70</a> (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Fix Word Spacing <a href="https://github.com/Builditluc/wiki-tui/pull/68">#68</a> (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+</ul>
+<h4 id="authors-1_3">Authors: 1</h4>
+<ul>
+<li><a href="https://github.com/Builditluc">@Builditluc</a></li>
+</ul>
+<hr />
+<h1 id="v050-thu-jul-21-2022">v0.5.0 (Thu Jul 21 2022)</h1>
+<p><img alt="🎉" class="twemoji" src="https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/svg/1f389.svg" title=":tada:" /> This release contains work from new contributors! <img alt="🎉" class="twemoji" src="https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/svg/1f389.svg" title=":tada:" /></p>
+<p>Thanks for all your work!</p>
+<p><img alt="❤" class="twemoji" src="https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/svg/2764.svg" title=":heart:" /> Ikko Eltociear Ashimine (<a href="https://github.com/eltociear">@eltociear</a>)</p>
+<p><img alt="❤" class="twemoji" src="https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/svg/2764.svg" title=":heart:" /> Thomas Frans (<a href="https://github.com/ThomasFrans">@ThomasFrans</a>)</p>
+<h4 id="breaking-changes_1">Breaking Changes 🛠</h4>
+<ul>
+<li>Move Parser Configuration into a Feature Option <a href="https://github.com/Builditluc/wiki-tui/pull/63">#63</a> (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+</ul>
+<h4 id="exciting-new-features_3">Exciting New Features 🎉</h4>
+<ul>
+<li>Add option to change the keybindings via configuration <a href="https://github.com/Builditluc/wiki-tui/pull/38">#38</a> (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+</ul>
+<h4 id="bug-fixes_7">Bug Fixes 🐛</h4>
+<ul>
+<li>Fix toc not having scrollbars <a href="https://github.com/Builditluc/wiki-tui/pull/64">#64</a> (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Add Codespaces Configuration <a href="https://github.com/Builditluc/wiki-tui/pull/62">#62</a> (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Disable stdout logging for release builds <a href="https://github.com/Builditluc/wiki-tui/pull/47">#47</a> (<a href="https://github.com/ThomasFrans">@ThomasFrans</a>)</li>
+<li>Add missing element after line split <a href="https://github.com/Builditluc/wiki-tui/pull/48">#48</a> (<a href="https://github.com/ThomasFrans">@ThomasFrans</a>)</li>
+<li>Fix Keybinding Crash <a href="https://github.com/Builditluc/wiki-tui/pull/46">#46</a> (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Fix Header Selection <a href="https://github.com/Builditluc/wiki-tui/pull/41">#41</a> (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+</ul>
+<h4 id="ci-pipeline-and-dependency-updates_5">CI Pipeline and Dependency Updates</h4>
+<ul>
+<li>Increase Stale Days to 365 <a href="https://github.com/Builditluc/wiki-tui/pull/61">#61</a> (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Fix publish action in the cd workflow <a href="https://github.com/Builditluc/wiki-tui/pull/60">#60</a> (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Add checksums for the release assets <a href="https://github.com/Builditluc/wiki-tui/pull/59">#59</a> (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Add documentation job to ci workflow <a href="https://github.com/Builditluc/wiki-tui/pull/55">#55</a> (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Add label requirement to ci workflow <a href="https://github.com/Builditluc/wiki-tui/pull/52">#52</a> (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Add a desktop-entry for packaging <a href="https://github.com/Builditluc/wiki-tui/pull/44">#44</a> (<a href="https://github.com/ThomasFrans">@ThomasFrans</a>)</li>
+</ul>
+<h4 id="documentation-changes_3">Documentation Changes</h4>
+<ul>
+<li>Add yashinghcodes/wik project to similar projects <a href="https://github.com/Builditluc/wiki-tui/pull/58">#58</a> (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Add AUR install option <a href="https://github.com/Builditluc/wiki-tui/pull/42">#42</a> (<a href="https://github.com/ThomasFrans">@ThomasFrans</a>)</li>
+</ul>
+<h4 id="structure-and-style-changes_3">Structure and Style Changes</h4>
+<ul>
+<li>Fix typo in search.rs <a href="https://github.com/Builditluc/wiki-tui/pull/56">#56</a> (<a href="https://github.com/eltociear">@eltociear</a>)</li>
+<li>Update Bug Report Issue Template <a href="https://github.com/Builditluc/wiki-tui/pull/40">#40</a> (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+</ul>
+<h4 id="other-changes_3">Other Changes</h4>
+<ul>
+<li>Add development notice in the README (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+</ul>
+<h4 id="authors-3_1">Authors: 3</h4>
+<ul>
+<li><a href="https://github.com/Builditluc">@Builditluc</a></li>
+<li>Ikko Eltociear Ashimine (<a href="https://github.com/eltociear">@eltociear</a>)</li>
+<li>Thomas Frans (<a href="https://github.com/ThomasFrans">@ThomasFrans</a>)</li>
+</ul>
+<hr />
+<h1 id="v048-tue-may-17-2022">v0.4.8 (Tue May 17 2022)</h1>
+<h4 id="exciting-new-features_4">Exciting New Features 🎉</h4>
+<ul>
+<li>Add an option for selecting a different backend <a href="https://github.com/Builditluc/wiki-tui/pull/30">#30</a> (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+</ul>
+<h4 id="bug-fixes_8">Bug Fixes 🐛</h4>
+<ul>
+<li>Fix the crash that occurred when scrolling during the article loading <a href="https://github.com/Builditluc/wiki-tui/pull/33">#33</a> (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Fix flickering issue with the crossterm and termion backend <a href="https://github.com/Builditluc/wiki-tui/pull/32">#32</a> (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+</ul>
+<h4 id="structure-and-style-changes_4">Structure and Style Changes</h4>
+<ul>
+<li>Add issue templates <a href="https://github.com/Builditluc/wiki-tui/pull/36">#36</a> (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+</ul>
+<h4 id="authors-1_4">Authors: 1</h4>
+<ul>
+<li><a href="https://github.com/Builditluc">@Builditluc</a></li>
+</ul>
+<hr />
+<h1 id="v047-fri-apr-15-2022">v0.4.7 (Fri Apr 15 2022)</h1>
+<h4 id="ci-pipeline-and-dependency-updates_6">CI Pipeline and Dependency Updates</h4>
+<ul>
+<li>Fix build of published Versions on crates.io <a href="https://github.com/Builditluc/wiki-tui/pull/29">#29</a> (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Fix CD-Workflow <a href="https://github.com/Builditluc/wiki-tui/pull/28">#28</a> (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+</ul>
+<h4 id="authors-1_5">Authors: 1</h4>
+<ul>
+<li><a href="https://github.com/Builditluc">@Builditluc</a></li>
+</ul>
+<hr />
+<h1 id="v046-fri-apr-15-2022">v0.4.6 (Fri Apr 15 2022)</h1>
+<h4 id="breaking-changes_2">Breaking Changes 🛠</h4>
+<ul>
+<li>Rework Branching and CI/CD Pipeline <a href="https://github.com/Builditluc/wiki-tui/pull/24">#24</a> (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+</ul>
+<h4 id="changes">Changes</h4>
+<ul>
+<li>Refactor with clippy and fix Tests <a href="https://github.com/Builditluc/wiki-tui/pull/25">#25</a> (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Rework the whole codebase (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>fix(ui): fix true color support (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>fix(ui): fix toc rendering (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>refactor(*): refactor wiki-tui completely (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>fix(ui): fix header selection (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>fix(*): fix link selection (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>refactor(*): finish link selecting and opening (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>refactor(*): finish text rendering and wrapping (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>refactor(wiki): add new article content (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>refactor(wiki): add new lines wrapper (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>refactor(wiki): remove old article structs (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>docs(wiki): further document the wiki module (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>docs(wiki): document the search result struct (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>docs(wiki): add documentation for the wiki (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>docs(ui): add documentation for the ui (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>refactor(ui): implement new search and remove articles temporarily (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>feat(cargo): change cursive backend to crossterm (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>refactor(wiki): add article builder struct (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>chore(*): remove dotenv dependency (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>chore(*): add deadpendency configuration (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>refactor(wiki): add parser struct (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>refactor(wiki): implement partialeq and debug for the article struct (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>refactor(wiki): remove old article file (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>refactor(wiki): add article struct (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>refactor(wiki): add tableofcontents struct (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>refactor(wiki): add article element struct (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>refactor(wiki): add search builder struct (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>refactor(wiki): add search struct (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>refactor(wiki): add search result and search info structs (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>refactor(wiki): add search sort-order enum (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>refactor(wiki): use macros in the search metadata struct (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>refactor(wiki): add search properties struct (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>refactor(wiki): add search metadata struct (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>chore(*): change name of github actions (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>style(*): refactor with clippy (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>refactor(error): change error message and crash-report location (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>chore(*): update changelog github action (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+</ul>
+<h4 id="authors-1_6">Authors: 1</h4>
+<ul>
+<li><a href="https://github.com/Builditluc">@Builditluc</a></li>
+</ul>
+<hr />
+<h1 id="v045-wed-jan-26-2022">v0.4.5 (Wed Jan 26 2022)</h1>
+<p><img alt="🎉" class="twemoji" src="https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/svg/1f389.svg" title=":tada:" /> This release contains work from a new contributor! <img alt="🎉" class="twemoji" src="https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/svg/1f389.svg" title=":tada:" /></p>
+<p>Thank you, python128 (<a href="https://github.com/python128">@python128</a>), for all your work!</p>
+<h4 id="changes_1">Changes</h4>
+<ul>
+<li>docs(readme): Add blockquote for note <a href="https://github.com/Builditluc/wiki-tui/pull/17">#17</a> (nexinov5vatr@gmail.com <a href="https://github.com/python128">@python128</a>)</li>
+<li>docs(changelog): add release checklist (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>chore(*): change branch and run condition of the github changelog action (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>docs(*): add class diagram of the code (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>chore(*): move github actions into seperate files (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>chore(*): add github action publishing wiki-tui to crates.io (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>chore(*): add github action building and testing the code (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>feat(wiki): add response error code checking (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>feat(*): make --search flag default (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+</ul>
+<h4 id="authors-3_2">Authors: 3</h4>
+<ul>
+<li><a href="https://github.com/Builditluc">@Builditluc</a></li>
+<li>NexiNov (nexinov5vatr@gmail.com)</li>
+<li>python128 (<a href="https://github.com/python128">@python128</a>)</li>
+</ul>
+<hr />
+<h1 id="v044-wed-jan-12-2022">v0.4.4 (Wed Jan 12 2022)</h1>
+<h4 id="changes_2">Changes</h4>
+<ul>
+<li>fix(ui): fix horizontal link focus (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>fix(ui): fix article view not taking focus (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>style(ui): refactor with cargo fmt (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>fix(ui): fix link focus when selecting an header (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>feat(*): add cli support (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>feat(*): add cli 'level' argument (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>docs(readme): change usage information (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+</ul>
+<h4 id="authors-1_7">Authors: 1</h4>
+<ul>
+<li><a href="https://github.com/Builditluc">@Builditluc</a></li>
+</ul>
+<hr />
+<h1 id="v043-wed-dec-22-2021">v0.4.3 (Wed Dec 22 2021)</h1>
+<h4 id="changes_3">Changes</h4>
+<ul>
+<li>chore(*): change generate Changelog action (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>docs(contributing): change project setup instructions (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>style(ui): remove several redundant closures (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>feat(config): add parser configuration options (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>fix(ui): open the correct url when selecting a link (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>refactor(wiki): remove reflist parser (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>feat(wiki): add code blocks to the article (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>chore(*): update nix shell (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>fix(ui): fix selecting a header in the toc view (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>fix(ui): remove the url prefix of the article name in the open dialog (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>fix(ui): fix selecting the first link in an article (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>chore(*): update rust action (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+</ul>
+<h4 id="authors-1_8">Authors: 1</h4>
+<ul>
+<li><a href="https://github.com/Builditluc">@Builditluc</a></li>
+</ul>
+<hr />
+<h1 id="v042-sun-nov-7-2021">v0.4.2 (Sun Nov 7 2021)</h1>
+<h3 id="release-notes_1">Release Notes</h3>
+<p>Added:</p>
+<ul>
+<li>nix installation (#9)</li>
+</ul>
+<p>Fixes:</p>
+<ul>
+<li>garbled ascii on specific terminal geometries (#10)</li>
+</ul>
+<h4 id="changes_4">Changes</h4>
+<ul>
+<li>Add nix installation instructions <a href="https://github.com/Builditluc/wiki-tui/pull/9">#9</a> (<a href="https://github.com/Builditluc">@Builditluc</a> <a href="https://github.com/legendofmiracles">@legendofmiracles</a>)</li>
+<li>docs(readme): remove contributors badge (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>chore(*): add generate Changelog action (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>docs(CHANGELOG): add release notes (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>chore(cargo): update version to 0.4.2 (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>docs(contributing): change code contribution guide (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>docs(readme): update contributing and preview (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>docs(contributing): add CONTRIBUTING.md file (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>refactored the code (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>added similar projects to the readme (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>fixes #10 (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>moved the initialization stuff into a function (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>fixed opening links (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+</ul>
+<h4 id="authors-2_1">Authors: 2</h4>
+<ul>
+<li><a href="https://github.com/Builditluc">@Builditluc</a></li>
+<li><a href="https://github.com/legendofmiracles">@legendofmiracles</a></li>
+</ul>
+<hr />
+<h1 id="v041-fri-nov-5-2021">v0.4.1 (Fri Nov 5 2021)</h1>
+<h4 id="release-notes_2">Release Notes</h4>
+<p>Fixes:</p>
+<ul>
+<li>Removed a warning</li>
+<li>Fixed a bug where wiki-tui would crash when trying to access an invalid link</li>
+<li>Fixed a bug where wiki-tui wouldn't change the background of the search bar</li>
+<li>Fixed the color of headers</li>
+<li>Fixed scrolling inside of articles with no links</li>
+</ul>
+<h4 id="changes_5">Changes</h4>
+<ul>
+<li>Add nix installation instructions <a href="https://github.com/Builditluc/wiki-tui/pull/9">#9</a> (<a href="https://github.com/Builditluc">@Builditluc</a> <a href="https://github.com/legendofmiracles">@legendofmiracles</a>)</li>
+<li>fixed scrolling (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>fixed the color of headers (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>fixed setting the background of the search_bar (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>fixed a crash when trying to access an invalid link (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>fixed a warning (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+</ul>
+<h4 id="authors-2_2">Authors: 2</h4>
+<ul>
+<li><a href="https://github.com/Builditluc">@Builditluc</a></li>
+<li><a href="https://github.com/legendofmiracles">@legendofmiracles</a></li>
+</ul>
+<hr />
+<h1 id="v040-tue-nov-2-2021">v0.4.0 (Tue Nov 2 2021)</h1>
+<h4 id="release-notes_3">Release Notes</h4>
+<p>Added:</p>
+<ul>
+<li>You can now go to the headers by pressing ENTER on the item in the table of contents</li>
+<li>When wiki-tui crashes, it generates a crash report</li>
+<li>You can now change the color of specific views</li>
+</ul>
+<p>Changes:</p>
+<ul>
+<li>The logging is now more informative</li>
+<li>Added cargo &amp; NetBSD installation method</li>
+<li>The configuration format is now toml</li>
+</ul>
+<p>Fixes:</p>
+<ul>
+<li>Words are no longer overlapping</li>
+<li>Fixed a bug where wiki-tui would crash when pressing keys while searching (#6)</li>
+</ul>
+<h4 id="changes_6">Changes</h4>
+<ul>
+<li>Add nix installation instructions <a href="https://github.com/Builditluc/wiki-tui/pull/9">#9</a> (<a href="https://github.com/Builditluc">@Builditluc</a> <a href="https://github.com/legendofmiracles">@legendofmiracles</a>)</li>
+<li>changed preview pictures (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>added usage to readme (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>config::Config now uses logging (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>fixed the view background when changing themes (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Added a way to change the color of specific views (WIP) (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Added CHANGELOG.md (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>bump to 0.3.5 (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Added .envrc (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Fixes #6 (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Added Cargo.lock (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>bump to 0.3.4 (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Changed the configuration format from ini to toml (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Fixed the header selection (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Added cargo installation method (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Preperation for publish to crates.io (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Added support for cli arguments (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>bump to 0.3.3 (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Removed human-panic and replaced it with a custom panic handler (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Added ArticleView::move_focus, ArticleView::on_event uses it now (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Added human-panic and panic-message (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Program won't crash if an invalid header is selected (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Refactoring (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Created a LinesIterator and moved ArticleView::calculate_lines() to it (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Modified .gitignore (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Better and more informative logging (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>You can now go to the headers by pressing ENTER on the item in the toc (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Fixed the scrolling (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Added some settings to the config and changed the README (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Added a initialization thread (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Fixed the calculate_lines function. Words will no longer be overlapping (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Moved some code around (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Refactored parser.rs (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>bump to 0.3.1 (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>added Contributing and Acknowledgements to the README (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Removed tests.rs (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+</ul>
+<h4 id="authors-3_3">Authors: 3</h4>
+<ul>
+<li><a href="https://github.com/Builditluc">@Builditluc</a></li>
+<li><a href="https://github.com/legendofmiracles">@legendofmiracles</a></li>
+<li>pin (<a href="https://github.com/0323pin">@0323pin</a>)</li>
+</ul>
+<hr />
+<h1 id="v030-tue-jul-29-2021">v0.3.0 (Tue Jul 29 2021)</h1>
+<p><img alt="🎉" class="twemoji" src="https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/svg/1f389.svg" title=":tada:" /> This release contains work from a new contributor! <img alt="🎉" class="twemoji" src="https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/svg/1f389.svg" title=":tada:" /></p>
+<p>Thank you, pin (<a href="https://github.com/0323pin">@0323pin</a>), for all your work!</p>
+<h4 id="release-notes_4">Release Notes</h4>
+<p>Added:</p>
+<ul>
+<li>Added a table of contents on the right side of the Wikipedia article</li>
+<li>Links can now be opened by pressing ENTER on them</li>
+<li>Created a custom article view improving performance</li>
+<li>The logger can now be configured with a config file</li>
+</ul>
+<p>Changes:</p>
+<ul>
+<li>Improved the welcome screen</li>
+<li>Moved the config file</li>
+<li>Changed the logging library to <a href="https://github.com/estk/log4rs">log4rs</a></li>
+</ul>
+<p>Fixes:</p>
+<ul>
+<li>Fixed a bug where wiki-tui would crash when the search query is empty</li>
+<li>Fixed a bug where wiki-tui wouldn't show the first search result</li>
+<li>Fixed a bug where wiki-tui wouldn't start when the config file doesn't exist</li>
+</ul>
+<h4 id="changes_7">Changes</h4>
+<ul>
+<li>Add NetBSD install to readme <a href="https://github.com/Builditluc/wiki-tui/pull/8">#8</a> (<a href="https://github.com/Builditluc">@Builditluc</a> <a href="https://github.com/0323pin">@0323pin</a>)</li>
+<li>bump to 0.3.0, refactored with clippy (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Update README.md (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Changed the user agent for the requests (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>The wiki-tui LOGO is now centered (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>bump to 0.2.9 (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Even more refactoring (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Refactoring (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>The logger can now be configured via logging.yml (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Moved the location of the config file (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>New lines won't have whitespaces at their start in the article view (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Changed some log messages (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>The width of the article_view is now calculated correctely (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>The article_view and the toc_view now use the whole height (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Fixed the line splitting (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Added a toc_view (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Began adding the TableOfContents (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Changed the configuration of the logger (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>The dialog is now working (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Added dialog when trying to open a link (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Improved the line splitting (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Created a function to render a single element (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>ArticleContent is now displaying the content given as a StyledString (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Changed on_link_submit_callback() to on_link_submit() (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Added the function on_link_submit_callback() to the ArticleView (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Added the on_link_submit_callback (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Moved some code around (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Added UP and DOWN link selecting (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Implemented basic link selecting (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Links are now added to the LinkHandler (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Removed error.txt (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Implemented the new Element System (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Moved some files around (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Removed the ArticleContentInner struct (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Added parser::Default::parse_child and added Italic/Bold text (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>wiki-tui now also shows lists (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Removed the article categories view (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>wiki-tui does no longer crash when no search results were found (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Removes todo.md (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Bug fixes (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Merge branch 'article_view' into experimental (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Added more caches to increase performance (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Added the TODO file (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Removed the article_categories_view (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Added a log message (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Merge branch 'stable' into experimental (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>The article preview is now also shown for the first search result (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Clears the search bar after a search (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>v0.2.4 (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Performance improvements (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>More Performance improvements (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Minor Performance improvements (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Merge branch 'experimental' into article_view (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Bug Fixing (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Added the article_categories_view which show the articles categories (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Fixed a bug where the program would crash when no search results are found (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Changed the base url and fixed a bug (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>v0.2.3 (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Added Configuration (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>ui::article::ArticleView now takes focus (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Added ArticleContent::render and several struct inside of the module (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Added ui::article::ArticleContent (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Row-Elements are now selectable (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Replaced the TextView with the custom ArticleView (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Made the ArticleView scrollable (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Added basic printing of text to the ArticleView (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>v0.2.2 (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Added the title to the article (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Fixed a Theme bug (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Changed the search_match color (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Removed the borders color (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>The Custom Theme is now applied to the program (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Added Config::load_theme and Config::parse_color (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Added a loading message box when loading the article (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>The log messages now contain the function which called them (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Added more Detailed logs to config::Config (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Added log statements to config::Config (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>wiki::WikiApi now uses config::CONFIG (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Finished writing the new Config system (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Began working on the new config system (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Fixed a typo (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>v0.2.1 (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Added the lazy_static crate and created the static variable CONFIG (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Created the two modules wiki and ui and moved some code around (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>the log file will be overwritten everytime the program starts (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Replaced simple_logging with log4rs (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Refactored wiki.rs (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Finished refactoring main.rs (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Refactored the on_search function (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Updated the logo (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Added an ASCII Art logo (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+</ul>
+<h4 id="authors-2_3">Authors: 2</h4>
+<ul>
+<li><a href="https://github.com/Builditluc">@Builditluc</a></li>
+<li>pin (<a href="https://github.com/0323pin">@0323pin</a>)</li>
+</ul>
+<hr />
+<h1 id="v020-wed-apr-28-2021">v0.2.0 (Wed Apr 28 2021)</h1>
+<h4 id="release-notes_5">Release Notes</h4>
+<p>Changes:
+* Moved the location of the configuration file
+* Displays now a preview of the selected search result and highlights the search term inside of it
+* wiki-tui now uses web scraping to format and display the article in a nice way
+* Fixed the bug, where wiki-tui would crash if the search term is empty
+* Performance improvements
+* A lot under the hood was changed, like the complete rework of the way wiki-tui uses the configuration file</p>
+<h4 id="changes_8">Changes</h4>
+<ul>
+<li>compiles <a href="https://github.com/Builditluc/wiki-tui/pull/5">#5</a> (<a href="https://github.com/legendofmiracles">@legendofmiracles</a>)</li>
+<li>Delete 3 <a href="https://github.com/Builditluc/wiki-tui/pull/4">#4</a> (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Update README.md (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Bug fixing (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Changed the article view back to a single TextView instead of a (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Fixed a bug (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Added the Default parser (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Made the article view a Linear Layout. The on_article_submit function (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Fixed a bug in the impl of Parser for wiki::articles::Article (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Added the Parser trait and modified the wiki::Wiki::get_article() function. It now returns the structs::wiki::article::Article struct (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Added the structs::article::Article struct (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>v0.1.5 (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>v0.1.4 (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Fully implemented anyhow (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Began to implement anyhow and use the unused results (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Removed the scraper crate (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Added the anyhow crate (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>v0.1.3.1 (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>fixed Wiki::search_articles() and continue_search in main.rs (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>v0.1.3 (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Removes .main.rs.swp (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Made the results_view scrollable and set a fixed height for the results layer (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Added functionality to the continue button (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Compressed code inside of on_search() (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Added some more things to main.rs() (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>on_article_submit() and on_search() are now using a mutable reference of wiki::Wiki (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>v0.1.2 (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Fixed the lifetime bug with the help of Alexandre Bury (Author of the cursive library (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Removes 3 (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>The UI now uses one instance of wiki::Wiki, program crashes because of lifetime problems (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>wiki::Wiki now uses ApiConfig, errors are appearing in main.rs (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>added config::ApiConfig and some functions in config::Config to load the Api Config (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>logging.rs now uses config::LoggingConfig (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Added Config::load_logging() and Config::get_logging_config() which returns a reference to the LoggingConfig (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Removed something (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Added Config::load() and implemented Default for config::Config. Also added Config::new() (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Added Config::is_config_valid(), this is a prviate function used only inside of config::Config (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Added Config::create_config_file(), this is a private function only used inside of config::Config (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Added Config::get_config_file(), this is a private function only used inside config::Config (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Removed some of the Config code (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Continued working on config::Config (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Added config::Config and config::Theme. Also added the get_or_create_config_paths() function (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Added the config.rs file and imported the dirs crate (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Create README.md (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>v0.1.1 (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Changed build branch into stable (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Update rust.yml (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Added some callbacks for the paging (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Rearranged some Views in the Results View and added the Search Info (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>The Results Preview has now a fixed width (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Forgot to display the title as well (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>These stupid searchmatches are finally highlighted (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Removed the <span> html tags inside of the Article snippet (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Added the scraper crate (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Added a Preview for the Results (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+</ul>
+<h4 id="authors-2_4">Authors: 2</h4>
+<ul>
+<li><a href="https://github.com/Builditluc">@Builditluc</a></li>
+<li><a href="https://github.com/legendofmiracles">@legendofmiracles</a></li>
+</ul>
+<hr />
+<h1 id="v010-mon-apr-5-2021">v0.1.0 (Mon Apr 5 2021)</h1>
+<p><img alt="🎉" class="twemoji" src="https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/svg/1f389.svg" title=":tada:" /> This release contains work from new contributors! <img alt="🎉" class="twemoji" src="https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/svg/1f389.svg" title=":tada:" /></p>
+<p>Thanks for all your work!</p>
+<p><img alt="❤" class="twemoji" src="https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/svg/2764.svg" title=":heart:" /> null<a href="https://github.com/Builditluc">@Builditluc</a></p>
+<p><img alt="❤" class="twemoji" src="https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/svg/2764.svg" title=":heart:" /> null<a href="https://github.com/legendofmiracles">@legendofmiracles</a></p>
+<h4 id="release-notes_6">Release Notes</h4>
+<p>With wiki-tui, you can browse on Wikipedia within your Terminal.
+To run it, clone this repository and then build/run it using cargo.
+In future Releases, there will be precompiled binaries.</p>
+<h4 id="changes_9">Changes</h4>
+<ul>
+<li>adds shell.nix <a href="https://github.com/Builditluc/wiki-tui/pull/3">#3</a> (<a href="https://github.com/legendofmiracles">@legendofmiracles</a>)</li>
+<li>Removed everything (almost) <a href="https://github.com/Builditluc/wiki-tui/pull/2">#2</a> (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Create LICENSE <a href="https://github.com/Builditluc/wiki-tui/pull/1">#1</a> (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Moved the widgets around and added a Search Results popup (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>The Title of the Searchbar is now left-aligned (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>The Results View is now automatically focussed after searching (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Removed the html2text crate (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Added searching via pressing the Enter key inside of the search bar (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Implemented the Article View functionality (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>The Article is now displayed correctly (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>The Tui is now showing the parsed Content of the Article (Not quite well) (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>The Results View now calls the on_article_submit function (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>removes shell.nix (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Implemented the Search function (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Fully implemented the on_search function (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Fixed the crashing bug (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Merge branch 'experimental' into stable (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Update README.md (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Added some more things to on_search(). Program crashes now when clicking on the search button (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Implemented the From trait for wiki::ArticleResultPreview (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Created a on_search function which is called when the user presses the Search button (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Created a Demo struct for the ArticlePreview in the results view (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Moved all of the structs for the web requests into the structs::wiki mod (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Moved the UI stuff into main.rs and fixed some bugs (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Changed the README (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Added more of the UI (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Added the tui struct and created the search bar (non functional) (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Added the continue_search function. Moved the normal search in to a search_articles function (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Bug fixing (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Merge branch 'stable' of https://github.com/Builditluc/wiki-tui into stable (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Added the ArticleResponse structs for the get_article function. Added the get_article function to the Wiki struct (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Created the Response structs for the Search request. Added the wiki_tui.log file to .gitignore (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Added the .gradle/ directory to the gitignore file (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Fixed a bug where cargo would not compile (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Added and implemented the rust-ini crate (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Added the wiki::Wikipedia trait (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Changed some things in the README (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Add files via upload (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Rename LICENSE to LICENSE.txt (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Create README.md (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Create rust.yml (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Added the search_articles function (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Implemented the update_article function of the WikiSql struct (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Implemented the fetch_article function for the WikiSql struct (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Added the Article and the NewArticle model (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Created the table articles (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Added the fetch_article function in the Api struct (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Fixed a bug (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Implemented the Removable trait for WikiSql (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Implemented the Updatable Trait for WikiSql (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Removed an unused import (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Added the trait functions to the WikiSql struct (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Added some functions for the ArticleIndex model (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Implemented the wiki::Fetchable trait for WikiSql (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Added TODO (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Added the traits wiki::Fetchable, wiki::Updatable, wiki::Removable (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>The wiki struct now establishes a new connection when created (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Added the traits file (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Added logging for the Api struct (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Prepared everything for the database integration (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Fixed the env bug (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Added the Logging module (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Added the Api Struct and the ArticlesResultCallback Trait (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Modified .gitignore (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+<li>Initial commit (<a href="https://github.com/Builditluc">@Builditluc</a>)</li>
+</ul>
+<h4 id="authors-2_5">Authors: 2</h4>
+<ul>
+<li><a href="https://github.com/Builditluc">@Builditluc</a></li>
+<li><a href="https://github.com/legendofmiracles">@legendofmiracles</a></li>
+</ul>
+
+  <hr>
+<div class="md-source-file">
+  <small>
+    
+      Last update:
+      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">May 18, 2023</span>
+      
+        <br>
+        Created:
+        <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">October 31, 2021</span>
+      
+    
+  </small>
+</div>
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12Z"/></svg>
+            Back to top
+          </button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Copyright &copy; 2021 - 2023 Builditluc
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        <div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/builditluc/" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.3.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    <script id="__config" type="application/json">{"base": "..", "features": ["navigation.tabs", "navigation.tabs.sticky", "navigation.top", "navigation.sections", "navigation.indexes", "announce.dismiss", "content.action.edit", "content.action.view", "content.code.copy"], "search": "../assets/javascripts/workers/search.208ed371.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.efa0ade1.min.js"></script>
+      
+    
+  </body>
+</html>
