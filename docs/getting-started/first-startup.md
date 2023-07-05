@@ -14,51 +14,8 @@ You can start wiki-tui by running the following command from you terminal
 wiki-tui
 ```
 
-This will run the program and you can start browsing wikipedia. If you want, you can use the CLI to fasten up your search.
-
-!!! tip
-    You can always run `wiki-tui --help` to get an overview of available arguments
-
-### Search Query Argument
-
-```
-wiki-tui <search-query>
-```
-
-!!! example
-    If you already know that you want to search for `github` you can pass it in as a argument
-
-    ```
-    wiki-tui github
-    ```
-
-    It will open wiki-tui and already start the search so you don't have to type it into the search bar
-
-### Changing the language
-
-```
-wiki-tui --language <language-code>
-```
-
-!!! example
-    If you want to change the language to German, simply pass it in as a argument
-    
-    ```
-    wiki-tui --language de
-    wiki-tui --language german
-    wiki-tui --language deutsch
-    ```
-
-    It will open wiki-tui with the language set to German
-
-!!! tip
-    You can also use the short variant of this argument `-l` to change the language
-    
-    ```
-    wiki-tui -l de
-    ```
-
-For more information about language changing, view [this page](../configuration/api.md#supported-languages) of the docs
+This will run the program and you can start browsing wikipedia. If you want, 
+you can [use the CLI](./using-cli.md) to fasten up your search.
 
 ## Keybindings and Controls
 
@@ -75,3 +32,4 @@ actions can be remapped in the config
 |  `PREV TAB`    | ++shift+tab++      | :material-check: |
 |  `OPEN`        | ++return++         |                  |
 |  `QUIT`        | ++q++              |                  |
+
