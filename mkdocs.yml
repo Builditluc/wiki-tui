@@ -43,6 +43,15 @@ nav:
     - Usage: getting-started/usage.md
     - What to do if a crash occurs: getting-started/crash.md
     - License: getting-started/license.md
+
+    - Changelog:
+      - changelog/index.md
+      - How to upgrade: changelog/upgrade.md
+
+    - Contributing: 
+      - contributing/index.md
+      - Maintainers Guides: contributing/maintainers.md
+
   - Configuration:
     - configuration/index.md
     - Api Settings: configuration/api.md
@@ -51,12 +60,6 @@ nav:
     - Features: configuration/features.md
     - Keybindings: configuration/keybindings.md
     - Table of Contents: configuration/toc.md
-  - Contributing: 
-    - contributing/index.md
-    - Maintainers Guides: contributing/maintainers.md
-  - Changelog:
-    - changelog/index.md
-    - How to upgrade: changelog/upgrade.md
 
 edit_uri: edit/main/docs/
 
