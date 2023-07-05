@@ -38,7 +38,7 @@ A simple and easy to use Wikipedia Text User Interface
 - VIM-like Keybindings:
     
     - Basic movement (++h++ / ++j++ / ++k++ / ++l++)
-    - Goto Top / Bottom (++"G"++ / ++"gg"++)
+    - Goto Top / Bottom (++"G"++ / ++"g"++ ++"g"++)
     - Half up / down (++ctrl+d++ / ++ctrl+u++)
 
 - It's customizable (we plan on having more features in the future):

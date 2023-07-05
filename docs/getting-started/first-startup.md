@@ -17,19 +17,8 @@ wiki-tui
 This will run the program and you can start browsing wikipedia. If you want, 
 you can [use the CLI](./using-cli.md) to fasten up your search.
 
-## Keybindings and Controls
+## Start Browsing
 
-This is a list of all available actions and what the default keybinding for that action is. Configurable
-actions can be remapped in the config
-
-| Action         | Default Keybinding | Configurable?    |
-| -------------- | ------------------ | ---------------- |
-|  `UP`          | ++k++             | :material-check: |
-|  `DOWN`        | ++j++           | :material-check: |
-|  `LEFT`        | ++h++           | :material-check: |
-|  `RIGHT`       | ++l++          | :material-check: |
-|  `NEXT TAB`    | ++tab++            | :material-check: |
-|  `PREV TAB`    | ++shift+tab++      | :material-check: |
-|  `OPEN`        | ++return++         |                  |
-|  `QUIT`        | ++q++              |                  |
-
+Using the TUI and browsing through articles should feel very natural, thanks to
+the implementation of some common vim keybindigns, more
+[here](./overview-keybindings.md).

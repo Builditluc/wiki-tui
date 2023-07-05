@@ -42,7 +42,7 @@ nav:
     - Installation: getting-started/installation.md
     - First Startup: getting-started/first-startup.md
     - Using the CLI: getting-started/using-cli.md
-    - What to do if a crash occurs: getting-started/crash.md
+    - Overview of Keybindings: getting-started/overview-keybindings.md
     - License: getting-started/license.md
 
     - Changelog:
