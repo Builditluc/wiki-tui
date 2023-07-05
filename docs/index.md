@@ -16,51 +16,48 @@ hide:
 A simple and easy to use Wikipedia Text User Interface
 
 !!! warning "Active Development"
-    wiki-tui is still under active-development (v0.x.x) and that means breaking changes, altough relatively rare at the moment, can occur. 
+    wiki-tui is still under active-development (v0.x.x) and that means breaking 
+    changes can occur. 
 
-    Please always check the release notes on GitHub before upgrading to a new version!
+    Please always check the release notes on GitHub before upgrading to a new 
+    version!
   </figcaption>
 </figure>
 
+# What can it do?
+
+- Browse wikipedia in a TUI. Features of the TUI include:
+
+    - Rich search results (result previews, more information on results,
+      continue the current search)
+    - Open articles in layers (press ++escape++ to close a layer)
+    - A Table of Contents with support for jumping to the section in the
+      article
+    - Richt article view (functioning links, lists, headers)
+
+- VIM-like Keybindings:
+    
+    - Basic movement (++h++ / ++j++ / ++k++ / ++l++)
+    - Goto Top / Bottom (++"G"++ / ++"gg"++)
+    - Half up / down (++ctrl+d++ / ++ctrl+u++)
+
+- It's customizable (we plan on having more features in the future):
+
+    - Change the global and local theme of individual UI components
+    - Change some of the keybindings
+    - Disable features (Table of Contents, Links)
+    - Customize the Table of Contents (position, title format, sizes, etc.)
+    - Change wikipedias language (even on the fly)
+    - Logging
+
 # How does it look?
 
-<figure markdown>
 ![Preview-1](assets/images/preview-1.png)
-</figure>
 
-<figure markdown>
 ![Preview-2](assets/images/preview-2.png)
-</figure>
 
-<figure markdown>
 ![Preview-3](assets/images/preview-3.png)
-</figure>
 
 ??? note "About those Screenshots"
-    They were taken on MacOS (iTerm2) with the gruvbox terminal colorscheme. The only
-    configuration change that was done is setting the borders to round
-
-# What can I do with it?
-
-## Search
-
-Search for an article in Wikipedia (by default only the English Wikipedia but that can be changed). The search results feature pagination and a little preview is generated when
-you select a result.
-
-## Read
-
-When opening an article wiki-tui generates and displays a table of contents on the right side (which can be disabled) where you can quickly jump to any section in the article.
-The main article currently supports links and lists with more features like tables and images planned. Although wiki-tui was designed to be used with a keyboard, it also 
-supports mouse input (just click on a link or scroll with your scroll wheel in an article).
-
-## Customize
-
-wiki-tui aims to be highly customizable allowing you to change almost everything to your liking. Currently, [customization options](./configuration/index.md) include:
-
-- [Themes](./configuration/theme.md) (changing colors of the whole program and individual parts)
-- [Keybindings](./configuration/keybindings.md) (so you don't have to use the arrow keys for navigation)
-- Toggle specific [features](./configuration/features.md) of wiki-tui:
-  - Disable the table of contents
-  - Disable links
-- [Logging](./configuration/logging.md)
-- Change the [language](./configuration/api.md) of Wikipedia Articles
+    They were taken on MacOS (iTerm2) with the gruvbox terminal colorscheme. 
+    The only configuration change that was done is setting the borders to round

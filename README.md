@@ -22,6 +22,32 @@
 
 You can find the **installation instructions**, **configuration options**, **more preview images**, **a feature overview** and more on our website, [builditluc.github.io/wiki-tui](https://builditluc.github.io/wiki-tui/)
 
+# What can it do?
+
+- Browse wikipedia in a TUI. Features of the TUI include:
+
+    - Rich search results (result previews, more information on results,
+      continue the current search)
+    - Open articles in layers (press ++escape++ to close a layer)
+    - A Table of Contents with support for jumping to the section in the
+      article
+    - Richt article view (functioning links, lists, headers)
+
+- VIM-like Keybindings:
+    
+    - Basic movement (++h++ / ++j++ / ++k++ / ++l++)
+    - Goto Top / Bottom (++"G"++ / ++"gg"++)
+    - Half up / down (++ctrl+d++ / ++ctrl+u++)
+
+- It's customizable (we plan on having more features in the future):
+
+    - Change the global and local theme of individual UI components
+    - Change some of the keybindings
+    - Disable features (Table of Contents, Links)
+    - Customize the Table of Contents (position, title format, sizes, etc.)
+    - Change wikipedias language (even on the fly)
+    - Logging
+
 ## How it looks
 
 [![preview-3](https://raw.githubusercontent.com/Builditluc/wiki-tui/main/docs/assets/images/preview-3.png)](docs/assets/images/preview-3.png)
