@@ -12,3 +12,4 @@ wiki_tui.log
 .direnv/drv
 .direnv
 .env
+.cache/
