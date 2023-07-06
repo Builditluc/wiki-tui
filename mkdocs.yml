@@ -51,6 +51,9 @@ nav:
 
     - Contributing: 
       - contributing/index.md
+      - Creating a Bug and Crash report: contributing/bug-report.md
+      - Requesting / Implementing a feature: contributing/feature-request.md
+      - Modifying the project: contributing/developing.md
       - Maintainers Guides: contributing/maintainers.md
 
   - Configuration:
