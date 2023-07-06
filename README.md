@@ -35,9 +35,9 @@ You can find the **installation instructions**, **configuration options**, **mor
 
 - VIM-like Keybindings:
     
-    - Basic movement (++h++ / ++j++ / ++k++ / ++l++)
-    - Goto Top / Bottom (++"G"++ / ++"gg"++)
-    - Half up / down (++ctrl+d++ / ++ctrl+u++)
+    - Basic movement
+    - Goto Top / Bottom
+    - Half up / down
 
 - It's customizable (we plan on having more features in the future):
 
