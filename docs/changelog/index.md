@@ -1,3 +1,49 @@
+# v0.8.0 (Fri Jul 07 2023)
+
+:tada: This release contains work from a new contributor! :tada:
+
+Thank you, Enoumy ([@Enoumy](https://github.com/Enoumy)), for all your work!
+
+### Release Notes
+
+#### Correctly handle non-existent pages ([#186](https://github.com/Builditluc/wiki-tui/pull/186))
+
+When you now try to open a link leading to a page that doesn't exist yet, a warning will now pop up informing you about the missing page.
+
+#### Vim movements (ctrl+d, ctrl+u, gg, G) ([#180](https://github.com/Builditluc/wiki-tui/pull/180))
+
+The Vim keybindings `ctrl+d`, `ctrl+u`, `gg`, and `G` have been implemented!
+
+---
+
+#### Exciting New Features 🎉
+
+- Correctly handle non-existent pages [#186](https://github.com/Builditluc/wiki-tui/pull/186) ([@Builditluc](https://github.com/Builditluc))
+- Vim movements (ctrl+d, ctrl+u, gg, G) [#180](https://github.com/Builditluc/wiki-tui/pull/180) ([@Enoumy](https://github.com/Enoumy))
+
+#### Bug Fixes 🐛
+
+- Fix url encoded links [#181](https://github.com/Builditluc/wiki-tui/pull/181) ([@Builditluc](https://github.com/Builditluc))
+
+#### CI Pipeline and Dependency Updates
+
+- Bump select to v0.6 [#189](https://github.com/Builditluc/wiki-tui/pull/189) ([@Builditluc](https://github.com/Builditluc))
+
+#### Documentation Changes
+
+- Update and Improve the Documentation [#188](https://github.com/Builditluc/wiki-tui/pull/188) ([@Builditluc](https://github.com/Builditluc))
+
+#### Structure and Style Changes
+
+- Change default keybindings to vim [#185](https://github.com/Builditluc/wiki-tui/pull/185) ([@Builditluc](https://github.com/Builditluc))
+
+#### Authors: 3
+
+- [@Builditluc](https://github.com/Builditluc)
+- Enoumy ([@Enoumy](https://github.com/Enoumy))
+
+---
+
 # v0.7.0 (Thu May 18 2023)
 
 :tada: This release contains work from new contributors! :tada:
