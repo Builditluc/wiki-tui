@@ -42,6 +42,9 @@ To create a new release of wiki-tui, follow these steps:
   add Cargo.lock` so that the build stays reproducible.
 * Update the changelog using `auto changelog --from <old-version> --to <version>`, where
   <old-version> is the last version released and <version> is the new release version.
+* Modify the Changelog:
+    * Remove any changes from bots
+    * Check that everything is correct
 * Amend the `Cargo.toml` and `Cargo.lock` changes to the commit `auto` generated and rename the
   commit to `bump to <version>`, where <version> is the new release version using `git commit
   --amend`
@@ -49,9 +52,8 @@ To create a new release of wiki-tui, follow these steps:
 * Create a tag using `git tag <version>`, where <version> is the new release version.
 * Push the commit using `git push`.
 * Push the tag with `git push --tags`.
-* Create a new release using `auto --from <old-version> --to <version>`
-    * Test the new release body with `--dry-run` and verify that everything is correct
-    * Release it without the `--dry-run` flag
+* Create a new release manually and copy the changelog section of the new
+  release into the body field
 * Publish the release to crates.io using `cargo publish`
 * Wait for the continuous integration (CI) process to complete building the precompiled binaries.
 * Finally, run `cargo install wiki-tui` to install the new release onto your local machine, and 

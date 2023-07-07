@@ -40,9 +40,22 @@ nav:
   - Home: index.md
   - Getting Started:
     - Installation: getting-started/installation.md
-    - Usage: getting-started/usage.md
-    - What to do if a crash occurs: getting-started/crash.md
+    - First Startup: getting-started/first-startup.md
+    - Using the CLI: getting-started/using-cli.md
+    - Overview of Keybindings: getting-started/overview-keybindings.md
     - License: getting-started/license.md
+
+    - Changelog:
+      - changelog/index.md
+      - How to upgrade: changelog/upgrade.md
+
+    - Contributing: 
+      - contributing/index.md
+      - Creating a Bug and Crash report: contributing/bug-report.md
+      - Requesting / Implementing a feature: contributing/feature-request.md
+      - Modifying the project: contributing/developing.md
+      - Maintainers Guides: contributing/maintainers.md
+
   - Configuration:
     - configuration/index.md
     - Api Settings: configuration/api.md
@@ -51,12 +64,6 @@ nav:
     - Features: configuration/features.md
     - Keybindings: configuration/keybindings.md
     - Table of Contents: configuration/toc.md
-  - Contributing: 
-    - contributing/index.md
-    - Maintainers Guides: contributing/maintainers.md
-  - Changelog:
-    - changelog/index.md
-    - How to upgrade: changelog/upgrade.md
 
 edit_uri: edit/main/docs/
 
