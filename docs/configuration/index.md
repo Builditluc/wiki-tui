@@ -1,5 +1,18 @@
 # Configuration
 
+!!! info "Note from the Dev"
+    I'm planning on overhauling the structure of the configuration. This
+    includes but is not limited to:
+
+    - Changing the names of varius settings and parameters
+    - Organizing the configuration into a better thought out structure
+
+    This means that all of this is subject to change, however, it'll take a
+    while for this to be "done".
+
+    > We are also still in early development (pre 1.0), so expect breaking
+    > changes to occur every now and then. Always read the docs!
+
 The path to the configuration file can be found by running this command
 
 ```
