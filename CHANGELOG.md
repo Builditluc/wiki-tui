@@ -4,8 +4,6 @@
 
 Thanks for all your work!
 
-:heart: Imgbot ([@ImgBotApp](https://github.com/ImgBotApp))
-
 :heart: null[@cshjsc](https://github.com/cshjsc)
 
 :heart: krixcrox ([@falkwitte](https://github.com/falkwitte))
@@ -54,23 +52,15 @@ Please also check the docs to learn about what breaking changes have occurred si
 - Fix typo [#170](https://github.com/Builditluc/wiki-tui/pull/170) ([@falkwitte](https://github.com/falkwitte))
 - Update Documentation [#167](https://github.com/Builditluc/wiki-tui/pull/167) ([@Builditluc](https://github.com/Builditluc))
 - Add versioning to the documentation [#166](https://github.com/Builditluc/wiki-tui/pull/166) ([@Builditluc](https://github.com/Builditluc))
-- Add cshjsc as a contributor for code [#163](https://github.com/Builditluc/wiki-tui/pull/163) ([@allcontributors[bot]](https://github.com/allcontributors[bot]))
 
 #### Structure and Style Changes
 
 - Rework the Scrolling System [#164](https://github.com/Builditluc/wiki-tui/pull/164) ([@Builditluc](https://github.com/Builditluc))
 
-#### Other Changes
+#### Authors: 3
 
-- [ImgBot] Optimize images [#176](https://github.com/Builditluc/wiki-tui/pull/176) ([@ImgBotApp](https://github.com/ImgBotApp) [@imgbot[bot]](https://github.com/imgbot[bot]))
-
-#### Authors: 6
-
-- [@allcontributors[bot]](https://github.com/allcontributors[bot])
 - [@Builditluc](https://github.com/Builditluc)
 - [@cshjsc](https://github.com/cshjsc)
-- [@imgbot[bot]](https://github.com/imgbot[bot])
-- Imgbot ([@ImgBotApp](https://github.com/ImgBotApp))
 - krixcrox ([@falkwitte](https://github.com/falkwitte))
 
 ---
