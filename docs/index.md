@@ -8,7 +8,9 @@ hide:
 #
 
 <figure markdown>
+<center>
 ![Logo](assets/images/logo.png)
+</center>
 
   <figcaption markdown>
 **WIKI-TUI**
