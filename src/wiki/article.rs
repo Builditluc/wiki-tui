@@ -453,7 +453,11 @@ impl<I, P> ArticleBuilder<I, P, WithUrl> {
             .map(|x| x.to_owned())
             .map(|x| {
                 x.into_iter()
-                    .filter_map(|x| serde_json::from_value(x).ok())
+                    .filter_map(|x| {
+                        serde_json::from_value(x)
+                            .map_err(|err| warn!("language_link parsing error: {:?}", err))
+                            .ok()
+                    })
                     .collect::<Vec<LanguageLink>>()
             })
             .map(|x| {

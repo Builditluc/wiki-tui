@@ -96,6 +96,7 @@ pub fn parse_languages(input: TokenStream) -> TokenStream {
         use serde::{Serialize, Deserialize};
 
         #[derive(Debug, Clone, Serialize, Deserialize)]
+        #[serde(from = "String")]
         pub enum Language{
             #variants
         }
@@ -133,7 +134,16 @@ pub fn parse_languages(input: TokenStream) -> TokenStream {
             }
         }
 
-        pub static LANGUAGES: &[Language] = &[#array_def];
+        impl From<String> for Language {
+            fn from(s: String) -> Self {
+                match s.to_lowercase().as_ref() {
+                    #from_str_arms
+                    _ => Language::default()
+                }
+            }
+        }
+
+       pub static LANGUAGES: &[Language] = &[#array_def];
 
         impl Default for Language {
             fn default() -> Self {
