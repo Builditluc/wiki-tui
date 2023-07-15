@@ -93,8 +93,9 @@ pub fn parse_languages(input: TokenStream) -> TokenStream {
     }
 
     let expanded = quote! {
+        use serde::{Serialize, Deserialize};
 
-        #[derive(Debug, Clone, Serialize)]
+        #[derive(Debug, Clone, Serialize, Deserialize)]
         pub enum Language{
             #variants
         }
@@ -139,7 +140,6 @@ pub fn parse_languages(input: TokenStream) -> TokenStream {
                 Language::English
             }
         }
-
     };
     proc_macro::TokenStream::from(expanded)
 }

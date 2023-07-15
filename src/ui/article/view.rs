@@ -2,6 +2,7 @@ use crate::{
     config::CONFIG,
     ui::{
         article::{content::ArticleContent, on_link_submit},
+        language_selector::article_language_selection_popup,
         scroll,
         utils::display_message,
     },
@@ -146,7 +147,7 @@ impl ArticleView {
 
         if available_languages.is_none() {
             warn!("no available languages for the article");
-            return EventResult::Consumed(Some(Callback::from_fn(move |s| {
+            return EventResult::Consumed(Some(Callback::from_fn(|s| {
                 display_message(
                     s,
                     "Information",
@@ -155,8 +156,9 @@ impl ArticleView {
             })));
         }
 
-        let available_languages = available_languages.unwrap();
-        EventResult::Consumed(Some(Callback::from_fn(move |s| {})))
+        return EventResult::Consumed(Some(Callback::from_fn(move |s| {
+            article_language_selection_popup(s, available_languages.clone().unwrap(), |_, _| {})
+        })));
     }
 }
 

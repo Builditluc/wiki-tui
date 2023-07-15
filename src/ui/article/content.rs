@@ -208,7 +208,7 @@ impl ArticleContent {
         None
     }
 
-    pub fn language_links(&self) -> Option<impl Iterator<Item = &LanguageLink>> {
-        self.article.language_links()
+    pub fn language_links(&self) -> Option<Vec<LanguageLink>> {
+        self.article.language_links.clone()
     }
 }

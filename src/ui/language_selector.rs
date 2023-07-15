@@ -8,7 +8,10 @@ use cursive::{
 
 use crate::{
     config::{Config, CONFIG},
-    wiki::language::{Language, LANGUAGES},
+    wiki::{
+        article::LanguageLink,
+        language::{Language, LANGUAGES},
+    },
 };
 
 use super::{
@@ -47,6 +50,11 @@ pub fn language_selection_popup(siv: &mut Cursive) {
         siv.pop_layer();
         return;
     }
+
+    info!(
+        "displaying '{}' languages for selection",
+        LANGUAGES.iter().count()
+    );
 
     let language_search = EditView::new()
         .on_edit(|siv, text, _| {
@@ -112,4 +120,56 @@ pub fn language_selection_popup(siv: &mut Cursive) {
             .title("Change Language")
             .fixed_size((selection_width, selection_height)),
     );
+}
+
+const ARTICLE_POPUP_NAME: &str = "article_language_selection_popup";
+const ARTICLE_LANGUAGE_SELECTION_NAME: &str = "article_language_selection";
+
+const ARTICLE_SELECTION_WIDTH_PERCENTAGE: f32 = 0.4;
+const ARTICLE_SELECTION_HEIGHT_PERCNETAGE: f32 = 0.5;
+
+pub fn article_language_selection_popup<F>(siv: &mut Cursive, languages: Vec<LanguageLink>, cb: F)
+where
+    F: Fn(&mut Cursive, Language),
+{
+    if siv.find_name::<RootLayout>(ARTICLE_POPUP_NAME).is_some() {
+        siv.pop_layer();
+        return;
+    }
+
+    info!(
+        "displaying '{}' article languages for selection",
+        languages.len()
+    );
+
+    let language_search = EditView::new();
+    let mut language_selection: SelectView<String> = SelectView::new();
+
+    language_selection.add_all(languages.iter().map(|lang_link| {
+        (
+            lang_link.language.name(),
+            lang_link.language.code().to_owned(),
+        )
+    }));
+
+    let screen_size = siv.screen_size();
+
+    let selection_width = percentage(screen_size.x, ARTICLE_SELECTION_WIDTH_PERCENTAGE);
+    let selection_height = percentage(screen_size.y, ARTICLE_SELECTION_HEIGHT_PERCNETAGE);
+
+    siv.add_layer(
+        RootLayout::vertical(CONFIG.keybindings.clone())
+            .child(language_search)
+            .child(DummyView {})
+            .child(
+                language_selection
+                    .with_name(ARTICLE_LANGUAGE_SELECTION_NAME)
+                    .scrollable(),
+            )
+            .input(true)
+            .with_name(POPUP_NAME)
+            .with_panel()
+            .title("Switch Article Language")
+            .fixed_size((selection_width, selection_height)),
+    )
 }

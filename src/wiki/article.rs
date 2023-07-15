@@ -89,15 +89,15 @@ impl Element {
     }
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 pub struct LanguageLink {
     #[serde(rename = "langname")]
-    name: String,
+    pub name: String,
     #[serde(rename = "lang")]
-    language: String,
-    autonym: String,
-    title: String,
-    url: Url,
+    pub language: Language,
+    pub autonym: String,
+    pub title: String,
+    pub url: Url,
 }
 
 #[derive(Debug, Deserialize)]
@@ -187,7 +187,7 @@ pub struct Article {
     pageid: usize,
     content: Option<Vec<Element>>,
     language: Language,
-    language_links: Option<Vec<LanguageLink>>,
+    pub language_links: Option<Vec<LanguageLink>>,
     categories: Option<Vec<Category>>,
     categories_html: Option<String>,
     links: Option<Vec<Link>>,
@@ -234,13 +234,6 @@ impl Article {
     pub fn available_languages(&self) -> Option<usize> {
         if let Some(ref links) = self.language_links {
             return Some(links.len());
-        }
-        None
-    }
-
-    pub fn language_links(&self) -> Option<impl Iterator<Item = &LanguageLink>> {
-        if let Some(ref links) = self.language_links {
-            return Some(links.iter());
         }
         None
     }
@@ -462,6 +455,10 @@ impl<I, P> ArticleBuilder<I, P, WithUrl> {
                 x.into_iter()
                     .filter_map(|x| serde_json::from_value(x).ok())
                     .collect::<Vec<LanguageLink>>()
+            })
+            .map(|x| {
+                debug!("language_links: '{}'", x.len());
+                x
             });
 
         let categories = res_json
