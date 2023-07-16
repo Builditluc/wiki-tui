@@ -1,5 +1,6 @@
 use std::{cell::RefCell, rc::Rc};
 
+use anyhow::Context;
 use cursive::{
     view::{Nameable, Resizable},
     views::{DummyView, EditView},
@@ -8,6 +9,7 @@ use cursive::{
 
 use crate::{
     config::{Config, CONFIG},
+    ui::utils::display_error,
     wiki::{
         article::LanguageLink,
         language::{Language, LANGUAGES},
@@ -15,6 +17,7 @@ use crate::{
 };
 
 use super::{
+    article::{self, ArticleView},
     panel::WithPanel,
     scroll_view::Scrollable,
     utils::{display_message, percentage},
@@ -128,10 +131,40 @@ const ARTICLE_LANGUAGE_SELECTION_NAME: &str = "article_language_selection";
 const ARTICLE_SELECTION_WIDTH_PERCENTAGE: f32 = 0.4;
 const ARTICLE_SELECTION_HEIGHT_PERCNETAGE: f32 = 0.5;
 
-pub fn article_language_selection_popup<F>(siv: &mut Cursive, languages: Vec<LanguageLink>, cb: F)
-where
-    F: Fn(&mut Cursive, Language),
-{
+fn change_article_language(siv: &mut Cursive, language_link: Rc<LanguageLink>) {
+    let config = Config::from_siv(siv);
+    let success_msg = format!(
+        "Changed the language of your current article to {}",
+        language_link.language.name()
+    );
+
+    let article = match article::builder()
+        .page(&language_link.title)
+        .url(
+            language_link.language.to_owned(),
+            &config.borrow().api_config.pre_language,
+            &config.borrow().api_config.post_language,
+        )
+        .fetch()
+        .context("failed fetching the article")
+    {
+        Ok(article) => article,
+        Err(error) => {
+            warn!("{:?}", error);
+            display_error(siv, error);
+            return;
+        }
+    };
+
+    siv.pop_layer();
+    if let Err(err) = article::display_article(siv, article) {
+        display_error(siv, err);
+    }
+
+    display_message(siv, "Information", &success_msg);
+}
+
+pub fn article_language_selection_popup(siv: &mut Cursive, languages: Vec<LanguageLink>) {
     if siv.find_name::<RootLayout>(ARTICLE_POPUP_NAME).is_some() {
         siv.pop_layer();
         return;
@@ -142,15 +175,51 @@ where
         languages.len()
     );
 
-    let language_search = EditView::new();
-    let mut language_selection: SelectView<String> = SelectView::new();
+    let mut language_selection: SelectView<LanguageLink> =
+        SelectView::new().on_submit(|s, item: &LanguageLink| {
+            s.pop_layer();
+            change_article_language(s, item.to_owned().into());
+        });
 
-    language_selection.add_all(languages.iter().map(|lang_link| {
-        (
-            lang_link.language.name(),
-            lang_link.language.code().to_owned(),
-        )
-    }));
+    language_selection.add_all(
+        languages
+            .iter()
+            .map(|lang_link| (lang_link.language.name(), lang_link.to_owned())),
+    );
+
+    let language_search = EditView::new()
+        .on_edit(move |siv, text, _| {
+            let sorted_languages = languages
+                .iter()
+                .filter(|lang_link| {
+                    let lang = lang_link.language.name().to_lowercase();
+                    let query = text.to_lowercase();
+                    lang.contains(&query)
+                })
+                .map(|lang_link| lang_link.to_owned())
+                .collect::<Vec<LanguageLink>>();
+
+            siv.call_on_name(
+                ARTICLE_LANGUAGE_SELECTION_NAME,
+                move |language_selection: &mut SelectView<LanguageLink>| {
+                    language_selection.clear();
+                    language_selection.add_all(
+                        sorted_languages
+                            .iter()
+                            .map(|lang_link| (lang_link.language.name(), lang_link.to_owned())),
+                    )
+                },
+            );
+        })
+        .on_submit(|siv, _| {
+            if let Some(Some(selected_language)) = siv.call_on_name(
+                ARTICLE_LANGUAGE_SELECTION_NAME,
+                |language_selection: &mut SelectView<LanguageLink>| language_selection.selection(),
+            ) {
+                siv.pop_layer();
+                change_article_language(siv, selected_language);
+            }
+        });
 
     let screen_size = siv.screen_size();
 

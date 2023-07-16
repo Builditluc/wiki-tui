@@ -24,6 +24,7 @@ pub struct ArticleView {
 
     last_size: Vec2,
 }
+
 impl ArticleView {
     /// Creates a new ArticleView with a given article as its content
     pub fn new(article: Article) -> Self {
@@ -157,7 +158,7 @@ impl ArticleView {
         }
 
         return EventResult::Consumed(Some(Callback::from_fn(move |s| {
-            article_language_selection_popup(s, available_languages.clone().unwrap(), |_, _| {})
+            article_language_selection_popup(s, available_languages.clone().unwrap())
         })));
     }
 }

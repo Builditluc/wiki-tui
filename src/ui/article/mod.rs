@@ -18,7 +18,7 @@ mod lines;
 mod view;
 pub type ArticleView = view::ArticleView;
 
-fn builder() -> ArticleBuilder<NoPageID, NoPage, NoUrl> {
+pub fn builder() -> ArticleBuilder<NoPageID, NoPage, NoUrl> {
     Article::builder().properties(vec![
         Property::Text,
         Property::Sections,
@@ -112,7 +112,7 @@ fn open_link(siv: &mut Cursive, target: String) {
 
 /// Helper function for displaying an article on the screen. This includes creating an article view
 /// and any errors it encountred are returned
-fn display_article(siv: &mut Cursive, article: Article) -> Result<()> {
+pub fn display_article(siv: &mut Cursive, article: Article) -> Result<()> {
     // if the search layer still exists, then remove it
     if siv
         .find_name::<TextView>("search_results_preview")
