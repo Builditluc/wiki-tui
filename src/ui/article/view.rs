@@ -143,7 +143,7 @@ impl ArticleView {
     }
 
     /// Lets the user choose from the available languages
-    fn list_article_language_switcher(&mut self) -> EventResult {
+    pub fn list_article_language_switcher(&mut self) -> EventResult {
         let available_languages = self.content.language_links();
 
         if available_languages.is_none() {
@@ -239,9 +239,6 @@ impl View for ArticleView {
                     s.content.select_prev_link();
                     s.check_and_update_viewport();
                     EventResult::consumed()
-                }
-                key if key == CONFIG.keybindings.toggle_article_language_selection => {
-                    s.list_article_language_switcher()
                 }
                 Event::Key(Key::Enter) if CONFIG.features.links => s.check_and_open_link(),
                 Event::Mouse {

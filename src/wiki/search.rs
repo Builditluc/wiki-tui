@@ -4,7 +4,7 @@ use serde::Deserialize;
 use serde_repr::Deserialize_repr;
 use std::fmt::Display;
 
-use super::language::{self, Language};
+use super::language::Language;
 
 fn action_query(params: Vec<(&str, String)>, url: String) -> Result<Response> {
     Client::new()

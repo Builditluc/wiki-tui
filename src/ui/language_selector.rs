@@ -166,12 +166,23 @@ fn change_article_language(siv: &mut Cursive, language_link: Rc<LanguageLink>) {
     }
 }
 
-pub fn article_language_selection_popup(siv: &mut Cursive, languages: Vec<LanguageLink>) {
+pub fn toggle_article_language_selection_popup(siv: &mut Cursive) {
     if siv.find_name::<RootLayout>(ARTICLE_POPUP_NAME).is_some() {
         siv.pop_layer();
         return;
     }
 
+    let article_view_name = format!("article_view-{}", siv.screen().len());
+    if let Some(event_result) = siv.call_on_name(&article_view_name, |view: &mut ArticleView| {
+        view.list_article_language_switcher()
+    }) {
+        event_result.process(siv);
+    } else {
+        display_message(siv, "Information", "No Article is open!")
+    }
+}
+
+pub fn article_language_selection_popup(siv: &mut Cursive, languages: Vec<LanguageLink>) {
     info!(
         "displaying '{}' article languages for selection",
         languages.len()
@@ -238,7 +249,7 @@ pub fn article_language_selection_popup(siv: &mut Cursive, languages: Vec<Langua
                     .scrollable(),
             )
             .input(true)
-            .with_name(POPUP_NAME)
+            .with_name(ARTICLE_POPUP_NAME)
             .with_panel()
             .title("Switch Article Language")
             .fixed_size((selection_width, selection_height)),
