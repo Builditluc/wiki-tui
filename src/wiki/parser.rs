@@ -205,6 +205,10 @@ impl<'a> Parser<'a> {
             attributes.insert("external".to_string(), String::new());
         }
 
+        if node.attr("class") == Some("new") {
+            attributes.insert("new_page".to_string(), String::new());
+        }
+
         attributes.insert("target".to_string(), target);
 
         self.elements.push(Element::new(

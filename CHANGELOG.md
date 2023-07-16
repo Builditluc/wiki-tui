@@ -1,10 +1,54 @@
+# v0.8.0 (Fri Jul 07 2023)
+
+:tada: This release contains work from a new contributor! :tada:
+
+Thank you, Enoumy ([@Enoumy](https://github.com/Enoumy)), for all your work!
+
+### Release Notes
+
+#### Correctly handle non-existent pages ([#186](https://github.com/Builditluc/wiki-tui/pull/186))
+
+When you now try to open a link leading to a page that doesn't exist yet, a warning will now pop up informing you about the missing page.
+
+#### Vim movements (ctrl+d, ctrl+u, gg, G) ([#180](https://github.com/Builditluc/wiki-tui/pull/180))
+
+The Vim keybindings `ctrl+d`, `ctrl+u`, `gg`, and `G` have been implemented!
+
+---
+
+#### Exciting New Features 🎉
+
+- Correctly handle non-existent pages [#186](https://github.com/Builditluc/wiki-tui/pull/186) ([@Builditluc](https://github.com/Builditluc))
+- Vim movements (ctrl+d, ctrl+u, gg, G) [#180](https://github.com/Builditluc/wiki-tui/pull/180) ([@Enoumy](https://github.com/Enoumy))
+
+#### Bug Fixes 🐛
+
+- Fix url encoded links [#181](https://github.com/Builditluc/wiki-tui/pull/181) ([@Builditluc](https://github.com/Builditluc))
+
+#### CI Pipeline and Dependency Updates
+
+- Bump select to v0.6 [#189](https://github.com/Builditluc/wiki-tui/pull/189) ([@Builditluc](https://github.com/Builditluc))
+
+#### Documentation Changes
+
+- Update and Improve the Documentation [#188](https://github.com/Builditluc/wiki-tui/pull/188) ([@Builditluc](https://github.com/Builditluc))
+
+#### Structure and Style Changes
+
+- Change default keybindings to vim [#185](https://github.com/Builditluc/wiki-tui/pull/185) ([@Builditluc](https://github.com/Builditluc))
+
+#### Authors: 3
+
+- [@Builditluc](https://github.com/Builditluc)
+- Enoumy ([@Enoumy](https://github.com/Enoumy))
+
+---
+
 # v0.7.0 (Thu May 18 2023)
 
 :tada: This release contains work from new contributors! :tada:
 
 Thanks for all your work!
-
-:heart: Imgbot ([@ImgBotApp](https://github.com/ImgBotApp))
 
 :heart: null[@cshjsc](https://github.com/cshjsc)
 
@@ -54,23 +98,15 @@ Please also check the docs to learn about what breaking changes have occurred si
 - Fix typo [#170](https://github.com/Builditluc/wiki-tui/pull/170) ([@falkwitte](https://github.com/falkwitte))
 - Update Documentation [#167](https://github.com/Builditluc/wiki-tui/pull/167) ([@Builditluc](https://github.com/Builditluc))
 - Add versioning to the documentation [#166](https://github.com/Builditluc/wiki-tui/pull/166) ([@Builditluc](https://github.com/Builditluc))
-- Add cshjsc as a contributor for code [#163](https://github.com/Builditluc/wiki-tui/pull/163) ([@allcontributors[bot]](https://github.com/allcontributors[bot]))
 
 #### Structure and Style Changes
 
 - Rework the Scrolling System [#164](https://github.com/Builditluc/wiki-tui/pull/164) ([@Builditluc](https://github.com/Builditluc))
 
-#### Other Changes
+#### Authors: 3
 
-- [ImgBot] Optimize images [#176](https://github.com/Builditluc/wiki-tui/pull/176) ([@ImgBotApp](https://github.com/ImgBotApp) [@imgbot[bot]](https://github.com/imgbot[bot]))
-
-#### Authors: 6
-
-- [@allcontributors[bot]](https://github.com/allcontributors[bot])
 - [@Builditluc](https://github.com/Builditluc)
 - [@cshjsc](https://github.com/cshjsc)
-- [@imgbot[bot]](https://github.com/imgbot[bot])
-- Imgbot ([@ImgBotApp](https://github.com/ImgBotApp))
 - krixcrox ([@falkwitte](https://github.com/falkwitte))
 
 ---
