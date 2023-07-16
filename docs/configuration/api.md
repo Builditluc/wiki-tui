@@ -33,6 +33,17 @@ You can hide the 'Changed language to ...' popup by disabling the following sett
 api.language_changed_popup = false
 ```
 
+### Hiding the article language changed popup
+
+:octicons-milstone-16: Default: `true`
+
+You can hide the 'Changed the language of your article to ...' popup by
+disabling the following setting
+
+```toml
+api.article_language_changed_popup = false
+```
+
 ### Supported Languages
 
 A list of all languages can be found here:

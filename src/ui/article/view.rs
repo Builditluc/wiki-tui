@@ -240,7 +240,9 @@ impl View for ArticleView {
                     s.check_and_update_viewport();
                     EventResult::consumed()
                 }
-                Event::Key(Key::F3) => s.list_article_language_switcher(),
+                key if key == CONFIG.keybindings.toggle_article_language_selection => {
+                    s.list_article_language_switcher()
+                }
                 Event::Key(Key::Enter) if CONFIG.features.links => s.check_and_open_link(),
                 Event::Mouse {
                     event: MouseEvent::Release(MouseButton::Left),

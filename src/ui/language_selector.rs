@@ -161,7 +161,9 @@ fn change_article_language(siv: &mut Cursive, language_link: Rc<LanguageLink>) {
         display_error(siv, err);
     }
 
-    display_message(siv, "Information", &success_msg);
+    if CONFIG.api_config.article_language_changed_popup {
+        display_message(siv, "Information", &success_msg);
+    }
 }
 
 pub fn article_language_selection_popup(siv: &mut Cursive, languages: Vec<LanguageLink>) {
