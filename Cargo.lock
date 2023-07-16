@@ -2155,7 +2155,7 @@ dependencies = [
 
 [[package]]
 name = "wiki-tui"
-version = "0.8.0"
+version = "0.8.1-pre"
 dependencies = [
  "anyhow",
  "backtrace",
@@ -2176,6 +2176,7 @@ dependencies = [
  "structopt",
  "syn 1.0.57",
  "toml",
+ "url",
  "urlencoding",
  "uuid",
 ]
