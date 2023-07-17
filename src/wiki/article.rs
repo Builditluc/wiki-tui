@@ -88,6 +88,35 @@ impl Element {
     }
 }
 
+pub mod link_data {
+    #[derive(Debug, Clone)]
+    pub struct InteralData {}
+    #[derive(Debug, Clone)]
+    pub struct AnchorData {}
+    #[derive(Debug, Clone)]
+    pub struct RedLinkData {}
+    #[derive(Debug, Clone)]
+    pub struct ExternalData {}
+    #[derive(Debug, Clone)]
+    pub struct ExternalToInteralData {}
+}
+
+#[derive(Debug, Clone)]
+pub enum Link {
+    /// Interal link to another page in the same wiki
+    Internal(link_data::InteralData),
+    /// Anchor to a specific section in the current page
+    /// Note: this only corresponds to anchors on the current page. For anchors in another page on
+    /// the same wiki, `LinkType::Internal` is used
+    Anchor(link_data::AnchorData),
+    /// A special type of link that leads to an internal page that doesn't exist yet
+    RedLink(link_data::RedLinkData),
+    /// External link to a page at another website
+    External(link_data::ExternalData),
+    /// External link to an interal page in the same wiki
+    ExternalToInternal(link_data::ExternalToInteralData),
+}
+
 #[derive(Debug, Deserialize)]
 pub struct LanguageLink {
     #[serde(rename = "langname")]
@@ -103,14 +132,6 @@ pub struct Category {
     sortkey: String,
     category: String,
     hidden: Option<bool>,
-}
-
-#[derive(Debug, Deserialize)]
-pub struct Link {
-    #[serde(rename = "ns")]
-    namespace: Namespace,
-    title: String,
-    exists: bool,
 }
 
 #[derive(Debug, Deserialize)]
@@ -187,7 +208,6 @@ pub struct Article {
     language_links: Option<Vec<LanguageLink>>,
     categories: Option<Vec<Category>>,
     categories_html: Option<String>,
-    links: Option<Vec<Link>>,
     templates: Option<Vec<Template>>,
     images: Option<Vec<String>>,
     external_links: Option<Vec<String>>,
@@ -231,8 +251,6 @@ pub enum Property {
     Categories,
     /// Gives the HTML version of the categories
     CategoriesHTML,
-    /// Gives the interal links in the parsed wikitext
-    Links,
     /// Gives the templates in the parsed wikitext
     Templates,
     /// Gives the images in the parsed wikitext
@@ -276,7 +294,6 @@ impl Display for Property {
             Property::LangLinks => write!(f, "langlinks"),
             Property::Categories => write!(f, "categories"),
             Property::CategoriesHTML => write!(f, "categorieshtml"),
-            Property::Links => write!(f, "links"),
             Property::Templates => write!(f, "templates"),
             Property::Images => write!(f, "images"),
             Property::ExternalLinks => write!(f, "externallinks"),
@@ -448,17 +465,6 @@ impl<I, P> ArticleBuilder<I, P, WithUrl> {
             .and_then(|x| x.as_str())
             .map(|x| x.to_owned());
 
-        let links = res_json
-            .get("parse")
-            .and_then(|x| x.get("links"))
-            .and_then(|x| x.as_array())
-            .map(|x| x.to_owned())
-            .map(|x| {
-                x.into_iter()
-                    .filter_map(|x| serde_json::from_value(x).ok())
-                    .collect::<Vec<Link>>()
-            });
-
         let templates = res_json
             .get("parse")
             .and_then(|x| x.get("templates"))
@@ -581,7 +587,6 @@ impl<I, P> ArticleBuilder<I, P, WithUrl> {
             language_links,
             categories,
             categories_html,
-            links,
             templates,
             images,
             external_links,
