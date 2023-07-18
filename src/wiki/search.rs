@@ -116,13 +116,14 @@ impl SearchResult {
 
 #[derive(Deserialize_repr, Debug, Clone)]
 #[repr(usize)]
+/// The 16 "real" namespaces, corresponding to actual pages
 pub enum Namespace {
-    Article = 0,
-    Talk = 1,
+    Main = 0,
+    MainTalk = 1,
     User = 2,
     UserTalk = 3,
-    Wikipedia = 4,
-    WikipediaTalk = 5,
+    Project = 4,
+    ProjectTalk = 5,
     File = 6,
     FileTalk = 7,
     MediaWiki = 8,
@@ -133,14 +134,6 @@ pub enum Namespace {
     HelpTalk = 13,
     Category = 14,
     CategoryTalk = 15,
-    Portal = 100,
-    PortalTalk = 101,
-    Draft = 118,
-    DraftTalk = 119,
-    TimedText = 710,
-    TimedTextTalk = 711,
-    Module = 828,
-    ModuleTalk = 829,
 }
 
 impl Display for Namespace {
