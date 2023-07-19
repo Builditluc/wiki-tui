@@ -5,21 +5,9 @@ use select::document::Document;
 use serde::Deserialize;
 use serde_repr::Deserialize_repr;
 use std::{collections::HashMap, fmt::Display};
+use url::Url;
 
 use super::{parser::Parser, search::Namespace};
-
-fn action_parse(params: Vec<(&str, String)>, url: String) -> Result<Response> {
-    Client::new()
-        .get(url)
-        .query(&[
-            ("action", "parse"),
-            ("format", "json"),
-            ("formatversion", "2"),
-        ])
-        .query(&params)
-        .send()
-        .context("failed sending the request")
-}
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub enum ElementType {
@@ -89,8 +77,18 @@ impl Element {
 }
 
 pub mod link_data {
+    use url::Url;
+
+    use crate::wiki::search::Namespace;
+
     #[derive(Debug, Clone)]
-    pub struct InteralData {}
+    pub struct InteralData {
+        namespace: Namespace,
+        page: String,
+        endpoint: Url,
+        anchor: Option<AnchorData>,
+    }
+
     #[derive(Debug, Clone)]
     pub struct AnchorData {}
     #[derive(Debug, Clone)]
@@ -228,7 +226,7 @@ pub struct Article {
 }
 
 impl Article {
-    pub fn builder() -> ArticleBuilder<NoPageID, NoPage, NoUrl> {
+    pub fn builder() -> ArticleBuilder<NoPageID, NoPage, NoEndpoint> {
         ArticleBuilder::default()
     }
 
@@ -323,27 +321,27 @@ pub struct Page(String);
 #[derive(Default)]
 pub struct NoPage;
 
-pub struct WithUrl(String);
+pub struct WithEndpoint(Url);
 #[derive(Default)]
-pub struct NoUrl;
+pub struct NoEndpoint;
 
 #[derive(Default)]
-pub struct ArticleBuilder<I, P, U> {
+pub struct ArticleBuilder<I, P, E> {
     pageid: I,
     page: P,
-    url: U,
+    endpoint: E,
     revision: Option<usize>,
     redirects: Option<bool>,
     properties: Option<Vec<Property>>,
 }
 
-impl<U> ArticleBuilder<NoPageID, NoPage, U> {
+impl<E> ArticleBuilder<NoPageID, NoPage, E> {
     /// Parse content of this page
-    pub fn pageid(self, pageid: usize) -> ArticleBuilder<PageID, NoPage, U> {
+    pub fn pageid(self, pageid: usize) -> ArticleBuilder<PageID, NoPage, E> {
         ArticleBuilder {
             pageid: PageID(pageid),
             page: self.page,
-            url: self.url,
+            endpoint: self.endpoint,
             revision: self.revision,
             redirects: self.redirects,
             properties: self.properties,
@@ -351,11 +349,11 @@ impl<U> ArticleBuilder<NoPageID, NoPage, U> {
     }
 
     /// Parse content of this page
-    pub fn page(self, page: impl Into<String>) -> ArticleBuilder<NoPageID, Page, U> {
+    pub fn page(self, page: impl Into<String>) -> ArticleBuilder<NoPageID, Page, E> {
         ArticleBuilder {
             pageid: self.pageid,
             page: Page(page.into()),
-            url: self.url,
+            endpoint: self.endpoint,
             revision: self.revision,
             redirects: self.redirects,
             properties: self.properties,
@@ -363,12 +361,12 @@ impl<U> ArticleBuilder<NoPageID, NoPage, U> {
     }
 }
 
-impl<I, P> ArticleBuilder<I, P, NoUrl> {
-    pub fn url(self, url: impl Into<String>) -> ArticleBuilder<I, P, WithUrl> {
+impl<I, P> ArticleBuilder<I, P, NoEndpoint> {
+    pub fn from_url(self, url: impl Into<Url>) -> ArticleBuilder<I, P, WithEndpoint> {
         ArticleBuilder {
             pageid: self.pageid,
             page: self.page,
-            url: WithUrl(url.into()),
+            endpoint: WithEndpoint(url.into()),
             revision: self.revision,
             redirects: self.redirects,
             properties: self.properties,
@@ -396,8 +394,25 @@ impl<I, P, U> ArticleBuilder<I, P, U> {
     }
 }
 
-impl<I, P> ArticleBuilder<I, P, WithUrl> {
+impl<I, P> ArticleBuilder<I, P, WithEndpoint> {
     fn fetch_with_params(self, mut params: Vec<(&str, String)>) -> Result<Article> {
+        fn action_parse(params: Vec<(&str, String)>, endpoint: Url) -> Result<Response> {
+            Client::new()
+                .get(endpoint)
+                .query(&[
+                    ("action", "parse"),
+                    ("format", "json"),
+                    ("formatversion", "2"),
+                ])
+                .query(&params)
+                .send()
+                .map(|response| {
+                    debug!("response url: '{}'", response.url().as_str());
+                    response
+                })
+                .context("failed sending the request")
+        }
+
         if let Some(revision) = self.revision {
             params.push(("revid", revision.to_string()));
         }
@@ -406,7 +421,7 @@ impl<I, P> ArticleBuilder<I, P, WithUrl> {
             params.push(("redirects", redirects.to_string()));
         }
 
-        if let Some(prop) = self.properties {
+        if let Some(ref prop) = self.properties {
             let mut prop_str = String::new();
             for prop in prop {
                 prop_str.push('|');
@@ -415,14 +430,19 @@ impl<I, P> ArticleBuilder<I, P, WithUrl> {
             params.push(("prop", prop_str));
         }
 
-        let response = action_parse(params, self.url.0)?
+        let response = action_parse(params, self.endpoint.0.clone())?
             .error_for_status()
-            .context("recieved an error")?;
+            .context("the server returned an error")?;
 
         let res_json: serde_json::Value =
             serde_json::from_str(&response.text().context("failed reading the response")?)
-                .context("failed reading the response as json")?;
+                .context("failed interpreting the response as json")?;
 
+        self.serialize_result(res_json)
+            .context("failed serializing the returned response")
+    }
+
+    fn serialize_result(&self, res_json: serde_json::Value) -> Result<Article> {
         let title = res_json
             .get("parse")
             .and_then(|x| x.get("title"))
@@ -608,14 +628,14 @@ impl<I, P> ArticleBuilder<I, P, WithUrl> {
     }
 }
 
-impl ArticleBuilder<PageID, NoPage, WithUrl> {
+impl ArticleBuilder<PageID, NoPage, WithEndpoint> {
     pub fn fetch(self) -> Result<Article> {
         let param = vec![("pageid", self.pageid.0.to_string())];
         self.fetch_with_params(param)
     }
 }
 
-impl ArticleBuilder<NoPageID, Page, WithUrl> {
+impl ArticleBuilder<NoPageID, Page, WithEndpoint> {
     pub fn fetch(self) -> Result<Article> {
         let param = vec![("page", self.page.0.to_string())];
         self.fetch_with_params(param)
