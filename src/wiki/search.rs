@@ -116,7 +116,18 @@ impl SearchResult {
 
 #[derive(Deserialize_repr, Debug, Clone)]
 #[repr(usize)]
-/// The 16 "real" namespaces, corresponding to actual pages
+/// The 16 "real" namespaces, corresponding to actual pages. This only includes the default
+/// namespaces as defined by MediaWiki. They are:
+/// - Main
+/// - User
+/// - Project
+/// - File
+/// - MediaWiki
+/// - Template
+/// - Help
+/// - Category
+///
+/// All of those namespaces also include a "Talk" namespaces
 pub enum Namespace {
     Main = 0,
     MainTalk = 1,
