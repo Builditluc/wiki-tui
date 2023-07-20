@@ -3,10 +3,11 @@ use std::collections::HashMap;
 use anyhow::Result;
 use cursive::theme::{Effect, Style};
 use select::{document::Document, node::Node, predicate::Class};
+use url::Url;
 
 use crate::config;
 
-use super::article::{Element, ElementType, Section};
+use super::article::{Element, ElementType, Link, Section};
 
 const SHOW_UNSUPPORTED: bool = false;
 const LIST_MARKER: char = '-';
@@ -267,5 +268,137 @@ impl<'a> Parser<'a> {
         self.parse_effect(node, Effect::Italic);
         self.push_newline();
         self.push_newline();
+    }
+}
+
+fn parse_href_to_link(
+    endpoint: Url,
+    href: impl Into<String>,
+    page: Option<impl Into<String>>,
+) -> Result<Link> {
+    todo!()
+}
+
+#[cfg(test)]
+mod tests {
+    use url::Url;
+
+    use crate::wiki::{
+        article::{
+            link_data::{AnchorData, InternalData},
+            Link,
+        },
+        search::Namespace,
+    };
+
+    use super::parse_href_to_link;
+
+    const ENDPOINT: &str = "https://en.wikipedia.org/w/api.php";
+
+    fn internal_link(
+        namespace: Namespace,
+        page: impl Into<String>,
+        endpoint: Url,
+        anchor: Option<AnchorData>,
+    ) -> Link {
+        Link::Internal(InternalData {
+            namespace,
+            page: page.into(),
+            endpoint,
+            anchor,
+        })
+    }
+
+    fn anchor_data(anchor: impl Into<String>, title: impl Into<String>) -> AnchorData {
+        AnchorData {
+            anchor: anchor.into(),
+            title: title.into(),
+        }
+    }
+
+    fn endpoint() -> Url {
+        Url::parse(ENDPOINT).expect("hard-coded endpoint should be valid")
+    }
+
+    #[test]
+    fn test_parse_link_unknown_namespace() {
+        let error = parse_href_to_link(
+            endpoint(),
+            "/wiki/UnknownNamespace:Main_Page",
+            Some("Main Page"),
+        )
+        .unwrap_err();
+
+        assert_eq!(
+            &error.root_cause().to_string(),
+            "unknown namespace: 'UnknownNamespace'"
+        );
+    }
+
+    #[test]
+    fn test_parse_link_invalid_link() {
+        assert!(parse_href_to_link(endpoint(), "/invalid/hello", Some("hello")).is_err())
+    }
+
+    #[test]
+    fn test_parse_internal_link_no_namespace() {
+        assert_eq!(
+            parse_href_to_link(endpoint(), "/wiki/Main_Page", Some("Main Page")).unwrap(),
+            internal_link(Namespace::Main, "Main Page", endpoint(), None)
+        )
+    }
+
+    #[test]
+    fn test_parse_internal_link_with_namespace() {
+        assert_eq!(
+            parse_href_to_link(endpoint(), "/wiki/Help:Contents", Some("Help:Contents")).unwrap(),
+            internal_link(Namespace::Help, "Help:Contents", endpoint(), None)
+        );
+
+        assert_eq!(
+            parse_href_to_link(
+                endpoint(),
+                "/wiki/Help:Editing_pages",
+                Some("Help:Editing pages")
+            )
+            .unwrap(),
+            internal_link(Namespace::Help, "Help:Editing pages", endpoint(), None)
+        );
+    }
+
+    #[test]
+    fn test_parse_internal_link_with_anchor() {
+        assert_eq!(
+            parse_href_to_link(
+                endpoint(),
+                "/wiki/Help:Editing_pages#Preview",
+                Some("Help:Editing pages")
+            )
+            .unwrap(),
+            internal_link(
+                Namespace::Help,
+                "Help:Editing pages",
+                endpoint(),
+                Some(anchor_data("Preview", "Preview"))
+            )
+        );
+    }
+
+    #[test]
+    fn test_parse_internal_link_with_anchor_whitespace() {
+        assert_eq!(
+            parse_href_to_link(
+                endpoint(),
+                "/wiki/Help:Editing_pages#See_also",
+                Some("Help:Editing pages")
+            )
+            .unwrap(),
+            internal_link(
+                Namespace::Help,
+                "Help:Editing pages",
+                endpoint(),
+                Some(anchor_data("See_also", "See also"))
+            )
+        );
     }
 }

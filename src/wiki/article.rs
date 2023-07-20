@@ -81,28 +81,32 @@ pub mod link_data {
 
     use crate::wiki::search::Namespace;
 
-    #[derive(Debug, Clone)]
-    pub struct InteralData {
-        namespace: Namespace,
-        page: String,
-        endpoint: Url,
-        anchor: Option<AnchorData>,
+    #[derive(Debug, Clone, PartialEq)]
+    pub struct InternalData {
+        pub namespace: Namespace,
+        pub page: String,
+        pub endpoint: Url,
+        pub anchor: Option<AnchorData>,
     }
 
-    #[derive(Debug, Clone)]
-    pub struct AnchorData {}
-    #[derive(Debug, Clone)]
+    #[derive(Debug, Clone, PartialEq)]
+    pub struct AnchorData {
+        pub anchor: String,
+        pub title: String,
+    }
+
+    #[derive(Debug, Clone, PartialEq)]
     pub struct RedLinkData {}
-    #[derive(Debug, Clone)]
+    #[derive(Debug, Clone, PartialEq)]
     pub struct ExternalData {}
-    #[derive(Debug, Clone)]
+    #[derive(Debug, Clone, PartialEq)]
     pub struct ExternalToInteralData {}
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Link {
     /// Interal link to another page in the same wiki
-    Internal(link_data::InteralData),
+    Internal(link_data::InternalData),
     /// Anchor to a specific section in the current page
     /// Note: this only corresponds to anchors on the current page. For anchors in another page on
     /// the same wiki, `LinkType::Internal` is used
