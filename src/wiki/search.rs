@@ -2,7 +2,7 @@ use anyhow::{Context, Result};
 use reqwest::blocking::{Client, Response};
 use serde::Deserialize;
 use serde_repr::Deserialize_repr;
-use std::fmt::Display;
+use std::{convert::TryFrom, fmt::Display};
 
 fn action_query(params: Vec<(&str, String)>, url: String) -> Result<Response> {
     Client::new()
@@ -150,6 +150,30 @@ pub enum Namespace {
 impl Display for Namespace {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.clone())
+    }
+}
+
+impl Namespace {
+    pub fn from_str(namespace: &str) -> Result<Namespace> {
+        match namespace.to_lowercase().as_str() {
+            "main" => Ok(Namespace::Main),
+            "maintalk" => Ok(Namespace::MainTalk),
+            "user" => Ok(Namespace::User),
+            "usertalk" => Ok(Namespace::UserTalk),
+            "project" => Ok(Namespace::Project),
+            "projecttalk" => Ok(Namespace::ProjectTalk),
+            "file" => Ok(Namespace::File),
+            "filetalk" => Ok(Namespace::FileTalk),
+            "mediawiki" => Ok(Namespace::MediaWiki),
+            "mediawikitalk" => Ok(Namespace::MediaWikiTalk),
+            "template" => Ok(Namespace::Template),
+            "templatetalk" => Ok(Namespace::TemplateTalk),
+            "help" => Ok(Namespace::Help),
+            "helptalk" => Ok(Namespace::HelpTalk),
+            "category" => Ok(Namespace::Category),
+            "categorytalk" => Ok(Namespace::CategoryTalk),
+            _ => bail!("invalid namespace '{}'", namespace),
+        }
     }
 }
 
