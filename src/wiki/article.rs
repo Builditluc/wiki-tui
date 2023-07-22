@@ -85,6 +85,7 @@ pub mod link_data {
     pub struct InternalData {
         pub namespace: Namespace,
         pub page: String,
+        pub title: String,
         pub endpoint: Url,
         pub anchor: Option<AnchorData>,
     }

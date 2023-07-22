@@ -1,11 +1,17 @@
 use std::collections::HashMap;
 
-use anyhow::Result;
+use anyhow::{Context, Result};
 use cursive::theme::{Effect, Style};
 use select::{document::Document, node::Node, predicate::Class};
 use url::Url;
 
-use crate::config;
+use crate::{
+    config,
+    wiki::{
+        article::link_data::{AnchorData, InternalData},
+        search::Namespace,
+    },
+};
 
 use super::article::{Element, ElementType, Link, Section};
 
@@ -274,9 +280,76 @@ impl<'a> Parser<'a> {
 fn parse_href_to_link(
     endpoint: Url,
     href: impl Into<String>,
-    page: Option<impl Into<String>>,
+    title: Option<impl Into<String>>,
 ) -> Result<Link> {
-    todo!()
+    let href: String = href.into();
+    let title: Option<String> = title.map(|title| title.into());
+
+    debug!("parsing the link '{}'", href);
+    debug!("link title: '{:?}'", title);
+    debug!("link endpoint: '{}'", endpoint.as_str());
+
+    // the prefix /wiki/ indicates that the link is a internal link
+    const INTERNAL_LINK_PREFIX: &str = "/wiki/";
+    // the character used to separate the namespace and the page
+    const NAMESPACE_DELIMITER: char = ':';
+    // the character used to separate the page and the anchor
+    const ANCHOR_DELIMITER: char = '#';
+
+    if href.starts_with(INTERNAL_LINK_PREFIX) {
+        if title.is_none() {
+            bail!("internal link with missing title");
+        }
+        return parse_internal_link(href, title.expect("'title' should have data"), endpoint)
+            .context("failed parsing the internal link");
+    }
+
+    fn parse_internal_link(href: String, title: String, endpoint: Url) -> Result<Link> {
+        debug!("link is internal");
+        let mut href = href
+            .strip_prefix(INTERNAL_LINK_PREFIX)
+            .context("failed removing INTERNAL_LINK_PREFIX")?;
+        let mut namespace = Namespace::Main;
+        let mut anchor: Option<AnchorData> = None;
+
+        if href.contains(NAMESPACE_DELIMITER) {
+            debug!("link contains a namespace");
+            let (namespace_str, href_split) = href
+                .split_once(NAMESPACE_DELIMITER)
+                .context("failed splitting at NAMESPACE_DELIMITER")?;
+
+            href = href_split;
+            namespace =
+                Namespace::from_str(namespace_str).context("failed parsing the namespace")?;
+
+            debug!("link namespace: '{}'", namespace);
+        }
+
+        if href.contains(ANCHOR_DELIMITER) {
+            debug!("link contains an anchor");
+            let (page_ref, anchor_str) = href
+                .split_once(ANCHOR_DELIMITER)
+                .context("failed splitting at ANCHOR_DELIMITER")?;
+
+            href = page_ref;
+            anchor = Some(AnchorData {
+                anchor: anchor_str.to_string(),
+                title: anchor_str.replace('_', " "),
+            });
+
+            debug!("link anchor: '{}'", anchor_str);
+        }
+
+        Ok(Link::Internal(InternalData {
+            namespace,
+            page: href.to_string(),
+            title,
+            endpoint,
+            anchor,
+        }))
+    }
+
+    bail!("invalid link")
 }
 
 #[cfg(test)]
@@ -298,12 +371,14 @@ mod tests {
     fn internal_link(
         namespace: Namespace,
         page: impl Into<String>,
+        title: impl Into<String>,
         endpoint: Url,
         anchor: Option<AnchorData>,
     ) -> Link {
         Link::Internal(InternalData {
             namespace,
             page: page.into(),
+            title: title.into(),
             endpoint,
             anchor,
         })
@@ -331,7 +406,7 @@ mod tests {
 
         assert_eq!(
             &error.root_cause().to_string(),
-            "unknown namespace: 'UnknownNamespace'"
+            "invalid namespace 'UnknownNamespace'"
         );
     }
 
@@ -344,7 +419,7 @@ mod tests {
     fn test_parse_internal_link_no_namespace() {
         assert_eq!(
             parse_href_to_link(endpoint(), "/wiki/Main_Page", Some("Main Page")).unwrap(),
-            internal_link(Namespace::Main, "Main Page", endpoint(), None)
+            internal_link(Namespace::Main, "Main_Page", "Main Page", endpoint(), None)
         )
     }
 
@@ -352,7 +427,13 @@ mod tests {
     fn test_parse_internal_link_with_namespace() {
         assert_eq!(
             parse_href_to_link(endpoint(), "/wiki/Help:Contents", Some("Help:Contents")).unwrap(),
-            internal_link(Namespace::Help, "Help:Contents", endpoint(), None)
+            internal_link(
+                Namespace::Help,
+                "Contents",
+                "Help:Contents",
+                endpoint(),
+                None
+            )
         );
 
         assert_eq!(
@@ -362,7 +443,13 @@ mod tests {
                 Some("Help:Editing pages")
             )
             .unwrap(),
-            internal_link(Namespace::Help, "Help:Editing pages", endpoint(), None)
+            internal_link(
+                Namespace::Help,
+                "Editing_pages",
+                "Help:Editing pages",
+                endpoint(),
+                None
+            )
         );
     }
 
@@ -377,6 +464,7 @@ mod tests {
             .unwrap(),
             internal_link(
                 Namespace::Help,
+                "Editing_pages",
                 "Help:Editing pages",
                 endpoint(),
                 Some(anchor_data("Preview", "Preview"))
@@ -395,6 +483,7 @@ mod tests {
             .unwrap(),
             internal_link(
                 Namespace::Help,
+                "Editing_pages",
                 "Help:Editing pages",
                 endpoint(),
                 Some(anchor_data("See_also", "See also"))
