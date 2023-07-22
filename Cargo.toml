@@ -45,6 +45,7 @@ structopt = "0.3.25"
 chrono = "0.4"
 url = "2.4.0"
 urlencoding = "2.1.2"
+snafu = "0.7"
 
 [dependencies.cursive]
 version = "0.20"
