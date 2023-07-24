@@ -240,6 +240,7 @@ impl Article {
     }
 }
 
+#[derive(Clone)]
 /// Which pieces of information to get about the article
 pub enum Property {
     /// Gives the parsed text of the wikitext
@@ -368,6 +369,17 @@ impl<I, P> ArticleBuilder<I, P, NoEndpoint> {
             pageid: self.pageid,
             page: self.page,
             endpoint: WithEndpoint(url.into()),
+            revision: self.revision,
+            redirects: self.redirects,
+            properties: self.properties,
+        }
+    }
+
+    pub fn endpoint(self, endpoint: Url) -> ArticleBuilder<I, P, WithEndpoint> {
+        ArticleBuilder {
+            pageid: self.pageid,
+            page: self.page,
+            endpoint: WithEndpoint(endpoint),
             revision: self.revision,
             redirects: self.redirects,
             properties: self.properties,

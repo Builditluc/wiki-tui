@@ -203,8 +203,8 @@ impl<'a> Parser<'a> {
         }
 
         let target = target.expect("'title' missing after check").to_string();
-        let link = match parse_href_to_link(self.endpoint.clone(), target, title)
-            .context("failed parsing the link")
+        let link = match parse_href_to_link(self.endpoint.clone(), target.clone(), title)
+            .with_context(move || format!("failed parsing the link '{}'", target))
         {
             Ok(link) => link,
             Err(error) => {
