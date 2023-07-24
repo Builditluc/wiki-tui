@@ -238,8 +238,8 @@ impl View for ArticleView {
                 } => {
                     if let Some(element) = s.content.element_by_pos(position.saturating_sub(offset))
                     {
-                        return match element.kind() {
-                            ElementType::Link if CONFIG.features.links => {
+                        return match element.kind {
+                            ElementType::Link(_) if CONFIG.features.links => {
                                 s.content.select_link_by_id(element.id());
                                 s.check_and_open_link()
                             }

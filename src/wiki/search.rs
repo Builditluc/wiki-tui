@@ -114,7 +114,7 @@ impl SearchResult {
     }
 }
 
-#[derive(Deserialize_repr, Debug, Clone, PartialEq)]
+#[derive(Deserialize_repr, Debug, Clone, PartialEq, Eq)]
 #[repr(usize)]
 /// The 16 "real" namespaces, corresponding to actual pages. This only includes the default
 /// namespaces as defined by MediaWiki. They are:

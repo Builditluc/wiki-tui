@@ -9,11 +9,11 @@ use url::Url;
 
 use super::{parser::Parser, search::Namespace};
 
-#[derive(Debug, PartialEq, Eq, Clone, Copy)]
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub enum ElementType {
     Text,
     Newline,
-    Link,
+    Link(Link),
     Header,
     Unsupported,
     ListMarker,
@@ -22,7 +22,7 @@ pub enum ElementType {
 #[derive(Debug, Clone)]
 pub struct Element {
     id: usize,
-    kind: ElementType,
+    pub kind: ElementType,
     content: String,
     style: Style,
     width: usize,
@@ -52,10 +52,6 @@ impl Element {
         self.id
     }
 
-    pub fn kind(&self) -> ElementType {
-        self.kind
-    }
-
     pub fn content(&self) -> &str {
         &self.content
     }
@@ -81,7 +77,7 @@ pub mod link_data {
 
     use crate::wiki::search::Namespace;
 
-    #[derive(Debug, Clone, PartialEq)]
+    #[derive(Debug, Clone, PartialEq, Eq)]
     pub struct InternalData {
         pub namespace: Namespace,
         pub page: String,
@@ -90,21 +86,21 @@ pub mod link_data {
         pub anchor: Option<AnchorData>,
     }
 
-    #[derive(Debug, Clone, PartialEq)]
+    #[derive(Debug, Clone, PartialEq, Eq)]
     pub struct AnchorData {
         pub anchor: String,
         pub title: String,
     }
 
-    #[derive(Debug, Clone, PartialEq)]
+    #[derive(Debug, Clone, PartialEq, Eq)]
     pub struct RedLinkData {}
-    #[derive(Debug, Clone, PartialEq)]
+    #[derive(Debug, Clone, PartialEq, Eq)]
     pub struct ExternalData {}
-    #[derive(Debug, Clone, PartialEq)]
+    #[derive(Debug, Clone, PartialEq, Eq)]
     pub struct ExternalToInteralData {}
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Link {
     /// Interal link to another page in the same wiki
     Internal(link_data::InternalData),
@@ -562,7 +558,9 @@ impl<I, P> ArticleBuilder<I, P, WithEndpoint> {
             .get("parse")
             .and_then(|x| x.get("text"))
             .and_then(|x| x.as_str())
-            .and_then(|x| Parser::parse_document(x, &title, sections.as_ref()).ok());
+            .and_then(|x| {
+                Parser::parse_document(x, &title, sections.as_ref(), self.endpoint.0.clone()).ok()
+            });
 
         let revision_id = res_json
             .get("parse")

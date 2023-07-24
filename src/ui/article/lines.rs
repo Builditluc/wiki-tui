@@ -91,7 +91,7 @@ impl LinesWrapper {
         // go through every elment
         for element in self.elements.iter() {
             // does this element go onto a new line?
-            if element.kind() == ElementType::Newline {
+            if element.kind == ElementType::Newline {
                 // "add" the element onto a new line
                 self.current_line = Line::new();
                 self.current_width = element.width();
@@ -130,20 +130,20 @@ impl LinesWrapper {
     pub fn wrap_lines(mut self) -> Self {
         debug!("wrapping the lines");
 
-        let mut last_type: ElementType = ElementType::Text;
+        let mut last_type: &ElementType = &ElementType::Text;
 
         // go through every element
         for element in self.elements.clone().iter() {
             // is this a link?
-            let is_link = element.kind() == ElementType::Link;
+            let is_link = matches!(element.kind, ElementType::Link(..));
 
             // does this element go onto a new line?
-            if element.kind() == ElementType::Newline {
+            if element.kind == ElementType::Newline {
                 // fill the current line and make the next one blank
                 self.fill_line();
                 self.newline();
 
-                last_type = element.kind();
+                last_type = &element.kind;
                 continue;
             }
 
@@ -166,7 +166,7 @@ impl LinesWrapper {
             // of a line, add a leading whitespace
             if (!element.content().starts_with([',', '.', ';', ':'])
                 && !self.current_line.is_empty())
-                || last_type == ElementType::ListMarker
+                || last_type == &ElementType::ListMarker
             {
                 self.push_whitespace();
             }
@@ -180,7 +180,7 @@ impl LinesWrapper {
                     }
                     // then add it to the merged element
                     merged_element.push_str(span);
-                    last_type = element.kind();
+                    last_type = &element.kind;
                     continue;
                 }
 
@@ -219,7 +219,7 @@ impl LinesWrapper {
                     }
                     // then add it to the merged element
                     merged_element.push_str(span);
-                    last_type = element.kind();
+                    last_type = &element.kind;
                     continue;
                 }
             }

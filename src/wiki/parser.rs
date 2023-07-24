@@ -131,7 +131,7 @@ impl<'a> Parser<'a> {
     fn is_last_newline(&self) -> bool {
         self.elements
             .last()
-            .map(|x| x.kind() == ElementType::Newline)
+            .map(|x| x.kind == ElementType::Newline)
             .unwrap_or(false)
     }
 
@@ -195,30 +195,34 @@ impl<'a> Parser<'a> {
 
     fn parse_link(&mut self, node: Node) {
         let target = node.attr("href");
+        let title = node.attr("title");
 
         if target.is_none() {
+            warn!("'target' missing from link");
             return;
         }
 
-        let mut target = target.unwrap().to_string();
-
-        //let link = parse_href_to_link(self.endpoint.clone(), target, title);
-
-        /*
-        if target.starts_with("https://") || target.starts_with("http://") {
-            attributes.insert("external".to_string(), String::new());
-        }
-
-        if node.attr("class") == Some("new") {
-            attributes.insert("new_page".to_string(), String::new());
-        }
-
-        attributes.insert("target".to_string(), target);
-        */
+        let target = target.expect("'title' missing after check").to_string();
+        let link = match parse_href_to_link(self.endpoint.clone(), target, title)
+            .context("failed parsing the link")
+        {
+            Ok(link) => link,
+            Err(error) => {
+                warn!("{:?}", error);
+                self.elements.push(Element::new(
+                    self.next_id(),
+                    ElementType::Text,
+                    node.text(),
+                    self.combine_effects(Style::from(config::CONFIG.theme.text)),
+                    HashMap::new(),
+                ));
+                return;
+            }
+        };
 
         self.elements.push(Element::new(
             self.next_id(),
-            ElementType::Link,
+            ElementType::Link(link),
             node.text(),
             self.combine_effects(Style::from(config::CONFIG.theme.text).combine(Effect::Underline)),
             HashMap::new(),
