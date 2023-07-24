@@ -154,25 +154,25 @@ impl Display for Namespace {
 }
 
 impl Namespace {
-    pub fn from_str(namespace: &str) -> Result<Namespace> {
+    pub fn from_str(namespace: &str) -> Option<Namespace> {
         match namespace.to_lowercase().as_str() {
-            "main" => Ok(Namespace::Main),
-            "maintalk" => Ok(Namespace::MainTalk),
-            "user" => Ok(Namespace::User),
-            "usertalk" => Ok(Namespace::UserTalk),
-            "project" => Ok(Namespace::Project),
-            "projecttalk" => Ok(Namespace::ProjectTalk),
-            "file" => Ok(Namespace::File),
-            "filetalk" => Ok(Namespace::FileTalk),
-            "mediawiki" => Ok(Namespace::MediaWiki),
-            "mediawikitalk" => Ok(Namespace::MediaWikiTalk),
-            "template" => Ok(Namespace::Template),
-            "templatetalk" => Ok(Namespace::TemplateTalk),
-            "help" => Ok(Namespace::Help),
-            "helptalk" => Ok(Namespace::HelpTalk),
-            "category" => Ok(Namespace::Category),
-            "categorytalk" => Ok(Namespace::CategoryTalk),
-            _ => bail!("invalid namespace '{}'", namespace),
+            "main" => Some(Namespace::Main),
+            "maintalk" => Some(Namespace::MainTalk),
+            "user" => Some(Namespace::User),
+            "usertalk" => Some(Namespace::UserTalk),
+            "project" => Some(Namespace::Project),
+            "projecttalk" => Some(Namespace::ProjectTalk),
+            "file" => Some(Namespace::File),
+            "filetalk" => Some(Namespace::FileTalk),
+            "mediawiki" => Some(Namespace::MediaWiki),
+            "mediawikitalk" => Some(Namespace::MediaWikiTalk),
+            "template" => Some(Namespace::Template),
+            "templatetalk" => Some(Namespace::TemplateTalk),
+            "help" => Some(Namespace::Help),
+            "helptalk" => Some(Namespace::HelpTalk),
+            "category" => Some(Namespace::Category),
+            "categorytalk" => Some(Namespace::CategoryTalk),
+            _ => None,
         }
     }
 }

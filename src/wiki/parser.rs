@@ -3,6 +3,7 @@ use std::collections::HashMap;
 use anyhow::{Context, Result};
 use cursive::theme::{Effect, Style};
 use select::{document::Document, node::Node, predicate::Class};
+use snafu::{ensure, Snafu};
 use url::Url;
 
 use crate::{
@@ -20,6 +21,7 @@ const LIST_MARKER: char = '-';
 const DISAMBIGUATION_MARKER: char = '|';
 
 pub struct Parser<'a> {
+    endpoint: Url,
     elements: Vec<Element>,
     current_effects: Vec<Effect>,
     sections: Option<&'a Vec<Section>>,
@@ -30,10 +32,12 @@ impl<'a> Parser<'a> {
         document: &'a str,
         title: &'a str,
         sections: Option<&Vec<Section>>,
+        endpoint: Url,
     ) -> Result<Vec<Element>> {
         let document = Document::from(document);
 
         let mut parser = Parser {
+            endpoint,
             elements: Vec::new(),
             current_effects: Vec::new(),
             sections,
@@ -198,16 +202,9 @@ impl<'a> Parser<'a> {
 
         let mut target = target.unwrap().to_string();
 
-        let mut attributes = HashMap::new();
+        //let link = parse_href_to_link(self.endpoint.clone(), target, title);
 
-        match urlencoding::decode(target.as_ref()) {
-            Ok(decoded_target) => target = decoded_target.to_string(),
-            Err(err) => {
-                warn!("{:?}", err);
-                attributes.insert("decoding_error".to_string(), String::new());
-            }
-        };
-
+        /*
         if target.starts_with("https://") || target.starts_with("http://") {
             attributes.insert("external".to_string(), String::new());
         }
@@ -217,13 +214,14 @@ impl<'a> Parser<'a> {
         }
 
         attributes.insert("target".to_string(), target);
+        */
 
         self.elements.push(Element::new(
             self.next_id(),
             ElementType::Link,
             node.text(),
             self.combine_effects(Style::from(config::CONFIG.theme.text).combine(Effect::Underline)),
-            attributes,
+            HashMap::new(),
         ));
     }
 
@@ -277,12 +275,31 @@ impl<'a> Parser<'a> {
     }
 }
 
+#[derive(Debug, Clone, PartialEq, Snafu)]
+pub enum ParsingError {
+    #[snafu(display("The link leads to an invalid namespace: '{namespace}'"))]
+    InvalidNamespace { namespace: String },
+
+    #[snafu(display("The link is missing data: '{data}'"))]
+    MissingData { data: String },
+
+    #[snafu(display("Error while processing the link: '{process}'"))]
+    ProcessingFailure { process: String },
+
+    #[snafu(display("Link is not UTF-8 encoded"))]
+    InvalidEncoding,
+}
+
 fn parse_href_to_link(
     endpoint: Url,
     href: impl Into<String>,
     title: Option<impl Into<String>>,
-) -> Result<Link> {
-    let href: String = href.into();
+) -> Result<Link, ParsingError> {
+    let href: String = match urlencoding::decode(&href.into()) {
+        Ok(href) => href.into_owned(),
+        Err(_) => return Err(ParsingError::InvalidEncoding),
+    };
+
     let title: Option<String> = title.map(|title| title.into());
 
     debug!("parsing the link '{}'", href);
@@ -297,39 +314,50 @@ fn parse_href_to_link(
     const ANCHOR_DELIMITER: char = '#';
 
     if href.starts_with(INTERNAL_LINK_PREFIX) {
-        if title.is_none() {
-            bail!("internal link with missing title");
-        }
-        return parse_internal_link(href, title.expect("'title' should have data"), endpoint)
-            .context("failed parsing the internal link");
+        let title = title.ok_or(ParsingError::MissingData {
+            data: "title".to_string(),
+        })?;
+        return parse_internal_link(href, title, endpoint);
     }
 
-    fn parse_internal_link(href: String, title: String, endpoint: Url) -> Result<Link> {
+    fn parse_internal_link(
+        href: String,
+        title: String,
+        endpoint: Url,
+    ) -> Result<Link, ParsingError> {
         debug!("link is internal");
-        let mut href = href
-            .strip_prefix(INTERNAL_LINK_PREFIX)
-            .context("failed removing INTERNAL_LINK_PREFIX")?;
+        let mut href =
+            href.strip_prefix(INTERNAL_LINK_PREFIX)
+                .ok_or(ParsingError::ProcessingFailure {
+                    process: "removing INTERNAL_LINK_PREFIX".to_string(),
+                })?;
         let mut namespace = Namespace::Main;
         let mut anchor: Option<AnchorData> = None;
 
         if href.contains(NAMESPACE_DELIMITER) {
             debug!("link contains a namespace");
-            let (namespace_str, href_split) = href
-                .split_once(NAMESPACE_DELIMITER)
-                .context("failed splitting at NAMESPACE_DELIMITER")?;
+            let (namespace_str, href_split) =
+                href.split_once(NAMESPACE_DELIMITER)
+                    .ok_or(ParsingError::ProcessingFailure {
+                        process: "splitting at NAMESPACE_DELIMITER".to_string(),
+                    })?;
 
             href = href_split;
             namespace =
-                Namespace::from_str(namespace_str).context("failed parsing the namespace")?;
+                Namespace::from_str(namespace_str).ok_or(ParsingError::InvalidNamespace {
+                    namespace: namespace_str.to_string(),
+                })?;
 
             debug!("link namespace: '{}'", namespace);
         }
 
         if href.contains(ANCHOR_DELIMITER) {
             debug!("link contains an anchor");
-            let (page_ref, anchor_str) = href
-                .split_once(ANCHOR_DELIMITER)
-                .context("failed splitting at ANCHOR_DELIMITER")?;
+            let (page_ref, anchor_str) =
+                href.split_once(ANCHOR_DELIMITER)
+                    .ok_or(ParsingError::ProcessingFailure {
+                        process: "splitting at ANCHOR_DELIMITER".to_string(),
+                    })?;
 
             href = page_ref;
             anchor = Some(AnchorData {
@@ -349,7 +377,9 @@ fn parse_href_to_link(
         }))
     }
 
-    bail!("invalid link")
+    Err(ParsingError::ProcessingFailure {
+        process: "invalid link".to_string(),
+    })
 }
 
 #[cfg(test)]
@@ -361,6 +391,7 @@ mod tests {
             link_data::{AnchorData, InternalData},
             Link,
         },
+        parser::ParsingError,
         search::Namespace,
     };
 
@@ -397,43 +428,49 @@ mod tests {
 
     #[test]
     fn test_parse_link_unknown_namespace() {
-        let error = parse_href_to_link(
-            endpoint(),
-            "/wiki/UnknownNamespace:Main_Page",
-            Some("Main Page"),
-        )
-        .unwrap_err();
-
-        assert_eq!(
-            &error.root_cause().to_string(),
-            "invalid namespace 'UnknownNamespace'"
-        );
+        assert!(matches!(
+            parse_href_to_link(
+                endpoint(),
+                "/wiki/UnknownNamespace:Main_Page",
+                Some("Main Page"),
+            ),
+            Err(ParsingError::InvalidNamespace { .. })
+        ))
     }
 
     #[test]
     fn test_parse_link_invalid_link() {
-        assert!(parse_href_to_link(endpoint(), "/invalid/hello", Some("hello")).is_err())
+        assert!(matches!(
+            parse_href_to_link(endpoint(), "/invalid/hello", Some("hello")),
+            Err(ParsingError::ProcessingFailure { .. })
+        ))
     }
 
     #[test]
     fn test_parse_internal_link_no_namespace() {
         assert_eq!(
-            parse_href_to_link(endpoint(), "/wiki/Main_Page", Some("Main Page")).unwrap(),
-            internal_link(Namespace::Main, "Main_Page", "Main Page", endpoint(), None)
+            parse_href_to_link(endpoint(), "/wiki/Main_Page", Some("Main Page")),
+            Ok(internal_link(
+                Namespace::Main,
+                "Main_Page",
+                "Main Page",
+                endpoint(),
+                None
+            ))
         )
     }
 
     #[test]
     fn test_parse_internal_link_with_namespace() {
         assert_eq!(
-            parse_href_to_link(endpoint(), "/wiki/Help:Contents", Some("Help:Contents")).unwrap(),
-            internal_link(
+            parse_href_to_link(endpoint(), "/wiki/Help:Contents", Some("Help:Contents")),
+            Ok(internal_link(
                 Namespace::Help,
                 "Contents",
                 "Help:Contents",
                 endpoint(),
                 None
-            )
+            ))
         );
 
         assert_eq!(
@@ -441,15 +478,14 @@ mod tests {
                 endpoint(),
                 "/wiki/Help:Editing_pages",
                 Some("Help:Editing pages")
-            )
-            .unwrap(),
-            internal_link(
+            ),
+            Ok(internal_link(
                 Namespace::Help,
                 "Editing_pages",
                 "Help:Editing pages",
                 endpoint(),
                 None
-            )
+            ))
         );
     }
 
@@ -460,15 +496,14 @@ mod tests {
                 endpoint(),
                 "/wiki/Help:Editing_pages#Preview",
                 Some("Help:Editing pages")
-            )
-            .unwrap(),
-            internal_link(
+            ),
+            Ok(internal_link(
                 Namespace::Help,
                 "Editing_pages",
                 "Help:Editing pages",
                 endpoint(),
                 Some(anchor_data("Preview", "Preview"))
-            )
+            ))
         );
     }
 
@@ -479,15 +514,14 @@ mod tests {
                 endpoint(),
                 "/wiki/Help:Editing_pages#See_also",
                 Some("Help:Editing pages")
-            )
-            .unwrap(),
-            internal_link(
+            ),
+            Ok(internal_link(
                 Namespace::Help,
                 "Editing_pages",
                 "Help:Editing pages",
                 endpoint(),
                 Some(anchor_data("See_also", "See also"))
-            )
+            ))
         );
     }
 }
