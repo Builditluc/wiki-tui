@@ -9,11 +9,9 @@ use crate::wiki::search::Namespace;
 use crate::{config::CONFIG, ui::views::RootLayout};
 
 use anyhow::{Context, Result};
-use cursive::event::Callback;
 use cursive::view::{Nameable, Resizable};
 use cursive::views::{LastSizeView, OnEventView, TextView};
 use cursive::Cursive;
-use url::Url;
 
 mod content;
 mod lines;
@@ -60,13 +58,25 @@ pub fn open_link(siv: &mut Cursive, link: Link) {
 
     let message = match link {
         Link::Internal(data) => {
-            return link_dialog!(
-                move |siv| { open_internal_link(siv, data.clone()) },
-                data.title
+            return display_dialog(
+                siv,
+                "Information",
+                &format!("Do you want to open the link '{}'?", data.title),
+                move |siv| open_internal_link(siv, data.clone()),
             )
         }
         Link::Anchor(_) => "Anchor links are not supported",
-        Link::RedLink(_) => "Red links are not supported",
+        Link::RedLink(data) => {
+            warn!("tried opening a red link '{}'", data.url);
+            return display_message(
+                siv,
+                "Information",
+                &format!(
+                    "The page '{}' doesn't exist and therefore cannot be opened",
+                    data.title
+                ),
+            );
+        }
         Link::External(_) => "External links are not supported",
         Link::ExternalToInternal(_) => "External to Internal links are not supported",
     };

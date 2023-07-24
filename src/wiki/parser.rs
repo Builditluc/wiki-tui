@@ -4,12 +4,12 @@ use anyhow::{Context, Result};
 use cursive::theme::{Effect, Style};
 use select::{document::Document, node::Node, predicate::Class};
 use snafu::{ensure, Snafu};
-use url::Url;
+use url::{ParseError, Url};
 
 use crate::{
     config,
     wiki::{
-        article::link_data::{AnchorData, InternalData},
+        article::link_data::{AnchorData, InternalData, RedLinkData},
         search::Namespace,
     },
 };
@@ -316,12 +316,27 @@ fn parse_href_to_link(
     const NAMESPACE_DELIMITER: char = ':';
     // the character used to separate the page and the anchor
     const ANCHOR_DELIMITER: char = '#';
+    // the parameter indicating a redlink (non existent link)
+    const REDLINK_PARAM: &str = "redlink=1";
 
     if href.starts_with(INTERNAL_LINK_PREFIX) {
         let title = title.ok_or(ParsingError::MissingData {
             data: "title".to_string(),
         })?;
         return parse_internal_link(href, title, endpoint);
+    }
+
+    if href.contains(REDLINK_PARAM) {
+        debug!("the link is a redlink");
+        let url = endpoint
+            .join(&href)
+            .map_err(|_| ParsingError::ProcessingFailure {
+                process: "joining endpoint and href for REDLINK".to_string(),
+            })?;
+        let title = title.ok_or(ParsingError::MissingData {
+            data: "title".to_string(),
+        })?;
+        return Ok(Link::RedLink(RedLinkData { url, title }));
     }
 
     fn parse_internal_link(
@@ -392,7 +407,7 @@ mod tests {
 
     use crate::wiki::{
         article::{
-            link_data::{AnchorData, InternalData},
+            link_data::{AnchorData, InternalData, RedLinkData},
             Link,
         },
         parser::ParsingError,
@@ -527,5 +542,18 @@ mod tests {
                 Some(anchor_data("See_also", "See also"))
             ))
         );
+    }
+
+    #[test]
+    fn test_parse_redlink() {
+        let link = "/w/index.php?title=Help:Links/example2&action=edit&redlink=1";
+        let title = "Help:Links/example2 (page does not exist)";
+        assert_eq!(
+            parse_href_to_link(endpoint(), link, Some(title)),
+            Ok(Link::RedLink(RedLinkData {
+                url: endpoint().join(link).unwrap(),
+                title: title.to_string(),
+            }))
+        )
     }
 }

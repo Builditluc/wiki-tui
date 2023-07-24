@@ -93,7 +93,10 @@ pub mod link_data {
     }
 
     #[derive(Debug, Clone, PartialEq, Eq)]
-    pub struct RedLinkData {}
+    pub struct RedLinkData {
+        pub url: Url,
+        pub title: String,
+    }
     #[derive(Debug, Clone, PartialEq, Eq)]
     pub struct ExternalData {}
     #[derive(Debug, Clone, PartialEq, Eq)]
