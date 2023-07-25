@@ -417,7 +417,7 @@ mod tests {
 
     use crate::wiki::{
         article::{
-            link_data::{AnchorData, InternalData, RedLinkData},
+            link_data::{AnchorData, ExternalData, InternalData, RedLinkData},
             Link,
         },
         parser::ParsingError,
@@ -592,4 +592,38 @@ mod tests {
             }))
         )
     }
+
+    #[test]
+    fn test_parse_external_link() {
+        let link = "https://mediawiki.org/";
+        assert_eq!(
+            parse_href_to_link(endpoint(), link, None::<String>),
+            Ok(Link::External(ExternalData {
+                url: Url::parse(link).expect("hard-coded url should be valid")
+            }))
+        );
+    }
+
+    #[test]
+    fn test_parse_external_link_with_params() {
+        let link = "https://google.com/search?q=link";
+        assert_eq!(
+            parse_href_to_link(endpoint(), link, None::<String>),
+            Ok(Link::External(ExternalData {
+                url: Url::parse(link).expect("hard-coded url should be valid")
+            }))
+        )
+    }
+
+    #[test]
+    fn test_parse_external_link_with_mailto() {
+        let link = "mailto:info@example.org";
+        assert_eq!(
+            parse_href_to_link(endpoint(), link, None::<String>),
+            Ok(Link::External(ExternalData {
+                url: Url::parse(link).expect("hard-coded url should be valid")
+            }))
+        )
+    }
+    // TODO: Encoded links (interal and external!)
 }

@@ -97,8 +97,12 @@ pub mod link_data {
         pub url: Url,
         pub title: String,
     }
+
     #[derive(Debug, Clone, PartialEq, Eq)]
-    pub struct ExternalData {}
+    pub struct ExternalData {
+        pub url: Url,
+    }
+
     #[derive(Debug, Clone, PartialEq, Eq)]
     pub struct ExternalToInteralData {}
 }
