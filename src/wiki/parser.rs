@@ -545,6 +545,24 @@ mod tests {
     }
 
     #[test]
+    fn test_parse_internal_link_with_subpage() {
+        assert_eq!(
+            parse_href_to_link(
+                endpoint(),
+                "/wiki/Help:Links/example",
+                Some("Help:Links/example")
+            ),
+            Ok(internal_link(
+                Namespace::Help,
+                "Links/example",
+                "Help:Links/example",
+                endpoint(),
+                None,
+            ))
+        )
+    }
+
+    #[test]
     fn test_parse_redlink() {
         let link = "/w/index.php?title=Help:Links/example2&action=edit&redlink=1";
         let title = "Help:Links/example2 (page does not exist)";
