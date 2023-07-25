@@ -5,27 +5,15 @@ use select::document::Document;
 use serde::Deserialize;
 use serde_repr::Deserialize_repr;
 use std::{collections::HashMap, fmt::Display};
+use url::Url;
 
 use super::{parser::Parser, search::Namespace};
 
-fn action_parse(params: Vec<(&str, String)>, url: String) -> Result<Response> {
-    Client::new()
-        .get(url)
-        .query(&[
-            ("action", "parse"),
-            ("format", "json"),
-            ("formatversion", "2"),
-        ])
-        .query(&params)
-        .send()
-        .context("failed sending the request")
-}
-
-#[derive(Debug, PartialEq, Eq, Clone, Copy)]
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub enum ElementType {
     Text,
     Newline,
-    Link,
+    Link(Link),
     Header,
     Unsupported,
     ListMarker,
@@ -34,7 +22,7 @@ pub enum ElementType {
 #[derive(Debug, Clone)]
 pub struct Element {
     id: usize,
-    kind: ElementType,
+    pub kind: ElementType,
     content: String,
     style: Style,
     width: usize,
@@ -64,10 +52,6 @@ impl Element {
         self.id
     }
 
-    pub fn kind(&self) -> ElementType {
-        self.kind
-    }
-
     pub fn content(&self) -> &str {
         &self.content
     }
@@ -88,6 +72,57 @@ impl Element {
     }
 }
 
+pub mod link_data {
+    use url::Url;
+
+    use crate::wiki::search::Namespace;
+
+    #[derive(Debug, Clone, PartialEq, Eq)]
+    pub struct InternalData {
+        pub namespace: Namespace,
+        pub page: String,
+        pub title: String,
+        pub endpoint: Url,
+        pub anchor: Option<AnchorData>,
+    }
+
+    #[derive(Debug, Clone, PartialEq, Eq)]
+    pub struct AnchorData {
+        pub anchor: String,
+        pub title: String,
+    }
+
+    #[derive(Debug, Clone, PartialEq, Eq)]
+    pub struct RedLinkData {
+        pub url: Url,
+        pub title: String,
+    }
+
+    #[derive(Debug, Clone, PartialEq, Eq)]
+    pub struct ExternalData {
+        pub url: Url,
+    }
+
+    #[derive(Debug, Clone, PartialEq, Eq)]
+    pub struct ExternalToInteralData {}
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum Link {
+    /// Interal link to another page in the same wiki
+    Internal(link_data::InternalData),
+    /// Anchor to a specific section in the current page
+    /// Note: this only corresponds to anchors on the current page. For anchors in another page on
+    /// the same wiki, `LinkType::Internal` is used
+    Anchor(link_data::AnchorData),
+    /// A special type of link that leads to an internal page that doesn't exist yet
+    RedLink(link_data::RedLinkData),
+    /// External link to a page at another website
+    External(link_data::ExternalData),
+    /// External link to an interal page in the same wiki
+    ExternalToInternal(link_data::ExternalToInteralData),
+}
+
 #[derive(Debug, Deserialize)]
 pub struct LanguageLink {
     #[serde(rename = "langname")]
@@ -103,14 +138,6 @@ pub struct Category {
     sortkey: String,
     category: String,
     hidden: Option<bool>,
-}
-
-#[derive(Debug, Deserialize)]
-pub struct Link {
-    #[serde(rename = "ns")]
-    namespace: Namespace,
-    title: String,
-    exists: bool,
 }
 
 #[derive(Debug, Deserialize)]
@@ -187,7 +214,6 @@ pub struct Article {
     language_links: Option<Vec<LanguageLink>>,
     categories: Option<Vec<Category>>,
     categories_html: Option<String>,
-    links: Option<Vec<Link>>,
     templates: Option<Vec<Template>>,
     images: Option<Vec<String>>,
     external_links: Option<Vec<String>>,
@@ -208,7 +234,7 @@ pub struct Article {
 }
 
 impl Article {
-    pub fn builder() -> ArticleBuilder<NoPageID, NoPage, NoUrl> {
+    pub fn builder() -> ArticleBuilder<NoPageID, NoPage, NoEndpoint> {
         ArticleBuilder::default()
     }
 
@@ -221,6 +247,7 @@ impl Article {
     }
 }
 
+#[derive(Clone)]
 /// Which pieces of information to get about the article
 pub enum Property {
     /// Gives the parsed text of the wikitext
@@ -231,8 +258,6 @@ pub enum Property {
     Categories,
     /// Gives the HTML version of the categories
     CategoriesHTML,
-    /// Gives the interal links in the parsed wikitext
-    Links,
     /// Gives the templates in the parsed wikitext
     Templates,
     /// Gives the images in the parsed wikitext
@@ -276,7 +301,6 @@ impl Display for Property {
             Property::LangLinks => write!(f, "langlinks"),
             Property::Categories => write!(f, "categories"),
             Property::CategoriesHTML => write!(f, "categorieshtml"),
-            Property::Links => write!(f, "links"),
             Property::Templates => write!(f, "templates"),
             Property::Images => write!(f, "images"),
             Property::ExternalLinks => write!(f, "externallinks"),
@@ -306,27 +330,27 @@ pub struct Page(String);
 #[derive(Default)]
 pub struct NoPage;
 
-pub struct WithUrl(String);
+pub struct WithEndpoint(Url);
 #[derive(Default)]
-pub struct NoUrl;
+pub struct NoEndpoint;
 
 #[derive(Default)]
-pub struct ArticleBuilder<I, P, U> {
+pub struct ArticleBuilder<I, P, E> {
     pageid: I,
     page: P,
-    url: U,
+    endpoint: E,
     revision: Option<usize>,
     redirects: Option<bool>,
     properties: Option<Vec<Property>>,
 }
 
-impl<U> ArticleBuilder<NoPageID, NoPage, U> {
+impl<E> ArticleBuilder<NoPageID, NoPage, E> {
     /// Parse content of this page
-    pub fn pageid(self, pageid: usize) -> ArticleBuilder<PageID, NoPage, U> {
+    pub fn pageid(self, pageid: usize) -> ArticleBuilder<PageID, NoPage, E> {
         ArticleBuilder {
             pageid: PageID(pageid),
             page: self.page,
-            url: self.url,
+            endpoint: self.endpoint,
             revision: self.revision,
             redirects: self.redirects,
             properties: self.properties,
@@ -334,11 +358,11 @@ impl<U> ArticleBuilder<NoPageID, NoPage, U> {
     }
 
     /// Parse content of this page
-    pub fn page(self, page: impl Into<String>) -> ArticleBuilder<NoPageID, Page, U> {
+    pub fn page(self, page: impl Into<String>) -> ArticleBuilder<NoPageID, Page, E> {
         ArticleBuilder {
             pageid: self.pageid,
             page: Page(page.into()),
-            url: self.url,
+            endpoint: self.endpoint,
             revision: self.revision,
             redirects: self.redirects,
             properties: self.properties,
@@ -346,12 +370,23 @@ impl<U> ArticleBuilder<NoPageID, NoPage, U> {
     }
 }
 
-impl<I, P> ArticleBuilder<I, P, NoUrl> {
-    pub fn url(self, url: impl Into<String>) -> ArticleBuilder<I, P, WithUrl> {
+impl<I, P> ArticleBuilder<I, P, NoEndpoint> {
+    pub fn from_url(self, url: impl Into<Url>) -> ArticleBuilder<I, P, WithEndpoint> {
         ArticleBuilder {
             pageid: self.pageid,
             page: self.page,
-            url: WithUrl(url.into()),
+            endpoint: WithEndpoint(url.into()),
+            revision: self.revision,
+            redirects: self.redirects,
+            properties: self.properties,
+        }
+    }
+
+    pub fn endpoint(self, endpoint: Url) -> ArticleBuilder<I, P, WithEndpoint> {
+        ArticleBuilder {
+            pageid: self.pageid,
+            page: self.page,
+            endpoint: WithEndpoint(endpoint),
             revision: self.revision,
             redirects: self.redirects,
             properties: self.properties,
@@ -379,8 +414,25 @@ impl<I, P, U> ArticleBuilder<I, P, U> {
     }
 }
 
-impl<I, P> ArticleBuilder<I, P, WithUrl> {
+impl<I, P> ArticleBuilder<I, P, WithEndpoint> {
     fn fetch_with_params(self, mut params: Vec<(&str, String)>) -> Result<Article> {
+        fn action_parse(params: Vec<(&str, String)>, endpoint: Url) -> Result<Response> {
+            Client::new()
+                .get(endpoint)
+                .query(&[
+                    ("action", "parse"),
+                    ("format", "json"),
+                    ("formatversion", "2"),
+                ])
+                .query(&params)
+                .send()
+                .map(|response| {
+                    debug!("response url: '{}'", response.url().as_str());
+                    response
+                })
+                .context("failed sending the request")
+        }
+
         if let Some(revision) = self.revision {
             params.push(("revid", revision.to_string()));
         }
@@ -389,7 +441,7 @@ impl<I, P> ArticleBuilder<I, P, WithUrl> {
             params.push(("redirects", redirects.to_string()));
         }
 
-        if let Some(prop) = self.properties {
+        if let Some(ref prop) = self.properties {
             let mut prop_str = String::new();
             for prop in prop {
                 prop_str.push('|');
@@ -398,14 +450,19 @@ impl<I, P> ArticleBuilder<I, P, WithUrl> {
             params.push(("prop", prop_str));
         }
 
-        let response = action_parse(params, self.url.0)?
+        let response = action_parse(params, self.endpoint.0.clone())?
             .error_for_status()
-            .context("recieved an error")?;
+            .context("the server returned an error")?;
 
         let res_json: serde_json::Value =
             serde_json::from_str(&response.text().context("failed reading the response")?)
-                .context("failed reading the response as json")?;
+                .context("failed interpreting the response as json")?;
 
+        self.serialize_result(res_json)
+            .context("failed serializing the returned response")
+    }
+
+    fn serialize_result(&self, res_json: serde_json::Value) -> Result<Article> {
         let title = res_json
             .get("parse")
             .and_then(|x| x.get("title"))
@@ -447,17 +504,6 @@ impl<I, P> ArticleBuilder<I, P, WithUrl> {
             .and_then(|x| x.get("categorieshtml"))
             .and_then(|x| x.as_str())
             .map(|x| x.to_owned());
-
-        let links = res_json
-            .get("parse")
-            .and_then(|x| x.get("links"))
-            .and_then(|x| x.as_array())
-            .map(|x| x.to_owned())
-            .map(|x| {
-                x.into_iter()
-                    .filter_map(|x| serde_json::from_value(x).ok())
-                    .collect::<Vec<Link>>()
-            });
 
         let templates = res_json
             .get("parse")
@@ -531,7 +577,9 @@ impl<I, P> ArticleBuilder<I, P, WithUrl> {
             .get("parse")
             .and_then(|x| x.get("text"))
             .and_then(|x| x.as_str())
-            .and_then(|x| Parser::parse_document(x, &title, sections.as_ref()).ok());
+            .and_then(|x| {
+                Parser::parse_document(x, &title, sections.as_ref(), self.endpoint.0.clone()).ok()
+            });
 
         let revision_id = res_json
             .get("parse")
@@ -581,7 +629,6 @@ impl<I, P> ArticleBuilder<I, P, WithUrl> {
             language_links,
             categories,
             categories_html,
-            links,
             templates,
             images,
             external_links,
@@ -603,14 +650,14 @@ impl<I, P> ArticleBuilder<I, P, WithUrl> {
     }
 }
 
-impl ArticleBuilder<PageID, NoPage, WithUrl> {
+impl ArticleBuilder<PageID, NoPage, WithEndpoint> {
     pub fn fetch(self) -> Result<Article> {
         let param = vec![("pageid", self.pageid.0.to_string())];
         self.fetch_with_params(param)
     }
 }
 
-impl ArticleBuilder<NoPageID, Page, WithUrl> {
+impl ArticleBuilder<NoPageID, Page, WithEndpoint> {
     pub fn fetch(self) -> Result<Article> {
         let param = vec![("page", self.page.0.to_string())];
         self.fetch_with_params(param)

@@ -1,11 +1,11 @@
 use crate::{
     config::CONFIG,
     ui::{
-        article::{content::ArticleContent, on_link_submit},
+        article::{content::ArticleContent, open_link},
         scroll,
-        utils::display_message,
+        utils::{display_dialog, display_message},
     },
-    wiki::article::{Article, ElementType},
+    wiki::article::{Article, ElementType, Link},
 };
 
 use cursive::{
@@ -91,7 +91,21 @@ impl ArticleView {
 
     /// Check if the link can be opened and opens it if it can
     fn check_and_open_link(&self) -> EventResult {
-        if let Some(element) = self
+        let link = match self
+            .content
+            .element_by_id(self.content.current_link_element_id())
+            .map(|element| element.kind)
+        {
+            Some(ElementType::Link(ref link)) => link.to_owned(),
+            _ => {
+                warn!("selected element not a link");
+                return EventResult::Ignored;
+            }
+        };
+
+        return EventResult::Consumed(Some(Callback::from_fn(move |s| open_link(s, link.clone()))));
+
+        /*if let Some(element) = self
             .content
             .element_by_id(self.content.current_link_element_id())
         {
@@ -150,6 +164,7 @@ impl ArticleView {
             })));
         }
         EventResult::Ignored
+        */
     }
 }
 
@@ -238,8 +253,8 @@ impl View for ArticleView {
                 } => {
                     if let Some(element) = s.content.element_by_pos(position.saturating_sub(offset))
                     {
-                        return match element.kind() {
-                            ElementType::Link if CONFIG.features.links => {
+                        return match element.kind {
+                            ElementType::Link(_) if CONFIG.features.links => {
                                 s.content.select_link_by_id(element.id());
                                 s.check_and_open_link()
                             }
