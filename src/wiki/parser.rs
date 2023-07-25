@@ -3,8 +3,8 @@ use std::collections::HashMap;
 use anyhow::{Context, Result};
 use cursive::theme::{Effect, Style};
 use select::{document::Document, node::Node, predicate::Class};
-use snafu::{ensure, Snafu};
-use url::{ParseError, Url};
+use snafu::Snafu;
+use url::Url;
 
 use crate::{
     config,
@@ -326,8 +326,19 @@ fn parse_href_to_link(
         return parse_internal_link(href, title, endpoint);
     }
 
+    if href.starts_with(ANCHOR_DELIMITER) {
+        let anchor_str =
+            href.strip_prefix(ANCHOR_DELIMITER)
+                .ok_or(ParsingError::ProcessingFailure {
+                    process: "removing ANCHOR_DELIMITER prefix".to_string(),
+                })?;
+        return Ok(Link::Anchor(AnchorData {
+            anchor: anchor_str.to_string(),
+            title: anchor_str.replace('_', " "),
+        }));
+    }
+
     if href.contains(REDLINK_PARAM) {
-        debug!("the link is a redlink");
         let url = endpoint
             .join(&href)
             .map_err(|_| ParsingError::ProcessingFailure {
@@ -344,7 +355,6 @@ fn parse_href_to_link(
         title: String,
         endpoint: Url,
     ) -> Result<Link, ParsingError> {
-        debug!("link is internal");
         let mut href =
             href.strip_prefix(INTERNAL_LINK_PREFIX)
                 .ok_or(ParsingError::ProcessingFailure {
@@ -559,6 +569,14 @@ mod tests {
                 endpoint(),
                 None,
             ))
+        )
+    }
+
+    #[test]
+    fn test_parse_anchor_link() {
+        assert_eq!(
+            parse_href_to_link(endpoint(), "#See_also", None::<String>),
+            Ok(Link::Anchor(anchor_data("See_also", "See also")))
         )
     }
 
