@@ -77,7 +77,10 @@ pub fn open_link(siv: &mut Cursive, link: Link) {
                 ),
             );
         }
-        Link::External(_) => "External links are not supported",
+        Link::External(data) => {
+            warn!("tried opening an external link '{}'", data.url);
+            return display_message(siv, "Information", &format!("This link doesn't point to another article. \nInstead, it leads to the following external webpage and therefore, cannot be opened: \n\n> {}", data.url.as_str()));
+        }
         Link::ExternalToInternal(_) => "External to Internal links are not supported",
     };
 

@@ -9,7 +9,7 @@ use url::Url;
 use crate::{
     config,
     wiki::{
-        article::link_data::{AnchorData, InternalData, RedLinkData},
+        article::link_data::{AnchorData, ExternalData, InternalData, RedLinkData},
         search::Namespace,
     },
 };
@@ -350,6 +350,10 @@ fn parse_href_to_link(
         return Ok(Link::RedLink(RedLinkData { url, title }));
     }
 
+    if let Ok(url) = Url::parse(&href) {
+        return Ok(Link::External(ExternalData { url }));
+    }
+
     fn parse_internal_link(
         href: String,
         title: String,
@@ -625,5 +629,4 @@ mod tests {
             }))
         )
     }
-    // TODO: Encoded links (interal and external!)
 }
