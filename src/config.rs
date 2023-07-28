@@ -12,6 +12,7 @@ use std::{cell::RefCell, path::PathBuf, rc::Rc, str::FromStr};
 #[cfg(not(test))]
 use structopt::StructOpt;
 use toml::from_str;
+use url::Url;
 use uuid::Uuid;
 
 const CONFIG_FILE: &str = "config.toml";
@@ -168,11 +169,26 @@ impl ViewTheme {
 
 #[derive(Clone, Debug, Serialize)]
 pub struct ApiConfig {
-    pub pre_language: String,
-    pub post_language: String,
+    pre_language: String,
+    post_language: String,
     pub language: Language,
     pub language_changed_popup: bool,
     pub article_language_changed_popup: bool,
+}
+
+impl ApiConfig {
+    pub fn url(&self) -> Url {
+        let url_str = format!(
+            "{}{}{}",
+            self.pre_language,
+            self.language.code(),
+            self.post_language
+        );
+      
+        Url::parse(&url_str)
+            .with_context(|| format!("failed parsing the url: '{}'", url_str))
+            .expect("invalid api endpoint url")
+    }
 }
 
 #[derive(Serialize, Clone)]

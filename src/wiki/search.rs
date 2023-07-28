@@ -2,7 +2,7 @@ use anyhow::{Context, Result};
 use reqwest::blocking::{Client, Response};
 use serde::Deserialize;
 use serde_repr::Deserialize_repr;
-use std::fmt::Display;
+use std::{convert::TryFrom, fmt::Display};
 
 use super::language::Language;
 
@@ -116,15 +116,27 @@ impl SearchResult {
     }
 }
 
-#[derive(Deserialize_repr, Debug, Clone)]
+#[derive(Deserialize_repr, Debug, Clone, PartialEq, Eq)]
 #[repr(usize)]
+/// The 16 "real" namespaces, corresponding to actual pages. This only includes the default
+/// namespaces as defined by MediaWiki. They are:
+/// - Main
+/// - User
+/// - Project
+/// - File
+/// - MediaWiki
+/// - Template
+/// - Help
+/// - Category
+///
+/// All of those namespaces also include a "Talk" namespaces
 pub enum Namespace {
-    Article = 0,
-    Talk = 1,
+    Main = 0,
+    MainTalk = 1,
     User = 2,
     UserTalk = 3,
-    Wikipedia = 4,
-    WikipediaTalk = 5,
+    Project = 4,
+    ProjectTalk = 5,
     File = 6,
     FileTalk = 7,
     MediaWiki = 8,
@@ -135,19 +147,35 @@ pub enum Namespace {
     HelpTalk = 13,
     Category = 14,
     CategoryTalk = 15,
-    Portal = 100,
-    PortalTalk = 101,
-    Draft = 118,
-    DraftTalk = 119,
-    TimedText = 710,
-    TimedTextTalk = 711,
-    Module = 828,
-    ModuleTalk = 829,
 }
 
 impl Display for Namespace {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.clone())
+    }
+}
+
+impl Namespace {
+    pub fn from_str(namespace: &str) -> Option<Namespace> {
+        match namespace.to_lowercase().as_str() {
+            "main" => Some(Namespace::Main),
+            "maintalk" => Some(Namespace::MainTalk),
+            "user" => Some(Namespace::User),
+            "usertalk" => Some(Namespace::UserTalk),
+            "project" => Some(Namespace::Project),
+            "projecttalk" => Some(Namespace::ProjectTalk),
+            "file" => Some(Namespace::File),
+            "filetalk" => Some(Namespace::FileTalk),
+            "mediawiki" => Some(Namespace::MediaWiki),
+            "mediawikitalk" => Some(Namespace::MediaWikiTalk),
+            "template" => Some(Namespace::Template),
+            "templatetalk" => Some(Namespace::TemplateTalk),
+            "help" => Some(Namespace::Help),
+            "helptalk" => Some(Namespace::HelpTalk),
+            "category" => Some(Namespace::Category),
+            "categorytalk" => Some(Namespace::CategoryTalk),
+            _ => None,
+        }
     }
 }
 

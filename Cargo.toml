@@ -1,6 +1,6 @@
 [package]
 name = "wiki-tui"
-version = "0.8.0"
+version = "0.8.1-pre"
 authors = ["builditluc <37375448+Builditluc@users.noreply.github.com>"]
 edition = "2018"
 repository = "https://github.com/Builditluc/wiki-tui"
@@ -44,7 +44,8 @@ toml = "0.5.9"
 structopt = "0.3.25"
 chrono = "0.4"
 urlencoding = "2.1.2"
-url = { version = "2.3", features = ["serde"]}
+url = { version = "2.4", features = ["serde"]}
+snafu = "0.7"
 
 [dependencies.cursive]
 version = "0.20"

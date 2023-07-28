@@ -4,9 +4,11 @@ use crate::ui::panel::WithPanel;
 use crate::ui::root::RootLayout;
 use crate::ui::search::bar_popup::open_search_bar;
 use crate::ui::toc::display_toc;
-use crate::ui::utils::{display_dialog, display_error};
-use crate::ui::views::StatusBar;
-use crate::wiki::article::{Article, ArticleBuilder, NoPage, NoPageID, NoUrl, Property};
+use crate::ui::utils::{display_dialog, display_error, display_message};
+use crate::wiki::article::link_data::InternalData;
+use crate::wiki::article::{Article, Link, Property};
+use crate::wiki::search::Namespace;
+use crate::{config::CONFIG, ui::views::RootLayout};
 
 use anyhow::{Context, Result};
 use cursive::view::{Nameable, Resizable};
@@ -18,27 +20,20 @@ mod lines;
 mod view;
 pub type ArticleView = view::ArticleView;
 
-pub fn builder() -> ArticleBuilder<NoPageID, NoPage, NoUrl> {
-    Article::builder().properties(vec![
-        Property::Text,
-        Property::Sections,
-        Property::LangLinks,
-    ])
-}
+const ARTICLE_PROPERTIES: [Property; 2] = [Property::Text, Property::Sections];
+const SUPPORTED_NAMESPACES: [Namespace; 1] = [Namespace::Main];
 
 /// Fetches an article from a given id and displays it. It's the on_submit callback for
 /// the search results view
 pub fn on_article_submit(siv: &mut Cursive, pageid: usize) {
     let config = Config::from_siv(siv);
 
-    let article = match builder()
+    let article = match Article::builder()
         .pageid(pageid)
-        .url(
-            config.borrow().api_config.language.clone(),
-            &config.borrow().api_config.pre_language,
-            &config.borrow().api_config.post_language,
-        )
+        .from_url(Config::from_siv(siv).borrow().api_config.url())
+        .properties(ARTICLE_PROPERTIES.to_vec())
         .fetch()
+        .context("failed fetching the article")
     {
         Ok(article) => article,
         Err(error) => {
@@ -53,37 +48,70 @@ pub fn on_article_submit(siv: &mut Cursive, pageid: usize) {
     }
 }
 
-/// Displays a confirmation dialog on whether to open the link. It's the on_submit callback for the
-/// article view
-pub fn on_link_submit(siv: &mut Cursive, target: String) {
-    // convert the target into a human-friendly format
-    let target = target.strip_prefix("/wiki/").unwrap_or(&target).to_string();
-    let target_human = target.replace('_', " ");
+/// Checks that the link is supported (supported Namespace, supported link type) and opens it
+pub fn open_link(siv: &mut Cursive, link: Link) {
+    macro_rules! link_dialog {
+        ($cb: expr, $title: expr) => {{
+            display_dialog(
+                siv,
+                "Information",
+                &format!("Do you want to open the link '{}'?", $title),
+                $cb,
+            )
+        }};
+    }
 
-    info!("requesting confirmation to open the link '{}'", target);
+    let message = match link {
+        Link::Internal(data) => {
+            return display_dialog(
+                siv,
+                "Information",
+                &format!("Do you want to open the link '{}'?", data.title),
+                move |siv| open_internal_link(siv, data.clone()),
+            )
+        }
+        Link::Anchor(_) => "Anchor links are not supported",
+        Link::RedLink(data) => {
+            warn!("tried opening a red link '{}'", data.url);
+            return display_message(
+                siv,
+                "Information",
+                &format!(
+                    "The page '{}' doesn't exist and therefore cannot be opened",
+                    data.title
+                ),
+            );
+        }
+        Link::External(data) => {
+            warn!("tried opening an external link '{}'", data.url);
+            return display_message(siv, "Information", &format!("This link doesn't point to another article. \nInstead, it leads to the following external webpage and therefore, cannot be opened: \n\n> {}", data.url.as_str()));
+        }
+        Link::ExternalToInternal(_) => "External to Internal links are not supported",
+    };
 
-    let title = String::new();
-    let body = format!("Do you want to open the article '{}'?", target_human);
-
-    display_dialog(siv, &title, &body, move |siv| {
-        info!("opening the link '{}'", target);
-        // open the link
-        open_link(siv, target.clone())
-    });
+    warn!("{}", message);
+    display_message(siv, "Warning", message)
 }
 
 /// Helper function for fetching and displaying an article from a given link
-fn open_link(siv: &mut Cursive, target: String) {
-    let config = Config::from_siv(siv);
+fn open_internal_link(siv: &mut Cursive, data: InternalData) {
+    if !SUPPORTED_NAMESPACES.contains(&data.namespace) {
+        display_message(
+            siv,
+            "Information",
+            &format!(
+                "The link leads to an article in the '{}' namespace which is supported",
+                data.namespace
+            ),
+        );
+        return;
+    }
 
     // fetch the article
-    let article = match builder()
-        .page(target)
-        .url(
-            config.borrow().api_config.language.clone(),
-            &config.borrow().api_config.pre_language,
-            &config.borrow().api_config.post_language,
-        )
+    let article = match Article::builder()
+        .page(data.page)
+        .endpoint(data.endpoint)
+        .properties(ARTICLE_PROPERTIES.to_vec())
         .fetch()
         .context("failed fetching the article")
     {
@@ -96,18 +124,15 @@ fn open_link(siv: &mut Cursive, target: String) {
             return;
         }
     };
-    debug!("fetched the article");
 
     // display the article
-    if let Err(error) = display_article(siv, article) {
+    if let Err(error) = display_article(siv, article).context("failed displaying the article") {
         warn!("{:?}", error);
 
         // display an error message
-        // TODO: use builtin helper function for error message here
         display_error(siv, error);
         return;
     }
-    debug!("displayed the article");
 }
 
 /// Helper function for displaying an article on the screen. This includes creating an article view
