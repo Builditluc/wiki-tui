@@ -392,7 +392,7 @@ impl<E, L> ArticleBuilder<NoPageID, NoPage, E, L> {
 }
 
 impl<I, P, L> ArticleBuilder<I, P, NoEndpoint, L> {
-    pub fn from_url(self, url: impl Into<Url>) -> ArticleBuilder<I, P, WithEndpoint, L> {
+    pub fn url(self, url: impl Into<Url>) -> ArticleBuilder<I, P, WithEndpoint, L> {
         ArticleBuilder {
             pageid: self.pageid,
             page: self.page,

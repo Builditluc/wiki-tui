@@ -105,68 +105,7 @@ impl ArticleView {
             }
         };
 
-        return EventResult::Consumed(Some(Callback::from_fn(move |s| open_link(s, link.clone()))));
-
-        /*if let Some(element) = self
-            .content
-            .element_by_id(self.content.current_link_element_id())
-        {
-            debug!("found the element of the link");
-
-            // get the target link from the element
-            let target = match element.attr("target") {
-                Some(t) => t.to_string(),
-                None => {
-                    warn!("missing attribute 'target' from element '{}'", element.id());
-                    warn!("the link '{}' is not valid", element.id());
-                    return EventResult::Ignored;
-                }
-            };
-            debug!("target is '{}'", target);
-
-            // check whether the link is pointing to another wikipedia article or if its external
-            if element.attr("external").is_some() {
-                warn!("element '{}' contains attribute 'external'", element.id());
-                warn!("the link '{}' is external", element.id());
-                return EventResult::Consumed(Some(Callback::from_fn(move |s| {
-                    display_message(
-                        s, "Information", &format!("This link doensn't point to another article. \nInstead, it leads to the following external webpage and therefore, cannot be opened: \n\n> {}", target)
-                    );
-                })));
-            }
-            debug!("target link is not external, continuing");
-
-            // chek if there were any decoding errors
-            if element.attr("decoding_error").is_some() {
-                warn!("the parser couldn't decode the url correclty");
-                return EventResult::Consumed(Some(Callback::from_fn(move |s| {
-                    display_message(s, "Information", "The link points to a url which couldn't be decoded correctly to UTF-8. \nCheck the logs for further information");
-                })));
-            }
-
-            // check whether the page exists
-            if element.attr("new_page").is_some() {
-                warn!("the page doesn't exist yet");
-                return EventResult::Consumed(Some(Callback::from_fn(move |s| {
-                    display_message(
-                        s,
-                        "Information",
-                        "This page cannot be opened because it doesn't exist yet",
-                    )
-                })));
-            }
-
-            info!(
-                "opening the link '{}' with the target '{}'",
-                element.id(),
-                target
-            );
-            return EventResult::Consumed(Some(Callback::from_fn(move |s| {
-                on_link_submit(s, target.clone())
-            })));
-        }
-        EventResult::Ignored
-        */
+        EventResult::Consumed(Some(Callback::from_fn(move |s| open_link(s, link.clone()))))
     }
 
     /// Lets the user choose from the available languages
@@ -184,9 +123,9 @@ impl ArticleView {
             })));
         }
 
-        return EventResult::Consumed(Some(Callback::from_fn(move |s| {
+        EventResult::Consumed(Some(Callback::from_fn(move |s| {
             article_language_selection_popup(s, available_languages.clone().unwrap())
-        })));
+        })))
     }
 }
 

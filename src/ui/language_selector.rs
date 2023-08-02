@@ -54,10 +54,7 @@ pub fn language_selection_popup(siv: &mut Cursive) {
         return;
     }
 
-    info!(
-        "displaying '{}' languages for selection",
-        LANGUAGES.iter().count()
-    );
+    info!("displaying '{}' languages for selection", LANGUAGES.len());
 
     let language_search = EditView::new()
         .on_edit(|siv, text, _| {

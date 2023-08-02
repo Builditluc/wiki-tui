@@ -290,7 +290,7 @@ impl<'a> Parser<'a> {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Snafu)]
+#[derive(Debug, Clone, PartialEq, Eq, Snafu)]
 pub enum ParsingError {
     #[snafu(display("The link leads to an invalid namespace: '{namespace}'"))]
     InvalidNamespace { namespace: String },

@@ -29,7 +29,7 @@ pub fn on_article_submit(siv: &mut Cursive, pageid: usize) {
 
     let article = match Article::builder()
         .pageid(pageid)
-        .from_url(config.borrow().api_config.url())
+        .url(config.borrow().api_config.url())
         .properties(ARTICLE_PROPERTIES.to_vec())
         .language(config.borrow().api_config.language.clone())
         .fetch()
@@ -121,7 +121,6 @@ fn open_internal_link(siv: &mut Cursive, data: InternalData) {
 
         // display an error message
         display_error(siv, error);
-        return;
     }
 }
 
