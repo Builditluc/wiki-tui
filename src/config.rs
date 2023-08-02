@@ -169,8 +169,8 @@ impl ViewTheme {
 
 #[derive(Clone, Debug, Serialize)]
 pub struct ApiConfig {
-    pre_language: String,
-    post_language: String,
+    pub pre_language: String,
+    pub post_language: String,
     pub language: Language,
     pub language_changed_popup: bool,
     pub article_language_changed_popup: bool,
@@ -184,7 +184,20 @@ impl ApiConfig {
             self.language.code(),
             self.post_language
         );
-      
+
+        Url::parse(&url_str)
+            .with_context(|| format!("failed parsing the url: '{}'", url_str))
+            .expect("invalid api endpoint url")
+    }
+
+    pub fn endpoint_from_language(&self, language: &Language) -> Url {
+        let url_str = format!(
+            "{}{}{}",
+            self.pre_language,
+            language.code(),
+            self.post_language
+        );
+
         Url::parse(&url_str)
             .with_context(|| format!("failed parsing the url: '{}'", url_str))
             .expect("invalid api endpoint url")

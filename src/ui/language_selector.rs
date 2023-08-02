@@ -11,13 +11,13 @@ use crate::{
     config::{Config, CONFIG},
     ui::utils::display_error,
     wiki::{
-        article::LanguageLink,
+        article::{Article, LanguageLink},
         language::{Language, LANGUAGES},
     },
 };
 
 use super::{
-    article::{self, ArticleView},
+    article::{self, ArticleView, ARTICLE_PROPERTIES},
     panel::WithPanel,
     scroll_view::Scrollable,
     utils::{display_message, percentage},
@@ -132,19 +132,21 @@ const ARTICLE_SELECTION_WIDTH_PERCENTAGE: f32 = 0.4;
 const ARTICLE_SELECTION_HEIGHT_PERCNETAGE: f32 = 0.5;
 
 fn change_article_language(siv: &mut Cursive, language_link: Rc<LanguageLink>) {
-    let config = Config::from_siv(siv);
     let success_msg = format!(
         "Changed the language of your current article to {}",
         language_link.language.name()
     );
 
-    let article = match article::builder()
+    let article = match Article::builder()
         .page(&language_link.title)
-        .url(
-            language_link.language.to_owned(),
-            &config.borrow().api_config.pre_language,
-            &config.borrow().api_config.post_language,
+        .endpoint(
+            Config::from_siv(siv)
+                .borrow()
+                .api_config
+                .endpoint_from_language(&language_link.language),
         )
+        .language(language_link.language.clone())
+        .properties(ARTICLE_PROPERTIES.to_vec())
         .fetch()
         .context("failed fetching the article")
     {
@@ -158,6 +160,7 @@ fn change_article_language(siv: &mut Cursive, language_link: Rc<LanguageLink>) {
 
     siv.pop_layer();
     if let Err(err) = article::display_article(siv, article) {
+        warn!("{:?}", err);
         display_error(siv, err);
     }
 

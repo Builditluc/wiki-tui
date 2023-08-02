@@ -1,12 +1,12 @@
 use crate::{
     config::CONFIG,
     ui::{
-        language_selector::article_language_selection_popup,
         article::{content::ArticleContent, open_link},
+        language_selector::article_language_selection_popup,
         scroll,
-        utils::{display_dialog, display_message},
+        utils::display_message,
     },
-    wiki::article::{Article, ElementType, Link},
+    wiki::article::{Article, ElementType},
 };
 
 use cursive::{

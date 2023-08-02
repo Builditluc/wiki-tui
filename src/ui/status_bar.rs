@@ -25,8 +25,8 @@ impl StatusBar {
         self
     }
 
-    pub fn language(mut self, language: Language) -> Self {
-        self.language = language;
+    pub fn language(mut self, language: &Language) -> Self {
+        self.language = language.to_owned();
         self
     }
 

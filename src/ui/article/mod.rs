@@ -1,14 +1,12 @@
-use crate::config::CONFIG;
-use crate::config::{self, Config};
+use crate::config::{Config, TocPosition, CONFIG};
 use crate::ui::panel::WithPanel;
-use crate::ui::root::RootLayout;
 use crate::ui::search::bar_popup::open_search_bar;
 use crate::ui::toc::display_toc;
 use crate::ui::utils::{display_dialog, display_error, display_message};
+use crate::ui::views::{RootLayout, StatusBar};
 use crate::wiki::article::link_data::InternalData;
 use crate::wiki::article::{Article, Link, Property};
 use crate::wiki::search::Namespace;
-use crate::{config::CONFIG, ui::views::RootLayout};
 
 use anyhow::{Context, Result};
 use cursive::view::{Nameable, Resizable};
@@ -20,7 +18,8 @@ mod lines;
 mod view;
 pub type ArticleView = view::ArticleView;
 
-const ARTICLE_PROPERTIES: [Property; 2] = [Property::Text, Property::Sections];
+pub const ARTICLE_PROPERTIES: [Property; 3] =
+    [Property::Text, Property::Sections, Property::LangLinks];
 const SUPPORTED_NAMESPACES: [Namespace; 1] = [Namespace::Main];
 
 /// Fetches an article from a given id and displays it. It's the on_submit callback for
@@ -30,8 +29,9 @@ pub fn on_article_submit(siv: &mut Cursive, pageid: usize) {
 
     let article = match Article::builder()
         .pageid(pageid)
-        .from_url(Config::from_siv(siv).borrow().api_config.url())
+        .from_url(config.borrow().api_config.url())
         .properties(ARTICLE_PROPERTIES.to_vec())
+        .language(config.borrow().api_config.language.clone())
         .fetch()
         .context("failed fetching the article")
     {
@@ -50,17 +50,6 @@ pub fn on_article_submit(siv: &mut Cursive, pageid: usize) {
 
 /// Checks that the link is supported (supported Namespace, supported link type) and opens it
 pub fn open_link(siv: &mut Cursive, link: Link) {
-    macro_rules! link_dialog {
-        ($cb: expr, $title: expr) => {{
-            display_dialog(
-                siv,
-                "Information",
-                &format!("Do you want to open the link '{}'?", $title),
-                $cb,
-            )
-        }};
-    }
-
     let message = match link {
         Link::Internal(data) => {
             return display_dialog(
@@ -112,6 +101,7 @@ fn open_internal_link(siv: &mut Cursive, data: InternalData) {
         .page(data.page)
         .endpoint(data.endpoint)
         .properties(ARTICLE_PROPERTIES.to_vec())
+        .language(data.language)
         .fetch()
         .context("failed fetching the article")
     {
@@ -177,7 +167,7 @@ pub fn display_article(siv: &mut Cursive, article: Article) -> Result<()> {
 
     let status_bar = StatusBar::new()
         .article_title(article.title())
-        .language(article.language())
+        .language(&article.language)
         .available_languages(article.available_languages().unwrap_or_default())
         .with_name(&status_bar_name)
         .fixed_height(1)
@@ -191,9 +181,9 @@ pub fn display_article(siv: &mut Cursive, article: Article) -> Result<()> {
             .title("wiki-tui"),
     );
 
-    match config::CONFIG.settings.toc.position {
-        config::TocPosition::Left => article_layout.add_child(article_view),
-        config::TocPosition::Right => article_layout.insert_child(0, article_view),
+    match CONFIG.settings.toc.position {
+        TocPosition::Left => article_layout.add_child(article_view),
+        TocPosition::Right => article_layout.insert_child(0, article_view),
     }
     debug!("created the article view");
 

@@ -95,7 +95,7 @@ pub fn parse_languages(input: TokenStream) -> TokenStream {
     let expanded = quote! {
         use serde::{Serialize, Deserialize};
 
-        #[derive(Debug, Clone, Serialize, Deserialize)]
+        #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
         #[serde(from = "String")]
         pub enum Language{
             #variants
