@@ -18,7 +18,6 @@ use super::article::{Element, ElementType, Link, Section};
 
 const SHOW_UNSUPPORTED: bool = false;
 const LIST_MARKER: char = '-';
-const DISAMBIGUATION_MARKER: char = '|';
 
 pub struct Parser<'a> {
     endpoint: Url,
@@ -277,19 +276,11 @@ impl<'a> Parser<'a> {
 
     fn parse_disambiguation(&mut self, node: Node) {
         self.push_kind(ElementType::DisambiguationStart);
-
-        self.elements.push(Element::new(
-            self.next_id(),
-            ElementType::Text,
-            DISAMBIGUATION_MARKER.to_string(),
-            self.combine_effects(Style::from(config::CONFIG.theme.text)),
-            HashMap::new(),
-        ));
         self.parse_effect(node, Effect::Italic);
-        self.push_newline();
-        self.push_newline();
-
         self.push_kind(ElementType::DisambiguationEnd);
+
+        self.push_newline();
+        self.push_newline();
     }
 }
 

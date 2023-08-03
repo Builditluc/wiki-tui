@@ -65,6 +65,9 @@ pub struct LinesWrapper {
 
     /// The leading padding for elements in new lines
     left_padding: usize,
+
+    /// The prefix that is displayed at the start of every line  (after the padding)
+    line_prefix: Option<char>,
 }
 
 impl LinesWrapper {
@@ -86,6 +89,8 @@ impl LinesWrapper {
             anchors: HashMap::new(),
 
             left_padding: 0,
+
+            line_prefix: None,
         }
     }
 
@@ -154,11 +159,13 @@ impl LinesWrapper {
 
             if element.kind == ElementType::DisambiguationStart {
                 self.left_padding = 1;
+                self.line_prefix = Some('|');
                 continue;
             }
 
             if element.kind == ElementType::DisambiguationEnd {
                 self.left_padding = 0;
+                self.line_prefix = None;
                 continue;
             }
 
@@ -267,9 +274,23 @@ impl LinesWrapper {
     }
     /// Adds an element to the current line and if needed, registers a link to it
     fn push_element(&mut self, element: RenderedElement) {
-        // if this is a new line and we have some padding, apply it
-        if self.current_width == 0 && self.left_padding != 0 {
-            self.push_n_whitespace(self.left_padding);
+        if self.current_width == 0 {
+            // if this is a new line and we have some padding, apply it
+            if self.left_padding != 0 {
+                self.push_n_whitespace(self.left_padding);
+            }
+
+            // if this is a new line and we have a prefix, add it
+            if let Some(prefix) = self.line_prefix {
+                if self.current_width + 2 <= self.width {
+                    self.current_line.push(RenderedElement {
+                        id: usize::MAX,
+                        content: format!("{} ", prefix),
+                        style: Style::none(),
+                        width: 2,
+                    })
+                }
+            }
         }
 
         self.current_width += element.width;
