@@ -221,10 +221,6 @@ impl View for ArticleView {
         self.scroll.needs_relayout()
     }
 
-    fn important_area(&self, view_size: Vec2) -> cursive::Rect {
-        scroll::important_area(self, view_size, |_, si| Rect::from_size((0, 0), si))
-    }
-
     fn take_focus(&mut self, _: cursive::direction::Direction) -> Result<EventResult, CannotFocus> {
         // this view is always focusable
         Ok(EventResult::Consumed(None))
