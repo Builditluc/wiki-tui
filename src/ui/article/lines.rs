@@ -62,6 +62,12 @@ pub struct LinesWrapper {
 
     /// The ids and positions of the links
     pub links: Vec<(usize, Vec2)>,
+
+    /// The leading padding for elements in new lines
+    left_padding: usize,
+
+    /// The prefix that is displayed at the start of every line  (after the padding)
+    line_prefix: Option<char>,
 }
 
 impl LinesWrapper {
@@ -81,6 +87,10 @@ impl LinesWrapper {
 
             links: Vec::new(),
             anchors: HashMap::new(),
+
+            left_padding: 0,
+
+            line_prefix: None,
         }
     }
 
@@ -147,6 +157,18 @@ impl LinesWrapper {
                 continue;
             }
 
+            if element.kind == ElementType::DisambiguationStart {
+                self.left_padding = 1;
+                self.line_prefix = Some('|');
+                continue;
+            }
+
+            if element.kind == ElementType::DisambiguationEnd {
+                self.left_padding = 0;
+                self.line_prefix = None;
+                continue;
+            }
+
             // what we do here is fairly simple:
             // First, we split the content into words and then we merge these words together until the
             // line is full. Then we create a new one and do the same thing over and over again until
@@ -188,8 +210,7 @@ impl LinesWrapper {
                 // - add the merged element to the current line
                 // - fill the current line and replace it with a new one
                 // - add the span to a new merged element
-                self.current_width += merged_element.width;
-                self.current_line.push(merged_element);
+                self.push_element(merged_element);
 
                 // if its a link, add it
                 if is_link {
@@ -227,8 +248,7 @@ impl LinesWrapper {
             // if there are still some spans in the merged_element, add it to the current line and
             // register a link if it is one
             if !merged_element.content.is_empty() {
-                self.current_width += merged_element.width;
-                self.current_line.push(merged_element);
+                self.push_element(merged_element);
 
                 if is_link {
                     self.register_link(element.id());
@@ -254,23 +274,48 @@ impl LinesWrapper {
     }
     /// Adds an element to the current line and if needed, registers a link to it
     fn push_element(&mut self, element: RenderedElement) {
+        if self.current_width == 0 {
+            // if this is a new line and we have some padding, apply it
+            if self.left_padding != 0 {
+                self.push_n_whitespace(self.left_padding);
+            }
+
+            // if this is a new line and we have a prefix, add it
+            if let Some(prefix) = self.line_prefix {
+                if self.current_width + 2 <= self.width {
+                    self.current_line.push(RenderedElement {
+                        id: usize::MAX,
+                        content: format!("{} ", prefix),
+                        style: Style::none(),
+                        width: 2,
+                    })
+                }
+            }
+        }
+
         self.current_width += element.width;
         self.current_line.push(element);
     }
 
-    /// Adds a whitespacde to the current line
+    /// Adds a whitespace to the current line
     fn push_whitespace(&mut self) {
+        self.push_n_whitespace(1)
+    }
+
+    /// Adds n amount of whitespace to the current line
+    fn push_n_whitespace(&mut self, n: usize) {
         // check if we can add a whitespace
-        if self.current_width == self.width {
+        if self.current_width + n > self.width {
             return;
         }
 
         // create a rendered element with the id -1 and push it to the current line
-        self.push_element(RenderedElement {
+        self.current_width += n;
+        self.current_line.push(RenderedElement {
             id: usize::MAX,
-            content: " ".to_string(),
+            content: " ".repeat(n).to_string(),
             style: Style::from(CONFIG.theme.text),
-            width: 1,
+            width: n,
         });
     }
 

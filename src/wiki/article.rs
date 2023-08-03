@@ -17,6 +17,8 @@ pub enum ElementType {
     Header,
     Unsupported,
     ListMarker,
+    DisambiguationStart,
+    DisambiguationEnd,
 }
 
 #[derive(Debug, Clone)]

@@ -18,7 +18,6 @@ use super::article::{Element, ElementType, Link, Section};
 
 const SHOW_UNSUPPORTED: bool = false;
 const LIST_MARKER: char = '-';
-const DISAMBIGUATION_MARKER: char = '|';
 
 pub struct Parser<'a> {
     endpoint: Url,
@@ -126,6 +125,16 @@ impl<'a> Parser<'a> {
             Style::none(),
             HashMap::new(),
         ));
+    }
+
+    fn push_kind(&mut self, kind: ElementType) {
+        self.elements.push(Element::new(
+            self.next_id(),
+            kind,
+            "",
+            Style::none(),
+            HashMap::new(),
+        ))
     }
 
     fn is_last_newline(&self) -> bool {
@@ -266,14 +275,10 @@ impl<'a> Parser<'a> {
     }
 
     fn parse_disambiguation(&mut self, node: Node) {
-        self.elements.push(Element::new(
-            self.next_id(),
-            ElementType::Text,
-            DISAMBIGUATION_MARKER.to_string(),
-            self.combine_effects(Style::from(config::CONFIG.theme.text)),
-            HashMap::new(),
-        ));
+        self.push_kind(ElementType::DisambiguationStart);
         self.parse_effect(node, Effect::Italic);
+        self.push_kind(ElementType::DisambiguationEnd);
+
         self.push_newline();
         self.push_newline();
     }
