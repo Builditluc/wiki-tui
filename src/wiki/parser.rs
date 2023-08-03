@@ -128,6 +128,16 @@ impl<'a> Parser<'a> {
         ));
     }
 
+    fn push_kind(&mut self, kind: ElementType) {
+        self.elements.push(Element::new(
+            self.next_id(),
+            kind,
+            "",
+            Style::none(),
+            HashMap::new(),
+        ))
+    }
+
     fn is_last_newline(&self) -> bool {
         self.elements
             .last()
@@ -266,6 +276,8 @@ impl<'a> Parser<'a> {
     }
 
     fn parse_disambiguation(&mut self, node: Node) {
+        self.push_kind(ElementType::DisambiguationStart);
+
         self.elements.push(Element::new(
             self.next_id(),
             ElementType::Text,
@@ -276,6 +288,8 @@ impl<'a> Parser<'a> {
         self.parse_effect(node, Effect::Italic);
         self.push_newline();
         self.push_newline();
+
+        self.push_kind(ElementType::DisambiguationEnd);
     }
 }
 
