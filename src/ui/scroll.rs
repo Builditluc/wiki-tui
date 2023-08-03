@@ -66,18 +66,18 @@ where
     match result {
         EventResult::Ignored => {
             match event {
-                Event::Key(Key::Home) if scroller.get_scroller_mut().is_enabled().any() => {
+                Event::Key(Key::Home) if scroller.get_scroller().is_enabled().any() => {
                     scroller.get_scroller_mut().scroll_to_left();
                     scroller.get_scroller_mut().scroll_to_top();
                 }
-                Event::Key(Key::End) if scroller.get_scroller_mut().is_enabled().any() => {
+                Event::Key(Key::End) if scroller.get_scroller().is_enabled().any() => {
                     scroller.get_scroller_mut().scroll_to_right();
                     scroller.get_scroller_mut().scroll_to_bottom();
                 }
-                Event::Key(Key::PageUp) if scroller.get_scroller_mut().can_scroll_up() => {
+                Event::Key(Key::PageUp) if scroller.get_scroller().can_scroll_up() => {
                     scroller.get_scroller_mut().scroll_up(SCROLL_PAGE_UP)
                 }
-                Event::Key(Key::PageDown) if scroller.get_scroller_mut().can_scroll_down() => {
+                Event::Key(Key::PageDown) if scroller.get_scroller().can_scroll_down() => {
                     scroller.get_scroller_mut().scroll_down(SCROLL_PAGE_DOWN)
                 }
                 Event::Char('G') => scroller.get_scroller_mut().scroll_to_bottom(),
@@ -97,54 +97,52 @@ where
                 }
 
                 Event::CtrlChar('d') => {
-                    if scroller.get_scroller_mut().can_scroll_down() {
+                    if scroller.get_scroller().can_scroll_down() {
                         scroller
                             .get_scroller_mut()
                             .scroll_down(half_viewport_height)
                     }
                 }
                 Event::CtrlChar('u') => {
-                    if scroller.get_scroller_mut().can_scroll_up() {
+                    if scroller.get_scroller().can_scroll_up() {
                         scroller.get_scroller_mut().scroll_up(half_viewport_height)
                     }
                 }
                 key if key == CONFIG.keybindings.down
-                    && scroller.get_scroller_mut().can_scroll_down() =>
+                    && scroller.get_scroller().can_scroll_down() =>
                 {
                     scroller.get_scroller_mut().scroll_down(1)
                 }
-                key if key == CONFIG.keybindings.up
-                    && scroller.get_scroller_mut().can_scroll_up() =>
-                {
+                key if key == CONFIG.keybindings.up && scroller.get_scroller().can_scroll_up() => {
                     scroller.get_scroller_mut().scroll_up(1)
                 }
                 key if key == CONFIG.keybindings.left
-                    && scroller.get_scroller_mut().can_scroll_left() =>
+                    && scroller.get_scroller().can_scroll_left() =>
                 {
                     scroller.get_scroller_mut().scroll_left(1);
                 }
                 key if key == CONFIG.keybindings.right
-                    && scroller.get_scroller_mut().can_scroll_right() =>
+                    && scroller.get_scroller().can_scroll_right() =>
                 {
                     scroller.get_scroller_mut().scroll_right(1);
                 }
                 Event::Mouse {
                     event: MouseEvent::WheelUp,
                     ..
-                } if scroller.get_scroller_mut().can_scroll_up() => {
+                } if scroller.get_scroller().can_scroll_up() => {
                     scroller.get_scroller_mut().scroll_up(SCROLL_WHEEL_UP);
                 }
                 Event::Mouse {
                     event: MouseEvent::WheelDown,
                     ..
-                } if scroller.get_scroller_mut().can_scroll_down() => {
+                } if scroller.get_scroller().can_scroll_down() => {
                     scroller.get_scroller_mut().scroll_down(SCROLL_WHEEL_DOWN);
                 }
                 Event::Mouse {
                     event: MouseEvent::Press(MouseButton::Left),
                     position,
                     offset,
-                } if scroller.get_scroller_mut().get_show_scrollbars()
+                } if scroller.get_scroller().get_show_scrollbars()
                     && position
                         .checked_sub(offset)
                         .map(|position| scroller.get_scroller_mut().start_drag(position))
@@ -156,7 +154,7 @@ where
                     event: MouseEvent::Hold(MouseButton::Left),
                     position,
                     offset,
-                } if scroller.get_scroller_mut().get_show_scrollbars() => {
+                } if scroller.get_scroller().get_show_scrollbars() => {
                     let position = position.saturating_sub(offset);
                     scroller.get_scroller_mut().drag(position);
                 }
@@ -173,7 +171,7 @@ where
             EventResult::consumed()
         }
         other => {
-            let inner_size = scroller.get_scroller_mut().inner_size();
+            let inner_size = scroller.get_scroller().inner_size();
             let important = important_area(scroller, inner_size);
             scroller.get_scroller_mut().scroll_to_rect(important);
 

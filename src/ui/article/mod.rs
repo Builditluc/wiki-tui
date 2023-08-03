@@ -122,6 +122,14 @@ fn open_internal_link(siv: &mut Cursive, data: InternalData) {
         // display an error message
         display_error(siv, error);
     }
+
+    if let Some(anchor_data) = data.anchor {
+        display_message(
+            siv, 
+            "Information", 
+            &format!("The link has an anchorpoint to '{}'. \nUnfortunately, anchorpoints are not supported yet, meaning the article will open at the top", anchor_data.title)
+        );
+    }
 }
 
 /// Helper function for displaying an article on the screen. This includes creating an article view
