@@ -84,7 +84,7 @@ fn open_internal_link(siv: &mut Cursive, data: InternalData) {
             siv,
             "Information",
             &format!(
-                "The link leads to an article in the '{}' namespace which is supported",
+                "The link leads to an article in the '{}' namespace which is not supported",
                 data.namespace
             ),
         );
