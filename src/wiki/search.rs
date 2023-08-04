@@ -149,7 +149,24 @@ pub enum Namespace {
 
 impl Display for Namespace {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.clone())
+        match self {
+            Namespace::Main => write!(f, "Main"),
+            Namespace::MainTalk => write!(f, "Main_talk"),
+            Namespace::User => write!(f, "User"),
+            Namespace::UserTalk => write!(f, "User_talk"),
+            Namespace::Project => write!(f, "Project"),
+            Namespace::ProjectTalk => write!(f, "Project_talk"),
+            Namespace::File => write!(f, "File"),
+            Namespace::FileTalk => write!(f, "File_talk"),
+            Namespace::MediaWiki => write!(f, "Mediawiki"),
+            Namespace::MediaWikiTalk => write!(f, "Mediawiki_talk"),
+            Namespace::Template => write!(f, "Template"),
+            Namespace::TemplateTalk => write!(f, "Template_talk"),
+            Namespace::Help => write!(f, "Help"),
+            Namespace::HelpTalk => write!(f, "Help_talk"),
+            Namespace::Category => write!(f, "Category"),
+            Namespace::CategoryTalk => write!(f, "Category_talk"),
+        }
     }
 }
 
@@ -157,21 +174,21 @@ impl Namespace {
     pub fn from_str(namespace: &str) -> Option<Namespace> {
         match namespace.to_lowercase().as_str() {
             "main" => Some(Namespace::Main),
-            "maintalk" => Some(Namespace::MainTalk),
+            "main_talk" => Some(Namespace::MainTalk),
             "user" => Some(Namespace::User),
-            "usertalk" => Some(Namespace::UserTalk),
+            "user_talk" => Some(Namespace::UserTalk),
             "project" => Some(Namespace::Project),
-            "projecttalk" => Some(Namespace::ProjectTalk),
+            "project_talk" => Some(Namespace::ProjectTalk),
             "file" => Some(Namespace::File),
-            "filetalk" => Some(Namespace::FileTalk),
+            "file_talk" => Some(Namespace::FileTalk),
             "mediawiki" => Some(Namespace::MediaWiki),
-            "mediawikitalk" => Some(Namespace::MediaWikiTalk),
+            "mediawiki_talk" => Some(Namespace::MediaWikiTalk),
             "template" => Some(Namespace::Template),
-            "templatetalk" => Some(Namespace::TemplateTalk),
+            "template_talk" => Some(Namespace::TemplateTalk),
             "help" => Some(Namespace::Help),
-            "helptalk" => Some(Namespace::HelpTalk),
+            "help_talk" => Some(Namespace::HelpTalk),
             "category" => Some(Namespace::Category),
-            "categorytalk" => Some(Namespace::CategoryTalk),
+            "category_talk" => Some(Namespace::CategoryTalk),
             _ => None,
         }
     }
