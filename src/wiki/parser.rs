@@ -262,7 +262,10 @@ impl<'a> Parser<'a> {
                 self.combine_effects(Style::from(config::CONFIG.theme.text)),
                 HashMap::new(),
             ));
-            self.parse_text(child)
+
+            self.push_kind(ElementType::ListItemStart);
+            self.parse_text(child);
+            self.push_kind(ElementType::ListItemEnd);
         }
         self.push_newline();
         self.push_newline();
@@ -284,7 +287,7 @@ impl<'a> Parser<'a> {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Snafu)]
+#[derive(Debug, Clone, PartialEq, Eq, Snafu)]
 pub enum ParsingError {
     #[snafu(display("The link leads to an invalid namespace: '{namespace}'"))]
     InvalidNamespace { namespace: String },

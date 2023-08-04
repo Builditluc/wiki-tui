@@ -16,7 +16,11 @@ pub enum ElementType {
     Link(Link),
     Header,
     Unsupported,
+
     ListMarker,
+    ListItemStart,
+    ListItemEnd,
+
     DisambiguationStart,
     DisambiguationEnd,
 }
@@ -373,7 +377,7 @@ impl<E> ArticleBuilder<NoPageID, NoPage, E> {
 }
 
 impl<I, P> ArticleBuilder<I, P, NoEndpoint> {
-    pub fn from_url(self, url: impl Into<Url>) -> ArticleBuilder<I, P, WithEndpoint> {
+    pub fn url(self, url: impl Into<Url>) -> ArticleBuilder<I, P, WithEndpoint> {
         ArticleBuilder {
             pageid: self.pageid,
             page: self.page,

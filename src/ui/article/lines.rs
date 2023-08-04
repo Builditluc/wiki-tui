@@ -7,6 +7,11 @@ use std::collections::HashMap;
 use std::mem;
 use std::rc::Rc;
 
+const DISAMBIGUATION_PADDING: u8 = 1;
+const DISAMBIGUATION_PREFIX: char = '|';
+
+const LIST_ITEM_PADDING: u8 = 2;
+
 /// An element only containing the neccessary information for rendering (and an id so that it can
 /// be referenced to an article element
 #[derive(Debug)]
@@ -158,14 +163,24 @@ impl LinesWrapper {
             }
 
             if element.kind == ElementType::DisambiguationStart {
-                self.left_padding = 1;
-                self.line_prefix = Some('|');
+                self.left_padding = DISAMBIGUATION_PADDING as usize;
+                self.line_prefix = Some(DISAMBIGUATION_PREFIX);
                 continue;
             }
 
             if element.kind == ElementType::DisambiguationEnd {
                 self.left_padding = 0;
                 self.line_prefix = None;
+                continue;
+            }
+
+            if element.kind == ElementType::ListItemStart {
+                self.left_padding = LIST_ITEM_PADDING as usize;
+                continue;
+            }
+
+            if element.kind == ElementType::ListItemEnd {
+                self.left_padding = 0;
                 continue;
             }
 
@@ -195,7 +210,7 @@ impl LinesWrapper {
 
             for span in element.content().split_whitespace() {
                 // does the span fit onto the current line?
-                if span.chars().count() + merged_element.width + self.current_width < self.width {
+                if self.is_space_valid(span.chars().count() + merged_element.width) {
                     // only add a leading whitespace if the merged element is not empty
                     if !merged_element.content.is_empty() {
                         merged_element.push(' ');
@@ -233,7 +248,7 @@ impl LinesWrapper {
                 };
 
                 // does the span fit onto the current line?
-                if span.chars().count() + merged_element.width + self.current_width < self.width {
+                if self.is_space_valid(span.chars().count() + merged_element.width) {
                     // only add a leading whitespace if the merged element is not empty
                     if !merged_element.content.is_empty() {
                         merged_element.push(' ');
@@ -272,6 +287,13 @@ impl LinesWrapper {
         self.links
             .push((id, Vec2::new(self.current_width, self.rendered_lines.len())))
     }
+
+    fn is_space_valid(&self, width: usize) -> bool {
+        let prefix_len: usize = self.line_prefix.map(|_| 1).unwrap_or_default();
+
+        width + self.current_width + self.left_padding + prefix_len <= self.width
+    }
+
     /// Adds an element to the current line and if needed, registers a link to it
     fn push_element(&mut self, element: RenderedElement) {
         if self.current_width == 0 {
@@ -282,14 +304,13 @@ impl LinesWrapper {
 
             // if this is a new line and we have a prefix, add it
             if let Some(prefix) = self.line_prefix {
-                if self.current_width + 2 <= self.width {
-                    self.current_line.push(RenderedElement {
-                        id: usize::MAX,
-                        content: format!("{} ", prefix),
-                        style: Style::none(),
-                        width: 2,
-                    })
-                }
+                assert!(self.current_width + 2 <= self.width);
+                self.current_line.push(RenderedElement {
+                    id: usize::MAX,
+                    content: format!("{} ", prefix),
+                    style: Style::none(),
+                    width: 2,
+                })
             }
         }
 
@@ -313,7 +334,7 @@ impl LinesWrapper {
         self.current_width += n;
         self.current_line.push(RenderedElement {
             id: usize::MAX,
-            content: " ".repeat(n).to_string(),
+            content: " ".repeat(n),
             style: Style::from(CONFIG.theme.text),
             width: n,
         });
@@ -331,7 +352,9 @@ impl LinesWrapper {
     /// Fills the remaining space of the line with spaces
     fn fill_line(&mut self) {
         // if our current line is wider than allowed, we really messed up
-        assert!(self.current_width <= self.width);
+        if self.current_width > self.width {
+            return;
+        }
 
         // change the max width, if neccessary
         if self.current_width > self.max_width {
