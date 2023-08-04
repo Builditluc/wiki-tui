@@ -45,7 +45,7 @@ pub fn on_article_submit(siv: &mut Cursive, pageid: usize) {
 
 /// Checks that the link is supported (supported Namespace, supported link type) and opens it
 pub fn open_link(siv: &mut Cursive, link: Link) {
-        let message = match link {
+    let message = match link {
         Link::Internal(data) => {
             return display_dialog(
                 siv,
@@ -119,7 +119,7 @@ fn open_internal_link(siv: &mut Cursive, data: InternalData) {
 
     if let Some(anchor_data) = data.anchor {
         display_message(
-            siv, 
+            siv,
             "Information", 
             &format!("The link has an anchorpoint to '{}'. \nUnfortunately, anchorpoints are not supported yet, meaning the article will open at the top", anchor_data.title)
         );
