@@ -194,6 +194,38 @@ impl Namespace {
     }
 }
 
+#[cfg(test)]
+mod tests {
+    use super::Namespace;
+    #[test]
+    fn test_namespace_display_and_str() {
+        macro_rules! test_namespace {
+            ($namespace: ident, $namespace_talk: ident) => {
+                let namespace_str = format!("{}", Namespace::$namespace);
+                assert_eq!(
+                    Namespace::from_str(&namespace_str),
+                    Some(Namespace::$namespace)
+                );
+
+                let namespace_str = format!("{}", Namespace::$namespace_talk);
+                assert_eq!(
+                    Namespace::from_str(&namespace_str),
+                    Some(Namespace::$namespace_talk)
+                );
+            };
+        }
+
+        test_namespace!(Main, MainTalk);
+        test_namespace!(User, UserTalk);
+        test_namespace!(Project, ProjectTalk);
+        test_namespace!(File, FileTalk);
+        test_namespace!(MediaWiki, MediaWikiTalk);
+        test_namespace!(Template, TemplateTalk);
+        test_namespace!(Help, HelpTalk);
+        test_namespace!(Category, CategoryTalk);
+    }
+}
+
 pub enum QiProfile {
     Classic,
     ClassicNoBoostLinks,
