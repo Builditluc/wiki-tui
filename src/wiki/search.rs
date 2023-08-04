@@ -2,7 +2,7 @@ use anyhow::{Context, Result};
 use reqwest::blocking::{Client, Response};
 use serde::Deserialize;
 use serde_repr::Deserialize_repr;
-use std::{convert::TryFrom, fmt::Display};
+use std::fmt::Display;
 
 fn action_query(params: Vec<(&str, String)>, url: String) -> Result<Response> {
     Client::new()

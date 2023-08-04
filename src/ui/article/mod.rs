@@ -26,7 +26,7 @@ const SUPPORTED_NAMESPACES: [Namespace; 1] = [Namespace::Main];
 pub fn on_article_submit(siv: &mut Cursive, pageid: usize) {
     let article = match Article::builder()
         .pageid(pageid)
-        .from_url(Config::from_siv(siv).borrow().api_config.url())
+        .url(Config::from_siv(siv).borrow().api_config.url())
         .properties(vec![Property::Text, Property::Sections])
         .fetch()
     {
@@ -45,17 +45,6 @@ pub fn on_article_submit(siv: &mut Cursive, pageid: usize) {
 
 /// Checks that the link is supported (supported Namespace, supported link type) and opens it
 pub fn open_link(siv: &mut Cursive, link: Link) {
-    macro_rules! link_dialog {
-        ($cb: expr, $title: expr) => {{
-            display_dialog(
-                siv,
-                "Information",
-                &format!("Do you want to open the link '{}'?", $title),
-                $cb,
-            )
-        }};
-    }
-
     let message = match link {
         Link::Internal(data) => {
             return display_dialog(
@@ -130,7 +119,7 @@ fn open_internal_link(siv: &mut Cursive, data: InternalData) {
 
     if let Some(anchor_data) = data.anchor {
         display_message(
-            siv, 
+            siv,
             "Information", 
             &format!("The link has an anchorpoint to '{}'. \nUnfortunately, anchorpoints are not supported yet, meaning the article will open at the top", anchor_data.title)
         );
