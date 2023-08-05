@@ -98,6 +98,9 @@ impl<'a> Parser<'a> {
             }
             "" => (),
             "dl" => self.parse_description_list(node),
+            "div" => {
+                node.children().map(|node| self.parse_node(node)).count();
+            }
             _ if SHOW_UNSUPPORTED => {
                 self.elements.push(Element::new(
                     self.next_id(),
