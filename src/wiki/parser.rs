@@ -99,7 +99,7 @@ impl<'a> Parser<'a> {
             "div"
                 if node
                     .attr("class")
-                    .map(|x| x.contains("toc"))
+                    .map(|x| x.contains("toc") | x.contains("quotebox"))
                     .unwrap_or(false) => {}
             "" => (),
             "dl" => self.parse_description_list(node),
