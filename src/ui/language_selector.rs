@@ -1,5 +1,6 @@
 use std::{cell::RefCell, rc::Rc};
 
+use anyhow::Context;
 use cursive::{
     view::{Nameable, Resizable},
     views::{DummyView, EditView},
@@ -8,10 +9,15 @@ use cursive::{
 
 use crate::{
     config::{Config, CONFIG},
-    wiki::language::{Language, LANGUAGES},
+    ui::utils::display_error,
+    wiki::{
+        article::{Article, LanguageLink},
+        language::{Language, LANGUAGES},
+    },
 };
 
 use super::{
+    article::{self, ArticleView, ARTICLE_PROPERTIES},
     panel::WithPanel,
     scroll_view::Scrollable,
     utils::{display_message, percentage},
@@ -47,6 +53,8 @@ pub fn language_selection_popup(siv: &mut Cursive) {
         siv.pop_layer();
         return;
     }
+
+    info!("displaying '{}' languages for selection", LANGUAGES.len());
 
     let language_search = EditView::new()
         .on_edit(|siv, text, _| {
@@ -112,4 +120,138 @@ pub fn language_selection_popup(siv: &mut Cursive) {
             .title("Change Language")
             .fixed_size((selection_width, selection_height)),
     );
+}
+
+const ARTICLE_POPUP_NAME: &str = "article_language_selection_popup";
+const ARTICLE_LANGUAGE_SELECTION_NAME: &str = "article_language_selection";
+
+const ARTICLE_SELECTION_WIDTH_PERCENTAGE: f32 = 0.4;
+const ARTICLE_SELECTION_HEIGHT_PERCNETAGE: f32 = 0.5;
+
+fn change_article_language(siv: &mut Cursive, language_link: Rc<LanguageLink>) {
+    let success_msg = format!(
+        "Changed the language of your current article to {}",
+        language_link.language.name()
+    );
+
+    let article = match Article::builder()
+        .page(&language_link.title)
+        .endpoint(
+            Config::from_siv(siv)
+                .borrow()
+                .api_config
+                .endpoint_from_language(&language_link.language),
+        )
+        .language(language_link.language.clone())
+        .properties(ARTICLE_PROPERTIES.to_vec())
+        .fetch()
+        .context("failed fetching the article")
+    {
+        Ok(article) => article,
+        Err(error) => {
+            warn!("{:?}", error);
+            display_error(siv, error);
+            return;
+        }
+    };
+
+    siv.pop_layer();
+    if let Err(err) = article::display_article(siv, article) {
+        warn!("{:?}", err);
+        display_error(siv, err);
+    }
+
+    if CONFIG.api_config.article_language_changed_popup {
+        display_message(siv, "Information", &success_msg);
+    }
+}
+
+pub fn toggle_article_language_selection_popup(siv: &mut Cursive) {
+    if siv.find_name::<RootLayout>(ARTICLE_POPUP_NAME).is_some() {
+        siv.pop_layer();
+        return;
+    }
+
+    let article_view_name = format!("article_view-{}", siv.screen().len());
+    if let Some(event_result) = siv.call_on_name(&article_view_name, |view: &mut ArticleView| {
+        view.list_article_language_switcher()
+    }) {
+        event_result.process(siv);
+    } else {
+        display_message(siv, "Information", "No Article is open!")
+    }
+}
+
+pub fn article_language_selection_popup(siv: &mut Cursive, languages: Vec<LanguageLink>) {
+    info!(
+        "displaying '{}' article languages for selection",
+        languages.len()
+    );
+
+    let mut language_selection: SelectView<LanguageLink> =
+        SelectView::new().on_submit(|s, item: &LanguageLink| {
+            s.pop_layer();
+            change_article_language(s, item.to_owned().into());
+        });
+
+    language_selection.add_all(
+        languages
+            .iter()
+            .map(|lang_link| (lang_link.language.name(), lang_link.to_owned())),
+    );
+
+    let language_search = EditView::new()
+        .on_edit(move |siv, text, _| {
+            let sorted_languages = languages
+                .iter()
+                .filter(|lang_link| {
+                    let lang = lang_link.language.name().to_lowercase();
+                    let query = text.to_lowercase();
+                    lang.contains(&query)
+                })
+                .map(|lang_link| lang_link.to_owned())
+                .collect::<Vec<LanguageLink>>();
+
+            siv.call_on_name(
+                ARTICLE_LANGUAGE_SELECTION_NAME,
+                move |language_selection: &mut SelectView<LanguageLink>| {
+                    language_selection.clear();
+                    language_selection.add_all(
+                        sorted_languages
+                            .iter()
+                            .map(|lang_link| (lang_link.language.name(), lang_link.to_owned())),
+                    )
+                },
+            );
+        })
+        .on_submit(|siv, _| {
+            if let Some(Some(selected_language)) = siv.call_on_name(
+                ARTICLE_LANGUAGE_SELECTION_NAME,
+                |language_selection: &mut SelectView<LanguageLink>| language_selection.selection(),
+            ) {
+                siv.pop_layer();
+                change_article_language(siv, selected_language);
+            }
+        });
+
+    let screen_size = siv.screen_size();
+
+    let selection_width = percentage(screen_size.x, ARTICLE_SELECTION_WIDTH_PERCENTAGE);
+    let selection_height = percentage(screen_size.y, ARTICLE_SELECTION_HEIGHT_PERCNETAGE);
+
+    siv.add_layer(
+        RootLayout::vertical(CONFIG.keybindings.clone())
+            .child(language_search)
+            .child(DummyView {})
+            .child(
+                language_selection
+                    .with_name(ARTICLE_LANGUAGE_SELECTION_NAME)
+                    .scrollable(),
+            )
+            .input(true)
+            .with_name(ARTICLE_POPUP_NAME)
+            .with_panel()
+            .title("Switch Article Language")
+            .fixed_size((selection_width, selection_height)),
+    )
 }

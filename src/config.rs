@@ -169,10 +169,11 @@ impl ViewTheme {
 
 #[derive(Clone, Debug, Serialize)]
 pub struct ApiConfig {
-    pre_language: String,
-    post_language: String,
+    pub pre_language: String,
+    pub post_language: String,
     pub language: Language,
     pub language_changed_popup: bool,
+    pub article_language_changed_popup: bool,
 }
 
 impl ApiConfig {
@@ -181,6 +182,19 @@ impl ApiConfig {
             "{}{}{}",
             self.pre_language,
             self.language.code(),
+            self.post_language
+        );
+
+        Url::parse(&url_str)
+            .with_context(|| format!("failed parsing the url: '{}'", url_str))
+            .expect("invalid api endpoint url")
+    }
+
+    pub fn endpoint_from_language(&self, language: &Language) -> Url {
+        let url_str = format!(
+            "{}{}{}",
+            self.pre_language,
+            language.code(),
             self.post_language
         );
 
@@ -215,6 +229,7 @@ pub struct Keybindings {
     pub focus_prev: Event,
 
     pub toggle_language_selection: Event,
+    pub toggle_article_language_selection: Event,
 }
 
 impl Serialize for Keybindings {
@@ -340,6 +355,7 @@ impl Serialize for Keybindings {
         serialize_event!(focus_prev);
 
         serialize_event!(toggle_language_selection);
+        serialize_event!(toggle_article_language_selection);
 
         s.end()
     }
@@ -457,6 +473,7 @@ struct UserApiConfig {
     post_language: Option<String>,
     language: Option<String>,
     language_changed_popup: Option<bool>,
+    article_language_changed_popup: Option<bool>,
 }
 
 #[derive(Deserialize, Debug)]
@@ -482,6 +499,7 @@ struct UserKeybindings {
     focus_prev: Option<UserKeybinding>,
 
     toggle_language_selection: Option<UserKeybinding>,
+    toggle_article_language_selection: Option<UserKeybinding>,
 }
 
 #[derive(Deserialize, Debug)]
@@ -499,6 +517,7 @@ impl Config {
                 post_language: ".wikipedia.org/w/api.php".to_string(),
                 language: Language::default(),
                 language_changed_popup: true,
+                article_language_changed_popup: true,
             },
             theme: Theme {
                 background: Color::Dark(BaseColor::Black),
@@ -537,6 +556,7 @@ impl Config {
                 focus_prev: Event::Shift(Key::Tab),
 
                 toggle_language_selection: Event::Key(Key::F2),
+                toggle_article_language_selection: Event::Key(Key::F3),
             },
             settings: Settings {
                 toc: TocSettings {
@@ -754,6 +774,14 @@ impl Config {
         if let Some(language_changed_popup) = &user_api_config.language_changed_popup {
             self.api_config.language_changed_popup = language_changed_popup.to_owned();
             debug!("loaded 'language_changed_popup")
+        }
+
+        if let Some(article_language_changed_popup) =
+            &user_api_config.article_language_changed_popup
+        {
+            self.api_config.article_language_changed_popup =
+                article_language_changed_popup.to_owned();
+            debug!("loaded 'article_language_changed_popup")
         }
     }
 
@@ -995,6 +1023,20 @@ impl Config {
                 Ok(event_key) => {
                     self.keybindings.toggle_language_selection = event_key;
                     log::debug!("loaded 'keybindings.toggle_language_selection'");
+                }
+                Err(error) => {
+                    warn!("{:?}", error)
+                }
+            }
+        }
+        if let Some(keybinding) = &user_keybindings.toggle_article_language_selection {
+            match parse_keybinding(
+                &keybinding.key,
+                keybinding.mode.as_ref().unwrap_or(&"normal".to_string()),
+            ) {
+                Ok(event_key) => {
+                    self.keybindings.toggle_article_language_selection = event_key;
+                    log::debug!("loaded 'keybindings.toggle_article_language_selection'");
                 }
                 Err(error) => {
                     warn!("{:?}", error)

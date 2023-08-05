@@ -1,16 +1,16 @@
-use crate::config::{self, Config};
+use crate::config::{Config, TocPosition, CONFIG};
 use crate::ui::panel::WithPanel;
 use crate::ui::search::bar_popup::open_search_bar;
 use crate::ui::toc::display_toc;
 use crate::ui::utils::{display_dialog, display_error, display_message};
+use crate::ui::views::{RootLayout, StatusBar};
 use crate::wiki::article::link_data::InternalData;
 use crate::wiki::article::{Article, Link, Property};
 use crate::wiki::search::Namespace;
-use crate::{config::CONFIG, ui::views::RootLayout};
 
 use anyhow::{Context, Result};
 use cursive::view::{Nameable, Resizable};
-use cursive::views::{LastSizeView, OnEventView, TextView};
+use cursive::views::{LastSizeView, LinearLayout, OnEventView, TextView};
 use cursive::Cursive;
 
 mod content;
@@ -18,17 +18,22 @@ mod lines;
 mod view;
 pub type ArticleView = view::ArticleView;
 
-const ARTICLE_PROPERTIES: [Property; 2] = [Property::Text, Property::Sections];
+pub const ARTICLE_PROPERTIES: [Property; 3] =
+    [Property::Text, Property::Sections, Property::LangLinks];
 const SUPPORTED_NAMESPACES: [Namespace; 1] = [Namespace::Main];
 
 /// Fetches an article from a given id and displays it. It's the on_submit callback for
 /// the search results view
 pub fn on_article_submit(siv: &mut Cursive, pageid: usize) {
+    let config = Config::from_siv(siv);
+
     let article = match Article::builder()
         .pageid(pageid)
-        .url(Config::from_siv(siv).borrow().api_config.url())
-        .properties(vec![Property::Text, Property::Sections])
+        .url(config.borrow().api_config.url())
+        .properties(ARTICLE_PROPERTIES.to_vec())
+        .language(config.borrow().api_config.language.clone())
         .fetch()
+        .context("failed fetching the article")
     {
         Ok(article) => article,
         Err(error) => {
@@ -96,6 +101,7 @@ fn open_internal_link(siv: &mut Cursive, data: InternalData) {
         .page(data.page)
         .endpoint(data.endpoint)
         .properties(ARTICLE_PROPERTIES.to_vec())
+        .language(data.language)
         .fetch()
         .context("failed fetching the article")
     {
@@ -128,7 +134,7 @@ fn open_internal_link(siv: &mut Cursive, data: InternalData) {
 
 /// Helper function for displaying an article on the screen. This includes creating an article view
 /// and any errors it encountred are returned
-fn display_article(siv: &mut Cursive, article: Article) -> Result<()> {
+pub fn display_article(siv: &mut Cursive, article: Article) -> Result<()> {
     // if the search layer still exists, then remove it
     if siv
         .find_name::<TextView>("search_results_preview")
@@ -145,9 +151,11 @@ fn display_article(siv: &mut Cursive, article: Article) -> Result<()> {
 
     let article_layout_name = format!("article_layout-{}", layer_len);
     let article_view_name = format!("article_view-{}", layer_len);
+    let status_bar_name = format!("status_bar-{}", layer_len);
 
     debug!("article_layout name '{}'", article_layout_name);
-    debug!("artilce_view name '{}'", article_view_name);
+    debug!("article_view name '{}'", article_view_name);
+    debug!("status_bar name '{}'", status_bar_name);
 
     let mut article_layout = RootLayout::horizontal(CONFIG.keybindings.clone());
     debug!("created the article layout");
@@ -164,6 +172,14 @@ fn display_article(siv: &mut Cursive, article: Article) -> Result<()> {
         }
     }
 
+    let status_bar = StatusBar::new()
+        .article_title(article.title())
+        .language(&article.language)
+        .available_languages(article.available_languages().unwrap_or_default())
+        .with_name(&status_bar_name)
+        .fixed_height(1)
+        .full_width();
+
     // create the article view
     let article_view = LastSizeView::new(
         ArticleView::new(article)
@@ -172,15 +188,21 @@ fn display_article(siv: &mut Cursive, article: Article) -> Result<()> {
             .title("wiki-tui"),
     );
 
-    match config::CONFIG.settings.toc.position {
-        config::TocPosition::Left => article_layout.add_child(article_view),
-        config::TocPosition::Right => article_layout.insert_child(0, article_view),
+    match CONFIG.settings.toc.position {
+        TocPosition::Left => article_layout.add_child(article_view),
+        TocPosition::Right => article_layout.insert_child(0, article_view),
     }
     debug!("created the article view");
 
     siv.add_fullscreen_layer(
-        OnEventView::new(article_layout.with_name(&article_layout_name).full_screen())
-            .on_event('S', open_search_bar),
+        LinearLayout::vertical()
+            .child(
+                OnEventView::new(article_layout.with_name(&article_layout_name))
+                    .on_event('S', open_search_bar)
+                    .fixed_height(siv.screen_size().y.saturating_sub(1)),
+            )
+            .child(status_bar)
+            .full_screen(),
     );
     debug!("created a new fullscreen layer and added the article layout to it");
 

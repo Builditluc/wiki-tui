@@ -28,10 +28,11 @@ You can find the **installation instructions**, **configuration options**, **mor
 
     - Rich search results (result previews, more information on results,
       continue the current search)
-    - Open articles in layers (press ++escape++ to close a layer)
+    - Open articles in layers (press ESC to close a layer)
     - A Table of Contents with support for jumping to the section in the
       article
-    - Richt article view (functioning links, lists, headers)
+    - Rich article view (functioning links, lists, headers)
+    - Switch the language of an article
 
 - VIM-like Keybindings:
     

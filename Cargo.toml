@@ -43,8 +43,8 @@ backtrace = "0.3"
 toml = "0.5.9"
 structopt = "0.3.25"
 chrono = "0.4"
-url = "2.4.0"
 urlencoding = "2.1.2"
+url = { version = "2.4", features = ["serde"]}
 snafu = "0.7"
 
 [dependencies.cursive]

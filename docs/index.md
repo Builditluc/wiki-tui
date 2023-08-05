@@ -35,7 +35,8 @@ A simple and easy to use Wikipedia Text User Interface
     - Open articles in layers (press ++escape++ to close a layer)
     - A Table of Contents with support for jumping to the section in the
       article
-    - Richt article view (functioning links, lists, headers)
+    - Rich article view (functioning links, lists, headers)
+    - Switch the language of an article
 
 - VIM-like Keybindings:
     

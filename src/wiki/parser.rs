@@ -14,13 +14,17 @@ use crate::{
     },
 };
 
-use super::article::{Element, ElementType, Link, Section};
+use super::{
+    article::{Element, ElementType, Link, Section},
+    language::Language,
+};
 
 const SHOW_UNSUPPORTED: bool = false;
 const LIST_MARKER: char = '-';
 
 pub struct Parser<'a> {
     endpoint: Url,
+    language: Language,
     elements: Vec<Element>,
     current_effects: Vec<Effect>,
     sections: Option<&'a Vec<Section>>,
@@ -32,6 +36,7 @@ impl<'a> Parser<'a> {
         title: &'a str,
         sections: Option<&Vec<Section>>,
         endpoint: Url,
+        language: Language,
     ) -> Result<Vec<Element>> {
         let document = Document::from(document);
 
@@ -40,6 +45,7 @@ impl<'a> Parser<'a> {
             elements: Vec::new(),
             current_effects: Vec::new(),
             sections,
+            language,
         };
 
         parser.elements.push(Element::new(
@@ -225,8 +231,13 @@ impl<'a> Parser<'a> {
         }
 
         let target = target.expect("'title' missing after check").to_string();
-        let link = match parse_href_to_link(self.endpoint.clone(), target.clone(), title)
-            .with_context(move || format!("failed parsing the link '{}'", target))
+        let link = match parse_href_to_link(
+            self.endpoint.clone(),
+            target.clone(),
+            title,
+            self.language.clone(),
+        )
+        .with_context(move || format!("failed parsing the link '{}'", target))
         {
             Ok(link) => link,
             Err(error) => {
@@ -341,6 +352,7 @@ fn parse_href_to_link(
     endpoint: Url,
     href: impl Into<String>,
     title: Option<impl Into<String>>,
+    language: Language,
 ) -> Result<Link, ParsingError> {
     let href: String = match urlencoding::decode(&href.into()) {
         Ok(href) => href.into_owned(),
@@ -366,7 +378,7 @@ fn parse_href_to_link(
         let title = title.ok_or(ParsingError::MissingData {
             data: "title".to_string(),
         })?;
-        return parse_internal_link(href, title, endpoint);
+        return parse_internal_link(href, title, endpoint, language);
     }
 
     if href.starts_with(ANCHOR_DELIMITER) {
@@ -401,6 +413,7 @@ fn parse_href_to_link(
         href: String,
         title: String,
         endpoint: Url,
+        language: Language,
     ) -> Result<Link, ParsingError> {
         let mut href =
             href.strip_prefix(INTERNAL_LINK_PREFIX)
@@ -448,6 +461,7 @@ fn parse_href_to_link(
             namespace,
             page: href.to_string(),
             title,
+            language,
             endpoint,
             anchor,
         }))
@@ -467,6 +481,7 @@ mod tests {
             link_data::{AnchorData, ExternalData, InternalData, RedLinkData},
             Link,
         },
+        language::Language,
         parser::ParsingError,
         search::Namespace,
     };
@@ -474,6 +489,7 @@ mod tests {
     use super::parse_href_to_link;
 
     const ENDPOINT: &str = "https://en.wikipedia.org/w/api.php";
+    const LANGUAGE: Language = Language::English;
 
     fn internal_link(
         namespace: Namespace,
@@ -488,6 +504,7 @@ mod tests {
             title: title.into(),
             endpoint,
             anchor,
+            language: LANGUAGE.clone(),
         })
     }
 
@@ -509,6 +526,7 @@ mod tests {
                 endpoint(),
                 "/wiki/UnknownNamespace:Main_Page",
                 Some("Main Page"),
+                LANGUAGE
             ),
             Err(ParsingError::InvalidNamespace { .. })
         ))
@@ -517,7 +535,7 @@ mod tests {
     #[test]
     fn test_parse_link_invalid_link() {
         assert!(matches!(
-            parse_href_to_link(endpoint(), "/invalid/hello", Some("hello")),
+            parse_href_to_link(endpoint(), "/invalid/hello", Some("hello"), LANGUAGE),
             Err(ParsingError::ProcessingFailure { .. })
         ))
     }
@@ -525,7 +543,7 @@ mod tests {
     #[test]
     fn test_parse_internal_link_no_namespace() {
         assert_eq!(
-            parse_href_to_link(endpoint(), "/wiki/Main_Page", Some("Main Page")),
+            parse_href_to_link(endpoint(), "/wiki/Main_Page", Some("Main Page"), LANGUAGE),
             Ok(internal_link(
                 Namespace::Main,
                 "Main_Page",
@@ -539,7 +557,12 @@ mod tests {
     #[test]
     fn test_parse_internal_link_with_namespace() {
         assert_eq!(
-            parse_href_to_link(endpoint(), "/wiki/Help:Contents", Some("Help:Contents")),
+            parse_href_to_link(
+                endpoint(),
+                "/wiki/Help:Contents",
+                Some("Help:Contents"),
+                LANGUAGE
+            ),
             Ok(internal_link(
                 Namespace::Help,
                 "Contents",
@@ -553,7 +576,8 @@ mod tests {
             parse_href_to_link(
                 endpoint(),
                 "/wiki/Help:Editing_pages",
-                Some("Help:Editing pages")
+                Some("Help:Editing pages"),
+                LANGUAGE
             ),
             Ok(internal_link(
                 Namespace::Help,
@@ -571,7 +595,8 @@ mod tests {
             parse_href_to_link(
                 endpoint(),
                 "/wiki/Help:Editing_pages#Preview",
-                Some("Help:Editing pages")
+                Some("Help:Editing pages"),
+                LANGUAGE
             ),
             Ok(internal_link(
                 Namespace::Help,
@@ -589,7 +614,8 @@ mod tests {
             parse_href_to_link(
                 endpoint(),
                 "/wiki/Help:Editing_pages#See_also",
-                Some("Help:Editing pages")
+                Some("Help:Editing pages"),
+                LANGUAGE
             ),
             Ok(internal_link(
                 Namespace::Help,
@@ -607,7 +633,8 @@ mod tests {
             parse_href_to_link(
                 endpoint(),
                 "/wiki/Help:Links/example",
-                Some("Help:Links/example")
+                Some("Help:Links/example"),
+                LANGUAGE
             ),
             Ok(internal_link(
                 Namespace::Help,
@@ -622,7 +649,7 @@ mod tests {
     #[test]
     fn test_parse_anchor_link() {
         assert_eq!(
-            parse_href_to_link(endpoint(), "#See_also", None::<String>),
+            parse_href_to_link(endpoint(), "#See_also", None::<String>, LANGUAGE),
             Ok(Link::Anchor(anchor_data("See_also", "See also")))
         )
     }
@@ -632,7 +659,7 @@ mod tests {
         let link = "/w/index.php?title=Help:Links/example2&action=edit&redlink=1";
         let title = "Help:Links/example2 (page does not exist)";
         assert_eq!(
-            parse_href_to_link(endpoint(), link, Some(title)),
+            parse_href_to_link(endpoint(), link, Some(title), LANGUAGE),
             Ok(Link::RedLink(RedLinkData {
                 url: endpoint().join(link).unwrap(),
                 title: title.to_string(),
@@ -644,7 +671,7 @@ mod tests {
     fn test_parse_external_link() {
         let link = "https://mediawiki.org/";
         assert_eq!(
-            parse_href_to_link(endpoint(), link, None::<String>),
+            parse_href_to_link(endpoint(), link, None::<String>, LANGUAGE),
             Ok(Link::External(ExternalData {
                 url: Url::parse(link).expect("hard-coded url should be valid")
             }))
@@ -655,7 +682,7 @@ mod tests {
     fn test_parse_external_link_with_params() {
         let link = "https://google.com/search?q=link";
         assert_eq!(
-            parse_href_to_link(endpoint(), link, None::<String>),
+            parse_href_to_link(endpoint(), link, None::<String>, LANGUAGE),
             Ok(Link::External(ExternalData {
                 url: Url::parse(link).expect("hard-coded url should be valid")
             }))
@@ -666,7 +693,7 @@ mod tests {
     fn test_parse_external_link_with_mailto() {
         let link = "mailto:info@example.org";
         assert_eq!(
-            parse_href_to_link(endpoint(), link, None::<String>),
+            parse_href_to_link(endpoint(), link, None::<String>, LANGUAGE),
             Ok(Link::External(ExternalData {
                 url: Url::parse(link).expect("hard-coded url should be valid")
             }))

@@ -2,7 +2,9 @@ use crate::{
     config::CONFIG,
     ui::{
         article::{content::ArticleContent, open_link},
+        language_selector::article_language_selection_popup,
         scroll,
+        utils::display_message,
     },
     wiki::article::{Article, ElementType},
 };
@@ -22,6 +24,7 @@ pub struct ArticleView {
 
     last_size: Vec2,
 }
+
 impl ArticleView {
     /// Creates a new ArticleView with a given article as its content
     pub fn new(article: Article) -> Self {
@@ -103,6 +106,26 @@ impl ArticleView {
         };
 
         EventResult::Consumed(Some(Callback::from_fn(move |s| open_link(s, link.clone()))))
+    }
+
+    /// Lets the user choose from the available languages
+    pub fn list_article_language_switcher(&mut self) -> EventResult {
+        let available_languages = self.content.language_links();
+
+        if available_languages.is_none() {
+            warn!("no available languages for the article");
+            return EventResult::Consumed(Some(Callback::from_fn(|s| {
+                display_message(
+                    s,
+                    "Information",
+                    "No alternate languages are available for the current article",
+                )
+            })));
+        }
+
+        EventResult::Consumed(Some(Callback::from_fn(move |s| {
+            article_language_selection_popup(s, available_languages.clone().unwrap())
+        })))
     }
 }
 

@@ -20,5 +20,6 @@ know more about what and how they can be configured, check
 | Action | Keybinding |
 | ------ | ---------- |
 | Toggle Language Selection | ++f2++ |
+| Toggle Article language Selection | ++f3++ |
 | Pop Layer | ++esc++ |
 | Open Search | ++shift+s++ |

@@ -51,6 +51,8 @@ The following modes are supported
 | Half page up            | N/a          | ++ctrl+u++         |
 | Focus the previous view | `focus_prev` | ++shift+tab++      |
 | Toggle the language selection | `toggle_language_selection` | ++f2++ |
+| Toggle the article language selection | `toggle_article_language_selection` |
+++f3++ |
 
 > When updating the language via the selection popup, existing search results and links in articles
 > won't work until you've changed the language back to what it was then opening the article /

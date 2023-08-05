@@ -20,6 +20,7 @@ use std::fs;
 use std::io::Write;
 use std::rc::Rc;
 use ui::language_selector::language_selection_popup;
+use ui::language_selector::toggle_article_language_selection_popup;
 
 use crate::backend::backend;
 
@@ -78,6 +79,10 @@ fn start_application() {
     siv.add_global_callback(
         config.keybindings.toggle_language_selection.clone(),
         language_selection_popup,
+    );
+    siv.add_global_callback(
+        config.keybindings.toggle_article_language_selection.clone(),
+        toggle_article_language_selection_popup,
     );
 
     // get and apply the color theme

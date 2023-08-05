@@ -7,7 +7,7 @@ use serde_repr::Deserialize_repr;
 use std::{collections::HashMap, fmt::Display};
 use url::Url;
 
-use super::{parser::Parser, search::Namespace};
+use super::{language::Language, parser::Parser, search::Namespace};
 
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub enum ElementType {
@@ -86,7 +86,7 @@ impl Element {
 pub mod link_data {
     use url::Url;
 
-    use crate::wiki::search::Namespace;
+    use crate::wiki::{language::Language, search::Namespace};
 
     #[derive(Debug, Clone, PartialEq, Eq)]
     pub struct InternalData {
@@ -94,6 +94,7 @@ pub mod link_data {
         pub page: String,
         pub title: String,
         pub endpoint: Url,
+        pub language: Language,
         pub anchor: Option<AnchorData>,
     }
 
@@ -134,14 +135,15 @@ pub enum Link {
     ExternalToInternal(link_data::ExternalToInteralData),
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 pub struct LanguageLink {
     #[serde(rename = "langname")]
-    name: String,
+    pub name: String,
     #[serde(rename = "lang")]
-    language: String,
-    autonym: String,
-    title: String,
+    pub language: Language,
+    pub autonym: String,
+    pub title: String,
+    pub url: Url,
 }
 
 #[derive(Debug, Deserialize)]
@@ -222,7 +224,8 @@ pub struct Article {
     title: String,
     pageid: usize,
     content: Option<Vec<Element>>,
-    language_links: Option<Vec<LanguageLink>>,
+    pub language: Language,
+    pub language_links: Option<Vec<LanguageLink>>,
     categories: Option<Vec<Category>>,
     categories_html: Option<String>,
     templates: Option<Vec<Template>>,
@@ -245,7 +248,7 @@ pub struct Article {
 }
 
 impl Article {
-    pub fn builder() -> ArticleBuilder<NoPageID, NoPage, NoEndpoint> {
+    pub fn builder() -> ArticleBuilder<NoPageID, NoPage, NoEndpoint, NoLanguage> {
         ArticleBuilder::default()
     }
 
@@ -255,6 +258,17 @@ impl Article {
 
     pub fn sections(&self) -> Option<impl Iterator<Item = &Section>> {
         self.sections.as_ref().map(|x| x.iter())
+    }
+
+    pub fn title(&self) -> &str {
+        &self.title
+    }
+
+    pub fn available_languages(&self) -> Option<usize> {
+        if let Some(ref links) = self.language_links {
+            return Some(links.len());
+        }
+        None
     }
 }
 
@@ -345,19 +359,24 @@ pub struct WithEndpoint(Url);
 #[derive(Default)]
 pub struct NoEndpoint;
 
+pub struct WithLanguage(Language);
 #[derive(Default)]
-pub struct ArticleBuilder<I, P, E> {
+pub struct NoLanguage;
+
+#[derive(Default)]
+pub struct ArticleBuilder<I, P, E, L> {
     pageid: I,
     page: P,
     endpoint: E,
+    language: L,
     revision: Option<usize>,
     redirects: Option<bool>,
     properties: Option<Vec<Property>>,
 }
 
-impl<E> ArticleBuilder<NoPageID, NoPage, E> {
+impl<E, L> ArticleBuilder<NoPageID, NoPage, E, L> {
     /// Parse content of this page
-    pub fn pageid(self, pageid: usize) -> ArticleBuilder<PageID, NoPage, E> {
+    pub fn pageid(self, pageid: usize) -> ArticleBuilder<PageID, NoPage, E, L> {
         ArticleBuilder {
             pageid: PageID(pageid),
             page: self.page,
@@ -365,11 +384,12 @@ impl<E> ArticleBuilder<NoPageID, NoPage, E> {
             revision: self.revision,
             redirects: self.redirects,
             properties: self.properties,
+            language: self.language,
         }
     }
 
     /// Parse content of this page
-    pub fn page(self, page: impl Into<String>) -> ArticleBuilder<NoPageID, Page, E> {
+    pub fn page(self, page: impl Into<String>) -> ArticleBuilder<NoPageID, Page, E, L> {
         ArticleBuilder {
             pageid: self.pageid,
             page: Page(page.into()),
@@ -377,12 +397,13 @@ impl<E> ArticleBuilder<NoPageID, NoPage, E> {
             revision: self.revision,
             redirects: self.redirects,
             properties: self.properties,
+            language: self.language,
         }
     }
 }
 
-impl<I, P> ArticleBuilder<I, P, NoEndpoint> {
-    pub fn url(self, url: impl Into<Url>) -> ArticleBuilder<I, P, WithEndpoint> {
+impl<I, P, L> ArticleBuilder<I, P, NoEndpoint, L> {
+    pub fn url(self, url: impl Into<Url>) -> ArticleBuilder<I, P, WithEndpoint, L> {
         ArticleBuilder {
             pageid: self.pageid,
             page: self.page,
@@ -390,10 +411,11 @@ impl<I, P> ArticleBuilder<I, P, NoEndpoint> {
             revision: self.revision,
             redirects: self.redirects,
             properties: self.properties,
+            language: self.language,
         }
     }
 
-    pub fn endpoint(self, endpoint: Url) -> ArticleBuilder<I, P, WithEndpoint> {
+    pub fn endpoint(self, endpoint: Url) -> ArticleBuilder<I, P, WithEndpoint, L> {
         ArticleBuilder {
             pageid: self.pageid,
             page: self.page,
@@ -401,11 +423,26 @@ impl<I, P> ArticleBuilder<I, P, NoEndpoint> {
             revision: self.revision,
             redirects: self.redirects,
             properties: self.properties,
+            language: self.language,
         }
     }
 }
 
-impl<I, P, U> ArticleBuilder<I, P, U> {
+impl<I, P, E> ArticleBuilder<I, P, E, NoLanguage> {
+    pub fn language(self, language: Language) -> ArticleBuilder<I, P, E, WithLanguage> {
+        ArticleBuilder {
+            pageid: self.pageid,
+            page: self.page,
+            endpoint: self.endpoint,
+            language: WithLanguage(language),
+            revision: self.revision,
+            redirects: self.redirects,
+            properties: self.properties,
+        }
+    }
+}
+
+impl<I, P, U, L> ArticleBuilder<I, P, U, L> {
     /// Revision ID, for `{{REVISIONID}}` and similar variables
     pub fn revision(mut self, revision: usize) -> Self {
         self.revision = Some(revision);
@@ -425,7 +462,7 @@ impl<I, P, U> ArticleBuilder<I, P, U> {
     }
 }
 
-impl<I, P> ArticleBuilder<I, P, WithEndpoint> {
+impl<I, P> ArticleBuilder<I, P, WithEndpoint, WithLanguage> {
     fn fetch_with_params(self, mut params: Vec<(&str, String)>) -> Result<Article> {
         fn action_parse(params: Vec<(&str, String)>, endpoint: Url) -> Result<Response> {
             Client::new()
@@ -473,7 +510,7 @@ impl<I, P> ArticleBuilder<I, P, WithEndpoint> {
             .context("failed serializing the returned response")
     }
 
-    fn serialize_result(&self, res_json: serde_json::Value) -> Result<Article> {
+    fn serialize_result(self, res_json: serde_json::Value) -> Result<Article> {
         let title = res_json
             .get("parse")
             .and_then(|x| x.get("title"))
@@ -495,8 +532,16 @@ impl<I, P> ArticleBuilder<I, P, WithEndpoint> {
             .map(|x| x.to_owned())
             .map(|x| {
                 x.into_iter()
-                    .filter_map(|x| serde_json::from_value(x).ok())
+                    .filter_map(|x| {
+                        serde_json::from_value(x)
+                            .map_err(|err| warn!("language_link parsing error: {:?}", err))
+                            .ok()
+                    })
                     .collect::<Vec<LanguageLink>>()
+            })
+            .map(|x| {
+                debug!("language_links: '{}'", x.len());
+                x
             });
 
         let categories = res_json
@@ -589,7 +634,14 @@ impl<I, P> ArticleBuilder<I, P, WithEndpoint> {
             .and_then(|x| x.get("text"))
             .and_then(|x| x.as_str())
             .and_then(|x| {
-                Parser::parse_document(x, &title, sections.as_ref(), self.endpoint.0.clone()).ok()
+                Parser::parse_document(
+                    x,
+                    &title,
+                    sections.as_ref(),
+                    self.endpoint.0.clone(),
+                    self.language.0.clone(),
+                )
+                .ok()
             });
 
         let revision_id = res_json
@@ -637,6 +689,7 @@ impl<I, P> ArticleBuilder<I, P, WithEndpoint> {
             title,
             pageid,
             content,
+            language: self.language.0,
             language_links,
             categories,
             categories_html,
@@ -661,14 +714,14 @@ impl<I, P> ArticleBuilder<I, P, WithEndpoint> {
     }
 }
 
-impl ArticleBuilder<PageID, NoPage, WithEndpoint> {
+impl ArticleBuilder<PageID, NoPage, WithEndpoint, WithLanguage> {
     pub fn fetch(self) -> Result<Article> {
         let param = vec![("pageid", self.pageid.0.to_string())];
         self.fetch_with_params(param)
     }
 }
 
-impl ArticleBuilder<NoPageID, Page, WithEndpoint> {
+impl ArticleBuilder<NoPageID, Page, WithEndpoint, WithLanguage> {
     pub fn fetch(self) -> Result<Article> {
         let param = vec![("page", self.page.0.to_string())];
         self.fetch_with_params(param)
