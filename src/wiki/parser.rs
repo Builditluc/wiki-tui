@@ -96,6 +96,11 @@ impl<'a> Parser<'a> {
             {
                 self.parse_redirect_msg(node)
             }
+            "div"
+                if node
+                    .attr("class")
+                    .map(|x| x.contains("toc"))
+                    .unwrap_or(false) => {}
             "" => (),
             "dl" => self.parse_description_list(node),
             "div" => {
