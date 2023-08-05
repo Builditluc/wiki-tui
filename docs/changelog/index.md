@@ -1,3 +1,44 @@
+# v0.8.1 (Sat Aug 05 2023)
+
+### Release Notes
+
+#### Add language selection ([#190](https://github.com/Builditluc/wiki-tui/pull/190))
+
+You can now change the language of the current article by pressing `F3` (requires an article to be open and the key can be configured). Within the popup, you can select a new language from the available ones (not all articles are available in all languages). This feature also include several configuration options, so be sure to check them out in the docs
+
+<img width="937" alt="image" src="https://github.com/Builditluc/wiki-tui/assets/37375448/bc425809-c353-4c97-8441-ec25eb895e10">
+
+---
+
+#### Exciting New Features 🎉
+
+- Add language selection [#190](https://github.com/Builditluc/wiki-tui/pull/190) ([@Builditluc](https://github.com/Builditluc))
+
+#### Bug Fixes 🐛
+
+- Fix whitespace caused by quoteboxes [#205](https://github.com/Builditluc/wiki-tui/pull/205) ([@Builditluc](https://github.com/Builditluc))
+- Fix navigation links appearing in articles [#204](https://github.com/Builditluc/wiki-tui/pull/204) ([@Builditluc](https://github.com/Builditluc))
+- Fix missing elements because of nested divs [#203](https://github.com/Builditluc/wiki-tui/pull/203) ([@Builditluc](https://github.com/Builditluc))
+- Fix long gaps after lists [#202](https://github.com/Builditluc/wiki-tui/pull/202) ([@Builditluc](https://github.com/Builditluc))
+- Fix ghost lists from Portalbox [#201](https://github.com/Builditluc/wiki-tui/pull/201) ([@Builditluc](https://github.com/Builditluc))
+- Fix nested indentation [#200](https://github.com/Builditluc/wiki-tui/pull/200) ([@Builditluc](https://github.com/Builditluc))
+- Fix description list parsing [#199](https://github.com/Builditluc/wiki-tui/pull/199) ([@Builditluc](https://github.com/Builditluc))
+- Fix stack overflow crash when displaying a Namespace [#198](https://github.com/Builditluc/wiki-tui/pull/198) ([@Builditluc](https://github.com/Builditluc))
+- Fix padding for list items [#196](https://github.com/Builditluc/wiki-tui/pull/196) ([@Builditluc](https://github.com/Builditluc))
+- Fix disambiguation padding and prefix [#195](https://github.com/Builditluc/wiki-tui/pull/195) ([@Builditluc](https://github.com/Builditluc))
+- Fix viewport reset after link selection [#194](https://github.com/Builditluc/wiki-tui/pull/194) ([@Builditluc](https://github.com/Builditluc))
+- Notify on links with an Anchor [#192](https://github.com/Builditluc/wiki-tui/pull/192) ([@Builditluc](https://github.com/Builditluc))
+
+#### Structure and Style Changes
+
+- Rework Links to be more stable [#191](https://github.com/Builditluc/wiki-tui/pull/191) ([@Builditluc](https://github.com/Builditluc))
+
+#### Authors: 1
+
+- [@Builditluc](https://github.com/Builditluc)
+
+---
+
 # v0.8.0 (Fri Jul 07 2023)
 
 :tada: This release contains work from a new contributor! :tada:
