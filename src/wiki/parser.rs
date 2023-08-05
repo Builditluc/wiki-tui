@@ -75,6 +75,10 @@ impl<'a> Parser<'a> {
             "a" => self.parse_link(node),
             "b" => self.parse_effect(node, Effect::Bold),
             "i" => self.parse_effect(node, Effect::Italic),
+            "ul" if node
+                .attr("class")
+                .map(|x| x.contains("portalbox"))
+                .unwrap_or(false) => {}
             "ul" => self.parse_list(node),
             "div"
                 if node
