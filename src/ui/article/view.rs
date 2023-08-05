@@ -12,7 +12,7 @@ use crate::{
 use cursive::{
     event::{Callback, Event, EventResult, Key, MouseButton, MouseEvent},
     view::CannotFocus,
-    Rect, Vec2, View,
+    Vec2, View,
 };
 
 /// A view displaying an article

@@ -21,7 +21,6 @@ use super::{
 
 const SHOW_UNSUPPORTED: bool = false;
 const LIST_MARKER: char = '-';
-const DISAMBIGUATION_MARKER: char = '|';
 
 pub struct Parser<'a> {
     endpoint: Url,
@@ -82,6 +81,10 @@ impl<'a> Parser<'a> {
             "a" => self.parse_link(node),
             "b" => self.parse_effect(node, Effect::Bold),
             "i" => self.parse_effect(node, Effect::Italic),
+            "ul" if node
+                .attr("class")
+                .map(|x| x.contains("portalbox"))
+                .unwrap_or(false) => {}
             "ul" => self.parse_list(node),
             "div"
                 if node
@@ -99,7 +102,16 @@ impl<'a> Parser<'a> {
             {
                 self.parse_redirect_msg(node)
             }
+            "div"
+                if node
+                    .attr("class")
+                    .map(|x| x.contains("toc") | x.contains("quotebox"))
+                    .unwrap_or(false) => {}
             "" => (),
+            "dl" => self.parse_description_list(node),
+            "div" => {
+                node.children().map(|node| self.parse_node(node)).count();
+            }
             _ if SHOW_UNSUPPORTED => {
                 self.elements.push(Element::new(
                     self.next_id(),
@@ -132,6 +144,16 @@ impl<'a> Parser<'a> {
             Style::none(),
             HashMap::new(),
         ));
+    }
+
+    fn push_kind(&mut self, kind: ElementType) {
+        self.elements.push(Element::new(
+            self.next_id(),
+            kind,
+            "",
+            Style::none(),
+            HashMap::new(),
+        ))
     }
 
     fn is_last_newline(&self) -> bool {
@@ -246,6 +268,29 @@ impl<'a> Parser<'a> {
         self.current_effects.pop();
     }
 
+    fn parse_description_list(&mut self, node: Node) {
+        for child in node.children() {
+            if !self.is_last_newline() {
+                self.push_newline();
+            }
+            match child.name().unwrap_or_default() {
+                "dt" => {
+                    self.push_kind(ElementType::DescriptionListTermStart);
+                    self.parse_text(child);
+                    self.push_kind(ElementType::DescriptionListTermEnd);
+                }
+                "dd" => {
+                    self.push_kind(ElementType::DescriptionListDescriptionStart);
+                    self.parse_text(child);
+                    self.push_kind(ElementType::DescriptionListDescriptionEnd);
+                }
+                _ => continue,
+            }
+        }
+        self.push_newline();
+        self.push_newline();
+    }
+
     fn parse_list(&mut self, node: Node) {
         for child in node
             .children()
@@ -264,9 +309,11 @@ impl<'a> Parser<'a> {
                 self.combine_effects(Style::from(config::CONFIG.theme.text)),
                 HashMap::new(),
             ));
-            self.parse_text(child)
+
+            self.push_kind(ElementType::ListItemStart);
+            self.parse_text(child);
+            self.push_kind(ElementType::ListItemEnd);
         }
-        self.push_newline();
         self.push_newline();
     }
 
@@ -277,14 +324,10 @@ impl<'a> Parser<'a> {
     }
 
     fn parse_disambiguation(&mut self, node: Node) {
-        self.elements.push(Element::new(
-            self.next_id(),
-            ElementType::Text,
-            DISAMBIGUATION_MARKER.to_string(),
-            self.combine_effects(Style::from(config::CONFIG.theme.text)),
-            HashMap::new(),
-        ));
+        self.push_kind(ElementType::DisambiguationStart);
         self.parse_effect(node, Effect::Italic);
+        self.push_kind(ElementType::DisambiguationEnd);
+
         self.push_newline();
         self.push_newline();
     }

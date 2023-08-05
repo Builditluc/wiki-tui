@@ -89,7 +89,7 @@ fn open_internal_link(siv: &mut Cursive, data: InternalData) {
             siv,
             "Information",
             &format!(
-                "The link leads to an article in the '{}' namespace which is supported",
+                "The link leads to an article in the '{}' namespace which is not supported",
                 data.namespace
             ),
         );
@@ -125,7 +125,7 @@ fn open_internal_link(siv: &mut Cursive, data: InternalData) {
 
     if let Some(anchor_data) = data.anchor {
         display_message(
-            siv, 
+            siv,
             "Information", 
             &format!("The link has an anchorpoint to '{}'. \nUnfortunately, anchorpoints are not supported yet, meaning the article will open at the top", anchor_data.title)
         );

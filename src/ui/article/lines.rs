@@ -7,6 +7,14 @@ use std::collections::HashMap;
 use std::mem;
 use std::rc::Rc;
 
+const DISAMBIGUATION_PADDING: u8 = 1;
+const DISAMBIGUATION_PREFIX: char = '|';
+
+const LIST_ITEM_PADDING: u8 = 2;
+
+const DESCRIPTION_LIST_TERM_PADDING: u8 = 2;
+const DESCRIPTION_LIST_DESCRIPTION_PADDING: u8 = 4;
+
 /// An element only containing the neccessary information for rendering (and an id so that it can
 /// be referenced to an article element
 #[derive(Debug)]
@@ -62,6 +70,12 @@ pub struct LinesWrapper {
 
     /// The ids and positions of the links
     pub links: Vec<(usize, Vec2)>,
+
+    /// The leading padding for elements in new lines
+    left_padding: u8,
+
+    /// The prefix that is displayed at the start of every line  (after the padding)
+    line_prefix: Option<char>,
 }
 
 impl LinesWrapper {
@@ -81,6 +95,10 @@ impl LinesWrapper {
 
             links: Vec::new(),
             anchors: HashMap::new(),
+
+            left_padding: 0,
+
+            line_prefix: None,
         }
     }
 
@@ -137,14 +155,66 @@ impl LinesWrapper {
             // is this a link?
             let is_link = matches!(element.kind, ElementType::Link(..));
 
-            // does this element go onto a new line?
-            if element.kind == ElementType::Newline {
-                // fill the current line and make the next one blank
-                self.fill_line();
-                self.newline();
+            match element.kind {
+                ElementType::Newline => {
+                    // fill the current line and make the next one blank
+                    self.fill_line();
+                    self.newline();
 
-                last_type = &element.kind;
-                continue;
+                    last_type = &element.kind;
+                    continue;
+                }
+
+                ElementType::DisambiguationStart => {
+                    self.left_padding = self.left_padding.saturating_add(DISAMBIGUATION_PADDING);
+                    self.line_prefix = Some(DISAMBIGUATION_PREFIX);
+                    continue;
+                }
+
+                ElementType::DisambiguationEnd => {
+                    self.left_padding = self.left_padding.saturating_sub(DISAMBIGUATION_PADDING);
+                    self.line_prefix = None;
+                    continue;
+                }
+
+                ElementType::ListItemStart => {
+                    self.left_padding = self.left_padding.saturating_add(LIST_ITEM_PADDING);
+                    continue;
+                }
+
+                ElementType::ListItemEnd => {
+                    self.left_padding = self.left_padding.saturating_sub(LIST_ITEM_PADDING);
+                    continue;
+                }
+
+                ElementType::DescriptionListTermStart => {
+                    self.left_padding = self
+                        .left_padding
+                        .saturating_add(DESCRIPTION_LIST_TERM_PADDING);
+                    continue;
+                }
+
+                ElementType::DescriptionListTermEnd => {
+                    self.left_padding = self
+                        .left_padding
+                        .saturating_sub(DESCRIPTION_LIST_TERM_PADDING);
+                    continue;
+                }
+
+                ElementType::DescriptionListDescriptionStart => {
+                    self.left_padding = self
+                        .left_padding
+                        .saturating_add(DESCRIPTION_LIST_DESCRIPTION_PADDING);
+                    continue;
+                }
+
+                ElementType::DescriptionListDescriptionEnd => {
+                    self.left_padding = self
+                        .left_padding
+                        .saturating_sub(DESCRIPTION_LIST_DESCRIPTION_PADDING);
+                    continue;
+                }
+                _ => (),
             }
 
             // what we do here is fairly simple:
@@ -173,7 +243,7 @@ impl LinesWrapper {
 
             for span in element.content().split_whitespace() {
                 // does the span fit onto the current line?
-                if span.chars().count() + merged_element.width + self.current_width < self.width {
+                if self.is_space_valid(span.chars().count() + merged_element.width) {
                     // only add a leading whitespace if the merged element is not empty
                     if !merged_element.content.is_empty() {
                         merged_element.push(' ');
@@ -188,8 +258,7 @@ impl LinesWrapper {
                 // - add the merged element to the current line
                 // - fill the current line and replace it with a new one
                 // - add the span to a new merged element
-                self.current_width += merged_element.width;
-                self.current_line.push(merged_element);
+                self.push_element(merged_element);
 
                 // if its a link, add it
                 if is_link {
@@ -212,7 +281,7 @@ impl LinesWrapper {
                 };
 
                 // does the span fit onto the current line?
-                if span.chars().count() + merged_element.width + self.current_width < self.width {
+                if self.is_space_valid(span.chars().count() + merged_element.width) {
                     // only add a leading whitespace if the merged element is not empty
                     if !merged_element.content.is_empty() {
                         merged_element.push(' ');
@@ -227,8 +296,7 @@ impl LinesWrapper {
             // if there are still some spans in the merged_element, add it to the current line and
             // register a link if it is one
             if !merged_element.content.is_empty() {
-                self.current_width += merged_element.width;
-                self.current_line.push(merged_element);
+                self.push_element(merged_element);
 
                 if is_link {
                     self.register_link(element.id());
@@ -252,25 +320,56 @@ impl LinesWrapper {
         self.links
             .push((id, Vec2::new(self.current_width, self.rendered_lines.len())))
     }
+
+    fn is_space_valid(&self, width: usize) -> bool {
+        let prefix_len: usize = self.line_prefix.map(|_| 1).unwrap_or_default();
+
+        width + self.current_width + self.left_padding as usize + prefix_len <= self.width
+    }
+
     /// Adds an element to the current line and if needed, registers a link to it
     fn push_element(&mut self, element: RenderedElement) {
+        if self.current_width == 0 {
+            // if this is a new line and we have some padding, apply it
+            if self.left_padding != 0 {
+                self.push_n_whitespace(self.left_padding as usize);
+            }
+
+            // if this is a new line and we have a prefix, add it
+            if let Some(prefix) = self.line_prefix {
+                assert!(self.current_width + 2 <= self.width);
+                self.current_line.push(RenderedElement {
+                    id: usize::MAX,
+                    content: format!("{} ", prefix),
+                    style: Style::none(),
+                    width: 2,
+                })
+            }
+        }
+
         self.current_width += element.width;
         self.current_line.push(element);
     }
 
-    /// Adds a whitespacde to the current line
+    /// Adds a whitespace to the current line
     fn push_whitespace(&mut self) {
+        self.push_n_whitespace(1)
+    }
+
+    /// Adds n amount of whitespace to the current line
+    fn push_n_whitespace(&mut self, n: usize) {
         // check if we can add a whitespace
-        if self.current_width == self.width {
+        if self.current_width + n > self.width {
             return;
         }
 
         // create a rendered element with the id -1 and push it to the current line
-        self.push_element(RenderedElement {
+        self.current_width += n;
+        self.current_line.push(RenderedElement {
             id: usize::MAX,
-            content: " ".to_string(),
+            content: " ".repeat(n),
             style: Style::from(CONFIG.theme.text),
-            width: 1,
+            width: n,
         });
     }
 
@@ -286,7 +385,9 @@ impl LinesWrapper {
     /// Fills the remaining space of the line with spaces
     fn fill_line(&mut self) {
         // if our current line is wider than allowed, we really messed up
-        assert!(self.current_width <= self.width);
+        if self.current_width > self.width {
+            return;
+        }
 
         // change the max width, if neccessary
         if self.current_width > self.max_width {

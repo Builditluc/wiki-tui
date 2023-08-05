@@ -16,7 +16,18 @@ pub enum ElementType {
     Link(Link),
     Header,
     Unsupported,
+
     ListMarker,
+    ListItemStart,
+    ListItemEnd,
+
+    DescriptionListTermStart,
+    DescriptionListTermEnd,
+    DescriptionListDescriptionStart,
+    DescriptionListDescriptionEnd,
+
+    DisambiguationStart,
+    DisambiguationEnd,
 }
 
 #[derive(Debug, Clone)]
