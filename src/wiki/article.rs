@@ -21,6 +21,11 @@ pub enum ElementType {
     ListItemStart,
     ListItemEnd,
 
+    DescriptionListTermStart,
+    DescriptionListTermEnd,
+    DescriptionListDescriptionStart,
+    DescriptionListDescriptionEnd,
+
     DisambiguationStart,
     DisambiguationEnd,
 }

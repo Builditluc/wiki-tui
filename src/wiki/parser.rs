@@ -93,6 +93,7 @@ impl<'a> Parser<'a> {
                 self.parse_redirect_msg(node)
             }
             "" => (),
+            "dl" => self.parse_description_list(node),
             _ if SHOW_UNSUPPORTED => {
                 self.elements.push(Element::new(
                     self.next_id(),
@@ -242,6 +243,29 @@ impl<'a> Parser<'a> {
         self.current_effects.push(effect);
         self.parse_text(node);
         self.current_effects.pop();
+    }
+
+    fn parse_description_list(&mut self, node: Node) {
+        for child in node.children() {
+            if !self.is_last_newline() {
+                self.push_newline();
+            }
+            match child.name().unwrap_or_default() {
+                "dt" => {
+                    self.push_kind(ElementType::DescriptionListTermStart);
+                    self.parse_text(child);
+                    self.push_kind(ElementType::DescriptionListTermEnd);
+                }
+                "dd" => {
+                    self.push_kind(ElementType::DescriptionListDescriptionStart);
+                    self.parse_text(child);
+                    self.push_kind(ElementType::DescriptionListDescriptionEnd);
+                }
+                _ => continue,
+            }
+        }
+        self.push_newline();
+        self.push_newline();
     }
 
     fn parse_list(&mut self, node: Node) {
