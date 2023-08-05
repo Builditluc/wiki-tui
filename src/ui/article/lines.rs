@@ -72,7 +72,7 @@ pub struct LinesWrapper {
     pub links: Vec<(usize, Vec2)>,
 
     /// The leading padding for elements in new lines
-    left_padding: usize,
+    left_padding: u8,
 
     /// The prefix that is displayed at the start of every line  (after the padding)
     line_prefix: Option<char>,
@@ -166,44 +166,52 @@ impl LinesWrapper {
                 }
 
                 ElementType::DisambiguationStart => {
-                    self.left_padding = DISAMBIGUATION_PADDING as usize;
+                    self.left_padding = self.left_padding.saturating_add(DISAMBIGUATION_PADDING);
                     self.line_prefix = Some(DISAMBIGUATION_PREFIX);
                     continue;
                 }
 
                 ElementType::DisambiguationEnd => {
-                    self.left_padding = 0;
+                    self.left_padding = self.left_padding.saturating_sub(DISAMBIGUATION_PADDING);
                     self.line_prefix = None;
                     continue;
                 }
 
                 ElementType::ListItemStart => {
-                    self.left_padding = LIST_ITEM_PADDING as usize;
+                    self.left_padding = self.left_padding.saturating_add(LIST_ITEM_PADDING);
                     continue;
                 }
 
                 ElementType::ListItemEnd => {
-                    self.left_padding = 0;
+                    self.left_padding = self.left_padding.saturating_sub(LIST_ITEM_PADDING);
                     continue;
                 }
 
                 ElementType::DescriptionListTermStart => {
-                    self.left_padding = DESCRIPTION_LIST_TERM_PADDING as usize;
+                    self.left_padding = self
+                        .left_padding
+                        .saturating_add(DESCRIPTION_LIST_TERM_PADDING);
                     continue;
                 }
 
                 ElementType::DescriptionListTermEnd => {
-                    self.left_padding = 0;
+                    self.left_padding = self
+                        .left_padding
+                        .saturating_sub(DESCRIPTION_LIST_TERM_PADDING);
                     continue;
                 }
 
                 ElementType::DescriptionListDescriptionStart => {
-                    self.left_padding = DESCRIPTION_LIST_DESCRIPTION_PADDING as usize;
+                    self.left_padding = self
+                        .left_padding
+                        .saturating_add(DESCRIPTION_LIST_DESCRIPTION_PADDING);
                     continue;
                 }
 
                 ElementType::DescriptionListDescriptionEnd => {
-                    self.left_padding = 0;
+                    self.left_padding = self
+                        .left_padding
+                        .saturating_sub(DESCRIPTION_LIST_DESCRIPTION_PADDING);
                     continue;
                 }
                 _ => (),
@@ -316,7 +324,7 @@ impl LinesWrapper {
     fn is_space_valid(&self, width: usize) -> bool {
         let prefix_len: usize = self.line_prefix.map(|_| 1).unwrap_or_default();
 
-        width + self.current_width + self.left_padding + prefix_len <= self.width
+        width + self.current_width + self.left_padding as usize + prefix_len <= self.width
     }
 
     /// Adds an element to the current line and if needed, registers a link to it
@@ -324,7 +332,7 @@ impl LinesWrapper {
         if self.current_width == 0 {
             // if this is a new line and we have some padding, apply it
             if self.left_padding != 0 {
-                self.push_n_whitespace(self.left_padding);
+                self.push_n_whitespace(self.left_padding as usize);
             }
 
             // if this is a new line and we have a prefix, add it
