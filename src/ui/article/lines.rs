@@ -12,6 +12,9 @@ const DISAMBIGUATION_PREFIX: char = '|';
 
 const LIST_ITEM_PADDING: u8 = 2;
 
+const DESCRIPTION_LIST_TERM_PADDING: u8 = 2;
+const DESCRIPTION_LIST_DESCRIPTION_PADDING: u8 = 4;
+
 /// An element only containing the neccessary information for rendering (and an id so that it can
 /// be referenced to an article element
 #[derive(Debug)]
@@ -152,36 +155,58 @@ impl LinesWrapper {
             // is this a link?
             let is_link = matches!(element.kind, ElementType::Link(..));
 
-            // does this element go onto a new line?
-            if element.kind == ElementType::Newline {
-                // fill the current line and make the next one blank
-                self.fill_line();
-                self.newline();
+            match element.kind {
+                ElementType::Newline => {
+                    // fill the current line and make the next one blank
+                    self.fill_line();
+                    self.newline();
 
-                last_type = &element.kind;
-                continue;
-            }
+                    last_type = &element.kind;
+                    continue;
+                }
 
-            if element.kind == ElementType::DisambiguationStart {
-                self.left_padding = DISAMBIGUATION_PADDING as usize;
-                self.line_prefix = Some(DISAMBIGUATION_PREFIX);
-                continue;
-            }
+                ElementType::DisambiguationStart => {
+                    self.left_padding = DISAMBIGUATION_PADDING as usize;
+                    self.line_prefix = Some(DISAMBIGUATION_PREFIX);
+                    continue;
+                }
 
-            if element.kind == ElementType::DisambiguationEnd {
-                self.left_padding = 0;
-                self.line_prefix = None;
-                continue;
-            }
+                ElementType::DisambiguationEnd => {
+                    self.left_padding = 0;
+                    self.line_prefix = None;
+                    continue;
+                }
 
-            if element.kind == ElementType::ListItemStart {
-                self.left_padding = LIST_ITEM_PADDING as usize;
-                continue;
-            }
+                ElementType::ListItemStart => {
+                    self.left_padding = LIST_ITEM_PADDING as usize;
+                    continue;
+                }
 
-            if element.kind == ElementType::ListItemEnd {
-                self.left_padding = 0;
-                continue;
+                ElementType::ListItemEnd => {
+                    self.left_padding = 0;
+                    continue;
+                }
+
+                ElementType::DescriptionListTermStart => {
+                    self.left_padding = DESCRIPTION_LIST_TERM_PADDING as usize;
+                    continue;
+                }
+
+                ElementType::DescriptionListTermEnd => {
+                    self.left_padding = 0;
+                    continue;
+                }
+
+                ElementType::DescriptionListDescriptionStart => {
+                    self.left_padding = DESCRIPTION_LIST_DESCRIPTION_PADDING as usize;
+                    continue;
+                }
+
+                ElementType::DescriptionListDescriptionEnd => {
+                    self.left_padding = 0;
+                    continue;
+                }
+                _ => (),
             }
 
             // what we do here is fairly simple:
