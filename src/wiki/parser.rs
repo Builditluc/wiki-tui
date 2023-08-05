@@ -296,7 +296,6 @@ impl<'a> Parser<'a> {
             self.push_kind(ElementType::ListItemEnd);
         }
         self.push_newline();
-        self.push_newline();
     }
 
     fn parse_redirect_msg(&mut self, node: Node) {
