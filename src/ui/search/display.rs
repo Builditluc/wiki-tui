@@ -80,6 +80,8 @@ pub fn display_search_results(siv: &mut Cursive, search: Search) -> Result<()> {
         search_status_view
     };
 
+    let query = search.query.clone();
+
     // create the results view (SelectView)
     let search_results_view = {
         let endpoint = search.endpoint.clone();
@@ -148,7 +150,7 @@ pub fn display_search_results(siv: &mut Cursive, search: Search) -> Result<()> {
             .child(search_layout)
             .child(search_status_view)
             .with_panel()
-            .title(format!("Results for ''"))
+            .title(format!("Results for '{}'", query))
             .fixed_width(search_width)
             .fixed_height(search_height),
     );
