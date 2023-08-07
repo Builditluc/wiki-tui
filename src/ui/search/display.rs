@@ -1,5 +1,3 @@
-use std::{cell::RefCell, rc::Rc};
-
 use anyhow::{Context, Result};
 use cursive::{
     align::HAlign,
@@ -9,7 +7,7 @@ use cursive::{
 };
 
 use crate::{
-    config::{Config, CONFIG},
+    config::CONFIG,
     ui::{
         article::on_article_submit,
         panel::WithPanel,
@@ -30,7 +28,7 @@ const PREVIEW_HEIGHT_PERCENTAGE: f32 = 0.5;
 const SEARCH_RESULTS_PERCENTAGE: f32 = 0.3;
 
 /// Displays the search results and returns an error if anything went wrong
-pub fn display_search_results(siv: &mut Cursive, mut search: Search, query: &str) -> Result<()> {
+pub fn display_search_results(siv: &mut Cursive, search: Search) -> Result<()> {
     info!("displaying '{}' search results", search.results().len());
 
     // calculate the necessary size values
@@ -68,14 +66,30 @@ pub fn display_search_results(siv: &mut Cursive, mut search: Search, query: &str
     );
     debug!("search_result_info name '{}'", search_result_info_name);
 
+    let search_status_view = {
+        let mut search_status_view = TextView::empty();
+
+        // fill status view with the status
+        if let Some(total_hits) = search.total_hits() {
+            search_status_view.set_content(format!(
+                "Found {} articles on the {} Wikipedia matching your search",
+                total_hits,
+                search.language.name()
+            ));
+        }
+        search_status_view
+    };
+
     // create the results view (SelectView)
     let search_results_view = {
+        let endpoint = search.endpoint.clone();
+        let results = search.results.clone();
         let mut search_results_view = SelectView::<SearchResult>::new()
             .on_select(on_result_select)
-            .on_submit(|siv, x| on_article_submit(siv, x.pageid()));
+            .on_submit(move |siv, x| on_article_submit(siv, x.pageid(), endpoint.clone()));
 
         // fill results view with results
-        for search_result in search.take_results() {
+        for search_result in results.into_iter() {
             search_results_view.add_item(search_result.title().to_string(), search_result);
         }
         search_results_view
@@ -84,16 +98,6 @@ pub fn display_search_results(siv: &mut Cursive, mut search: Search, query: &str
     .full_height()
     .fixed_width(search_results_width)
     .scrollable();
-
-    // create the continue button (Button)
-    let search_continue_button = {
-        let query = query.to_string();
-        let offset = search.continue_offset().unwrap_or(0);
-        Button::new("Show more results...", move |s| {
-            on_continue_submit(s, &query, &offset)
-        })
-        .with_name(search_continue_button_name)
-    };
 
     // create the preview view (TextView)
     let search_result_preview = TextView::new("")
@@ -109,25 +113,13 @@ pub fn display_search_results(siv: &mut Cursive, mut search: Search, query: &str
         .with_panel()
         .full_height();
 
-    // create the status view (TextView)
-    let language = siv
-        .with_user_data(|config: &mut Rc<RefCell<Config>>| {
-            config.borrow().api_config.language.clone()
+    // create the continue button (Button)
+    let search_continue_button = {
+        let search = search.clone();
+        Button::new("Show more results...", move |s| {
+            on_continue_submit(s, search.clone())
         })
-        .unwrap_or_default();
-
-    let search_status_view = {
-        let mut search_status_view = TextView::empty();
-
-        // fill status view with the status
-        if let Some(total_hits) = search.total_hits() {
-            search_status_view.set_content(format!(
-                "Found {} articles on the {} Wikipedia matching your search",
-                total_hits,
-                language.name()
-            ));
-        }
-        search_status_view
+        .with_name(search_continue_button_name)
     };
 
     debug!("created the views for the search results layout");
@@ -156,7 +148,7 @@ pub fn display_search_results(siv: &mut Cursive, mut search: Search, query: &str
             .child(search_layout)
             .child(search_status_view)
             .with_panel()
-            .title(format!("Results for '{}'", query))
+            .title(format!("Results for ''"))
             .fixed_width(search_width)
             .fixed_height(search_height),
     );
@@ -170,11 +162,7 @@ pub fn display_search_results(siv: &mut Cursive, mut search: Search, query: &str
 }
 
 /// Adds more search results to the already existing search panel
-pub fn display_more_search_results(
-    siv: &mut Cursive,
-    mut search: Search,
-    search_query: &str,
-) -> Result<()> {
+pub fn display_more_search_results(siv: &mut Cursive, search: Search) -> Result<()> {
     info!(
         "displaying '{}' more search results",
         search.results().len()
@@ -198,17 +186,14 @@ pub fn display_more_search_results(
     debug!("found the search_continue_button");
 
     // add the new results to the view
-    for search_result in search.take_results() {
+    for search_result in search.results.clone().into_iter() {
         search_results_views.add_item(search_result.title().to_string(), search_result)
     }
     debug!("added the results to the results view");
 
     // modify the callback of the continue button so we don't search for the same thing again
     {
-        let query = search_query.to_string();
-        search_continue_button.set_callback(move |s| {
-            on_continue_submit(s, &query, &search.continue_offset().unwrap_or(0))
-        });
+        search_continue_button.set_callback(move |s| on_continue_submit(s, search.clone()));
     }
     debug!("set the new callback of the continue button");
 

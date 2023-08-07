@@ -21,11 +21,8 @@ pub fn on_search(siv: &mut Cursive, query: &str) {
     // search for the query
     let search = match Search::builder()
         .query(query)
-        .url(
-            config.borrow().api_config.language.clone(),
-            &config.borrow().api_config.pre_language,
-            &config.borrow().api_config.post_language,
-        )
+        .endpoint(config.borrow().api_config.url())
+        .language(config.borrow().api_config.language.clone())
         .search()
         .with_context(|| format!("failed to search for '{}'", query))
     {
@@ -69,7 +66,11 @@ pub fn on_search(siv: &mut Cursive, query: &str) {
     }
 
     // display the found search results
-    if let Err(error) = display::display_search_results(siv, search, query)
+    // TODO:
+    // - Why do we need 'query' when displaying search results?
+    // - Why aren't they already in the `Search` struct?
+    // - When suggesting a query, we need to pass the endpoint to `on_search`
+    if let Err(error) = display::display_search_results(siv, search)
         .with_context(|| format!("failed to display the search results for '{}'", query))
     {
         warn!("{:?}", error);
@@ -110,20 +111,20 @@ fn on_result_select(siv: &mut Cursive, item: &SearchResult) {
 
 /// Searches for more results at a given offset and adds them to the results view. It's a callback
 /// for the continue button and displays an error if something went wrong
-fn on_continue_submit(siv: &mut Cursive, search_query: &str, search_offset: &usize) {
-    let config = Config::from_siv(siv);
+fn on_continue_submit(siv: &mut Cursive, search: Search) {
+    let offset = match search.continue_offset() {
+        Some(offset) => offset,
+        None => return,
+    };
 
     // continue the search and fetch more results
-    let search = match Search::builder()
-        .query(search_query)
-        .url(
-            config.borrow().api_config.language.clone(),
-            &config.borrow().api_config.pre_language,
-            &config.borrow().api_config.post_language,
-        )
-        .offset(*search_offset)
+    let continue_search = match Search::builder()
+        .query(search.query)
+        .endpoint(search.endpoint)
+        .language(search.language)
+        .offset(offset)
         .search()
-        .with_context(|| format!("failed to fetch more search results for '{}'", search_query))
+        .context("failed to fetch more search results")
     {
         Ok(search) => search,
         Err(error) => {
@@ -134,13 +135,8 @@ fn on_continue_submit(siv: &mut Cursive, search_query: &str, search_offset: &usi
     };
 
     // display the search results
-    if let Err(error) = display::display_more_search_results(siv, search, search_query)
-        .with_context(|| {
-            format!(
-                "failed displaying more search results for '{}'",
-                search_query
-            )
-        })
+    if let Err(error) = display::display_more_search_results(siv, continue_search)
+        .context("failed displaying more search results")
     {
         warn!("{:?}", error);
         display_error(siv, error);

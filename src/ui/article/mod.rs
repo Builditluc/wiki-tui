@@ -12,6 +12,7 @@ use anyhow::{Context, Result};
 use cursive::view::{Nameable, Resizable};
 use cursive::views::{LastSizeView, LinearLayout, OnEventView, TextView};
 use cursive::Cursive;
+use url::Url;
 
 mod content;
 mod lines;
@@ -24,12 +25,12 @@ const SUPPORTED_NAMESPACES: [Namespace; 1] = [Namespace::Main];
 
 /// Fetches an article from a given id and displays it. It's the on_submit callback for
 /// the search results view
-pub fn on_article_submit(siv: &mut Cursive, pageid: usize) {
+pub fn on_article_submit(siv: &mut Cursive, pageid: usize, endpoint: Url) {
     let config = Config::from_siv(siv);
 
     let article = match Article::builder()
         .pageid(pageid)
-        .url(config.borrow().api_config.url())
+        .endpoint(endpoint)
         .properties(ARTICLE_PROPERTIES.to_vec())
         .language(config.borrow().api_config.language.clone())
         .fetch()
