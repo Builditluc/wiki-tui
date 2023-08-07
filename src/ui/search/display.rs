@@ -86,9 +86,12 @@ pub fn display_search_results(siv: &mut Cursive, search: Search) -> Result<()> {
     let search_results_view = {
         let endpoint = search.endpoint.clone();
         let results = search.results.clone();
+        let language = search.language.clone();
         let mut search_results_view = SelectView::<SearchResult>::new()
             .on_select(on_result_select)
-            .on_submit(move |siv, x| on_article_submit(siv, x.pageid(), endpoint.clone()));
+            .on_submit(move |siv, x| {
+                on_article_submit(siv, x.pageid(), endpoint.clone(), language.clone())
+            });
 
         // fill results view with results
         for search_result in results.into_iter() {
