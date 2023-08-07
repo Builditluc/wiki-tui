@@ -8,7 +8,7 @@
 <br />
 <p align="center">
   <a href="https://github.com/Builditluc/wiki-tui">
-    <img src= "https://raw.githubusercontent.com/Builditluc/wiki-tui/main/logo.png" alt="Logo" width="234" height="167">
+    <img src="https://raw.githubusercontent.com/Builditluc/wiki-tui/main/icons/hicolor/scalable/apps/wiki-tui.svg" width="50%" alt="Logo; wiki-tui entered into a command line prompt"/>
   </a>
 
   <h3 align="center">WIKI-TUI</h3>
