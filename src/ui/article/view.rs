@@ -166,7 +166,7 @@ impl View for ArticleView {
             self,
             size,
             self.needs_relayout(),
-            |s, size| s.content.compute_lines(size),
+            |s, si| s.content.compute_lines(si),
             |s, constraint| s.content.required_size(constraint),
         );
         self.last_size = size;

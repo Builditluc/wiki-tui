@@ -92,7 +92,7 @@ impl ArticleContent {
 
         // render the lines
         let lines_wrapper = LinesWrapper::new(
-            size.x,
+            size.x.saturating_sub(1),
             // we have to clone all the elements
             Rc::new(content.unwrap()),
         )
