@@ -107,11 +107,10 @@ impl<'a> Parser<'a> {
                     .attr("class")
                     .map(|x| x.contains("toc") | x.contains("quotebox"))
                     .unwrap_or(false) => {}
-            "" => (),
             "dl" => self.parse_description_list(node),
-            "div" => {
-                node.children().map(|node| self.parse_node(node)).count();
-            }
+            "span" => self.parse_text(node),
+            "div" => self.parse_container(node),
+            "" => (),
             _ if SHOW_UNSUPPORTED => {
                 self.elements.push(Element::new(
                     self.next_id(),
@@ -330,6 +329,10 @@ impl<'a> Parser<'a> {
 
         self.push_newline();
         self.push_newline();
+    }
+
+    fn parse_container(&mut self, node: Node) {
+        node.children().map(|node| self.parse_node(node)).count();
     }
 }
 
