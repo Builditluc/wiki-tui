@@ -3,35 +3,26 @@ use reqwest::blocking::{Client, Response};
 use serde::Deserialize;
 use serde_repr::Deserialize_repr;
 use std::fmt::Display;
+use url::Url;
 
 use super::language::Language;
 
-fn action_query(params: Vec<(&str, String)>, url: String) -> Result<Response> {
-    Client::new()
-        .get(url)
-        .query(&[
-            ("action", "query"),
-            ("format", "json"),
-            ("formatversion", "2"),
-        ])
-        .query(&params)
-        .send()
-        .context("failed sending the request")
-}
-
 /// A finished search containing the results and additional information
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Search {
     complete: bool,
     continue_offset: Option<usize>,
     total_hits: Option<usize>,
     suggestion: Option<String>,
     rewritten_query: Option<String>,
-    results: Vec<SearchResult>,
+    pub query: String,
+    pub results: Vec<SearchResult>,
+    pub endpoint: Url,
+    pub language: Language,
 }
 
 impl Search {
-    pub fn builder() -> SearchBuilder<NoQuery, NoUrl> {
+    pub fn builder() -> SearchBuilder<NoQuery, NoEndpoint, NoLanguage> {
         SearchBuilder::default()
     }
 
@@ -352,14 +343,19 @@ pub struct WithQuery(String);
 #[derive(Default)]
 pub struct NoQuery;
 
-pub struct WithUrl(String);
+pub struct WithEndpoint(Url);
 #[derive(Default)]
-pub struct NoUrl;
+pub struct NoEndpoint;
+
+pub struct WithLanguage(Language);
+#[derive(Default)]
+pub struct NoLanguage;
 
 #[derive(Default)]
-pub struct SearchBuilder<Q, U> {
+pub struct SearchBuilder<Q, E, L> {
     query: Q,
-    url: U,
+    endpoint: E,
+    language: L,
     namespace: Option<Namespace>,
     limit: Option<usize>,
     offset: Option<usize>,
@@ -372,11 +368,12 @@ pub struct SearchBuilder<Q, U> {
     sort_order: Option<SortOrder>,
 }
 
-impl<U> SearchBuilder<NoQuery, U> {
-    pub fn query(self, query: impl Into<String>) -> SearchBuilder<WithQuery, U> {
+impl<E, L> SearchBuilder<NoQuery, E, L> {
+    pub fn query(self, query: impl Into<String>) -> SearchBuilder<WithQuery, E, L> {
         SearchBuilder {
             query: WithQuery(query.into()),
-            url: self.url,
+            endpoint: self.endpoint,
+            language: self.language,
             namespace: self.namespace,
             limit: self.limit,
             offset: self.offset,
@@ -391,21 +388,12 @@ impl<U> SearchBuilder<NoQuery, U> {
     }
 }
 
-impl<Q> SearchBuilder<Q, NoUrl> {
-    pub fn url(
-        self,
-        language: Language,
-        pre_language: &str,
-        post_language: &str,
-    ) -> SearchBuilder<Q, WithUrl> {
+impl<Q, L> SearchBuilder<Q, NoEndpoint, L> {
+    pub fn endpoint(self, endpoint: Url) -> SearchBuilder<Q, WithEndpoint, L> {
         SearchBuilder {
             query: self.query,
-            url: WithUrl(format!(
-                "{}{}{}",
-                pre_language,
-                language.code(),
-                post_language
-            )),
+            endpoint: WithEndpoint(endpoint),
+            language: self.language,
             namespace: self.namespace,
             limit: self.limit,
             offset: self.offset,
@@ -420,7 +408,27 @@ impl<Q> SearchBuilder<Q, NoUrl> {
     }
 }
 
-impl<Q, U> SearchBuilder<Q, U> {
+impl<Q, E> SearchBuilder<Q, E, NoLanguage> {
+    pub fn language(self, language: Language) -> SearchBuilder<Q, E, WithLanguage> {
+        SearchBuilder {
+            query: self.query,
+            endpoint: self.endpoint,
+            language: WithLanguage(language),
+            namespace: self.namespace,
+            limit: self.limit,
+            offset: self.offset,
+            qiprofile: self.qiprofile,
+            search_type: self.search_type,
+            info: self.info,
+            properties: self.properties,
+            interwiki: self.interwiki,
+            rewrites: self.rewrites,
+            sort_order: self.sort_order,
+        }
+    }
+}
+
+impl<Q, E, L> SearchBuilder<Q, E, L> {
     pub fn namespace(mut self, namespace: Namespace) -> Self {
         self.namespace = Some(namespace);
         self
@@ -472,9 +480,25 @@ impl<Q, U> SearchBuilder<Q, U> {
     }
 }
 
-impl SearchBuilder<WithQuery, WithUrl> {
+impl SearchBuilder<WithQuery, WithEndpoint, WithLanguage> {
     pub fn search(self) -> Result<Search> {
-        let mut params = vec![("list", "search".to_string()), ("srsearch", self.query.0)];
+        fn action_query(params: Vec<(&str, String)>, endpoint: Url) -> Result<Response> {
+            Client::new()
+                .get(endpoint)
+                .query(&[
+                    ("action", "query"),
+                    ("format", "json"),
+                    ("formatversion", "2"),
+                ])
+                .query(&params)
+                .send()
+                .context("failed sending the request")
+        }
+
+        let mut params = vec![
+            ("list", "search".to_string()),
+            ("srsearch", self.query.0.clone()),
+        ];
 
         if let Some(namespace) = self.namespace {
             params.push(("srnamespace", namespace.to_string()));
@@ -526,13 +550,13 @@ impl SearchBuilder<WithQuery, WithUrl> {
             params.push(("srsort", sort_order.to_string()));
         }
 
-        let response = action_query(params, self.url.0)?
+        let response = action_query(params, self.endpoint.0.clone())?
             .error_for_status()
-            .context("recieved an error")?;
+            .context("the server returned an error")?;
 
         let res_json: serde_json::Value =
             serde_json::from_str(&response.text().context("failed reading the response")?)
-                .context("failed reading the response as json")?;
+                .context("failed interpreting the response as json")?;
 
         let continue_offset = res_json
             .get("continue")
@@ -573,6 +597,9 @@ impl SearchBuilder<WithQuery, WithUrl> {
             suggestion,
             rewritten_query,
             results,
+            endpoint: self.endpoint.0,
+            query: self.query.0,
+            language: self.language.0,
         })
     }
 }
