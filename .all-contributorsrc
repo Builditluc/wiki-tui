@@ -81,6 +81,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "ethamck",
+      "name": "ethamck",
+      "avatar_url": "https://avatars.githubusercontent.com/u/111709736?v=4",
+      "profile": "https://github.com/ethamck",
+      "contributions": [
+        "design"
+      ]
     }
   ],
   "contributorsPerLine": 7,
