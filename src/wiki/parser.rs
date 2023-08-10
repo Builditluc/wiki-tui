@@ -112,6 +112,19 @@ impl<'a> Parser<'a> {
             "div" => {
                 node.children().map(|node| self.parse_node(node)).count();
             }
+
+            // unsupported nodes for which the user should be notified about
+            "table" | "img" | "figure" | "ol" => {
+                self.elements.push(Element::new(
+                    self.next_id(),
+                    ElementType::Unsupported,
+                    format!("<Unsupported Element '{}'>", name),
+                    Effect::Italic,
+                    HashMap::new(),
+                ));
+                self.push_newline()
+            }
+
             _ if SHOW_UNSUPPORTED => {
                 self.elements.push(Element::new(
                     self.next_id(),
