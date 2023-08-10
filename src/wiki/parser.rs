@@ -105,14 +105,12 @@ impl<'a> Parser<'a> {
             "div"
                 if node
                     .attr("class")
-                    .map(|x| x.contains("toc") | x.contains("quotebox"))
+                    .map(|x| x.contains("toc") || x.contains("quotebox"))
                     .unwrap_or(false) => {}
-            "" => (),
             "dl" => self.parse_description_list(node),
-            "div" => {
-                node.children().map(|node| self.parse_node(node)).count();
-            }
-
+            "span" => self.parse_text(node),
+            "div" => self.parse_container(node),
+            "" => (),
             // unsupported nodes for which the user should be notified about
             "table" | "img" | "figure" | "ol" => {
                 self.elements.push(Element::new(
@@ -124,7 +122,6 @@ impl<'a> Parser<'a> {
                 ));
                 self.push_newline()
             }
-
             _ if SHOW_UNSUPPORTED => {
                 self.elements.push(Element::new(
                     self.next_id(),
@@ -343,6 +340,10 @@ impl<'a> Parser<'a> {
 
         self.push_newline();
         self.push_newline();
+    }
+
+    fn parse_container(&mut self, node: Node) {
+        node.children().map(|node| self.parse_node(node)).count();
     }
 }
 
