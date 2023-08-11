@@ -120,7 +120,7 @@ pub fn display_search_results(siv: &mut Cursive, search: Search) -> Result<()> {
 
     // create the continue button (Button)
     let search_continue_button = {
-        let search = search.clone();
+        let search = search;
         Button::new("Show more results...", move |s| {
             on_continue_submit(s, search.clone())
         })

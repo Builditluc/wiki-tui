@@ -1,3 +1,27 @@
+# v0.8.2 (Fri Aug 11 2023)
+
+:tada: This release contains work from a new contributor! :tada:
+
+Thank you, null[@ethamck](https://github.com/ethamck), for all your work!
+
+#### Bug Fixes 🐛
+
+- Fix notice for unsupported elements [#215](https://github.com/Builditluc/wiki-tui/pull/215) ([@Builditluc](https://github.com/Builditluc))
+- Fix translations not appearing [#214](https://github.com/Builditluc/wiki-tui/pull/214) ([@Builditluc](https://github.com/Builditluc))
+- Fix word cut off [#213](https://github.com/Builditluc/wiki-tui/pull/213) ([@Builditluc](https://github.com/Builditluc))
+- Fix invalid search links after language change [#209](https://github.com/Builditluc/wiki-tui/pull/209) ([@Builditluc](https://github.com/Builditluc))
+
+#### Structure and Style Changes
+
+- Replace raster logo with vectors [#208](https://github.com/Builditluc/wiki-tui/pull/208) ([@ethamck](https://github.com/ethamck))
+
+#### Authors: 2
+
+- [@Builditluc](https://github.com/Builditluc)
+- [@ethamck](https://github.com/ethamck)
+
+---
+
 # v0.8.1 (Sat Aug 05 2023)
 
 ### Release Notes

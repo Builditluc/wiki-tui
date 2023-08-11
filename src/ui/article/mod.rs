@@ -1,4 +1,4 @@
-use crate::config::{Config, TocPosition, CONFIG};
+use crate::config::{TocPosition, CONFIG};
 use crate::ui::panel::WithPanel;
 use crate::ui::search::bar_popup::open_search_bar;
 use crate::ui::toc::display_toc;
