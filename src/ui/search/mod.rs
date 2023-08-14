@@ -80,8 +80,7 @@ pub fn on_search(siv: &mut Cursive, query: &str) {
 fn on_result_select(siv: &mut Cursive, item: &SearchResult) {
     info!(
         "selecting the item '{}', page id: '{}'",
-        item.title(),
-        item.pageid()
+        item.title, item.pageid,
     );
 
     let layer_len = siv.screen_mut().len();

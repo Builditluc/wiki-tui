@@ -1,6 +1,5 @@
 use anyhow::{Context, Result};
 use reqwest::blocking::{Client, Response};
-use serde::Deserialize;
 use serde_repr::Deserialize_repr;
 use std::fmt::Display;
 use url::Url;
@@ -48,46 +47,19 @@ pub struct SearchContinue {
     pub offset: usize,
 }
 
-#[derive(Deserialize, Debug, Clone)]
+#[derive(Debug, Clone)]
 pub struct SearchResult {
-    #[serde(rename = "ns")]
-    namespace: Namespace,
-    title: String,
-    pageid: usize,
-    size: Option<usize>,
-    wordcount: Option<usize>,
-    snippet: Option<String>,
-    timestamp: Option<String>,
-}
+    pub namespace: Namespace,
+    pub title: String,
+    pub pageid: usize,
 
-impl SearchResult {
-    pub fn namespace(&self) -> Namespace {
-        self.namespace.clone()
-    }
+    pub language: Language,
+    pub endpoint: Url,
 
-    pub fn title(&self) -> &str {
-        &self.title
-    }
-
-    pub fn pageid(&self) -> usize {
-        self.pageid
-    }
-
-    pub fn size(&self) -> Option<usize> {
-        self.size
-    }
-
-    pub fn wordcount(&self) -> Option<usize> {
-        self.wordcount
-    }
-
-    pub fn snippet(&self) -> Option<&str> {
-        self.snippet.as_ref().map(|x| x as _)
-    }
-
-    pub fn timestamp(&self) -> Option<&str> {
-        self.timestamp.as_ref().map(|x| x as _)
-    }
+    pub size: Option<usize>,
+    pub wordcount: Option<usize>,
+    pub snippet: Option<String>,
+    pub timestamp: Option<String>,
 }
 
 #[derive(Deserialize_repr, Debug, Clone, PartialEq, Eq)]
@@ -564,14 +536,39 @@ impl SearchBuilder<WithQuery, WithEndpoint, WithLanguage> {
             .and_then(|x| x.get("rewrittenquery"))
             .and_then(|x| x.as_str().map(|x| x.to_string()));
 
-        let results: Vec<SearchResult> = serde_json::from_value(
-            res_json
+        let results: Vec<SearchResult> = {
+            let mut results: Vec<SearchResult> = Vec::new();
+            let results_json = res_json
                 .get("query")
                 .and_then(|x| x.get("search"))
+                .and_then(|x| x.as_array())
                 .ok_or_else(|| anyhow!("missing the search results"))?
-                .to_owned(),
-        )
-        .context("failed deserializing the search results")?;
+                .to_owned();
+
+            macro_rules! value_from_json {
+                ($result: ident, $val: expr) => {
+                    serde_json::from_value($result.get($val).map(|x| x.to_owned()).ok_or_else(
+                        || anyhow!("couldn't find '{}' in the result", stringify!($val)),
+                    )?)?
+                };
+            }
+
+            for result in results_json.into_iter() {
+                results.push(SearchResult {
+                    namespace: value_from_json!(result, "ns"),
+                    title: value_from_json!(result, "title"),
+                    pageid: value_from_json!(result, "pageid"),
+                    language: self.language.0.clone(),
+                    endpoint: self.endpoint.0.clone(),
+                    size: value_from_json!(result, "size"),
+                    wordcount: value_from_json!(result, "wordcount"),
+                    snippet: value_from_json!(result, "snippet"),
+                    timestamp: value_from_json!(result, "timestamp"),
+                })
+            }
+
+            results
+        };
 
         Ok(Search {
             complete: continue_offset.is_none(),

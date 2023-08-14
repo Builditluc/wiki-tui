@@ -82,28 +82,6 @@ pub fn display_search_results(siv: &mut Cursive, search: Search) -> Result<()> {
 
     let query = search.query.clone();
 
-    // create the results view (SelectView)
-    let search_results_view = {
-        let endpoint = search.endpoint.clone();
-        let results = search.results.clone();
-        let language = search.language.clone();
-        let mut search_results_view = SelectView::<SearchResult>::new()
-            .on_select(on_result_select)
-            .on_submit(move |siv, x| {
-                on_article_submit(siv, x.pageid(), endpoint.clone(), language.clone())
-            });
-
-        // fill results view with results
-        for search_result in results.into_iter() {
-            search_results_view.add_item(search_result.title().to_string(), search_result);
-        }
-        search_results_view
-    }
-    .with_name(search_results_view_name)
-    .full_height()
-    .fixed_width(search_results_width)
-    .scrollable();
-
     // create the preview view (TextView)
     let search_result_preview = TextView::new("")
         .h_align(HAlign::Left)
@@ -128,6 +106,23 @@ pub fn display_search_results(siv: &mut Cursive, search: Search) -> Result<()> {
     };
 
     debug!("created the views for the search results layout");
+
+    // create the results view (SelectView)
+    let search_results_view = {
+        let mut search_results_view = SelectView::<SearchResult>::new()
+            .on_select(on_result_select)
+            .on_submit(on_article_submit);
+
+        // fill results view with results
+        for search_result in search.results.into_iter() {
+            search_results_view.add_item(search_result.title.to_string(), search_result);
+        }
+        search_results_view
+    }
+    .with_name(search_results_view_name)
+    .full_height()
+    .fixed_width(search_results_width)
+    .scrollable();
 
     // pack results view and continue button in a layout
     let search_results_layout = LinearLayout::vertical()
@@ -189,7 +184,7 @@ pub fn display_more_search_results(siv: &mut Cursive, search: Search) -> Result<
 
     // add the new results to the view
     for search_result in search.results.clone().into_iter() {
-        search_results_views.add_item(search_result.title().to_string(), search_result)
+        search_results_views.add_item(search_result.title.to_string(), search_result)
     }
     debug!("added the results to the results view");
 

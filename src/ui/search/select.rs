@@ -11,17 +11,17 @@ pub fn generate_and_display_preview(
     view_name: &str,
 ) -> Result<()> {
     // check if we even have a preview snippet
-    if item.snippet().is_none() {
+    if item.snippet.is_none() {
         bail!("no preview snippet found");
     }
 
-    let snippet = item.snippet().unwrap();
+    let snippet = item.snippet.clone().unwrap();
     let mut preview = StyledString::new();
 
     log::debug!("snippet: '{}'", snippet);
 
     // add the title of the item to the preview
-    preview.append_plain(format!("{}\n", item.title()));
+    preview.append_plain(format!("{}\n", item.title));
 
     let split_snippet: Vec<&str> = snippet.split(r#"<span class="searchmatch">"#).collect();
 
@@ -64,17 +64,17 @@ pub fn generate_and_display_info(
 ) -> Result<()> {
     let mut info = StyledString::new();
 
-    info.append_plain(&format!("Title: {}", item.title()));
+    info.append_plain(&format!("Title: {}", item.title));
     debug!("added the title to the info");
 
     // add the wordcount to the info if available
-    if let Some(wordcount) = item.wordcount() {
+    if let Some(ref wordcount) = item.wordcount {
         info.append_plain(&format!("\nWord count: {} words", wordcount));
         debug!("added the wordcount to the info");
     }
 
     // add the formatted timestamp to the info if available
-    if let Some(timestamp) = item.timestamp() {
+    if let Some(ref timestamp) = item.timestamp {
         match DateTime::parse_from_rfc3339(timestamp) {
             Ok(formatted_time) => info.append_plain(&format!(
                 "\nLast Edited: {}",

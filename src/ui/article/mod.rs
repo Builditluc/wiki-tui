@@ -6,14 +6,12 @@ use crate::ui::utils::{display_dialog, display_error, display_message};
 use crate::ui::views::{RootLayout, StatusBar};
 use crate::wiki::article::link_data::InternalData;
 use crate::wiki::article::{Article, Link, Property};
-use crate::wiki::language::Language;
-use crate::wiki::search::Namespace;
+use crate::wiki::search::{Namespace, SearchResult};
 
 use anyhow::{Context, Result};
 use cursive::view::{Nameable, Resizable};
 use cursive::views::{LastSizeView, LinearLayout, OnEventView, TextView};
 use cursive::Cursive;
-use url::Url;
 
 mod content;
 mod lines;
@@ -26,12 +24,12 @@ const SUPPORTED_NAMESPACES: [Namespace; 1] = [Namespace::Main];
 
 /// Fetches an article from a given id and displays it. It's the on_submit callback for
 /// the search results view
-pub fn on_article_submit(siv: &mut Cursive, pageid: usize, endpoint: Url, language: Language) {
+pub fn on_article_submit(siv: &mut Cursive, search_result: &SearchResult) {
     let article = match Article::builder()
-        .pageid(pageid)
-        .endpoint(endpoint)
+        .pageid(search_result.pageid)
+        .endpoint(search_result.endpoint.clone())
         .properties(ARTICLE_PROPERTIES.to_vec())
-        .language(language)
+        .language(search_result.language.clone())
         .fetch()
         .context("failed fetching the article")
     {
