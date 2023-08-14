@@ -25,6 +25,27 @@ impl Search {
     pub fn builder() -> SearchBuilder<NoQuery, NoEndpoint, NoLanguage> {
         SearchBuilder::default()
     }
+
+    pub fn continue_data(&self) -> Option<SearchContinue> {
+        if let Some(ref offset) = self.continue_offset {
+            return Some(SearchContinue {
+                query: self.query.clone(),
+                endpoint: self.endpoint.clone(),
+                language: self.language.clone(),
+                offset: *offset,
+            });
+        }
+        None
+    }
+}
+
+/// Struct containing all the necessary data for continuing the search
+#[derive(Debug, Clone)]
+pub struct SearchContinue {
+    pub query: String,
+    pub endpoint: Url,
+    pub language: Language,
+    pub offset: usize,
 }
 
 #[derive(Deserialize, Debug, Clone)]

@@ -120,11 +120,11 @@ pub fn display_search_results(siv: &mut Cursive, search: Search) -> Result<()> {
 
     // create the continue button (Button)
     let search_continue_button = {
-        let search = search;
-        Button::new("Show more results...", move |s| {
-            on_continue_submit(s, search.clone())
-        })
-        .with_name(search_continue_button_name)
+        let callback: Box<dyn 'static + Fn(&mut Cursive)> = match search.continue_data() {
+            Some(data) => Box::new(move |s| on_continue_submit(s, data.clone())),
+            None => Box::new(|_| {}),
+        };
+        Button::new("Show more results...", callback).with_name(search_continue_button_name)
     };
 
     debug!("created the views for the search results layout");
@@ -195,7 +195,11 @@ pub fn display_more_search_results(siv: &mut Cursive, search: Search) -> Result<
 
     // modify the callback of the continue button so we don't search for the same thing again
     {
-        search_continue_button.set_callback(move |s| on_continue_submit(s, search.clone()));
+        let callback: Box<dyn 'static + Fn(&mut Cursive)> = match search.continue_data() {
+            Some(data) => Box::new(move |s| on_continue_submit(s, data.clone())),
+            None => Box::new(|_| {}),
+        };
+        search_continue_button.set_callback(callback);
     }
     debug!("set the new callback of the continue button");
 

@@ -1,7 +1,7 @@
 use crate::{
     config::Config,
     ui::utils::display_error,
-    wiki::search::{Search, SearchResult},
+    wiki::search::{Search, SearchContinue, SearchResult},
 };
 
 use anyhow::Context;
@@ -108,18 +108,13 @@ fn on_result_select(siv: &mut Cursive, item: &SearchResult) {
 
 /// Searches for more results at a given offset and adds them to the results view. It's a callback
 /// for the continue button and displays an error if something went wrong
-fn on_continue_submit(siv: &mut Cursive, search: Search) {
-    let offset = match search.continue_offset {
-        Some(ref offset) => offset,
-        None => return,
-    };
-
+fn on_continue_submit(siv: &mut Cursive, continue_data: SearchContinue) {
     // continue the search and fetch more results
     let continue_search = match Search::builder()
-        .query(search.query)
-        .endpoint(search.endpoint)
-        .language(search.language)
-        .offset(*offset)
+        .query(continue_data.query)
+        .endpoint(continue_data.endpoint)
+        .language(continue_data.language)
+        .offset(continue_data.offset)
         .search()
         .context("failed to fetch more search results")
     {
