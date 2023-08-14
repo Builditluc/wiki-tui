@@ -29,7 +29,7 @@ const SEARCH_RESULTS_PERCENTAGE: f32 = 0.3;
 
 /// Displays the search results and returns an error if anything went wrong
 pub fn display_search_results(siv: &mut Cursive, search: Search) -> Result<()> {
-    info!("displaying '{}' search results", search.results().len());
+    info!("displaying '{}' search results", search.results.len());
 
     // calculate the necessary size values
     let screen_size = siv.screen_size();
@@ -70,7 +70,7 @@ pub fn display_search_results(siv: &mut Cursive, search: Search) -> Result<()> {
         let mut search_status_view = TextView::empty();
 
         // fill status view with the status
-        if let Some(total_hits) = search.total_hits() {
+        if let Some(ref total_hits) = search.total_hits {
             search_status_view.set_content(format!(
                 "Found {} articles on the {} Wikipedia matching your search",
                 total_hits,
@@ -168,10 +168,7 @@ pub fn display_search_results(siv: &mut Cursive, search: Search) -> Result<()> {
 
 /// Adds more search results to the already existing search panel
 pub fn display_more_search_results(siv: &mut Cursive, search: Search) -> Result<()> {
-    info!(
-        "displaying '{}' more search results",
-        search.results().len()
-    );
+    info!("displaying '{}' more search results", search.results.len());
 
     let layer_len = siv.screen_mut().len();
 

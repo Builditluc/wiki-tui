@@ -10,11 +10,11 @@ use super::language::Language;
 /// A finished search containing the results and additional information
 #[derive(Debug, Clone)]
 pub struct Search {
-    complete: bool,
-    continue_offset: Option<usize>,
-    total_hits: Option<usize>,
-    suggestion: Option<String>,
-    rewritten_query: Option<String>,
+    pub complete: bool,
+    pub continue_offset: Option<usize>,
+    pub total_hits: Option<usize>,
+    pub suggestion: Option<String>,
+    pub rewritten_query: Option<String>,
     pub query: String,
     pub results: Vec<SearchResult>,
     pub endpoint: Url,
@@ -24,44 +24,6 @@ pub struct Search {
 impl Search {
     pub fn builder() -> SearchBuilder<NoQuery, NoEndpoint, NoLanguage> {
         SearchBuilder::default()
-    }
-
-    pub fn complete(&self) -> bool {
-        self.complete
-    }
-
-    pub fn continue_offset(&self) -> Option<usize> {
-        self.continue_offset
-    }
-
-    pub fn total_hits(&self) -> Option<usize> {
-        self.total_hits
-    }
-
-    pub fn suggestion(&self) -> Option<&str> {
-        match self.suggestion {
-            Some(ref x) => Some(x as &str),
-            None => None,
-        }
-    }
-
-    pub fn rewritten_query(&self) -> Option<&str> {
-        match self.rewritten_query {
-            Some(ref x) => Some(x as &str),
-            None => None,
-        }
-    }
-
-    pub fn is_empty(&self) -> bool {
-        self.results.is_empty()
-    }
-
-    pub fn results(&self) -> &Vec<SearchResult> {
-        &self.results
-    }
-
-    pub fn take_results(&mut self) -> Vec<SearchResult> {
-        std::mem::take(&mut self.results)
     }
 }
 
