@@ -26,6 +26,16 @@ Or add it to your configuration.
 
 The package is available in the [AUR](https://aur.archlinux.org/packages/wiki-tui). Either install it with `makepkg` manually or use the preferred AUR helper.
 
+### Void
+
+As root, run
+
+```
+xbps-install -S wiki-tui
+```
+
+with the main repos installed. Works on glibc and musl installations.
+
 ### NetBSD
 
 Using the package manager
