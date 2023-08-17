@@ -29,7 +29,7 @@ const SEARCH_RESULTS_PERCENTAGE: f32 = 0.3;
 
 /// Displays the search results and returns an error if anything went wrong
 pub fn display_search_results(siv: &mut Cursive, search: Search) -> Result<()> {
-    info!("displaying '{}' search results", search.results().len());
+    info!("displaying '{}' search results", search.results.len());
 
     // calculate the necessary size values
     let screen_size = siv.screen_size();
@@ -70,7 +70,7 @@ pub fn display_search_results(siv: &mut Cursive, search: Search) -> Result<()> {
         let mut search_status_view = TextView::empty();
 
         // fill status view with the status
-        if let Some(total_hits) = search.total_hits() {
+        if let Some(ref total_hits) = search.total_hits {
             search_status_view.set_content(format!(
                 "Found {} articles on the {} Wikipedia matching your search",
                 total_hits,
@@ -81,28 +81,6 @@ pub fn display_search_results(siv: &mut Cursive, search: Search) -> Result<()> {
     };
 
     let query = search.query.clone();
-
-    // create the results view (SelectView)
-    let search_results_view = {
-        let endpoint = search.endpoint.clone();
-        let results = search.results.clone();
-        let language = search.language.clone();
-        let mut search_results_view = SelectView::<SearchResult>::new()
-            .on_select(on_result_select)
-            .on_submit(move |siv, x| {
-                on_article_submit(siv, x.pageid(), endpoint.clone(), language.clone())
-            });
-
-        // fill results view with results
-        for search_result in results.into_iter() {
-            search_results_view.add_item(search_result.title().to_string(), search_result);
-        }
-        search_results_view
-    }
-    .with_name(search_results_view_name)
-    .full_height()
-    .fixed_width(search_results_width)
-    .scrollable();
 
     // create the preview view (TextView)
     let search_result_preview = TextView::new("")
@@ -120,14 +98,31 @@ pub fn display_search_results(siv: &mut Cursive, search: Search) -> Result<()> {
 
     // create the continue button (Button)
     let search_continue_button = {
-        let search = search;
-        Button::new("Show more results...", move |s| {
-            on_continue_submit(s, search.clone())
-        })
-        .with_name(search_continue_button_name)
+        let callback: Box<dyn 'static + Fn(&mut Cursive)> = match search.continue_data() {
+            Some(data) => Box::new(move |s| on_continue_submit(s, data.clone())),
+            None => Box::new(|_| {}),
+        };
+        Button::new("Show more results...", callback).with_name(search_continue_button_name)
     };
 
     debug!("created the views for the search results layout");
+
+    // create the results view (SelectView)
+    let search_results_view = {
+        let mut search_results_view = SelectView::<SearchResult>::new()
+            .on_select(on_result_select)
+            .on_submit(on_article_submit);
+
+        // fill results view with results
+        for search_result in search.results.into_iter() {
+            search_results_view.add_item(search_result.title.to_string(), search_result);
+        }
+        search_results_view
+    }
+    .with_name(search_results_view_name)
+    .full_height()
+    .fixed_width(search_results_width)
+    .scrollable();
 
     // pack results view and continue button in a layout
     let search_results_layout = LinearLayout::vertical()
@@ -168,10 +163,7 @@ pub fn display_search_results(siv: &mut Cursive, search: Search) -> Result<()> {
 
 /// Adds more search results to the already existing search panel
 pub fn display_more_search_results(siv: &mut Cursive, search: Search) -> Result<()> {
-    info!(
-        "displaying '{}' more search results",
-        search.results().len()
-    );
+    info!("displaying '{}' more search results", search.results.len());
 
     let layer_len = siv.screen_mut().len();
 
@@ -192,13 +184,17 @@ pub fn display_more_search_results(siv: &mut Cursive, search: Search) -> Result<
 
     // add the new results to the view
     for search_result in search.results.clone().into_iter() {
-        search_results_views.add_item(search_result.title().to_string(), search_result)
+        search_results_views.add_item(search_result.title.to_string(), search_result)
     }
     debug!("added the results to the results view");
 
     // modify the callback of the continue button so we don't search for the same thing again
     {
-        search_continue_button.set_callback(move |s| on_continue_submit(s, search.clone()));
+        let callback: Box<dyn 'static + Fn(&mut Cursive)> = match search.continue_data() {
+            Some(data) => Box::new(move |s| on_continue_submit(s, data.clone())),
+            None => Box::new(|_| {}),
+        };
+        search_continue_button.set_callback(callback);
     }
     debug!("set the new callback of the continue button");
 
