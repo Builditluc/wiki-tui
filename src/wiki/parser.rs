@@ -1,8 +1,4 @@
-use std::collections::HashMap;
-
 use anyhow::{Context, Result};
-use cursive::theme::{Effect, Style};
-use select::{document::Document, node::Node, predicate::Class};
 use snafu::Snafu;
 use url::Url;
 
@@ -14,336 +10,106 @@ use crate::{
     },
 };
 
-use super::{
-    article::{Element, ElementType, Link, Section},
-    language::Language,
-};
+use super::{article::Link, language::Language};
 
-const SHOW_UNSUPPORTED: bool = false;
-const LIST_MARKER: char = '-';
-
-pub struct Parser<'a> {
-    endpoint: Url,
-    language: Language,
-    elements: Vec<Element>,
-    current_effects: Vec<Effect>,
-    sections: Option<&'a Vec<Section>>,
+#[derive(Debug, Clone)]
+pub enum Data {
+    Unknown,
 }
 
-impl<'a> Parser<'a> {
-    pub fn parse_document(
-        document: &'a str,
-        title: &'a str,
-        sections: Option<&Vec<Section>>,
-        endpoint: Url,
-        language: Language,
-    ) -> Result<Vec<Element>> {
-        let document = Document::from(document);
+#[derive(Debug, Clone)]
+pub struct Raw {
+    pub index: usize,
+    pub parent: Option<usize>,
+    pub prev: Option<usize>,
+    pub next: Option<usize>,
+    pub first_child: Option<usize>,
+    pub last_child: Option<usize>,
+    pub data: Data,
+}
 
-        let mut parser = Parser {
-            endpoint,
-            elements: Vec::new(),
-            current_effects: Vec::new(),
-            sections,
-            language,
-        };
+#[derive(Copy, Debug, Clone)]
+pub struct Node<'a> {
+    page: &'a Page,
+    index: usize,
+}
 
-        parser.elements.push(Element::new(
-            parser.next_id(),
-            ElementType::Header,
-            title.to_string(),
-            config::CONFIG.theme.title,
-            {
-                let mut attrs = HashMap::new();
-                attrs.insert("anchor".to_string(), "Content_Top".to_string());
-                attrs
-            },
-        ));
-        parser.push_newline();
-        parser.push_newline();
-
-        let _ = &document
-            .find(Class("mw-parser-output"))
-            .into_selection()
-            .children()
-            .into_iter()
-            .map(|x| parser.parse_node(x))
-            .count();
-
-        Ok(parser.elements)
+impl<'a> Node<'a> {
+    pub fn new(page: &'a Page, index: usize) -> Option<Self> {
+        if page.nodes.len() > index {
+            return Some(Node { page, index });
+        }
+        None
     }
 
-    fn parse_node(&mut self, node: Node) {
-        let name = node.name().unwrap_or_default();
-        match name {
-            "h1" | "h2" | "h3" | "h4" | "h5" | "h6" => self.parse_header(node),
-            "p" => self.parse_paragraph(node),
-            "a" => self.parse_link(node),
-            "b" => self.parse_effect(node, Effect::Bold),
-            "i" => self.parse_effect(node, Effect::Italic),
-            "ul" if node
-                .attr("class")
-                .map(|x| x.contains("portalbox"))
-                .unwrap_or(false) => {}
-            "ul" => self.parse_list(node),
-            "div"
-                if node
-                    .attr("class")
-                    .map(|x| x.contains("hatnote"))
-                    .unwrap_or(false) =>
-            {
-                self.parse_disambiguation(node)
-            }
-            "div"
-                if node
-                    .attr("class")
-                    .map(|x| x.contains("redirectMsg"))
-                    .unwrap_or(false) =>
-            {
-                self.parse_redirect_msg(node)
-            }
-            "div"
-                if node
-                    .attr("class")
-                    .map(|x| x.contains("toc") || x.contains("quotebox"))
-                    .unwrap_or(false) => {}
-            "dl" => self.parse_description_list(node),
-            "span" => self.parse_text(node),
-            "div" => self.parse_container(node),
-            "" => (),
-            // unsupported nodes for which the user should be notified about
-            "table" | "img" | "figure" | "ol" => {
-                self.elements.push(Element::new(
-                    self.next_id(),
-                    ElementType::Unsupported,
-                    format!("<Unsupported Element '{}'>", name),
-                    Effect::Italic,
-                    HashMap::new(),
-                ));
-                self.push_newline()
-            }
-            _ if SHOW_UNSUPPORTED => {
-                self.elements.push(Element::new(
-                    self.next_id(),
-                    ElementType::Unsupported,
-                    format!("<Unsupported Element '{}'>", name),
-                    Effect::Italic,
-                    HashMap::new(),
-                ));
-            }
-            _ => (),
+    pub fn index(&self) -> usize {
+        self.index
+    }
+
+    pub fn raw(&self) -> &'a Raw {
+        &self.page.nodes[self.index]
+    }
+
+    pub fn data(&self) -> &'a Data {
+        &self.raw().data
+    }
+
+    pub fn parent(&self) -> Option<Node<'a>> {
+        self.raw().parent.map(|index| self.page.nth(index).unwrap())
+    }
+
+    pub fn prev(&self) -> Option<Node<'a>> {
+        self.raw().prev.map(|index| self.page.nth(index).unwrap())
+    }
+
+    pub fn next(&self) -> Option<Node<'a>> {
+        self.raw().prev.map(|index| self.page.nth(index).unwrap())
+    }
+
+    pub fn first_child(&self) -> Option<Node<'a>> {
+        self.raw()
+            .first_child
+            .map(|index| self.page.nth(index).unwrap())
+    }
+
+    pub fn last_child(&self) -> Option<Node<'a>> {
+        self.raw()
+            .last_child
+            .map(|index| self.page.nth(index).unwrap())
+    }
+
+    pub fn children(&self) -> Children<'a> {
+        Children {
+            page: self.page,
+            next: self.first_child(),
         }
     }
+}
 
-    fn next_id(&self) -> usize {
-        self.elements.len().saturating_sub(1)
-    }
+pub struct Children<'a> {
+    page: &'a Page,
+    next: Option<Node<'a>>,
+}
 
-    fn combine_effects(&self, mut style: Style) -> Style {
-        self.current_effects.iter().for_each(|effect| {
-            style = style.combine(*effect);
-        });
-        style
-    }
-
-    fn push_newline(&mut self) {
-        self.elements.push(Element::new(
-            self.next_id(),
-            ElementType::Newline,
-            "",
-            Style::none(),
-            HashMap::new(),
-        ));
-    }
-
-    fn push_kind(&mut self, kind: ElementType) {
-        self.elements.push(Element::new(
-            self.next_id(),
-            kind,
-            "",
-            Style::none(),
-            HashMap::new(),
-        ))
-    }
-
-    fn is_last_newline(&self) -> bool {
-        self.elements
-            .last()
-            .map(|x| x.kind == ElementType::Newline)
-            .unwrap_or(false)
-    }
-
-    fn parse_header(&mut self, node: Node) {
-        if let Some(headline_node) = node.find(Class("mw-headline")).into_selection().first() {
-            let mut attributes = HashMap::new();
-
-            if let Some(anchor) = headline_node.attr("id") {
-                attributes.insert("anchor".to_string(), anchor.to_string());
-            }
-
-            let mut header = headline_node.text();
-
-            if let Some(sections) = self.sections {
-                if let Some(section) = sections
-                    .iter()
-                    .find(|&section| Some(section.anchor()) == headline_node.attr("id"))
-                {
-                    header.insert_str(0, &format!("{} ", section.number()))
-                };
-            }
-
-            self.push_newline();
-            self.elements.push(Element::new(
-                self.next_id(),
-                ElementType::Header,
-                header,
-                Style::from(config::CONFIG.theme.title).combine(Effect::Bold),
-                attributes,
-            ));
-            self.push_newline();
-            self.push_newline();
+impl<'a> Iterator for Children<'a> {
+    type Item = Node<'a>;
+    fn next(&mut self) -> Option<Node<'a>> {
+        if let Some(next) = self.next {
+            self.next = next.next();
+            return Some(next);
         }
+        None
     }
+}
 
-    fn parse_paragraph(&mut self, node: Node) {
-        if let Some("mw-empty-elt") = node.attr("class") {
-            return;
-        }
-        self.parse_text(node);
-        self.push_newline();
-        self.push_newline();
-    }
+#[derive(Debug, Clone)]
+pub struct Page {
+    pub nodes: Vec<Raw>,
+}
 
-    fn parse_text(&mut self, node: Node) {
-        for child in node.children() {
-            if child.name().is_some() {
-                self.parse_node(child);
-                continue;
-            }
-
-            self.elements.push(Element::new(
-                self.next_id(),
-                ElementType::Text,
-                child.text(),
-                self.combine_effects(Style::from(config::CONFIG.theme.text)),
-                HashMap::new(),
-            ))
-        }
-    }
-
-    fn parse_link(&mut self, node: Node) {
-        let target = node.attr("href");
-        let title = node.attr("title");
-
-        if target.is_none() {
-            warn!("'target' missing from link");
-            return;
-        }
-
-        let target = target.expect("'title' missing after check").to_string();
-        let link = match parse_href_to_link(
-            self.endpoint.clone(),
-            target.clone(),
-            title,
-            self.language.clone(),
-        )
-        .with_context(move || format!("failed parsing the link '{}'", target))
-        {
-            Ok(link) => link,
-            Err(error) => {
-                warn!("{:?}", error);
-                self.elements.push(Element::new(
-                    self.next_id(),
-                    ElementType::Text,
-                    node.text(),
-                    self.combine_effects(Style::from(config::CONFIG.theme.text)),
-                    HashMap::new(),
-                ));
-                return;
-            }
-        };
-
-        self.elements.push(Element::new(
-            self.next_id(),
-            ElementType::Link(link),
-            node.text(),
-            self.combine_effects(Style::from(config::CONFIG.theme.text).combine(Effect::Underline)),
-            HashMap::new(),
-        ));
-    }
-
-    fn parse_effect(&mut self, node: Node, effect: Effect) {
-        self.current_effects.push(effect);
-        self.parse_text(node);
-        self.current_effects.pop();
-    }
-
-    fn parse_description_list(&mut self, node: Node) {
-        for child in node.children() {
-            if !self.is_last_newline() {
-                self.push_newline();
-            }
-            match child.name().unwrap_or_default() {
-                "dt" => {
-                    self.push_kind(ElementType::DescriptionListTermStart);
-                    self.parse_text(child);
-                    self.push_kind(ElementType::DescriptionListTermEnd);
-                }
-                "dd" => {
-                    self.push_kind(ElementType::DescriptionListDescriptionStart);
-                    self.parse_text(child);
-                    self.push_kind(ElementType::DescriptionListDescriptionEnd);
-                }
-                _ => continue,
-            }
-        }
-        self.push_newline();
-        self.push_newline();
-    }
-
-    fn parse_list(&mut self, node: Node) {
-        for child in node
-            .children()
-            .filter(|x| x.name().unwrap_or_default() == "li")
-        {
-            // to avoid having large gaps between lists and other elements, we only want to add a
-            // newline when there isn't another one already added
-            if !self.is_last_newline() {
-                self.push_newline();
-            }
-
-            self.elements.push(Element::new(
-                self.next_id(),
-                ElementType::ListMarker,
-                format!("\t{} ", LIST_MARKER),
-                self.combine_effects(Style::from(config::CONFIG.theme.text)),
-                HashMap::new(),
-            ));
-
-            self.push_kind(ElementType::ListItemStart);
-            self.parse_text(child);
-            self.push_kind(ElementType::ListItemEnd);
-        }
-        self.push_newline();
-    }
-
-    fn parse_redirect_msg(&mut self, node: Node) {
-        for child in node.children() {
-            self.parse_node(child)
-        }
-    }
-
-    fn parse_disambiguation(&mut self, node: Node) {
-        self.push_kind(ElementType::DisambiguationStart);
-        self.parse_effect(node, Effect::Italic);
-        self.push_kind(ElementType::DisambiguationEnd);
-
-        self.push_newline();
-        self.push_newline();
-    }
-
-    fn parse_container(&mut self, node: Node) {
-        node.children().map(|node| self.parse_node(node)).count();
+impl Page {
+    pub fn nth(&self, n: usize) -> Option<Node> {
+        Node::new(self, n)
     }
 }
 

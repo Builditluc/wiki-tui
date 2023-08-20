@@ -7,7 +7,7 @@ use serde_repr::Deserialize_repr;
 use std::{collections::HashMap, fmt::Display};
 use url::Url;
 
-use super::{language::Language, parser::Parser, search::Namespace};
+use super::{language::Language, search::Namespace};
 
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub enum ElementType {
@@ -629,20 +629,21 @@ impl<I, P> ArticleBuilder<I, P, WithEndpoint, WithLanguage> {
                 x
             });
 
-        let content = res_json
-            .get("parse")
-            .and_then(|x| x.get("text"))
-            .and_then(|x| x.as_str())
-            .and_then(|x| {
-                Parser::parse_document(
-                    x,
-                    &title,
-                    sections.as_ref(),
-                    self.endpoint.0.clone(),
-                    self.language.0.clone(),
-                )
-                .ok()
-            });
+        // let content = res_json
+        //     .get("parse")
+        //     .and_then(|x| x.get("text"))
+        //     .and_then(|x| x.as_str())
+        //     .and_then(|x| {
+        //         Parser::parse_document(
+        //             x,
+        //             &title,
+        //             sections.as_ref(),
+        //             self.endpoint.0.clone(),
+        //             self.language.0.clone(),
+        //         )
+        //         .ok()
+        //     });
+        let content = None;
 
         let revision_id = res_json
             .get("parse")
