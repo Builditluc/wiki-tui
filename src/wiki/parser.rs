@@ -1,4 +1,8 @@
+use std::str::FromStr;
+
 use anyhow::{Context, Result};
+use html5ever::{tendril::StrTendril, QualName};
+use markup5ever_rcdom::{Handle, NodeData, RcDom};
 use snafu::Snafu;
 use url::Url;
 
@@ -14,6 +18,7 @@ use super::{article::Link, language::Language};
 
 #[derive(Debug, Clone)]
 pub enum Data {
+    Section { id: usize },
     Unknown,
 }
 
@@ -63,7 +68,7 @@ impl<'a> Node<'a> {
     }
 
     pub fn next(&self) -> Option<Node<'a>> {
-        self.raw().prev.map(|index| self.page.nth(index).unwrap())
+        self.raw().next.map(|index| self.page.nth(index).unwrap())
     }
 
     pub fn first_child(&self) -> Option<Node<'a>> {
@@ -84,6 +89,14 @@ impl<'a> Node<'a> {
             next: self.first_child(),
         }
     }
+
+    pub fn descendants(&self) -> Descendants<'a> {
+        Descendants {
+            start: *self,
+            current: *self,
+            done: false,
+        }
+    }
 }
 
 pub struct Children<'a> {
@@ -102,6 +115,51 @@ impl<'a> Iterator for Children<'a> {
     }
 }
 
+pub struct Descendants<'a> {
+    start: Node<'a>,
+    current: Node<'a>,
+    done: bool,
+}
+
+impl<'a> Iterator for Descendants<'a> {
+    type Item = Node<'a>;
+    fn next(&mut self) -> Option<Node<'a>> {
+        if self.done {
+            return None;
+        }
+
+        if self.start.index() == self.current.index() {
+            if let Some(first_child) = self.current.first_child() {
+                self.current = first_child;
+            } else {
+                self.done = true;
+                return None;
+            }
+        } else {
+            if let Some(first_child) = self.current.first_child() {
+                self.current = first_child;
+            } else if let Some(next) = self.current.next() {
+                self.current = next;
+            } else {
+                loop {
+                    let parent = self.current.parent().unwrap();
+                    if parent.index() == self.start.index() {
+                        self.done = true;
+                        return None;
+                    }
+                    if let Some(next) = parent.next() {
+                        self.current = next;
+                        break;
+                    }
+                    self.current = parent;
+                }
+            }
+        }
+
+        Some(self.current)
+    }
+}
+
 #[derive(Debug, Clone)]
 pub struct Page {
     pub nodes: Vec<Raw>,
@@ -110,6 +168,138 @@ pub struct Page {
 impl Page {
     pub fn nth(&self, n: usize) -> Option<Node> {
         Node::new(self, n)
+    }
+
+    pub fn from_string(str: &str) -> Page {
+        use html5ever::parse_document;
+        use html5ever::tendril::stream::TendrilSink;
+
+        let tendril = StrTendril::from(str);
+        let rc_dom = parse_document(RcDom::default(), Default::default()).one(tendril);
+        return Parser::parse_rc_dom(rc_dom);
+    }
+}
+
+macro_rules! has_attribute {
+    ($attrs: expr, $attr: expr) => {
+        $attrs
+            .iter()
+            .find(|(name, _)| name.local.as_ref() == $attr)
+            .is_some()
+    };
+}
+
+macro_rules! attribute {
+    ($attrs: expr, $attr: expr) => {
+        $attrs.find(|(name, _)| name.local.as_ref() == $attr)
+    };
+}
+
+mod attrs {
+    pub const SECTION_ID_ATTR: &str = "data-mw-section-id";
+}
+
+struct Parser {
+    nodes: Vec<Raw>,
+}
+
+impl Parser {
+    fn parse_rc_dom(rc_dom: RcDom) -> Page {
+        let mut parser = Parser { nodes: Vec::new() };
+        parser.parse_node(&rc_dom.document, None, None);
+        Page {
+            nodes: parser.nodes,
+        }
+    }
+
+    fn parse_node(
+        &mut self,
+        node: &Handle,
+        parent: Option<usize>,
+        prev: Option<usize>,
+    ) -> Option<usize> {
+        match node.data {
+            NodeData::Document => {
+                let mut prev = None;
+                for child in node.children.borrow().iter() {
+                    prev = self.parse_node(child, None, prev)
+                }
+                None
+            }
+            NodeData::Text { ref contents } => Some(self.push_node(Data::Unknown, parent, prev)),
+            NodeData::Element {
+                ref name,
+                ref attrs,
+                ..
+            } => {
+                let attributes: Vec<(QualName, StrTendril)> = attrs
+                    .borrow()
+                    .iter()
+                    .map(|attr| (attr.name.clone(), attr.value.clone()))
+                    .collect();
+
+                let index = match name.local.as_ref() {
+                    "section" if has_attribute!(attributes, attrs::SECTION_ID_ATTR) => {
+                        self.parse_section(parent, prev, attributes.iter())
+                    }
+                    _ => self.push_node(Data::Unknown, parent, prev),
+                };
+                let mut prev = None;
+                for child in node.children.borrow().iter() {
+                    prev = self.parse_node(child, Some(index), prev)
+                }
+                Some(index)
+            }
+            NodeData::Doctype { .. }
+            | NodeData::Comment { .. }
+            | NodeData::ProcessingInstruction { .. } => None,
+        }
+    }
+
+    fn push_node(&mut self, data: Data, parent: Option<usize>, prev: Option<usize>) -> usize {
+        let index = self.nodes.len();
+        self.nodes.push(Raw {
+            index,
+            parent,
+            prev,
+            next: None,
+            first_child: None,
+            last_child: None,
+            data,
+        });
+
+        if let Some(parent) = parent {
+            let parent = &mut self.nodes[parent];
+            if parent.first_child.is_none() {
+                parent.first_child = Some(index);
+            }
+            parent.last_child = Some(index);
+        }
+
+        if let Some(prev) = prev {
+            self.nodes[prev].next = Some(index);
+        }
+
+        index
+    }
+
+    fn parse_section<'a>(
+        &mut self,
+        parent: Option<usize>,
+        prev: Option<usize>,
+        mut attributes: impl Iterator<Item = &'a (QualName, StrTendril)>,
+    ) -> usize {
+        let id = attribute!(attributes, attrs::SECTION_ID_ATTR).and_then(|(_, id_str)| {
+            usize::from_str(id_str)
+                .map_err(|err| warn!("section_id not a number"))
+                .ok()
+        });
+
+        if id.is_none() {
+            return self.push_node(Data::Unknown, parent, prev);
+        }
+
+        self.push_node(Data::Section { id: id.unwrap() }, parent, prev)
     }
 }
 

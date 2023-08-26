@@ -1,9 +1,9 @@
 use cursive::Vec2;
 use std::collections::HashMap;
-use std::rc::Rc;
 
-use crate::ui::article::lines::{Line, LinesWrapper};
+use crate::ui::article::lines::{Line, Renderer, TestRenderer};
 use crate::wiki::article::{Article, Element, LanguageLink};
+use crate::wiki::parser::Page;
 
 /// The content of an ArticleView. Handles text formatting
 pub struct ArticleContent {
@@ -38,23 +38,10 @@ impl ArticleContent {
 
     /// Calculates and returns the required size
     pub fn required_size(&mut self, size: Vec2) -> Vec2 {
-        let content = self
-            .article
-            .content()
-            .map(|x| x.cloned())
-            .map(|x| x.collect::<Vec<Element>>());
-
-        if content.is_none() {
-            return Vec2::zero();
-        }
+        let content = self.article.content();
 
         // get the required width from a LinesWrapper
-        let required_width = LinesWrapper::new(
-            size.x,
-            // we have to clone all of the elements
-            Rc::new(content.unwrap()),
-        )
-        .required_width();
+        let required_width = TestRenderer::required_with(content);
 
         // if the rendered lines are empty, render them
         if self.rendered_lines.is_empty() {
@@ -80,31 +67,25 @@ impl ArticleContent {
     pub fn compute_lines(&mut self, size: Vec2) {
         debug!("rendering the article with a size constraint of {:?}", size);
 
-        let content = self
-            .article
-            .content()
-            .map(|x| x.cloned())
-            .map(|x| x.collect::<Vec<Element>>());
-
-        if content.is_none() {
-            return;
-        }
+        let content = self.article.content();
 
         // render the lines
-        let lines_wrapper = LinesWrapper::new(
-            size.x.saturating_sub(1),
-            // we have to clone all the elements
-            Rc::new(content.unwrap()),
-        )
-        .wrap_lines();
+        // let lines_wrapper = LinesWrapper::new(
+        //     size.x.saturating_sub(1),
+        //     // we have to clone all the elements
+        //     Rc::new(content.unwrap()),
+        // )
+        // .wrap_lines();
 
-        self.rendered_lines = lines_wrapper.rendered_lines;
-        self.anchors = lines_wrapper.anchors;
+        let rendered_page = TestRenderer::render(content);
+
+        self.rendered_lines = rendered_page.lines;
+        // self.anchors = lines_wrapper.anchors;
 
         // try to keep the link selection after layout change
-        let link_id = self.current_link_element_id();
-        self.links = lines_wrapper.links;
-        self.select_link_by_id(link_id);
+        // let link_id = self.current_link_element_id();
+        // self.links = lines_wrapper.links;
+        // self.select_link_by_id(link_id);
 
         debug!("sucessfully rendered '{}' lines", self.rendered_lines.len());
     }
@@ -185,10 +166,7 @@ impl ArticleContent {
 
     /// Retrieves the Element with the id
     pub fn element_by_id(&self, id: usize) -> Option<Element> {
-        self.article
-            .content()
-            .and_then(|mut x| x.find(|e| e.id() == id))
-            .cloned()
+        todo!()
     }
 
     /// Retrieves the Element at the given position

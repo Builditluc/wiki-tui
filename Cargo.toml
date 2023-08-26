@@ -35,7 +35,6 @@ serde_repr = "0.1"
 log = "0.4.13"
 dirs = "3.0.1"
 anyhow = "1.0"
-select = "0.6"
 log4rs = "1.0.0"
 lazy_static = "1.4.0"
 panic-message = "0.3.0"
@@ -46,6 +45,8 @@ chrono = "0.4"
 urlencoding = "2.1.2"
 url = { version = "2.4", features = ["serde"]}
 snafu = "0.7"
+html5ever = "0.26.0"
+markup5ever_rcdom = "0.2.0"
 
 [dependencies.cursive]
 version = "0.20"

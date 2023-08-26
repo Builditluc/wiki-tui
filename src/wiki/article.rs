@@ -1,13 +1,13 @@
 use anyhow::{Context, Result};
 use cursive::theme::Style;
 use reqwest::blocking::{Client, Response};
-use select::document::Document;
 use serde::Deserialize;
 use serde_repr::Deserialize_repr;
 use std::{collections::HashMap, fmt::Display};
+use syn::parse::Parser;
 use url::Url;
 
-use super::{language::Language, search::Namespace};
+use super::{language::Language, parser::Page, search::Namespace};
 
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub enum ElementType {
@@ -223,7 +223,7 @@ pub struct LimitReportData {
 pub struct Article {
     title: String,
     pageid: usize,
-    content: Option<Vec<Element>>,
+    content: Page,
     pub language: Language,
     pub language_links: Option<Vec<LanguageLink>>,
     categories: Option<Vec<Category>>,
@@ -252,8 +252,8 @@ impl Article {
         ArticleBuilder::default()
     }
 
-    pub fn content(&self) -> Option<impl Iterator<Item = &Element>> {
-        self.content.as_ref().map(|x| x.iter())
+    pub fn content(&self) -> &Page {
+        &self.content
     }
 
     pub fn sections(&self) -> Option<impl Iterator<Item = &Section>> {
@@ -347,11 +347,11 @@ impl Display for Property {
     }
 }
 
-pub struct PageID(usize);
+pub struct WithPageID(usize);
 #[derive(Default)]
 pub struct NoPageID;
 
-pub struct Page(String);
+pub struct WithPage(String);
 #[derive(Default)]
 pub struct NoPage;
 
@@ -376,9 +376,9 @@ pub struct ArticleBuilder<I, P, E, L> {
 
 impl<E, L> ArticleBuilder<NoPageID, NoPage, E, L> {
     /// Parse content of this page
-    pub fn pageid(self, pageid: usize) -> ArticleBuilder<PageID, NoPage, E, L> {
+    pub fn pageid(self, pageid: usize) -> ArticleBuilder<WithPageID, NoPage, E, L> {
         ArticleBuilder {
-            pageid: PageID(pageid),
+            pageid: WithPageID(pageid),
             page: self.page,
             endpoint: self.endpoint,
             revision: self.revision,
@@ -389,10 +389,10 @@ impl<E, L> ArticleBuilder<NoPageID, NoPage, E, L> {
     }
 
     /// Parse content of this page
-    pub fn page(self, page: impl Into<String>) -> ArticleBuilder<NoPageID, Page, E, L> {
+    pub fn page(self, page: impl Into<String>) -> ArticleBuilder<NoPageID, WithPage, E, L> {
         ArticleBuilder {
             pageid: self.pageid,
-            page: Page(page.into()),
+            page: WithPage(page.into()),
             endpoint: self.endpoint,
             revision: self.revision,
             redirects: self.redirects,
@@ -471,6 +471,7 @@ impl<I, P> ArticleBuilder<I, P, WithEndpoint, WithLanguage> {
                     ("action", "parse"),
                     ("format", "json"),
                     ("formatversion", "2"),
+                    ("parsoid", "true"),
                 ])
                 .query(&params)
                 .send()
@@ -605,11 +606,11 @@ impl<I, P> ArticleBuilder<I, P, WithEndpoint, WithLanguage> {
                     .filter_map(|(i, x)| {
                         serde_json::from_value(x).ok().map(|mut x: Section| {
                             x.index = i + 1;
-                            let doc = Document::from(x.text());
-                            // TODO: render html tags in the toc
-                            if let Some(text) = doc.nth(0).map(|x| x.text()) {
-                                x.text = text;
-                            }
+                            // let doc = Document::from(x.text());
+                            // // TODO: render html tags in the toc
+                            // if let Some(text) = doc.nth(0).map(|x| x.text()) {
+                            //     x.text = text;
+                            // }
                             x
                         })
                     })
@@ -629,21 +630,12 @@ impl<I, P> ArticleBuilder<I, P, WithEndpoint, WithLanguage> {
                 x
             });
 
-        // let content = res_json
-        //     .get("parse")
-        //     .and_then(|x| x.get("text"))
-        //     .and_then(|x| x.as_str())
-        //     .and_then(|x| {
-        //         Parser::parse_document(
-        //             x,
-        //             &title,
-        //             sections.as_ref(),
-        //             self.endpoint.0.clone(),
-        //             self.language.0.clone(),
-        //         )
-        //         .ok()
-        //     });
-        let content = None;
+        let content = res_json
+            .get("parse")
+            .and_then(|x| x.get("text"))
+            .and_then(|x| x.as_str())
+            .map(|x| Page::from_string(x))
+            .ok_or(anyhow!("no page found"))?;
 
         let revision_id = res_json
             .get("parse")
@@ -715,14 +707,14 @@ impl<I, P> ArticleBuilder<I, P, WithEndpoint, WithLanguage> {
     }
 }
 
-impl ArticleBuilder<PageID, NoPage, WithEndpoint, WithLanguage> {
+impl ArticleBuilder<WithPageID, NoPage, WithEndpoint, WithLanguage> {
     pub fn fetch(self) -> Result<Article> {
         let param = vec![("pageid", self.pageid.0.to_string())];
         self.fetch_with_params(param)
     }
 }
 
-impl ArticleBuilder<NoPageID, Page, WithEndpoint, WithLanguage> {
+impl ArticleBuilder<NoPageID, WithPage, WithEndpoint, WithLanguage> {
     pub fn fetch(self) -> Result<Article> {
         let param = vec![("page", self.page.0.to_string())];
         self.fetch_with_params(param)

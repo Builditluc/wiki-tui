@@ -145,7 +145,9 @@ impl View for ArticleView {
             let mut x = 0;
             for element in line {
                 let mut style = element.style;
-                if element.id == self.content.current_link_element_id() && CONFIG.features.links {
+                if element.is_selected(self.content.current_link_element_id())
+                    && CONFIG.features.links
+                {
                     style = style.combine(CONFIG.theme.highlight)
                 }
                 printer.with_style(style, |printer| {
