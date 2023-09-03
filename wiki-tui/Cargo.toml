@@ -1,0 +1,17 @@
+[package]
+name = "wiki-tui"
+version = "0.8.2"
+authors = ["builditluc <37375448+Builditluc@users.noreply.github.com>"]
+edition = "2018"
+description = "A simple and easy to use Wikipedia Text User Interface"
+readme = "README.md"
+homepage = "https://builditluc.github.io/wiki-tui"
+repository = "https://github.com/builditluc/wiki-tui"
+license = "MIT"
+keywords = ["tui", "wikipedia"]
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies.wiki-api]
+path = "../wiki-api"
+version = "0.1.0"

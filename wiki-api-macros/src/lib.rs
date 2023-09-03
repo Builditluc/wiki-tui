@@ -5,11 +5,10 @@ use std::{
 };
 
 use proc_macro::TokenStream;
+use proc_macro2::Span;
+use quote::quote;
 use serde::{de::IgnoredAny, Deserialize, Serialize};
-use syn::{
-    export::{quote::quote, Span},
-    parse_macro_input, Ident, LitStr,
-};
+use syn::{parse_macro_input, Ident, LitStr};
 
 #[derive(Debug, Serialize, Deserialize)]
 struct WLanguage {

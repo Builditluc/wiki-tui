@@ -1,0 +1,21 @@
+[package]
+name = "wiki-api"
+version = "0.1.0"
+authors = ["builditluc <37375448+Builditluc@users.noreply.github.com>"]
+edition = "2018"
+description = "Backend for wiki-tui"
+documentation = "https://docs.rs/wiki-api"
+readme = "README.md"
+homepage = "https://builditluc.github.io/wiki-tui"
+repository = "https://github.com/builditluc/wiki-tui"
+license = "MIT"
+keywords = ["tui", "wikipedia"]
+
+[dependencies]
+serde = "1.0.188"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies.wiki-api-macros]
+path = "../wiki-api-macros"
+version = "0.1.0"
