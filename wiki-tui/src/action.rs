@@ -6,4 +6,6 @@ pub enum Action {
     RenderTick,
     Resize(u16, u16),
     Noop,
+
+    ToggleShowLogger,
 }
