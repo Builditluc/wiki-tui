@@ -37,7 +37,7 @@ impl Tui {
             DisableMouseCapture,
             cursor::Show
         )?;
-        crossterm::terminal::enable_raw_mode()?;
+        crossterm::terminal::disable_raw_mode()?;
         Ok(())
     }
 
