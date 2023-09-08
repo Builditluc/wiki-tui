@@ -46,7 +46,12 @@ impl App {
 
         loop {
             if let Some(action) = action_rx.recv().await {
-                if action != Action::RenderTick && action != Action::Noop {
+                if !matches!(action, Action::RenderTick 
+                    | Action::Noop 
+                    | Action::ScrollDown(..) 
+                    | Action::ScrollUp(..) 
+                    | Action::UnselectScroll
+                ) {
                     trace_dbg!(&action);
                 }
 
