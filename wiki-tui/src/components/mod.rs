@@ -7,6 +7,7 @@ use crate::{action::Action, event::Event, terminal::Frame};
 
 pub mod logger;
 pub mod root;
+pub mod search;
 
 pub trait Component {
     #[allow(unused_variables)]
@@ -41,5 +42,6 @@ pub trait Component {
         None
     }
 
+    // TODO: Rename frame to f and size to area
     fn render(&mut self, frame: &mut Frame<'_>, size: Rect);
 }

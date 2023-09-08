@@ -1,3 +1,7 @@
+use wiki_api::search::Search;
+
+use crate::components::root::Context;
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Action {
     Quit,
@@ -8,4 +12,23 @@ pub enum Action {
     Noop,
 
     ToggleShowLogger,
+    EnterContext(Context),
+
+    // Scrolling
+    ScrollUp(usize),
+    ScrollDown(usize),
+    UnselectScroll,
+
+    // Mode
+    EnterInsert,
+    ExitInsert,
+
+    EnterNormal,
+
+    EnterProcessing,
+    ExitProcessing,
+
+    // Search
+    StartSearch(String),
+    FinshSearch(Search),
 }

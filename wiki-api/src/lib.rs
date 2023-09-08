@@ -1,3 +1,7 @@
-use wiki_api_macros::parse_languages;
+use url::Url;
 
-parse_languages!("wiki-api/data/languages.json");
+pub mod languages;
+pub mod search;
+
+// TODO: Make Endpoint a real struct
+pub type Endpoint = Url;
