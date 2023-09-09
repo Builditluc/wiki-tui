@@ -6,6 +6,7 @@ use tracing_subscriber::{
 };
 
 pub fn initialize_logging() -> Result<()> {
+    // FIXME: implement proper configuration of logging directories
     let directory = PathBuf::from("./logs/");
     std::fs::create_dir_all(directory.clone())
         .context(format!("{directory:?} could not be created"))?;

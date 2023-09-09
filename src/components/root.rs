@@ -25,6 +25,7 @@ pub struct Root {
     logger: Logger,
 
     show_logger: bool,
+    is_input: bool,
     context: Context,
 }
 
@@ -43,9 +44,10 @@ impl Component for Root {
 
     fn handle_key_events(&mut self, key: KeyEvent) -> Action {
         match key.code {
-            // FIXME: Handle global key events after the context
-            KeyCode::Char('l') => Action::ToggleShowLogger,
-            KeyCode::Char('q') => Action::Quit,
+            // HACK: handle global events after the component handled it
+            // When we are in the input mode, we don't want to handle the global events
+            KeyCode::Char('l') if !self.is_input => Action::ToggleShowLogger,
+            KeyCode::Char('q') if !self.is_input => Action::Quit,
             _ => match self.context {
                 Context::Home => match key.code {
                     KeyCode::Char('s') => Action::EnterContext(Context::Search),
@@ -66,6 +68,14 @@ impl Component for Root {
             }
             Action::EnterContext(ref context) => {
                 self.context = context.to_owned();
+                None
+            }
+            Action::EnterInsert => {
+                self.is_input = true;
+                None
+            }
+            Action::ExitInsert => {
+                self.is_input = false;
                 None
             }
             _ => None,
