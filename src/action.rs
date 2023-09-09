@@ -1,4 +1,4 @@
-use wiki_api::search::Search;
+use wiki_api::{page::Page, search::Search};
 
 use crate::components::root::Context;
 
@@ -31,4 +31,8 @@ pub enum Action {
     // Search
     StartSearch(String),
     FinshSearch(Search),
+
+    // Page
+    OpenPage(String),
+    FinishPage(Page),
 }

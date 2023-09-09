@@ -8,18 +8,20 @@ use tokio::sync::mpsc;
 
 use crate::{action::Action, terminal::Frame};
 
-use super::{logger::Logger, search::Search, Component};
+use super::{logger::Logger, page::PageComponent, search::Search, Component};
 
 #[derive(Default, Debug, Clone, PartialEq, Eq)]
 pub enum Context {
     #[default]
     Home,
     Search,
+    Page,
 }
 
 #[derive(Default)]
 pub struct Root {
     search: Search,
+    page: PageComponent,
     logger: Logger,
 
     show_logger: bool,
@@ -35,6 +37,7 @@ impl Root {
 impl Component for Root {
     fn init(&mut self, sender: mpsc::UnboundedSender<Action>) -> Result<()> {
         self.search.init(sender.clone())?;
+        self.page.init(sender.clone())?;
         Ok(())
     }
 
@@ -49,6 +52,7 @@ impl Component for Root {
                     _ => Action::Noop,
                 },
                 Context::Search => self.search.handle_key_events(key),
+                Context::Page => self.page.handle_key_events(key),
             },
         }
     }
@@ -73,6 +77,7 @@ impl Component for Root {
         if let Some(_action) = match self.context {
             Context::Home => None,
             Context::Search => self.search.dispatch(action),
+            Context::Page => self.page.dispatch(action),
         } {
             return Some(_action);
         }
@@ -95,6 +100,7 @@ impl Component for Root {
         match self.context {
             Context::Home => frame.render_widget(Paragraph::new("Hello World!"), size),
             Context::Search => self.search.render(frame, size),
+            Context::Page => self.page.render(frame, size),
         }
     }
 }

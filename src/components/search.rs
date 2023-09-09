@@ -63,6 +63,14 @@ impl<T> ResultsList<T> {
     fn unselect(&mut self) {
         self.state.select(None)
     }
+
+    fn is_selected(&self) -> bool {
+        self.state.selected().is_some()
+    }
+
+    fn selected(&self) -> Option<&T> {
+        self.state.selected().map(|i| &self.items[i])
+    }
 }
 
 #[derive(Default, Debug, PartialEq, Eq)]
@@ -158,6 +166,16 @@ impl Component for Search {
                 KeyCode::Char('j') => Action::ScrollDown(1),
                 KeyCode::Char('k') => Action::ScrollUp(1),
                 KeyCode::Char('h') => Action::UnselectScroll,
+                KeyCode::Enter if self.search_results.state.selected().is_some() => {
+                    if let Some(ref selected_result) = self.search_results.selected() {
+                        let action_tx = self.action_tx.clone().unwrap();
+                        action_tx.send(Action::EnterContext(Context::Page)).unwrap();
+                        action_tx
+                            .send(Action::OpenPage(selected_result.title.to_string()))
+                            .unwrap();
+                    }
+                    Action::Noop
+                }
                 _ => Action::Noop,
             },
             Mode::Insert => match key.code {
