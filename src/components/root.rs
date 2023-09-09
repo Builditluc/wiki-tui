@@ -27,6 +27,8 @@ pub struct Root {
     show_logger: bool,
     is_input: bool,
     context: Context,
+
+    action_tx: Option<mpsc::UnboundedSender<Action>>,
 }
 
 impl Root {
@@ -39,6 +41,7 @@ impl Component for Root {
     fn init(&mut self, sender: mpsc::UnboundedSender<Action>) -> Result<()> {
         self.search.init(sender.clone())?;
         self.page.init(sender.clone())?;
+        self.action_tx = Some(sender);
         Ok(())
     }
 
@@ -48,6 +51,14 @@ impl Component for Root {
             // When we are in the input mode, we don't want to handle the global events
             KeyCode::Char('l') if !self.is_input => Action::ToggleShowLogger,
             KeyCode::Char('q') if !self.is_input => Action::Quit,
+            KeyCode::Char('p') => {
+                let action_tx = self.action_tx.as_ref().unwrap();
+                action_tx.send(Action::EnterContext(Context::Page)).unwrap();
+                action_tx
+                    .send(Action::OpenPage("Test".to_string()))
+                    .unwrap();
+                Action::Noop
+            }
             _ => match self.context {
                 Context::Home => match key.code {
                     KeyCode::Char('s') => Action::EnterContext(Context::Search),

@@ -100,7 +100,7 @@ impl<'a> Node<'a> {
     }
 
     pub fn index(&self) -> usize {
-        self.index()
+        self.index
     }
 
     pub fn raw(&self) -> &'a Raw {
