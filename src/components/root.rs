@@ -51,6 +51,9 @@ impl Component for Root {
             // When we are in the input mode, we don't want to handle the global events
             KeyCode::Char('l') if !self.is_input => Action::ToggleShowLogger,
             KeyCode::Char('q') if !self.is_input => Action::Quit,
+            KeyCode::Char('j') if !self.is_input => Action::ScrollDown(1),
+            KeyCode::Char('k') if !self.is_input => Action::ScrollUp(1),
+            KeyCode::Char('h') if !self.is_input => Action::UnselectScroll,
             KeyCode::Char('p') => {
                 let action_tx = self.action_tx.as_ref().unwrap();
                 action_tx.send(Action::EnterContext(Context::Page)).unwrap();

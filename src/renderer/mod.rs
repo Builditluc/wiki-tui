@@ -6,8 +6,8 @@ use textwrap::core::Fragment;
 use wiki_api::document::Node;
 
 #[derive(Debug)]
-pub struct Word<'a> {
-    pub node: Node<'a>,
+pub struct Word {
+    pub index: usize,
     pub content: String,
     pub style: Style,
     pub width: f64,
@@ -15,7 +15,7 @@ pub struct Word<'a> {
     pub penalty_width: f64,
 }
 
-impl<'a> Fragment for Word<'a> {
+impl Fragment for Word {
     #[inline]
     fn width(&self) -> f64 {
         self.width
@@ -32,9 +32,9 @@ impl<'a> Fragment for Word<'a> {
     }
 }
 
-pub type Line<'a> = Vec<Word<'a>>;
+pub type Line = Vec<Word>;
 
 #[derive(Debug)]
-pub struct RenderedDocument<'a> {
-    pub lines: Vec<Line<'a>>,
+pub struct RenderedDocument {
+    pub lines: Vec<Line>,
 }

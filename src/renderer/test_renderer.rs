@@ -57,7 +57,7 @@ impl<'a> Iterator for Descendants<'a> {
     }
 }
 
-pub fn render_tree_data<'a>(document: &'a Document) -> RenderedDocument<'a> {
+pub fn render_tree_data<'a>(document: &'a Document) -> RenderedDocument {
     let mut lines: Vec<Line> = Vec::new();
 
     let descendants = Descendants {
@@ -69,7 +69,7 @@ pub fn render_tree_data<'a>(document: &'a Document) -> RenderedDocument<'a> {
     for (node, depth) in descendants {
         let content = format!("{}{:?}", " ".repeat(depth * 2), node.raw().data);
         lines.push(vec![Word {
-            node,
+            index: node.index(),
             content,
             style: Style::default(),
             width: 0.0,
@@ -81,7 +81,7 @@ pub fn render_tree_data<'a>(document: &'a Document) -> RenderedDocument<'a> {
     RenderedDocument { lines }
 }
 
-pub fn render_tree_raw<'a>(document: &'a Document) -> RenderedDocument<'a> {
+pub fn render_tree_raw<'a>(document: &'a Document) -> RenderedDocument {
     let mut lines: Vec<Line> = Vec::new();
 
     let descendants = Descendants {
@@ -93,7 +93,7 @@ pub fn render_tree_raw<'a>(document: &'a Document) -> RenderedDocument<'a> {
     for (node, depth) in descendants {
         let content = format!("{}{:?}", " ".repeat(depth * 2), node.raw());
         lines.push(vec![Word {
-            node,
+            index: node.index(),
             content,
             style: Style::default(),
             width: 0.0,
@@ -105,13 +105,13 @@ pub fn render_tree_raw<'a>(document: &'a Document) -> RenderedDocument<'a> {
     RenderedDocument { lines }
 }
 
-pub fn render_nodes_raw<'a>(document: &'a Document) -> RenderedDocument<'a> {
+pub fn render_nodes_raw<'a>(document: &'a Document) -> RenderedDocument {
     let mut lines: Vec<Line> = Vec::new();
 
     for raw in document.nodes.iter() {
         let content = format!("{:?}", raw);
         lines.push(vec![Word {
-            node: document.nth(raw.index).unwrap(),
+            index: raw.index,
             content,
             style: Style::default(),
             width: 0.0,

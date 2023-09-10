@@ -36,7 +36,7 @@ impl App {
         let _root = self.root.clone();
 
         tokio::spawn(async move {
-            let render_tick = 250;
+            let render_tick = 20;
             let mut event_handler = EventHandler::new(render_tick);
             loop {
                 let event = event_handler.next().await;

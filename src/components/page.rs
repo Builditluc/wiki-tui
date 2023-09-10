@@ -1,26 +1,21 @@
+use std::collections::HashMap;
+
 use anyhow::{anyhow, Result};
-use crossterm::{
-    event::{KeyCode, KeyEvent, KeyModifiers},
-};
+use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 use ratatui::{
     prelude::Rect,
     text::{Line, Span},
-    widgets::Paragraph,
+    widgets::{Paragraph, ScrollbarState},
 };
 use tokio::sync::mpsc;
-use tracing::error;
+use tracing::{debug, error};
 use wiki_api::{
     languages::Language,
     page::{Page, PageRequest},
     Endpoint,
 };
 
-use crate::{
-    action::Action,
-    components::Component,
-    renderer::RenderedDocument,
-    terminal::Frame,
-};
+use crate::{action::Action, components::Component, renderer::RenderedDocument, terminal::Frame};
 
 #[cfg(debug_assertions)]
 use crate::renderer::test_renderer::{render_nodes_raw, render_tree_data, render_tree_raw};
@@ -44,7 +39,6 @@ pub enum Renderer {
 impl Renderer {
     pub fn next(&self) -> Self {
         match self {
-
             #[cfg(not(debug_assertions))]
             &Renderer::Default => Renderer::Default,
 
@@ -64,9 +58,13 @@ impl Renderer {
 pub struct PageComponent {
     page: Option<Page>,
     renderer: Renderer,
+    render_cache: HashMap<u16, RenderedDocument>,
 
     endpoint: Option<Endpoint>,
     language: Option<Language>,
+
+    scroll_state: ScrollbarState,
+    scroll: usize,
 
     action_tx: Option<mpsc::UnboundedSender<Action>>,
 }
@@ -107,24 +105,41 @@ impl PageComponent {
         });
     }
 
-    fn render_page(&self, width: u16) -> RenderedDocument {
-        match self.renderer {
-            Renderer::Default => {
-                todo!()   
-            }
+    fn render_page(&mut self, width: u16) -> &RenderedDocument {
+        if self.render_cache.get(&width).is_some() {
+            return self.render_cache.get(&width).unwrap();
+        }
+
+        let document = match self.renderer {
+            Renderer::Default => RenderedDocument { lines: Vec::new() },
             #[cfg(debug_assertions)]
             Renderer::TestRendererTreeData => {
                 render_tree_data(&self.page.as_ref().unwrap().content)
             }
             #[cfg(debug_assertions)]
-            Renderer::TestRendererTreeRaw => {
-                render_tree_raw(&self.page.as_ref().unwrap().content)
-            }
+            Renderer::TestRendererTreeRaw => render_tree_raw(&self.page.as_ref().unwrap().content),
             #[cfg(debug_assertions)]
-            Renderer::TestRendererNodeRaw => {
-                render_nodes_raw(&self.page.as_ref().unwrap().content)
-            }
-        }
+            Renderer::TestRendererNodeRaw => render_nodes_raw(&self.page.as_ref().unwrap().content),
+        };
+
+        self.render_cache.insert(width, document);
+        self.render_cache.get(&width).unwrap()
+    }
+
+    fn switch_renderer(&mut self, renderer: Renderer) {
+        self.renderer = renderer;
+
+        self.render_cache.clear();
+    }
+
+    fn scroll_down(&mut self, amount: usize) {
+        self.scroll = self.scroll.saturating_add(amount);
+        self.scroll_state = self.scroll_state.position(self.scroll as u16);
+    }
+
+    fn scroll_up(&mut self, amount: usize) {
+        self.scroll = self.scroll.saturating_sub(amount);
+        self.scroll_state = self.scroll_state.position(self.scroll as u16);
     }
 }
 
@@ -156,7 +171,9 @@ impl Component for PageComponent {
         match action {
             Action::OpenPage(title) => self.open_page(title),
             Action::FinishPage(page) => self.page = Some(page),
-            Action::SwitchRenderer(renderer) => self.renderer = renderer,
+            Action::SwitchRenderer(renderer) => self.switch_renderer(renderer),
+            Action::ScrollUp(amount) => self.scroll_up(amount),
+            Action::ScrollDown(amount) => self.scroll_down(amount),
             _ => (),
         }
         None
@@ -168,11 +185,16 @@ impl Component for PageComponent {
             return;
         }
 
+        let viewport_top = size.top().saturating_add(self.scroll as u16) as usize;
+        let viewport_bottom = size.bottom().saturating_add(self.scroll as u16) as usize;
+
         let rendered_page = self.render_page(size.width);
         let lines: Vec<Line> = rendered_page
             .lines
             .iter()
-            .map(|line| {
+            .enumerate()
+            .filter(|(y, _)| &viewport_top <= y && y <= &viewport_bottom)
+            .map(|(_, line)| {
                 let mut spans: Vec<Span> = Vec::new();
                 line.iter()
                     .map(|word| spans.push(Span::styled(word.content.to_string(), word.style)))
