@@ -1,4 +1,4 @@
-use ratatui::{style::Style, widgets::LineGauge};
+use ratatui::style::Style;
 use wiki_api::document::{Document, Node};
 
 use super::{Line, RenderedDocument, Word};
@@ -57,7 +57,7 @@ impl<'a> Iterator for Descendants<'a> {
     }
 }
 
-pub fn render_tree_data<'a>(document: &'a Document, width: u16) -> RenderedDocument<'a> {
+pub fn render_tree_data<'a>(document: &'a Document) -> RenderedDocument<'a> {
     let mut lines: Vec<Line> = Vec::new();
 
     let descendants = Descendants {
@@ -81,7 +81,7 @@ pub fn render_tree_data<'a>(document: &'a Document, width: u16) -> RenderedDocum
     RenderedDocument { lines }
 }
 
-pub fn render_tree_raw<'a>(document: &'a Document, width: u16) -> RenderedDocument<'a> {
+pub fn render_tree_raw<'a>(document: &'a Document) -> RenderedDocument<'a> {
     let mut lines: Vec<Line> = Vec::new();
 
     let descendants = Descendants {
@@ -105,7 +105,7 @@ pub fn render_tree_raw<'a>(document: &'a Document, width: u16) -> RenderedDocume
     RenderedDocument { lines }
 }
 
-pub fn render_nodes_raw<'a>(document: &'a Document, width: u16) -> RenderedDocument<'a> {
+pub fn render_nodes_raw<'a>(document: &'a Document) -> RenderedDocument<'a> {
     let mut lines: Vec<Line> = Vec::new();
 
     for raw in document.nodes.iter() {

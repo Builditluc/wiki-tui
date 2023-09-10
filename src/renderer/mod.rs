@@ -1,9 +1,9 @@
 #[cfg(debug_assertions)]
 pub mod test_renderer;
 
-use ratatui::style::{Style, Styled};
+use ratatui::style::Style;
 use textwrap::core::Fragment;
-use wiki_api::document::{Document, Node};
+use wiki_api::document::Node;
 
 #[derive(Debug)]
 pub struct Word<'a> {

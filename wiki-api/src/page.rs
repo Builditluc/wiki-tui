@@ -6,7 +6,6 @@ use anyhow::{anyhow, Context, Result};
 use reqwest::{Client, Response};
 use scraper::Html;
 use serde::Deserialize;
-use serde_repr::Deserialize_repr;
 use std::fmt::Display;
 use tracing::{debug, warn};
 use url::Url;

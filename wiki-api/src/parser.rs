@@ -1,9 +1,9 @@
 use html5ever::{parse_document, tendril::TendrilSink};
 use markup5ever_rcdom::{Handle, NodeData, RcDom};
 use std::str::FromStr;
-use tracing::{debug, trace, warn};
+use tracing::{debug, warn};
 
-use crate::document::{Data, HeaderKind, Node, Raw};
+use crate::document::{Data, HeaderKind, Raw};
 
 // TODO: remove Parser and replace it with normal functions and helper functions
 pub trait Parser {
@@ -49,11 +49,11 @@ impl WikipediaParser {
                     .collect();
 
                 let data = match name.as_str() {
-                    "head" | "style" | "link" => return None,
+                    "head" | "style" | "link" => return prev,
 
                     "table" | "img" | "figure" => {
                         warn!("unsupported node '{name}'");
-                        return None;
+                        return prev;
                     }
 
                     "ul" if attrs
@@ -64,7 +64,7 @@ impl WikipediaParser {
                         .is_some() =>
                     {
                         debug!("ignoring portalbox");
-                        return None;
+                        return prev;
                     }
 
                     "div"
@@ -79,7 +79,7 @@ impl WikipediaParser {
                             .is_some() =>
                     {
                         debug!("ignoring toc or quotebox");
-                        return None;
+                        return prev;
                     }
 
                     "div"
@@ -90,7 +90,7 @@ impl WikipediaParser {
                             })
                             .is_some() =>
                     {
-                        return None
+                        return prev
                     }
 
                     "section" => self.parse_section(attrs.iter()).unwrap_or_default(),
@@ -196,7 +196,7 @@ impl WikipediaParser {
             }
             NodeData::ProcessingInstruction { .. }
             | NodeData::Doctype { .. }
-            | NodeData::Comment { .. } => None,
+            | NodeData::Comment { .. } => prev,
         }
     }
 

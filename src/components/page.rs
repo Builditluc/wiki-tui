@@ -1,15 +1,14 @@
 use anyhow::{anyhow, Result};
 use crossterm::{
     event::{KeyCode, KeyEvent, KeyModifiers},
-    style::StyledContent,
 };
 use ratatui::{
     prelude::Rect,
-    text::{Line, Span, Spans, StyledGrapheme},
+    text::{Line, Span},
     widgets::Paragraph,
 };
 use tokio::sync::mpsc;
-use tracing::{debug, error};
+use tracing::error;
 use wiki_api::{
     languages::Language,
     page::{Page, PageRequest},
@@ -115,15 +114,15 @@ impl PageComponent {
             }
             #[cfg(debug_assertions)]
             Renderer::TestRendererTreeData => {
-                render_tree_data(&self.page.as_ref().unwrap().content, width)
+                render_tree_data(&self.page.as_ref().unwrap().content)
             }
             #[cfg(debug_assertions)]
             Renderer::TestRendererTreeRaw => {
-                render_tree_raw(&self.page.as_ref().unwrap().content, width)
+                render_tree_raw(&self.page.as_ref().unwrap().content)
             }
             #[cfg(debug_assertions)]
             Renderer::TestRendererNodeRaw => {
-                render_nodes_raw(&self.page.as_ref().unwrap().content, width)
+                render_nodes_raw(&self.page.as_ref().unwrap().content)
             }
         }
     }

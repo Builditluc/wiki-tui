@@ -151,7 +151,6 @@ impl<'a> Node<'a> {
 
     pub fn children(&self) -> Children<'a> {
         Children {
-            document: self.document,
             next: self.first_child(),
         }
     }
@@ -207,9 +206,7 @@ impl<'a> Iterator for Descendants<'a> {
     }
 }
 
-#[derive(Debug)]
 pub struct Children<'a> {
-    document: &'a Document,
     next: Option<Node<'a>>,
 }
 

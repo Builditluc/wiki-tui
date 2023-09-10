@@ -166,7 +166,7 @@ impl Component for Search {
                 KeyCode::Char('j') => Action::ScrollDown(1),
                 KeyCode::Char('k') => Action::ScrollUp(1),
                 KeyCode::Char('h') => Action::UnselectScroll,
-                KeyCode::Enter if self.search_results.state.selected().is_some() => {
+                KeyCode::Enter if self.search_results.is_selected() => {
                     if let Some(ref selected_result) = self.search_results.selected() {
                         let action_tx = self.action_tx.clone().unwrap();
                         action_tx.send(Action::EnterContext(Context::Page)).unwrap();
