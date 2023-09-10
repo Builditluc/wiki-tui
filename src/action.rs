@@ -1,6 +1,6 @@
 use wiki_api::{page::Page, search::Search};
 
-use crate::components::root::Context;
+use crate::components::{page::Renderer, root::Context};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Action {
@@ -35,4 +35,5 @@ pub enum Action {
     // Page
     OpenPage(String),
     FinishPage(Page),
+    SwitchRenderer(Renderer),
 }

@@ -1,9 +1,7 @@
 use ratatui::{style::Style, widgets::LineGauge};
 use wiki_api::document::{Document, Node};
 
-use super::{Line, RenderedDocument, Renderer, Word};
-
-pub struct TestRenderer;
+use super::{Line, RenderedDocument, Word};
 
 #[derive(Clone, Debug)]
 struct Descendants<'a> {
@@ -59,28 +57,68 @@ impl<'a> Iterator for Descendants<'a> {
     }
 }
 
-impl Renderer for TestRenderer {
-    fn render<'a>(&self, document: &'a Document, width: u16) -> RenderedDocument<'a> {
-        let mut lines: Vec<Line> = Vec::new();
+pub fn render_tree_data<'a>(document: &'a Document, width: u16) -> RenderedDocument<'a> {
+    let mut lines: Vec<Line> = Vec::new();
 
-        let descendants = Descendants {
-            start: document.nth(0).unwrap(),
-            current: document.nth(0).unwrap(),
-            done: false,
-            depth: 0,
-        };
-        for (node, depth) in descendants {
-            let content = format!("{}{:?}", " ".repeat(depth * 2), node.raw().data);
-            lines.push(vec![Word {
-                node,
-                content,
-                style: Style::default(),
-                width: 0.0,
-                whitespace_width: 0.0,
-                penalty_width: 0.0,
-            }])
-        }
-
-        RenderedDocument { lines }
+    let descendants = Descendants {
+        start: document.nth(0).unwrap(),
+        current: document.nth(0).unwrap(),
+        done: false,
+        depth: 0,
+    };
+    for (node, depth) in descendants {
+        let content = format!("{}{:?}", " ".repeat(depth * 2), node.raw().data);
+        lines.push(vec![Word {
+            node,
+            content,
+            style: Style::default(),
+            width: 0.0,
+            whitespace_width: 0.0,
+            penalty_width: 0.0,
+        }])
     }
+
+    RenderedDocument { lines }
+}
+
+pub fn render_tree_raw<'a>(document: &'a Document, width: u16) -> RenderedDocument<'a> {
+    let mut lines: Vec<Line> = Vec::new();
+
+    let descendants = Descendants {
+        start: document.nth(0).unwrap(),
+        current: document.nth(0).unwrap(),
+        done: false,
+        depth: 0,
+    };
+    for (node, depth) in descendants {
+        let content = format!("{}{:?}", " ".repeat(depth * 2), node.raw());
+        lines.push(vec![Word {
+            node,
+            content,
+            style: Style::default(),
+            width: 0.0,
+            whitespace_width: 0.0,
+            penalty_width: 0.0,
+        }])
+    }
+
+    RenderedDocument { lines }
+}
+
+pub fn render_nodes_raw<'a>(document: &'a Document, width: u16) -> RenderedDocument<'a> {
+    let mut lines: Vec<Line> = Vec::new();
+
+    for raw in document.nodes.iter() {
+        let content = format!("{:?}", raw);
+        lines.push(vec![Word {
+            node: document.nth(raw.index).unwrap(),
+            content,
+            style: Style::default(),
+            width: 0.0,
+            whitespace_width: 0.0,
+            penalty_width: 0.0,
+        }])
+    }
+
+    RenderedDocument { lines }
 }

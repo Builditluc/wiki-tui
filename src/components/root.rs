@@ -55,7 +55,7 @@ impl Component for Root {
                 let action_tx = self.action_tx.as_ref().unwrap();
                 action_tx.send(Action::EnterContext(Context::Page)).unwrap();
                 action_tx
-                    .send(Action::OpenPage("Test".to_string()))
+                    .send(Action::OpenPage("Linux".to_string()))
                     .unwrap();
                 Action::Noop
             }

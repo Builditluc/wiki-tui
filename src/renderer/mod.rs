@@ -1,3 +1,4 @@
+#[cfg(debug_assertions)]
 pub mod test_renderer;
 
 use ratatui::style::{Style, Styled};
@@ -36,8 +37,4 @@ pub type Line<'a> = Vec<Word<'a>>;
 #[derive(Debug)]
 pub struct RenderedDocument<'a> {
     pub lines: Vec<Line<'a>>,
-}
-
-pub trait Renderer {
-    fn render<'a>(&self, document: &'a Document, width: u16) -> RenderedDocument<'a>;
 }

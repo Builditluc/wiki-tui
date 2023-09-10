@@ -19,16 +19,52 @@ use wiki_api::{
 use crate::{
     action::Action,
     components::Component,
-    renderer::{test_renderer::TestRenderer, RenderedDocument, Renderer},
+    renderer::RenderedDocument,
     terminal::Frame,
 };
 
+#[cfg(debug_assertions)]
+use crate::renderer::test_renderer::{render_nodes_raw, render_tree_data, render_tree_raw};
+
 use super::root::Context;
+
+#[derive(Default, Debug, Clone, PartialEq, Eq)]
+#[repr(u8)]
+pub enum Renderer {
+    #[default]
+    Default,
+
+    #[cfg(debug_assertions)]
+    TestRendererTreeData,
+    #[cfg(debug_assertions)]
+    TestRendererTreeRaw,
+    #[cfg(debug_assertions)]
+    TestRendererNodeRaw,
+}
+
+impl Renderer {
+    pub fn next(&self) -> Self {
+        match self {
+
+            #[cfg(not(debug_assertions))]
+            &Renderer::Default => Renderer::Default,
+
+            #[cfg(debug_assertions)]
+            &Renderer::Default => Renderer::TestRendererTreeData,
+            #[cfg(debug_assertions)]
+            &Renderer::TestRendererTreeData => Renderer::TestRendererTreeRaw,
+            #[cfg(debug_assertions)]
+            &Renderer::TestRendererTreeRaw => Renderer::TestRendererNodeRaw,
+            #[cfg(debug_assertions)]
+            &Renderer::TestRendererNodeRaw => Renderer::Default,
+        }
+    }
+}
 
 #[derive(Default)]
 pub struct PageComponent {
     page: Option<Page>,
-    renderer: Option<Box<dyn Renderer + Send>>,
+    renderer: Renderer,
 
     endpoint: Option<Endpoint>,
     language: Option<Language>,
@@ -73,10 +109,23 @@ impl PageComponent {
     }
 
     fn render_page(&self, width: u16) -> RenderedDocument {
-        self.renderer
-            .as_ref()
-            .unwrap()
-            .render(&self.page.as_ref().unwrap().content, width)
+        match self.renderer {
+            Renderer::Default => {
+                todo!()   
+            }
+            #[cfg(debug_assertions)]
+            Renderer::TestRendererTreeData => {
+                render_tree_data(&self.page.as_ref().unwrap().content, width)
+            }
+            #[cfg(debug_assertions)]
+            Renderer::TestRendererTreeRaw => {
+                render_tree_raw(&self.page.as_ref().unwrap().content, width)
+            }
+            #[cfg(debug_assertions)]
+            Renderer::TestRendererNodeRaw => {
+                render_nodes_raw(&self.page.as_ref().unwrap().content, width)
+            }
+        }
     }
 }
 
@@ -88,8 +137,6 @@ impl Component for PageComponent {
         self.endpoint = Some(Endpoint::parse("https://en.wikipedia.org/w/api.php").unwrap());
         self.language = Some(Language::default());
 
-        self.renderer = Some(Box::new(TestRenderer));
-
         Ok(())
     }
 
@@ -99,6 +146,9 @@ impl Component for PageComponent {
             KeyCode::Char('h') if key.modifiers == KeyModifiers::CONTROL => {
                 Action::EnterContext(Context::Home)
             }
+            KeyCode::Char('r') if key.modifiers == KeyModifiers::CONTROL => {
+                Action::SwitchRenderer(self.renderer.next())
+            }
             _ => Action::Noop,
         }
     }
@@ -107,6 +157,7 @@ impl Component for PageComponent {
         match action {
             Action::OpenPage(title) => self.open_page(title),
             Action::FinishPage(page) => self.page = Some(page),
+            Action::SwitchRenderer(renderer) => self.renderer = renderer,
             _ => (),
         }
         None

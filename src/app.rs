@@ -36,7 +36,8 @@ impl App {
         let _root = self.root.clone();
 
         tokio::spawn(async move {
-            let mut event_handler = EventHandler::new(20);
+            let render_tick = 250;
+            let mut event_handler = EventHandler::new(render_tick);
             loop {
                 let event = event_handler.next().await;
                 let action = _root.lock().await.handle_events(event);
@@ -46,11 +47,13 @@ impl App {
 
         loop {
             if let Some(action) = action_rx.recv().await {
-                if !matches!(action, Action::RenderTick 
-                    | Action::Noop 
-                    | Action::ScrollDown(..) 
-                    | Action::ScrollUp(..) 
-                    | Action::UnselectScroll
+                if !matches!(
+                    action,
+                    Action::RenderTick
+                        | Action::Noop
+                        | Action::ScrollDown(..)
+                        | Action::ScrollUp(..)
+                        | Action::UnselectScroll
                 ) {
                     trace_dbg!(&action);
                 }
