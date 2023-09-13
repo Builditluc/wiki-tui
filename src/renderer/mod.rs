@@ -1,17 +1,20 @@
+pub mod default_renderer;
 #[cfg(debug_assertions)]
 pub mod test_renderer;
 
 use ratatui::style::Style;
 use textwrap::core::Fragment;
-use wiki_api::document::Node;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Word {
     pub index: usize,
     pub content: String,
     pub style: Style,
+    // TODO: Change width type to u64
     pub width: f64,
+    // TODO: Change whitespace_width type to u8
     pub whitespace_width: f64,
+    // TODO: Change penalty_width type to u8
     pub penalty_width: f64,
 }
 
@@ -32,9 +35,7 @@ impl Fragment for Word {
     }
 }
 
-pub type Line = Vec<Word>;
-
 #[derive(Debug)]
 pub struct RenderedDocument {
-    pub lines: Vec<Line>,
+    pub lines: Vec<Vec<Word>>,
 }

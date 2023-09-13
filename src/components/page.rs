@@ -15,7 +15,12 @@ use wiki_api::{
     Endpoint,
 };
 
-use crate::{action::Action, components::Component, renderer::RenderedDocument, terminal::Frame};
+use crate::{
+    action::Action,
+    components::Component,
+    renderer::{default_renderer::render_document, RenderedDocument},
+    terminal::Frame,
+};
 
 #[cfg(debug_assertions)]
 use crate::renderer::test_renderer::{render_nodes_raw, render_tree_data, render_tree_raw};
@@ -110,8 +115,12 @@ impl PageComponent {
             return self.render_cache.get(&width).unwrap();
         }
 
+        debug!(
+            "rebuilding cache for renderer '{:?}' with width '{}'",
+            self.renderer, width
+        );
         let document = match self.renderer {
-            Renderer::Default => RenderedDocument { lines: Vec::new() },
+            Renderer::Default => render_document(&self.page.as_ref().unwrap().content, width),
             #[cfg(debug_assertions)]
             Renderer::TestRendererTreeData => {
                 render_tree_data(&self.page.as_ref().unwrap().content)
@@ -128,7 +137,11 @@ impl PageComponent {
 
     fn switch_renderer(&mut self, renderer: Renderer) {
         self.renderer = renderer;
+        self.flush_cache();
+    }
 
+    fn flush_cache(&mut self) {
+        debug!("flushing '{}' cached renders", self.render_cache.len());
         self.render_cache.clear();
     }
 
@@ -174,6 +187,7 @@ impl Component for PageComponent {
             Action::SwitchRenderer(renderer) => self.switch_renderer(renderer),
             Action::ScrollUp(amount) => self.scroll_up(amount),
             Action::ScrollDown(amount) => self.scroll_down(amount),
+            Action::Resize(..) => self.flush_cache(),
             _ => (),
         }
         None
@@ -197,7 +211,16 @@ impl Component for PageComponent {
             .map(|(_, line)| {
                 let mut spans: Vec<Span> = Vec::new();
                 line.iter()
-                    .map(|word| spans.push(Span::styled(word.content.to_string(), word.style)))
+                    .map(|word| {
+                        spans.push(Span::styled(
+                            format!(
+                                "{}{}",
+                                word.content,
+                                " ".repeat(word.whitespace_width as usize)
+                            ),
+                            word.style,
+                        ));
+                    })
                     .count();
                 Line {
                     spans,

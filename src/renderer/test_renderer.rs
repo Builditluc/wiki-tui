@@ -1,7 +1,7 @@
 use ratatui::style::Style;
 use wiki_api::document::{Document, Node};
 
-use super::{Line, RenderedDocument, Word};
+use super::{RenderedDocument, Word};
 
 #[derive(Clone, Debug)]
 struct Descendants<'a> {
@@ -58,7 +58,7 @@ impl<'a> Iterator for Descendants<'a> {
 }
 
 pub fn render_tree_data<'a>(document: &'a Document) -> RenderedDocument {
-    let mut lines: Vec<Line> = Vec::new();
+    let mut lines: Vec<Vec<Word>> = Vec::new();
 
     let descendants = Descendants {
         start: document.nth(0).unwrap(),
@@ -82,7 +82,7 @@ pub fn render_tree_data<'a>(document: &'a Document) -> RenderedDocument {
 }
 
 pub fn render_tree_raw<'a>(document: &'a Document) -> RenderedDocument {
-    let mut lines: Vec<Line> = Vec::new();
+    let mut lines: Vec<Vec<Word>> = Vec::new();
 
     let descendants = Descendants {
         start: document.nth(0).unwrap(),
@@ -106,7 +106,7 @@ pub fn render_tree_raw<'a>(document: &'a Document) -> RenderedDocument {
 }
 
 pub fn render_nodes_raw<'a>(document: &'a Document) -> RenderedDocument {
-    let mut lines: Vec<Line> = Vec::new();
+    let mut lines: Vec<Vec<Word>> = Vec::new();
 
     for raw in document.nodes.iter() {
         let content = format!("{:?}", raw);

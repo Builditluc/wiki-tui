@@ -22,7 +22,7 @@ libc = "0.2.147"
 log = "0.4.20"
 ratatui = "0.22.0"
 signal-hook = "0.3.17"
-textwrap = "0.16.0"
+textwrap = { version = "0.16.0", features = ["smawk"] }
 tokio = { version = "1.32.0", features = ["full"] }
 tokio-stream = "0.1.14"
 tokio-util = "0.7.8"
