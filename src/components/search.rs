@@ -164,7 +164,7 @@ impl Component for Search {
                 }
                 KeyCode::Char('i') => Action::EnterInsert,
                 KeyCode::Enter if self.search_results.is_selected() => {
-                    if let Some(ref selected_result) = self.search_results.selected() {
+                    if let Some(selected_result) = self.search_results.selected() {
                         let action_tx = self.action_tx.clone().unwrap();
                         action_tx.send(Action::EnterContext(Context::Page)).unwrap();
                         action_tx

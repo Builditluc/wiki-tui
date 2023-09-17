@@ -1,4 +1,4 @@
-use std::ops::Sub;
+
 
 use ratatui::style::{Color, Modifier, Style};
 use textwrap::wrap_algorithms::{wrap_optimal_fit, Penalties};
@@ -114,7 +114,7 @@ impl<'a> Renderer {
         }
 
         self.rendered_lines
-            .push(std::mem::replace(&mut self.current_line, Vec::new()));
+            .push(std::mem::take(&mut self.current_line));
     }
 
     /// Adds an empty line to the finished lines
@@ -211,8 +211,8 @@ impl<'a> Renderer {
     fn pre_children(&mut self, node: Node<'a>) {
         let mut is_block = false;
         match node.data() {
-            Data::Section { id } => is_block = true,
-            Data::Header { id, kind } => {
+            Data::Section { id: _ } => is_block = true,
+            Data::Header { id: _, kind: _ } => {
                 self.push_context(Context::Header);
                 self.add_modifier(Modifier::BOLD);
                 is_block = true;
@@ -236,7 +236,9 @@ impl<'a> Renderer {
                     .collect();
 
                 if !has_trailing_whitespace {
-                    words.last_mut().map(|word| word.whitespace_width = 0.0);
+                    if let Some(word) = words.last_mut() {
+                        word.whitespace_width = 0.0;
+                    }
                 }
 
                 self.wrap_append(words);
@@ -259,24 +261,24 @@ impl<'a> Renderer {
             Data::DerscriptionListDescription => self.clear_line(),
             Data::Bold => self.add_modifier(Modifier::BOLD),
             Data::Italic => self.add_modifier(Modifier::ITALIC),
-            Data::WikiLink { href, title } => {
+            Data::WikiLink { href: _, title: _ } => {
                 self.push_context(Context::WikiLink);
                 self.add_modifier(Modifier::UNDERLINED);
             }
-            Data::RedLink { title } => {
+            Data::RedLink { title: _ } => {
                 self.push_context(Context::RedLink);
                 self.add_modifier(Modifier::ITALIC);
                 self.add_modifier(Modifier::UNDERLINED);
             }
-            Data::MediaLink { href, title } => {
+            Data::MediaLink { href: _, title: _ } => {
                 self.push_context(Context::MediaLink);
                 self.add_modifier(Modifier::ITALIC);
                 self.add_modifier(Modifier::UNDERLINED);
             }
             Data::ExternalLink {
-                href,
-                title,
-                autonumber,
+                href: _,
+                title: _,
+                autonumber: _,
             } => {
                 self.push_context(Context::ExternalLink);
                 self.add_modifier(Modifier::ITALIC);
@@ -293,13 +295,13 @@ impl<'a> Renderer {
     fn post_children(&mut self, node: Node<'a>) {
         let mut is_block = false;
         match node.data() {
-            Data::Section { id } => is_block = true,
-            Data::Header { id, kind } => {
+            Data::Section { id: _ } => is_block = true,
+            Data::Header { id: _, kind: _ } => {
                 self.remove_modifier(Modifier::BOLD);
                 self.pop_context();
                 is_block = true;
             }
-            Data::Text { contents } => {}
+            Data::Text { contents: _ } => {}
             Data::Division => is_block = true,
             Data::Paragraph => is_block = true,
             Data::Span => self.add_whitespace(),
@@ -319,27 +321,27 @@ impl<'a> Renderer {
             Data::DerscriptionListDescription => self.clear_line(),
             Data::Bold => self.remove_modifier(Modifier::BOLD),
             Data::Italic => self.remove_modifier(Modifier::ITALIC),
-            Data::WikiLink { href, title } => {
+            Data::WikiLink { href: _, title: _ } => {
                 self.pop_context();
                 self.remove_modifier(Modifier::UNDERLINED);
                 self.add_whitespace();
             }
-            Data::RedLink { title } => {
+            Data::RedLink { title: _ } => {
                 self.pop_context();
                 self.remove_modifier(Modifier::ITALIC);
                 self.remove_modifier(Modifier::UNDERLINED);
                 self.add_whitespace();
             }
-            Data::MediaLink { href, title } => {
+            Data::MediaLink { href: _, title: _ } => {
                 self.pop_context();
                 self.remove_modifier(Modifier::ITALIC);
                 self.remove_modifier(Modifier::UNDERLINED);
                 self.add_whitespace();
             }
             Data::ExternalLink {
-                href,
-                title,
-                autonumber,
+                href: _,
+                title: _,
+                autonumber: _,
             } => {
                 self.pop_context();
                 self.remove_modifier(Modifier::ITALIC);
@@ -363,6 +365,6 @@ impl<'a> Renderer {
     }
 }
 
-pub fn render_document<'a>(document: &'a Document, width: u16) -> RenderedDocument {
+pub fn render_document(document: &Document, width: u16) -> RenderedDocument {
     Renderer::render_document(document, width)
 }

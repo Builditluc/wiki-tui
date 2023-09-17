@@ -57,7 +57,7 @@ impl<'a> Iterator for Descendants<'a> {
     }
 }
 
-pub fn render_tree_data<'a>(document: &'a Document) -> RenderedDocument {
+pub fn render_tree_data(document: &Document) -> RenderedDocument {
     let mut lines: Vec<Vec<Word>> = Vec::new();
 
     let descendants = Descendants {
@@ -81,7 +81,7 @@ pub fn render_tree_data<'a>(document: &'a Document) -> RenderedDocument {
     RenderedDocument { lines }
 }
 
-pub fn render_tree_raw<'a>(document: &'a Document) -> RenderedDocument {
+pub fn render_tree_raw(document: &Document) -> RenderedDocument {
     let mut lines: Vec<Vec<Word>> = Vec::new();
 
     let descendants = Descendants {
@@ -105,7 +105,7 @@ pub fn render_tree_raw<'a>(document: &'a Document) -> RenderedDocument {
     RenderedDocument { lines }
 }
 
-pub fn render_nodes_raw<'a>(document: &'a Document) -> RenderedDocument {
+pub fn render_nodes_raw(document: &Document) -> RenderedDocument {
     let mut lines: Vec<Vec<Word>> = Vec::new();
 
     for raw in document.nodes.iter() {

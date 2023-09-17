@@ -56,58 +56,45 @@ impl WikipediaParser {
                         return prev;
                     }
 
-                    "ul" if attrs
-                        .iter()
-                        .find(|(name, value)| {
-                            name.as_str() == "class" && value.contains("portalbox")
-                        })
-                        .is_some() =>
+                    "ul" if attrs.iter().any(|(name, value)| {
+                        name.as_str() == "class" && value.contains("portalbox")
+                    }) =>
                     {
                         debug!("ignoring portalbox");
                         return prev;
                     }
 
                     "div"
-                        if attrs
-                            .iter()
-                            .find(|(name, value)| {
-                                name.as_str() == "class"
-                                    && (value.contains("toc")
-                                        || value.contains("quotebox")
-                                        || value.contains("noprint"))
-                            })
-                            .is_some() =>
+                        if attrs.iter().any(|(name, value)| {
+                            name.as_str() == "class"
+                                && (value.contains("toc")
+                                    || value.contains("quotebox")
+                                    || value.contains("noprint"))
+                        }) =>
                     {
                         debug!("ignoring toc or quotebox");
                         return prev;
                     }
 
                     "div"
-                        if attrs
-                            .iter()
-                            .find(|(name, value)| {
-                                name.as_str() == "class" && value.contains("mw-empty-elt")
-                            })
-                            .is_some() =>
+                        if attrs.iter().any(|(name, value)| {
+                            name.as_str() == "class" && value.contains("mw-empty-elt")
+                        }) =>
                     {
                         return prev
                     }
 
-                    _ if attrs
-                        .iter()
-                        .find(|(name, value)| name.as_str() == "class" && value.contains("noprint"))
-                        .is_some() =>
+                    _ if attrs.iter().any(|(name, value)| {
+                        name.as_str() == "class" && value.contains("noprint")
+                    }) =>
                     {
                         return prev
                     }
 
                     "span"
-                        if attrs
-                            .iter()
-                            .find(|(name, value)| {
-                                name.as_str() == "class" && value.contains("mw-reflink-text")
-                            })
-                            .is_some() =>
+                        if attrs.iter().any(|(name, value)| {
+                            name.as_str() == "class" && value.contains("mw-reflink-text")
+                        }) =>
                     {
                         Data::Reflink
                     }
@@ -148,53 +135,38 @@ impl WikipediaParser {
                     "span" => Data::Span,
 
                     "div"
-                        if attrs
-                            .iter()
-                            .find(|(name, value)| {
-                                name.as_str() == "class" && value.contains("redirectMsg")
-                            })
-                            .is_some() =>
+                        if attrs.iter().any(|(name, value)| {
+                            name.as_str() == "class" && value.contains("redirectMsg")
+                        }) =>
                     {
                         Data::RedirectMessage
                     }
 
                     "div"
-                        if attrs
-                            .iter()
-                            .find(|(name, value)| {
-                                name.as_str() == "class" && value.contains("hatnote")
-                            })
-                            .is_some() =>
+                        if attrs.iter().any(|(name, value)| {
+                            name.as_str() == "class" && value.contains("hatnote")
+                        }) =>
                     {
                         Data::Disambiguation
                     }
 
-                    "a" if attrs
-                        .iter()
-                        .find(|(name, value)| {
-                            name.as_str() == "rel" && value.as_str() == "mw:WikiLink"
-                        })
-                        .is_some() =>
+                    "a" if attrs.iter().any(|(name, value)| {
+                        name.as_str() == "rel" && value.as_str() == "mw:WikiLink"
+                    }) =>
                     {
                         self.parse_wiki_link(attrs.iter()).unwrap_or_default()
                     }
 
-                    "a" if attrs
-                        .iter()
-                        .find(|(name, value)| {
-                            name.as_str() == "rel" && value.as_str() == "mw:MediaLink"
-                        })
-                        .is_some() =>
+                    "a" if attrs.iter().any(|(name, value)| {
+                        name.as_str() == "rel" && value.as_str() == "mw:MediaLink"
+                    }) =>
                     {
                         self.parse_media_link(attrs.iter()).unwrap_or_default()
                     }
 
-                    "a" if attrs
-                        .iter()
-                        .find(|(name, value)| {
-                            name.as_str() == "rel" && value.as_str() == "mw:ExtLink"
-                        })
-                        .is_some() =>
+                    "a" if attrs.iter().any(|(name, value)| {
+                        name.as_str() == "rel" && value.as_str() == "mw:ExtLink"
+                    }) =>
                     {
                         self.parse_external_link(attrs.iter()).unwrap_or_default()
                     }
@@ -288,10 +260,7 @@ impl WikipediaParser {
             .find(|(name, _)| name.as_str() == "title")
             .map(|(_, value)| value.to_owned());
 
-        if attrs
-            .find(|(name, value)| name.as_str() == "class" && value.contains("new"))
-            .is_some()
-        {
+        if attrs.any(|(name, value)| name.as_str() == "class" && value.contains("new")) {
             return Some(Data::RedLink { title });
         }
 
@@ -310,10 +279,7 @@ impl WikipediaParser {
             .find(|(name, _)| name.as_str() == "title")
             .map(|(_, value)| value.to_owned());
 
-        if attrs
-            .find(|(name, value)| name.as_str() == "class" && value.contains("new"))
-            .is_some()
-        {
+        if attrs.any(|(name, value)| name.as_str() == "class" && value.contains("new")) {
             return Some(Data::RedLink { title });
         }
 
@@ -332,9 +298,8 @@ impl WikipediaParser {
             .find(|(name, _)| name.as_str() == "title")
             .map(|(_, value)| value.to_owned());
 
-        let autonumber = attrs
-            .find(|(name, value)| name.as_str() == "class" && value.contains("autonumber"))
-            .is_some();
+        let autonumber =
+            attrs.any(|(name, value)| name.as_str() == "class" && value.contains("autonumber"));
 
         Some(Data::ExternalLink {
             href,
