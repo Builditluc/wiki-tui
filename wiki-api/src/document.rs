@@ -37,6 +37,7 @@ pub enum Data {
     Division,
     Paragraph,
     Span,
+    Reflink,
     Hatnote,
     RedirectMessage,
     Disambiguation,

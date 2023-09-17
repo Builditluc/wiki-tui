@@ -101,6 +101,17 @@ impl WikipediaParser {
                         return prev
                     }
 
+                    "span"
+                        if attrs
+                            .iter()
+                            .find(|(name, value)| {
+                                name.as_str() == "class" && value.contains("mw-reflink-text")
+                            })
+                            .is_some() =>
+                    {
+                        Data::Reflink
+                    }
+
                     "section" => self.parse_section(attrs.iter()).unwrap_or_default(),
                     "h1" => self
                         .parse_header(attrs.iter(), HeaderKind::Main)

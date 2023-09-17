@@ -17,6 +17,7 @@ enum Context {
     MediaLink,
     ExternalLink,
     RedLink,
+    Reflink,
 }
 
 struct Renderer {
@@ -156,6 +157,7 @@ impl<'a> Renderer {
             Context::MediaLink => Style::default(),
             Context::ExternalLink => Style::default(),
             Context::RedLink => Style::default().fg(Color::Red),
+            Context::Reflink => Style::default().fg(Color::Gray),
         };
 
         style.patch(self.current_modifier)
@@ -242,6 +244,10 @@ impl<'a> Renderer {
             Data::Division => is_block = true,
             Data::Paragraph => is_block = true,
             Data::Span => {}
+            Data::Reflink => {
+                self.push_context(Context::Reflink);
+                self.add_modifier(Modifier::ITALIC);
+            }
             Data::Hatnote => is_block = true,
             Data::RedirectMessage => is_block = true,
             Data::Disambiguation => is_block = true,
@@ -297,6 +303,11 @@ impl<'a> Renderer {
             Data::Division => is_block = true,
             Data::Paragraph => is_block = true,
             Data::Span => self.add_whitespace(),
+            Data::Reflink => {
+                self.add_whitespace();
+                self.pop_context();
+                self.remove_modifier(Modifier::ITALIC);
+            }
             Data::Hatnote => is_block = true,
             Data::RedirectMessage => is_block = true,
             Data::Disambiguation => is_block = true,
