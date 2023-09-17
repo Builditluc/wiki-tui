@@ -13,6 +13,10 @@ use super::RenderedDocument;
 enum Context {
     Normal,
     Header,
+    WikiLink,
+    MediaLink,
+    ExternalLink,
+    RedLink,
 }
 
 struct Renderer {
@@ -53,10 +57,33 @@ impl<'a> Renderer {
             .unwrap_or(false)
     }
 
+    /// Returns whether the last rendered line is an empty one
+    ///
+    /// When the current line is not empty, this will return false
+    fn is_last_empty(&self) -> bool {
+        if !self.current_line.is_empty() {
+            false
+        } else {
+            self.rendered_lines
+                .last()
+                .map(|last| last.is_empty())
+                .unwrap_or(false)
+        }
+    }
+
     /// Adds a whitespace to the end of the current line
     ///
-    /// The whitespace word has an index of `usize::MAX` and a width of `0` to not interfere with text wrapping.
+    /// The whitespace word has an index of `usize::MAX` and a width of `0` to not interfere with text wrapping. Note: If there already is a whitespace at the end of the current line, no whitespace will be added!
     fn add_whitespace(&mut self) {
+        if self
+            .current_line
+            .last()
+            .map(|word| word.index == usize::MAX)
+            .unwrap_or(false)
+        {
+            return;
+        }
+
         self.current_line.push(Word {
             index: usize::MAX,
             content: String::new(),
@@ -125,6 +152,10 @@ impl<'a> Renderer {
         let style = match self.context() {
             Context::Normal => Style::default(),
             Context::Header => Style::default().fg(Color::Red),
+            Context::WikiLink => Style::default(),
+            Context::MediaLink => Style::default(),
+            Context::ExternalLink => Style::default(),
+            Context::RedLink => Style::default().fg(Color::Red),
         };
 
         style.patch(self.current_modifier)
@@ -134,12 +165,9 @@ impl<'a> Renderer {
     ///
     /// This fills up the current line with words and wraps the remaining words into lines, appending them to the finished words. Note: This leaves the current line empty, except when there are not enough words to fill it up completely
     fn wrap_append(&mut self, words: Vec<Word>) {
-        // let remaining_width: f64 = (self.width as f64).sub(
-        //     self.current_line
-        //         .iter()
-        //         .map(|word| word.width + word.whitespace_width)
-        //         .sum::<f64>(),
-        // );
+        if words.is_empty() {
+            return;
+        }
 
         let mut current_width: f64 = 0.0;
         for word in self.current_line.iter() {
@@ -171,12 +199,21 @@ impl<'a> Renderer {
         }
     }
 
+    /// Adds an empty line only if the last line is not empty
+    fn ensure_empty_line(&mut self) {
+        if !self.is_last_empty() {
+            self.add_empty_line();
+        }
+    }
+
     fn pre_children(&mut self, node: Node<'a>) {
+        let mut is_block = false;
         match node.data() {
+            Data::Section { id } => is_block = true,
             Data::Header { id, kind } => {
-                self.clear_line();
-                self.add_modifier(Modifier::BOLD);
                 self.push_context(Context::Header);
+                self.add_modifier(Modifier::BOLD);
+                is_block = true;
             }
             Data::Text { contents } => {
                 if contents.starts_with([',', '.']) && self.is_last_whitespace() {
@@ -202,24 +239,107 @@ impl<'a> Renderer {
 
                 self.wrap_append(words);
             }
-            _ => {}
+            Data::Division => is_block = true,
+            Data::Paragraph => is_block = true,
+            Data::Span => {}
+            Data::Hatnote => is_block = true,
+            Data::RedirectMessage => is_block = true,
+            Data::Disambiguation => is_block = true,
+            Data::OrderedList => is_block = true,
+            Data::UnorderedList => is_block = true,
+            Data::ListItem => self.clear_line(),
+            Data::DescriptionList => is_block = true,
+            Data::DescriptionListTerm => self.clear_line(),
+            Data::DerscriptionListDescription => self.clear_line(),
+            Data::Bold => self.add_modifier(Modifier::BOLD),
+            Data::Italic => self.add_modifier(Modifier::ITALIC),
+            Data::WikiLink { href, title } => {
+                self.push_context(Context::WikiLink);
+                self.add_modifier(Modifier::UNDERLINED);
+            }
+            Data::RedLink { title } => {
+                self.push_context(Context::RedLink);
+                self.add_modifier(Modifier::ITALIC);
+                self.add_modifier(Modifier::UNDERLINED);
+            }
+            Data::MediaLink { href, title } => {
+                self.push_context(Context::MediaLink);
+                self.add_modifier(Modifier::ITALIC);
+                self.add_modifier(Modifier::UNDERLINED);
+            }
+            Data::ExternalLink {
+                href,
+                title,
+                autonumber,
+            } => {
+                self.push_context(Context::ExternalLink);
+                self.add_modifier(Modifier::ITALIC);
+                self.add_modifier(Modifier::UNDERLINED);
+            }
+            Data::Unknown => {}
+        }
+
+        if is_block {
+            self.ensure_empty_line();
         }
     }
 
     fn post_children(&mut self, node: Node<'a>) {
+        let mut is_block = false;
         match node.data() {
-            Data::Section { id } => self.add_empty_line(),
+            Data::Section { id } => is_block = true,
             Data::Header { id, kind } => {
-                self.add_empty_line();
                 self.remove_modifier(Modifier::BOLD);
                 self.pop_context();
+                is_block = true;
             }
-            Data::Paragraph => self.add_empty_line(),
-            Data::WikiLink { .. }
-            | Data::RedLink { .. }
-            | Data::ExternalLink { .. }
-            | Data::MediaLink { .. } => self.add_whitespace(),
-            _ => {}
+            Data::Text { contents } => {}
+            Data::Division => is_block = true,
+            Data::Paragraph => is_block = true,
+            Data::Span => self.add_whitespace(),
+            Data::Hatnote => is_block = true,
+            Data::RedirectMessage => is_block = true,
+            Data::Disambiguation => is_block = true,
+            Data::OrderedList => is_block = true,
+            Data::UnorderedList => is_block = true,
+            Data::ListItem => self.clear_line(),
+            Data::DescriptionList => is_block = true,
+            Data::DescriptionListTerm => self.clear_line(),
+            Data::DerscriptionListDescription => self.clear_line(),
+            Data::Bold => self.remove_modifier(Modifier::BOLD),
+            Data::Italic => self.remove_modifier(Modifier::ITALIC),
+            Data::WikiLink { href, title } => {
+                self.pop_context();
+                self.remove_modifier(Modifier::UNDERLINED);
+                self.add_whitespace();
+            }
+            Data::RedLink { title } => {
+                self.pop_context();
+                self.remove_modifier(Modifier::ITALIC);
+                self.remove_modifier(Modifier::UNDERLINED);
+                self.add_whitespace();
+            }
+            Data::MediaLink { href, title } => {
+                self.pop_context();
+                self.remove_modifier(Modifier::ITALIC);
+                self.remove_modifier(Modifier::UNDERLINED);
+                self.add_whitespace();
+            }
+            Data::ExternalLink {
+                href,
+                title,
+                autonumber,
+            } => {
+                self.pop_context();
+                self.remove_modifier(Modifier::ITALIC);
+                self.remove_modifier(Modifier::UNDERLINED);
+                self.add_whitespace();
+            }
+            Data::Unknown => {}
+        }
+
+        if is_block {
+            self.ensure_empty_line();
         }
     }
 

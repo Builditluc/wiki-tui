@@ -93,6 +93,14 @@ impl WikipediaParser {
                         return prev
                     }
 
+                    _ if attrs
+                        .iter()
+                        .find(|(name, value)| name.as_str() == "class" && value.contains("noprint"))
+                        .is_some() =>
+                    {
+                        return prev
+                    }
+
                     "section" => self.parse_section(attrs.iter()).unwrap_or_default(),
                     "h1" => self
                         .parse_header(attrs.iter(), HeaderKind::Main)
