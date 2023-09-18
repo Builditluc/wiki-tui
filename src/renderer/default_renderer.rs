@@ -10,6 +10,9 @@ use super::RenderedDocument;
 const DISAMBIGUATION_PADDING: u8 = 1;
 const DISAMBIGUATION_PREFIX: char = '|';
 
+const LIST_PADDING: u8 = 1;
+const LIST_PREFIX: char = '-';
+
 #[derive(Clone, Copy)]
 enum Context {
     Normal,
@@ -197,20 +200,20 @@ impl<'a> Renderer {
             self.clear_line();
         }
 
-        // when we start on a new line, we have to add the left padding and prefix to the line
         if self.current_line.is_empty() {
             remaining_width -= self.left_padding as f64;
+            self.current_line.push(self.n_whitespace(self.left_padding));
             if let Some(prefix) = self.prefix {
                 self.current_line.push(Word {
                     index: usize::MAX,
-                    content: format!("{}{prefix}", " ".repeat(self.left_padding as usize)),
+                    content: prefix.to_string(),
                     style: Style::default(),
                     width: 1.0,
                     whitespace_width: 1.0,
                     penalty_width: 0.0,
                 });
 
-                remaining_width -= 2.0; // subtract 2: 1 char and 1 whitespace
+                remaining_width -= 2.0; // subtract 2: 1 char & 1 whitespace
             }
         }
 
@@ -308,12 +311,26 @@ impl<'a> Renderer {
             Data::Disambiguation => {
                 is_block = true;
                 self.add_modifier(Modifier::ITALIC);
-                self.left_padding = DISAMBIGUATION_PADDING;
+                self.left_padding = self.left_padding.saturating_add(DISAMBIGUATION_PADDING);
                 self.prefix = Some(DISAMBIGUATION_PREFIX);
             }
             Data::OrderedList => is_block = true,
-            Data::UnorderedList => is_block = true,
-            Data::ListItem => self.clear_line(),
+            Data::UnorderedList => {
+                is_block = true;
+                self.left_padding = self.left_padding.saturating_add(LIST_PADDING);
+            }
+            Data::ListItem => {
+                self.clear_line();
+                self.current_line.push(Word {
+                    index: usize::MAX,
+                    content: format!("{}{LIST_PREFIX}", " ".repeat(self.left_padding as usize)),
+                    style: Style::default(),
+                    width: 1.0,
+                    whitespace_width: 1.0,
+                    penalty_width: 0.0,
+                });
+                self.left_padding = self.left_padding.saturating_add(2);
+            }
             Data::DescriptionList => is_block = true,
             Data::DescriptionListTerm => self.clear_line(),
             Data::DerscriptionListDescription => self.clear_line(),
@@ -377,8 +394,14 @@ impl<'a> Renderer {
                 self.prefix = None;
             }
             Data::OrderedList => is_block = true,
-            Data::UnorderedList => is_block = true,
-            Data::ListItem => self.clear_line(),
+            Data::UnorderedList => {
+                is_block = true;
+                self.left_padding = self.left_padding.saturating_sub(LIST_PADDING);
+            }
+            Data::ListItem => {
+                self.clear_line();
+                self.left_padding = self.left_padding.saturating_sub(2);
+            }
             Data::DescriptionList => is_block = true,
             Data::DescriptionListTerm => self.clear_line(),
             Data::DerscriptionListDescription => self.clear_line(),
