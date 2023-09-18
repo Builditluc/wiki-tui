@@ -84,6 +84,14 @@ impl WikipediaParser {
                         return prev
                     }
 
+                    "span"
+                        if attrs.iter().any(|(name, value)| {
+                            name.as_str() == "typeof" && value.contains("mw:Transclusion")
+                        }) =>
+                    {
+                        return prev
+                    }
+
                     _ if attrs.iter().any(|(name, value)| {
                         name.as_str() == "class" && value.contains("noprint")
                     }) =>

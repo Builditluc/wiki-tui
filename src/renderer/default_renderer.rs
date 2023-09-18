@@ -1,5 +1,3 @@
-
-
 use ratatui::style::{Color, Modifier, Style};
 use textwrap::wrap_algorithms::{wrap_optimal_fit, Penalties};
 use tracing::warn;
@@ -8,6 +6,9 @@ use wiki_api::document::{Data, Document, Node};
 use crate::renderer::Word;
 
 use super::RenderedDocument;
+
+const DISAMBIGUATION_PADDING: u8 = 1;
+const DISAMBIGUATION_PREFIX: char = '|';
 
 #[derive(Clone, Copy)]
 enum Context {
@@ -26,6 +27,9 @@ struct Renderer {
     current_line: Vec<Word>,
     contexts: Vec<Context>,
     width: u16,
+
+    left_padding: u8,
+    prefix: Option<char>,
 }
 
 impl<'a> Renderer {
@@ -41,6 +45,9 @@ impl<'a> Renderer {
             current_line: Vec::new(),
             contexts: Vec::new(),
             width,
+
+            left_padding: 0,
+            prefix: None,
         };
 
         renderer.render_node(document.nth(0).unwrap());
@@ -85,14 +92,19 @@ impl<'a> Renderer {
             return;
         }
 
-        self.current_line.push(Word {
+        self.current_line.push(self.n_whitespace(1));
+    }
+
+    /// Returns a Word containing n amount of whitespace
+    fn n_whitespace(&self, n: u8) -> Word {
+        Word {
             index: usize::MAX,
             content: String::new(),
             style: Style::default(),
             width: 0.0,
-            whitespace_width: 1.0,
+            whitespace_width: n as f64,
             penalty_width: 0.0,
-        })
+        }
     }
 
     /// Adds the specified Modifier
@@ -185,6 +197,23 @@ impl<'a> Renderer {
             self.clear_line();
         }
 
+        // when we start on a new line, we have to add the left padding and prefix to the line
+        if self.current_line.is_empty() {
+            remaining_width -= self.left_padding as f64;
+            if let Some(prefix) = self.prefix {
+                self.current_line.push(Word {
+                    index: usize::MAX,
+                    content: format!("{}{prefix}", " ".repeat(self.left_padding as usize)),
+                    style: Style::default(),
+                    width: 1.0,
+                    whitespace_width: 1.0,
+                    penalty_width: 0.0,
+                });
+
+                remaining_width -= 2.0; // subtract 2: 1 char and 1 whitespace
+            }
+        }
+
         let line_widths: [f64; 2] = [remaining_width, self.width as f64];
         let mut wrapped_lines: Vec<Vec<Word>> =
             wrap_optimal_fit(&words, &line_widths, &Penalties::default())
@@ -194,6 +223,29 @@ impl<'a> Renderer {
                 .collect();
 
         self.current_line.append(&mut wrapped_lines.remove(0));
+
+        // add prefixes
+        if let Some(prefix) = self.prefix {
+            for line in wrapped_lines.iter_mut() {
+                line.insert(
+                    0,
+                    Word {
+                        index: usize::MAX,
+                        content: prefix.to_string(),
+                        style: Style::default(),
+                        width: 1.0,
+                        whitespace_width: 1.0,
+                        penalty_width: 0.0,
+                    },
+                );
+            }
+        }
+
+        // indent the current line
+        for line in wrapped_lines.iter_mut() {
+            line.insert(0, self.n_whitespace(self.left_padding));
+        }
+
         if let Some(last_line) = wrapped_lines.pop() {
             self.clear_line();
             self.current_line = last_line;
@@ -218,7 +270,8 @@ impl<'a> Renderer {
                 is_block = true;
             }
             Data::Text { contents } => {
-                if contents.starts_with([',', '.']) && self.is_last_whitespace() {
+                const TEXT_SPECIAL_CHARACTERS: [char; 4] = [',', '.', '\"', '\''];
+                if contents.starts_with(TEXT_SPECIAL_CHARACTERS) && self.is_last_whitespace() {
                     self.current_line.pop();
                 }
 
@@ -252,7 +305,12 @@ impl<'a> Renderer {
             }
             Data::Hatnote => is_block = true,
             Data::RedirectMessage => is_block = true,
-            Data::Disambiguation => is_block = true,
+            Data::Disambiguation => {
+                is_block = true;
+                self.add_modifier(Modifier::ITALIC);
+                self.left_padding = DISAMBIGUATION_PADDING;
+                self.prefix = Some(DISAMBIGUATION_PREFIX);
+            }
             Data::OrderedList => is_block = true,
             Data::UnorderedList => is_block = true,
             Data::ListItem => self.clear_line(),
@@ -312,7 +370,12 @@ impl<'a> Renderer {
             }
             Data::Hatnote => is_block = true,
             Data::RedirectMessage => is_block = true,
-            Data::Disambiguation => is_block = true,
+            Data::Disambiguation => {
+                is_block = true;
+                self.remove_modifier(Modifier::ITALIC);
+                self.left_padding = self.left_padding.saturating_sub(DISAMBIGUATION_PADDING);
+                self.prefix = None;
+            }
             Data::OrderedList => is_block = true,
             Data::UnorderedList => is_block = true,
             Data::ListItem => self.clear_line(),
