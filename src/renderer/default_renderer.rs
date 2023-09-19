@@ -13,23 +13,12 @@ const DISAMBIGUATION_PREFIX: char = '|';
 const LIST_PADDING: u8 = 1;
 const LIST_PREFIX: char = '-';
 
-#[derive(Clone, Copy)]
-enum Context {
-    Normal,
-    Header,
-    WikiLink,
-    MediaLink,
-    ExternalLink,
-    RedLink,
-    Reflink,
-}
-
 struct Renderer {
-    current_modifier: Style,
     rendered_lines: Vec<Vec<Word>>,
     current_line: Vec<Word>,
-    contexts: Vec<Context>,
     width: u16,
+
+    text_style: Style,
 
     left_padding: u8,
     prefix: Option<char>,
@@ -43,11 +32,11 @@ impl<'a> Renderer {
         }
 
         let mut renderer = Renderer {
-            current_modifier: Style::default(),
             rendered_lines: Vec::new(),
             current_line: Vec::new(),
-            contexts: Vec::new(),
             width,
+
+            text_style: Style::default(),
 
             left_padding: 0,
             prefix: None,
@@ -110,16 +99,6 @@ impl<'a> Renderer {
         }
     }
 
-    /// Adds the specified Modifier
-    fn add_modifier(&mut self, modifier: Modifier) {
-        self.current_modifier = self.current_modifier.add_modifier(modifier);
-    }
-
-    /// Removes the specified Modifier
-    fn remove_modifier(&mut self, modifier: Modifier) {
-        self.current_modifier = self.current_modifier.remove_modifier(modifier);
-    }
-
     /// Clears the current line
     ///
     /// When the current line is not empty already, it adds it to the rendered lines
@@ -138,44 +117,6 @@ impl<'a> Renderer {
     fn add_empty_line(&mut self) {
         self.clear_line();
         self.rendered_lines.push(Vec::new());
-    }
-
-    /// Sets a new context
-    ///
-    /// Overrides the currently active context
-    fn push_context(&mut self, context: Context) {
-        self.contexts.push(context);
-    }
-
-    /// Returns the currently active context
-    ///
-    /// If no context is set, returns Context::Normal
-    fn context(&self) -> Context {
-        *self.contexts.last().unwrap_or(&Context::Normal)
-    }
-
-    /// Removes the currently active context
-    ///
-    /// The previously overriden context is set to the next active context
-    fn pop_context(&mut self) {
-        self.contexts.pop();
-    }
-
-    /// Returns the currently set style
-    ///
-    /// This combines the colors defined by the current context and the currently active modifiers
-    fn current_style(&self) -> Style {
-        let style = match self.context() {
-            Context::Normal => Style::default(),
-            Context::Header => Style::default().fg(Color::Red),
-            Context::WikiLink => Style::default(),
-            Context::MediaLink => Style::default(),
-            Context::ExternalLink => Style::default(),
-            Context::RedLink => Style::default().fg(Color::Red),
-            Context::Reflink => Style::default().fg(Color::Gray),
-        };
-
-        style.patch(self.current_modifier)
     }
 
     /// Wraps and appends words
@@ -263,191 +204,292 @@ impl<'a> Renderer {
         }
     }
 
-    fn pre_children(&mut self, node: Node<'a>) {
-        let mut is_block = false;
-        match node.data() {
-            Data::Section { id: _ } => is_block = true,
-            Data::Header { id: _, kind: _ } => {
-                self.push_context(Context::Header);
-                self.add_modifier(Modifier::BOLD);
-                is_block = true;
-            }
-            Data::Text { contents } => {
-                const TEXT_SPECIAL_CHARACTERS: [char; 4] = [',', '.', '\"', '\''];
-                if contents.starts_with(TEXT_SPECIAL_CHARACTERS) && self.is_last_whitespace() {
-                    self.current_line.pop();
-                }
-
-                let has_trailing_whitespace = contents.ends_with(' ');
-                let mut words: Vec<Word> = contents
-                    .split_whitespace()
-                    .map(|word| Word {
-                        index: node.index(),
-                        content: word.to_string(),
-                        style: self.current_style(),
-                        width: word.chars().count() as f64,
-                        whitespace_width: 1.0,
-                        penalty_width: 0.0,
-                    })
-                    .collect();
-
-                if !has_trailing_whitespace {
-                    if let Some(word) = words.last_mut() {
-                        word.whitespace_width = 0.0;
-                    }
-                }
-
-                self.wrap_append(words);
-            }
-            Data::Division => is_block = true,
-            Data::Paragraph => is_block = true,
-            Data::Span => {}
-            Data::Reflink => {
-                self.push_context(Context::Reflink);
-                self.add_modifier(Modifier::ITALIC);
-            }
-            Data::Hatnote => is_block = true,
-            Data::RedirectMessage => is_block = true,
-            Data::Disambiguation => {
-                is_block = true;
-                self.add_modifier(Modifier::ITALIC);
-                self.left_padding = self.left_padding.saturating_add(DISAMBIGUATION_PADDING);
-                self.prefix = Some(DISAMBIGUATION_PREFIX);
-            }
-            Data::OrderedList => is_block = true,
-            Data::UnorderedList => {
-                is_block = true;
-                self.left_padding = self.left_padding.saturating_add(LIST_PADDING);
-            }
-            Data::ListItem => {
-                self.clear_line();
-                self.current_line.push(Word {
-                    index: usize::MAX,
-                    content: format!("{}{LIST_PREFIX}", " ".repeat(self.left_padding as usize)),
-                    style: Style::default(),
-                    width: 1.0,
-                    whitespace_width: 1.0,
-                    penalty_width: 0.0,
-                });
-                self.left_padding = self.left_padding.saturating_add(2);
-            }
-            Data::DescriptionList => is_block = true,
-            Data::DescriptionListTerm => self.clear_line(),
-            Data::DerscriptionListDescription => self.clear_line(),
-            Data::Bold => self.add_modifier(Modifier::BOLD),
-            Data::Italic => self.add_modifier(Modifier::ITALIC),
-            Data::WikiLink { href: _, title: _ } => {
-                self.push_context(Context::WikiLink);
-                self.add_modifier(Modifier::UNDERLINED);
-            }
-            Data::RedLink { title: _ } => {
-                self.push_context(Context::RedLink);
-                self.add_modifier(Modifier::ITALIC);
-                self.add_modifier(Modifier::UNDERLINED);
-            }
-            Data::MediaLink { href: _, title: _ } => {
-                self.push_context(Context::MediaLink);
-                self.add_modifier(Modifier::ITALIC);
-                self.add_modifier(Modifier::UNDERLINED);
-            }
-            Data::ExternalLink {
-                href: _,
-                title: _,
-                autonumber: _,
-            } => {
-                self.push_context(Context::ExternalLink);
-                self.add_modifier(Modifier::ITALIC);
-                self.add_modifier(Modifier::UNDERLINED);
-            }
-            Data::Unknown => {}
-        }
-
-        if is_block {
-            self.ensure_empty_line();
-        }
+    /// Adds a modifier to the current text style
+    fn add_modifier(&mut self, modifier: Modifier) {
+        self.text_style = self.text_style.add_modifier(modifier);
     }
 
-    fn post_children(&mut self, node: Node<'a>) {
-        let mut is_block = false;
-        match node.data() {
-            Data::Section { id: _ } => is_block = true,
-            Data::Header { id: _, kind: _ } => {
-                self.remove_modifier(Modifier::BOLD);
-                self.pop_context();
-                is_block = true;
-            }
-            Data::Text { contents: _ } => {}
-            Data::Division => is_block = true,
-            Data::Paragraph => is_block = true,
-            Data::Span => self.add_whitespace(),
-            Data::Reflink => {
-                self.add_whitespace();
-                self.pop_context();
-                self.remove_modifier(Modifier::ITALIC);
-            }
-            Data::Hatnote => is_block = true,
-            Data::RedirectMessage => is_block = true,
-            Data::Disambiguation => {
-                is_block = true;
-                self.remove_modifier(Modifier::ITALIC);
-                self.left_padding = self.left_padding.saturating_sub(DISAMBIGUATION_PADDING);
-                self.prefix = None;
-            }
-            Data::OrderedList => is_block = true,
-            Data::UnorderedList => {
-                is_block = true;
-                self.left_padding = self.left_padding.saturating_sub(LIST_PADDING);
-            }
-            Data::ListItem => {
-                self.clear_line();
-                self.left_padding = self.left_padding.saturating_sub(2);
-            }
-            Data::DescriptionList => is_block = true,
-            Data::DescriptionListTerm => self.clear_line(),
-            Data::DerscriptionListDescription => self.clear_line(),
-            Data::Bold => self.remove_modifier(Modifier::BOLD),
-            Data::Italic => self.remove_modifier(Modifier::ITALIC),
-            Data::WikiLink { href: _, title: _ } => {
-                self.pop_context();
-                self.remove_modifier(Modifier::UNDERLINED);
-                self.add_whitespace();
-            }
-            Data::RedLink { title: _ } => {
-                self.pop_context();
-                self.remove_modifier(Modifier::ITALIC);
-                self.remove_modifier(Modifier::UNDERLINED);
-                self.add_whitespace();
-            }
-            Data::MediaLink { href: _, title: _ } => {
-                self.pop_context();
-                self.remove_modifier(Modifier::ITALIC);
-                self.remove_modifier(Modifier::UNDERLINED);
-                self.add_whitespace();
-            }
-            Data::ExternalLink {
-                href: _,
-                title: _,
-                autonumber: _,
-            } => {
-                self.pop_context();
-                self.remove_modifier(Modifier::ITALIC);
-                self.remove_modifier(Modifier::UNDERLINED);
-                self.add_whitespace();
-            }
-            Data::Unknown => {}
-        }
-
-        if is_block {
-            self.ensure_empty_line();
-        }
+    /// Removes a modifier from the current text style
+    fn remove_modifier(&mut self, modifier: Modifier) {
+        self.text_style = self.text_style.remove_modifier(modifier);
     }
 
-    fn render_node(&mut self, node: Node<'a>) {
-        self.pre_children(node);
+    /// Changes the foreground color of the text style
+    fn set_text_fg(&mut self, color: Color) {
+        self.text_style = self.text_style.fg(color);
+    }
+
+    /// Resets the foreground color of the text style
+    fn reset_text_fg(&mut self) {
+        self.text_style.fg = None;
+    }
+
+    /// Adds n spaces to the left padding
+    fn add_n_padding(&mut self, n: u8) {
+        self.left_padding = self.left_padding.saturating_add(n);
+    }
+
+    /// Removes n spaces from the left padding
+    fn remove_n_padding(&mut self, n: u8) {
+        self.left_padding = self.left_padding.saturating_sub(n);
+    }
+
+    /// Sets the prefix to a given value
+    fn set_prefix(&mut self, prefix: char) {
+        self.prefix = Some(prefix);
+    }
+
+    /// Resets the prefix
+    fn reset_prefix(&mut self) {
+        self.prefix = None;
+    }
+
+    fn render_children(&mut self, node: Node<'a>) {
         for child in node.children() {
             self.render_node(child);
         }
-        self.post_children(node);
+    }
+
+    fn render_section(&mut self, node: Node<'a>) {
+        if !matches!(node.data(), Data::Section { .. }) {
+            warn!("expected section data, got other data");
+            return;
+        }
+
+        self.ensure_empty_line();
+
+        self.render_children(node);
+
+        self.ensure_empty_line();
+    }
+
+    fn render_header(&mut self, node: Node<'a>) {
+        if !matches!(node.data(), Data::Header { .. }) {
+            warn!("expected header data, got other data");
+            return;
+        }
+
+        self.ensure_empty_line();
+
+        self.add_modifier(Modifier::BOLD);
+        self.set_text_fg(Color::Red);
+
+        self.render_children(node);
+
+        self.remove_modifier(Modifier::BOLD);
+        self.reset_text_fg();
+
+        self.ensure_empty_line();
+    }
+
+    fn render_text(&mut self, node: Node<'a>) {
+        let contents = match node.data() {
+            Data::Text { contents } => contents,
+            _ => {
+                warn!("expected text data, got other data");
+                return;
+            }
+        };
+
+        const TEXT_SPECIAL_CHARACTERS: [char; 9] = [',', '.', ':', ';', '\"', '\'', '!', '@', '%'];
+        if contents.starts_with(TEXT_SPECIAL_CHARACTERS) && self.is_last_whitespace() {
+            self.current_line.pop();
+        }
+
+        let has_trailing_whitespace = contents.ends_with(' ');
+        let mut words: Vec<Word> = contents
+            .split_whitespace()
+            .map(|word| Word {
+                index: node.index(),
+                content: word.to_string(),
+                style: self.text_style,
+                width: word.chars().count() as f64,
+                whitespace_width: 1.0,
+                penalty_width: 0.0,
+            })
+            .collect();
+
+        if !has_trailing_whitespace {
+            if let Some(word) = words.last_mut() {
+                word.whitespace_width = 0.0;
+            }
+        }
+
+        self.wrap_append(words);
+        self.render_children(node);
+    }
+
+    fn render_block_element(&mut self, node: Node<'a>) {
+        self.ensure_empty_line();
+        self.render_children(node);
+        self.ensure_empty_line();
+    }
+
+    fn render_span(&mut self, node: Node<'a>) {
+        self.render_children(node);
+        self.add_whitespace();
+    }
+
+    fn render_reflink(&mut self, node: Node<'a>) {
+        self.add_modifier(Modifier::ITALIC);
+        self.set_text_fg(Color::Gray);
+
+        self.render_children(node);
+
+        self.reset_text_fg();
+        self.remove_modifier(Modifier::ITALIC);
+
+        self.add_whitespace();
+    }
+
+    fn render_disambiguation(&mut self, node: Node<'a>) {
+        self.ensure_empty_line();
+
+        self.add_modifier(Modifier::ITALIC);
+        self.add_n_padding(DISAMBIGUATION_PADDING);
+        self.set_prefix(DISAMBIGUATION_PREFIX);
+
+        self.render_children(node);
+
+        self.reset_prefix();
+        self.remove_n_padding(DISAMBIGUATION_PADDING);
+        self.remove_modifier(Modifier::ITALIC);
+
+        self.ensure_empty_line();
+    }
+
+    fn render_list(&mut self, node: Node<'a>) {
+        self.ensure_empty_line();
+
+        self.add_n_padding(LIST_PADDING);
+
+        self.render_children(node);
+
+        self.remove_n_padding(LIST_PADDING);
+
+        self.ensure_empty_line();
+    }
+
+    fn render_list_item(&mut self, node: Node<'a>) {
+        self.clear_line();
+        self.current_line.push(Word {
+            index: usize::MAX,
+            content: format!("{}{LIST_PREFIX}", " ".repeat(self.left_padding as usize)),
+            style: Style::default(),
+            width: 1.0,
+            whitespace_width: 1.0,
+            penalty_width: 0.0,
+        });
+        self.add_n_padding(2);
+
+        self.render_children(node);
+
+        self.remove_n_padding(2);
+        self.clear_line();
+    }
+
+    fn render_description_list_term(&mut self, node: Node<'a>) {
+        self.clear_line();
+        self.render_children(node);
+        self.clear_line();
+    }
+
+    fn render_description_list_description(&mut self, node: Node<'a>) {
+        self.clear_line();
+        self.render_children(node);
+        self.clear_line();
+    }
+
+    fn render_bold(&mut self, node: Node<'a>) {
+        self.add_modifier(Modifier::BOLD);
+
+        self.render_children(node);
+
+        self.remove_modifier(Modifier::BOLD);
+    }
+
+    fn render_italic(&mut self, node: Node<'a>) {
+        self.add_modifier(Modifier::ITALIC);
+
+        self.render_children(node);
+
+        self.remove_modifier(Modifier::ITALIC);
+    }
+
+    fn render_wiki_link(&mut self, node: Node<'a>) {
+        self.add_modifier(Modifier::UNDERLINED);
+
+        self.render_children(node);
+
+        self.remove_modifier(Modifier::UNDERLINED);
+        self.add_whitespace();
+    }
+
+    fn render_red_link(&mut self, node: Node<'a>) {
+        self.add_modifier(Modifier::UNDERLINED);
+        self.add_modifier(Modifier::ITALIC);
+        self.set_text_fg(Color::Red);
+
+        self.render_children(node);
+
+        self.reset_text_fg();
+        self.remove_modifier(Modifier::ITALIC);
+        self.remove_modifier(Modifier::UNDERLINED);
+        self.add_whitespace();
+    }
+
+    fn render_media_link(&mut self, node: Node<'a>) {
+        self.add_modifier(Modifier::UNDERLINED);
+        self.add_modifier(Modifier::ITALIC);
+
+        self.render_children(node);
+
+        self.remove_modifier(Modifier::ITALIC);
+        self.remove_modifier(Modifier::UNDERLINED);
+        self.add_whitespace();
+    }
+
+    fn render_external_link(&mut self, node: Node<'a>) {
+        self.add_modifier(Modifier::UNDERLINED);
+        self.add_modifier(Modifier::ITALIC);
+
+        self.render_children(node);
+
+        self.remove_modifier(Modifier::ITALIC);
+        self.remove_modifier(Modifier::UNDERLINED);
+        self.add_whitespace();
+    }
+
+    fn render_node(&mut self, node: Node<'a>) {
+        match node.data() {
+            Data::Section { id: _ } => self.render_section(node),
+            Data::Header { id: _, kind: _ } => self.render_header(node),
+            Data::Text { contents: _ } => self.render_text(node),
+            Data::Division => self.render_block_element(node),
+            Data::Paragraph => self.render_block_element(node),
+            Data::Span => self.render_span(node),
+            Data::Reflink => self.render_reflink(node),
+            Data::Hatnote => self.render_block_element(node),
+            Data::RedirectMessage => self.render_block_element(node),
+            Data::Disambiguation => self.render_disambiguation(node),
+            Data::OrderedList => self.render_list(node),
+            Data::UnorderedList => self.render_list(node),
+            Data::ListItem => self.render_list_item(node),
+            Data::DescriptionList => self.render_block_element(node),
+            Data::DescriptionListTerm => self.render_description_list_term(node),
+            Data::DerscriptionListDescription => self.render_description_list_description(node),
+            Data::Bold => self.render_bold(node),
+            Data::Italic => self.render_italic(node),
+            Data::WikiLink { href: _, title: _ } => self.render_wiki_link(node),
+            Data::RedLink { title: _ } => self.render_red_link(node),
+            Data::MediaLink { href: _, title: _ } => self.render_media_link(node),
+            Data::ExternalLink {
+                href: _,
+                title: _,
+                autonumber: _,
+            } => self.render_external_link(node),
+            Data::Unknown => self.render_children(node),
+        }
     }
 }
 
