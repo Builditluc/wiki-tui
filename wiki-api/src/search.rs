@@ -14,28 +14,14 @@ use super::languages::Language;
 /// the search
 #[derive(Clone, PartialEq, Eq)]
 pub struct Search {
-    // TODO: implement SearchInfo, containing static information about the search (static meaning it doesn't change when continuing the search)
-    /// Whether the search is complete and no more results are available
-    pub complete: bool,
-    /// If more results are available, use this offset to continue the search
-    pub continue_offset: Option<usize>,
-    /// Optional: Total amount of results found
-    pub total_hits: Option<usize>,
-    /// Optional: Suggestion for a different query
-    pub suggestion: Option<String>,
-    /// Optional: The query rewritten by the search backend (See [`SearchBuilder::rewrites`] for
-    /// more)
-    ///
-    /// [`SearchBuilder::rewrites`]: SearchBuilder::rewrites
-    pub rewritten_query: Option<String>,
-    /// Searched value
-    pub query: String,
     /// The found results in this batch
     pub results: Vec<SearchResult>,
     /// API endpoint of the MediaWiki site where the search was performed on
     pub endpoint: Endpoint,
-    /// In what language the search was made
-    pub language: Language,
+    /// If more results are available, use this offset to continue the search
+    pub continue_offset: Option<usize>,
+    /// General information about the search
+    pub info: SearchInfo,
 }
 
 impl Search {
@@ -56,10 +42,11 @@ impl Search {
     /// [`SearchContinue`]: SearchContinue
     pub fn continue_data(&self) -> Option<SearchContinue> {
         if let Some(ref offset) = self.continue_offset {
+            let info: &SearchInfo = &self.info;
             return Some(SearchContinue {
-                query: self.query.clone(),
+                query: info.query.clone(),
                 endpoint: self.endpoint.clone(),
-                language: self.language.clone(),
+                language: info.language.clone(),
                 offset: *offset,
             });
         }
@@ -72,9 +59,29 @@ impl Debug for Search {
         f.debug_struct("Search")
             .field("continue_offset", &self.continue_offset)
             .field("results", &self.results.len())
-            .field("total_hits", &self.total_hits)
+            .field("info", &self.info)
             .finish()
     }
+}
+
+/// Contains general informations about the search
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct SearchInfo {
+    /// Whether the search is complete and no more results are available
+    pub complete: bool,
+    /// Optional: Total amount of results found
+    pub total_hits: Option<usize>,
+    /// Optional: Suggestion for a different query
+    pub suggestion: Option<String>,
+    /// Optional: The query rewritten by the search backend (See [`SearchBuilder::rewrites`] for
+    /// more)
+    ///
+    /// [`SearchBuilder::rewrites`]: SearchBuilder::rewrites
+    pub rewritten_query: Option<String>,
+    /// Searched value
+    pub query: String,
+    /// In what language the search was made
+    pub language: Language,
 }
 
 /// Contains the necessary data for continuing a Search at a given offset. This data can be
@@ -774,16 +781,20 @@ impl SearchBuilder<WithQuery, WithEndpoint, WithLanguage> {
             results
         };
 
-        Ok(Search {
+        let info = SearchInfo {
             complete: continue_offset.is_none(),
-            continue_offset,
             total_hits,
             suggestion,
             rewritten_query,
-            results,
-            endpoint: self.endpoint.0,
             query: self.query.0,
             language: self.language.0,
+        };
+
+        Ok(Search {
+            continue_offset,
+            results,
+            endpoint: self.endpoint.0,
+            info,
         })
     }
 }

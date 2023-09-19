@@ -11,7 +11,7 @@ use tracing::error;
 use tui_input::{backend::crossterm::EventHandler, Input};
 use wiki_api::{
     languages::Language,
-    search::{Search as ApiSearch, SearchContinue, SearchRequest, SearchResult},
+    search::{Search as ApiSearch, SearchContinue, SearchInfo, SearchRequest, SearchResult},
     Endpoint,
 };
 
@@ -87,8 +87,8 @@ pub struct Search {
     endpoint: Option<Endpoint>,
     language: Option<Language>,
 
-    // TODO: display search info
     search_results: ResultsList<SearchResult>,
+    search_info: Option<SearchInfo>,
     continue_search: Option<SearchContinue>,
 
     action_tx: Option<mpsc::UnboundedSender<Action>>,
@@ -103,6 +103,7 @@ impl Default for Search {
             language: None,
 
             search_results: ResultsList::with_items(Vec::new()),
+            search_info: None,
             continue_search: None,
 
             action_tx: None,
@@ -144,6 +145,12 @@ impl Search {
             };
             tx.send(Action::ExitProcessing).unwrap();
         });
+    }
+
+    fn finish_search(&mut self, mut search: ApiSearch) {
+        self.search_results.items.append(&mut search.results);
+        self.continue_search = search.continue_data().take();
+        self.search_info = Some(search.info);
     }
 
     fn open_selected_result(&self) {
@@ -223,10 +230,8 @@ impl Component for Search {
                     None
                 }
             }
-            Action::FinshSearch(mut search) => {
-                // TODO: transfer this into a function
-                self.search_results.items.append(&mut search.results);
-                self.continue_search = search.continue_data().take();
+            Action::FinshSearch(search) => {
+                self.finish_search(search);
                 None
             }
             Action::ScrollUp(n) => {
@@ -322,15 +327,14 @@ impl Component for Search {
 
         frame.render_stateful_widget(items, results_area, &mut self.search_results.state);
 
-        // TODO: Render Search info
-        let info = Paragraph::new(format!(
-            "Found NONE articles on the {} wikipedia matching your search",
-            self.language
-                .as_ref()
-                .map(|lang| lang.name().to_owned())
-                .unwrap_or("UNKNOWN".to_string())
-        ));
+        if let Some(ref search_info) = self.search_info {
+            let info = Paragraph::new(format!(
+                "Results: {} | Language: {}",
+                search_info.total_hits.unwrap_or_default(),
+                search_info.language.name()
+            ));
 
-        frame.render_widget(info, info_area);
+            frame.render_widget(info, info_area);
+        }
     }
 }
