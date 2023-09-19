@@ -1,7 +1,7 @@
 use html5ever::{parse_document, tendril::TendrilSink};
 use markup5ever_rcdom::{Handle, NodeData, RcDom};
 use std::str::FromStr;
-use tracing::{debug, warn};
+use tracing::{trace, warn};
 
 use crate::document::{Data, HeaderKind, Raw};
 
@@ -60,19 +60,17 @@ impl WikipediaParser {
                         name.as_str() == "class" && value.contains("portalbox")
                     }) =>
                     {
-                        debug!("ignoring portalbox");
+                        trace!("ignoring 'ul' class: 'portalbox'");
                         return prev;
                     }
 
                     "div"
                         if attrs.iter().any(|(name, value)| {
                             name.as_str() == "class"
-                                && (value.contains("toc")
-                                    || value.contains("quotebox")
-                                    || value.contains("noprint"))
+                                && (value.contains("toc") || value.contains("quotebox"))
                         }) =>
                     {
-                        debug!("ignoring toc or quotebox");
+                        trace!("ignoring 'div': class: 'toc' || 'quotebox'");
                         return prev;
                     }
 
@@ -81,22 +79,43 @@ impl WikipediaParser {
                             name.as_str() == "class" && value.contains("mw-empty-elt")
                         }) =>
                     {
-                        return prev
+                        trace!("ignoring 'div': class: 'mw-empty-elt'");
+                        return prev;
                     }
 
                     "span"
                         if attrs.iter().any(|(name, value)| {
-                            name.as_str() == "typeof" && value.contains("mw:Transclusion")
+                            name.as_str() == "class" && value.contains("cs1-maint")
                         }) =>
                     {
-                        return prev
+                        trace!("ignoring 'span': class: 'cs1-maint'");
+                        return prev;
                     }
 
                     _ if attrs.iter().any(|(name, value)| {
                         name.as_str() == "class" && value.contains("noprint")
                     }) =>
                     {
-                        return prev
+                        trace!("ignoring '{name}': class: 'noprint'");
+                        return prev;
+                    }
+
+                    "span"
+                        if attrs.iter().any(|(name, value)| {
+                            name.as_str() == "class" && value.contains("mw-editsection")
+                        }) =>
+                    {
+                        trace!("ignoring 'span': class: 'mw-editsection'");
+                        return prev;
+                    }
+
+                    "span"
+                        if attrs.iter().any(|(name, value)| {
+                            name.as_str() == "typeof" && value.contains("mw:Nowiki")
+                        }) =>
+                    {
+                        trace!("ignoring 'span': class: 'mw:Nowiki'");
+                        return prev;
                     }
 
                     "span"
