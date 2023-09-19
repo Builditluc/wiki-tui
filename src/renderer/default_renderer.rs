@@ -406,6 +406,7 @@ impl<'a> Renderer {
         self.render_children(node);
 
         self.remove_modifier(Modifier::BOLD);
+        self.add_whitespace();
     }
 
     fn render_italic(&mut self, node: Node<'a>) {
@@ -414,6 +415,7 @@ impl<'a> Renderer {
         self.render_children(node);
 
         self.remove_modifier(Modifier::ITALIC);
+        self.add_whitespace();
     }
 
     fn render_wiki_link(&mut self, node: Node<'a>) {
