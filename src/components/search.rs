@@ -35,10 +35,10 @@ impl<T> ResultsList<T> {
     fn next(&mut self) {
         let i = match self.state.selected() {
             Some(i) => {
-                if i >= self.items.len() - 1 {
+                if i >= self.items.len().saturating_sub(1) {
                     0
                 } else {
-                    i + 1
+                    i.saturating_add(1)
                 }
             }
             None => 0,
@@ -50,9 +50,9 @@ impl<T> ResultsList<T> {
         let i = match self.state.selected() {
             Some(i) => {
                 if i == 0 {
-                    self.items.len() - 1
+                    self.items.len().saturating_sub(1)
                 } else {
-                    i - 1
+                    i.saturating_sub(1)
                 }
             }
             None => 0,
@@ -145,6 +145,16 @@ impl Search {
             tx.send(Action::ExitProcessing).unwrap();
         });
     }
+
+    fn open_selected_result(&self) {
+        if let Some(selected_result) = self.search_results.selected() {
+            let action_tx = self.action_tx.clone().unwrap();
+            action_tx.send(Action::EnterContext(Context::Page)).unwrap();
+            action_tx
+                .send(Action::OpenPage(selected_result.title.to_string()))
+                .unwrap();
+        }
+    }
 }
 
 impl Component for Search {
@@ -164,13 +174,7 @@ impl Component for Search {
                 }
                 KeyCode::Char('i') => Action::EnterInsert,
                 KeyCode::Enter if self.search_results.is_selected() => {
-                    if let Some(selected_result) = self.search_results.selected() {
-                        let action_tx = self.action_tx.clone().unwrap();
-                        action_tx.send(Action::EnterContext(Context::Page)).unwrap();
-                        action_tx
-                            .send(Action::OpenPage(selected_result.title.to_string()))
-                            .unwrap();
-                    }
+                    self.open_selected_result();
                     Action::Noop
                 }
                 _ => Action::Noop,
