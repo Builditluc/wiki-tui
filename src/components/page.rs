@@ -92,6 +92,9 @@ impl PageComponent {
     }
 
     fn open_page(&mut self, title: String) {
+        self.page = None;
+        self.flush_cache();
+
         let tx = self.action_tx.clone().unwrap();
         let page_request = match self.build_page(title) {
             Ok(page_request) => page_request,
@@ -143,6 +146,8 @@ impl PageComponent {
     fn flush_cache(&mut self) {
         debug!("flushing '{}' cached renders", self.render_cache.len());
         self.render_cache.clear();
+        self.scroll_state = ScrollbarState::default();
+        self.scroll = 0;
     }
 
     fn scroll_down(&mut self, amount: usize) {
