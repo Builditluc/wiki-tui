@@ -22,10 +22,6 @@ nix-shell -p wiki-tui
 
 Or add it to your configuration.
 
-### AUR
-
-The package is available in the [AUR](https://aur.archlinux.org/packages/wiki-tui). Either install it with `makepkg` manually or use the preferred AUR helper.
-
 ### Void
 
 As root, run
