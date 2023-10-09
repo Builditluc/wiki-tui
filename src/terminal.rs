@@ -43,7 +43,10 @@ impl Tui {
 
     pub fn suspend(&self) -> Result<()> {
         self.exit()?;
-        signal_hook::low_level::raise(signal_hook::consts::signal::SIGTSTP)?;
+        #[cfg(windows)]
+        signal_hook::low_level::raise(signal_hook::consts::signal::SIGABRT)?;
+        #[cfg(not(windows))]
+        signal_hook::low_level::raise(signal_hook::consts::signal::SIGSTP)?;
         Ok(())
     }
 
