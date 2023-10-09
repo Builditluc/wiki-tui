@@ -20,6 +20,19 @@
 
 > Note: wiki-tui is still under active development and breaking changes can occur. Please always check the release notes before upgrading
 
+# Rewrite and the main branch
+
+wiki-tui is currently going through a complete rewrite (we're switching from cursive to ratatui).
+That means that the main branch is going to have an in-development and unfinished version of
+wiki-tui for the duration of the rewrite. Please keep that in mind when compiling from source.
+
+Since this is a fairly large change, there won't be new versions released until the rewrite is
+complete.
+
+> Feel free to try the development version out!
+
+<br>
+
 You can find the **installation instructions**, **configuration options**, **more preview images**, **a feature overview** and more on our website, [builditluc.github.io/wiki-tui](https://builditluc.github.io/wiki-tui/)
 
 # What can it do?
