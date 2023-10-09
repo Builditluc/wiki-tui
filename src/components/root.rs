@@ -1,11 +1,9 @@
 use anyhow::Result;
 use crossterm::event::{KeyCode, KeyEvent};
-use ratatui::{
-    prelude::{Constraint, Direction, Layout, Rect},
-    widgets::Paragraph,
-};
+use ratatui::prelude::{Constraint, Direction, Layout, Rect};
 use tokio::sync::mpsc;
 
+use crate::components::home::Home;
 use crate::{action::Action, terminal::Frame};
 
 use super::{logger::Logger, page::PageComponent, search::Search, Component};
@@ -20,6 +18,7 @@ pub enum Context {
 
 #[derive(Default)]
 pub struct Root {
+    home: Home,
     search: Search,
     page: PageComponent,
     logger: Logger,
@@ -39,6 +38,7 @@ impl Root {
 
 impl Component for Root {
     fn init(&mut self, sender: mpsc::UnboundedSender<Action>) -> Result<()> {
+        self.home.init(sender.clone())?;
         self.search.init(sender.clone())?;
         self.page.init(sender.clone())?;
         self.action_tx = Some(sender);
@@ -63,10 +63,7 @@ impl Component for Root {
                 Action::Noop
             }
             _ => match self.context {
-                Context::Home => match key.code {
-                    KeyCode::Char('s') => Action::EnterContext(Context::Search),
-                    _ => Action::Noop,
-                },
+                Context::Home => self.home.handle_key_events(key),
                 Context::Search => self.search.handle_key_events(key),
                 Context::Page => self.page.handle_key_events(key),
             },
@@ -99,7 +96,7 @@ impl Component for Root {
 
         // all other actions are passed on to the current component
         if let Some(_action) = match self.context {
-            Context::Home => None,
+            Context::Home => self.home.dispatch(action),
             Context::Search => self.search.dispatch(action),
             Context::Page => self.page.dispatch(action),
         } {
@@ -122,7 +119,7 @@ impl Component for Root {
         };
 
         match self.context {
-            Context::Home => frame.render_widget(Paragraph::new("Hello World!"), size),
+            Context::Home => self.home.render(frame, size),
             Context::Search => self.search.render(frame, size),
             Context::Page => self.page.render(frame, size),
         }
