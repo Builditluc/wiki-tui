@@ -5,36 +5,39 @@ use ratatui::layout::Rect;
 use ratatui::widgets::{Paragraph, Wrap};
 use tokio::sync::mpsc::UnboundedSender;
 
-const INFO_TEXT: &str = r#"Welcome to wiki-tui. This version is a part of the rewrite of wiki-tui in ratatui.
+const INFO_TEXT: &str = r#"Welcome to wiki-tui. This version is a part of the rewrite of wiki-tui.
 Since this conversion is ongoing, there are going to be bugs and missing features. To get going, here are a few tipps:
 
-Keybinding help:
-- Global keybindings (work except when in input mode):
-    - 'l' Action::ToggleShowLogger
-    - 'q' Action::Quit
-    - 'j' Action::ScrollDown(1)
-    - 'k' Action::ScrollUp(1)
-    - 'h' Action::UnselectScroll
-    - 'p' Shortcut for opening the article 'Linux'
-- Context::Home keybindings:
-    - 's' Action::EnterContext(Context::Search)
-- Context::Search keybindings:
-    Mode::Normal:
-    - 'h' if KeyModifiers::CONTROL Action::EnterContext(Context::Home)
-    - 'i' Action::EnterInsert
-    - Enter if search_results.is_selected() -> Open Search Result
+Key Events and Keybindings:
+===========================
 
-    Mode::Insert:
-    - Esc Action::ExitInsert
-    - Enter Action::StartSearch(input.value())
-    - other: forward to input widget
+KeyEvents are ordered in the following order:
+1. if the search bar is focussed, forward the key event to it
+2. forward the event to the currently focussed context (can be seen in the status bar)
+3. if the event was ignored, handle the global keybindings
 
-    Mode::Processing:
-    - no events (global keybindings still work)
-- Context::Page keybindings:
-    - 's' Action::EnterContext(Context::Search)
-    - 'h' if KeyModifiers::CONTROL Action::EnterContext(Context::Home)
-    - 'r' if KeyModifiers::CONTROL Action::SwitchRenderer(renderer.next())
+Below is a list of the keybindings:
+Global keybindings:
+- Char('l') => Action::ToggleShowLogger
+- Char('q') => Action::Quit
+- Char('s') => Action::EnterContext(Context::Search)
+- Char('h') if KeyModifiers::CONTROL => Action::EnterContext(Context::Home)
+- Char('j') => Action::ScrollDown(1)
+- Char('k') => Action::ScrollUp(1)
+- Char('h') => Action::UnselectScroll
+- Char('i') => Action::EnterSearchBar
+- Char('p') => PageAction::OpenPage("Linux") // just for testing purposes
+
+Search focus keybindings:
+- Enter if search_results.is_selected() => open_selected_result
+
+Page focus keybindings:
+- Char('q') if KeyModifiers::CONTROL => PageAction::SwitchRenderer // switches through the
+                                                                   // renderers
+
+SearchBar keybindings:
+- Enter => disable searchbar focus & SearchAction::StartSearch
+- Esc => Action::ExitSearchBar
 "#;
 
 #[derive(Default)]
