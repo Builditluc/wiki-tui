@@ -3,9 +3,10 @@ use std::collections::HashMap;
 use anyhow::{anyhow, Result};
 use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 use ratatui::{
-    prelude::Rect,
+    prelude::{Alignment, Rect},
+    style::{Color, Style},
     text::{Line, Span},
-    widgets::{Paragraph, ScrollbarState},
+    widgets::{Block, BorderType, Borders, Paragraph, ScrollbarState},
 };
 use tokio::sync::mpsc;
 use tracing::{debug, error};
@@ -20,6 +21,7 @@ use crate::{
     components::Component,
     renderer::{default_renderer::render_document, RenderedDocument},
     terminal::Frame,
+    ui::centered_rect,
 };
 
 #[cfg(debug_assertions)]
@@ -194,16 +196,26 @@ impl Component for PageComponent {
         None
     }
 
-    fn render(&mut self, frame: &mut Frame, size: Rect) {
+    fn render(&mut self, f: &mut Frame, area: Rect) {
         if self.page.is_none() {
-            frame.render_widget(Paragraph::new("Processing"), size);
+            f.render_widget(
+                Block::default()
+                    .borders(Borders::ALL)
+                    .border_type(BorderType::Rounded)
+                    .border_style(Style::default().fg(Color::Yellow)),
+                area,
+            );
+            f.render_widget(
+                Paragraph::new("Processing").alignment(Alignment::Center),
+                centered_rect(area, 100, 50),
+            );
             return;
         }
 
-        let viewport_top = size.top().saturating_add(self.scroll as u16) as usize;
-        let viewport_bottom = size.bottom().saturating_add(self.scroll as u16) as usize;
+        let viewport_top = area.top().saturating_add(self.scroll as u16) as usize;
+        let viewport_bottom = area.bottom().saturating_add(self.scroll as u16) as usize;
 
-        let rendered_page = self.render_page(size.width);
+        let rendered_page = self.render_page(area.width);
         let lines: Vec<Line> = rendered_page
             .lines
             .iter()
@@ -230,6 +242,6 @@ impl Component for PageComponent {
             })
             .collect();
 
-        frame.render_widget(Paragraph::new(lines), size);
+        f.render_widget(Paragraph::new(lines), area);
     }
 }

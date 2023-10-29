@@ -4,7 +4,7 @@ use ratatui::{
     prelude::{Alignment, Constraint, Direction, Layout, Rect},
     style::{Color, Modifier, Style, Stylize},
     text::{Line, Span, Text},
-    widgets::{Block, Borders, List, ListItem, ListState, Paragraph},
+    widgets::{Block, BorderType, Borders, List, ListItem, ListState, Paragraph},
 };
 use tokio::sync::mpsc;
 use tracing::error;
@@ -128,7 +128,7 @@ impl SearchComponent {
             .language(language))
     }
 
-    fn execute_search(&mut self, query: String) {
+    fn start_search(&mut self, query: String) {
         let tx = self.action_tx.clone().unwrap();
         let search_request = match self.build_search(query) {
             Ok(search_request) => search_request,
@@ -190,52 +190,46 @@ impl Component for SearchComponent {
     }
 
     fn dispatch(&mut self, action: Action) -> Option<Action> {
-        // FIXME: make this cleaner
         match action {
             Action::Search(search_action) => match search_action {
-                SearchAction::StartSearch(query) => {
-                    self.execute_search(query);
-                    None
-                }
-                SearchAction::FinshSearch(search) => {
-                    self.finish_search(search);
-                    None
-                }
+                SearchAction::StartSearch(query) => self.start_search(query),
+                SearchAction::FinshSearch(search) => self.finish_search(search),
             },
-            Action::EnterNormal => {
-                self.mode = Mode::Normal;
-                None
-            }
-            Action::EnterProcessing => {
-                self.mode = Mode::Processing;
-                None
-            }
-            Action::ExitProcessing => {
-                // TODO: make this exit to the previous mode
-                self.mode = Mode::Normal;
-                None
-            }
+            Action::EnterNormal => self.mode = Mode::Normal,
+            Action::EnterProcessing => self.mode = Mode::Processing,
+            Action::ExitProcessing => self.mode = Mode::Normal,
             Action::ScrollUp(n) => {
                 for _ in 0..n {
-                    self.search_results.previous();
+                    self.search_results.previous()
                 }
-                None
             }
             Action::ScrollDown(n) => {
                 for _ in 0..n {
-                    self.search_results.next();
+                    self.search_results.next()
                 }
-                None
             }
-            Action::UnselectScroll => {
-                self.search_results.unselect();
-                None
-            }
-            _ => None,
-        }
+            Action::UnselectScroll => self.search_results.unselect(),
+            _ => {}
+        };
+        None
     }
 
     fn render(&mut self, f: &mut Frame<'_>, area: Rect) {
+        if self.mode == Mode::Processing {
+            f.render_widget(
+                Block::default()
+                    .borders(Borders::ALL)
+                    .border_type(BorderType::Rounded)
+                    .border_style(Style::default().fg(Color::Yellow)),
+                area,
+            );
+            f.render_widget(
+                Paragraph::new("Processing Search. Please wait...").alignment(Alignment::Center),
+                centered_rect(area, 100, 50),
+            );
+            return;
+        }
+
         if self.search_results.items.is_empty() {
             f.render_widget(
                 Paragraph::new("Start a search to view the results!").alignment(Alignment::Center),

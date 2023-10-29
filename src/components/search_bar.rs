@@ -49,7 +49,7 @@ impl Component for SearchBarComponent {
             Paragraph::new(Text::styled(
                 EMPTY_PROMPT,
                 Style::default()
-                    .fg(Color::DarkGray)
+                    .fg(Color::Gray)
                     .add_modifier(Modifier::ITALIC),
             ))
         } else {
