@@ -8,10 +8,11 @@ use crate::{action::Action, event::Event, terminal::Frame};
 pub mod home;
 pub mod logger;
 pub mod page;
-pub mod root;
 pub mod search;
+pub mod status;
 
 pub trait Component {
+    // TODO: use custom error type
     #[allow(unused_variables)]
     fn init(&mut self, action_tx: mpsc::UnboundedSender<Action>) -> Result<()> {
         Ok(())

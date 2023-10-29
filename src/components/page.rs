@@ -19,13 +19,11 @@ use crate::{
     action::Action,
     components::Component,
     renderer::{default_renderer::render_document, RenderedDocument},
-    terminal::Frame,
+    terminal::Frame, app::Context,
 };
 
 #[cfg(debug_assertions)]
 use crate::renderer::test_renderer::{render_nodes_raw, render_tree_data, render_tree_raw};
-
-use super::root::Context;
 
 #[derive(Default, Debug, Clone, PartialEq, Eq)]
 #[repr(u8)]

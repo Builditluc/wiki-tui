@@ -13,11 +13,11 @@ use crate::{action::Action, terminal::Frame};
 use super::Component;
 
 #[derive(Default)]
-pub struct Logger {
+pub struct LoggerComponent {
     state: TuiWidgetState,
 }
 
-impl Component for Logger {
+impl Component for LoggerComponent {
     fn init(&mut self, _: mpsc::UnboundedSender<Action>) -> Result<()> {
         self.state = TuiWidgetState::new().set_default_display_level(LevelFilter::Debug);
         Ok(())

@@ -15,9 +15,9 @@ use wiki_api::{
     Endpoint,
 };
 
-use crate::{action::Action, terminal::Frame};
+use crate::{action::Action, terminal::Frame, app::Context};
 
-use super::{root::Context, Component};
+use super::Component;
 
 struct ResultsList<T> {
     state: ListState,
@@ -81,7 +81,7 @@ enum Mode {
     Processing,
 }
 
-pub struct Search {
+pub struct SearchComponent {
     mode: Mode,
     input: Input,
     endpoint: Option<Endpoint>,
@@ -94,9 +94,9 @@ pub struct Search {
     action_tx: Option<mpsc::UnboundedSender<Action>>,
 }
 
-impl Default for Search {
-    fn default() -> Search {
-        Search {
+impl Default for SearchComponent {
+    fn default() -> SearchComponent {
+        SearchComponent {
             mode: Mode::default(),
             input: Input::default(),
             endpoint: None,
@@ -111,7 +111,7 @@ impl Default for Search {
     }
 }
 
-impl Search {
+impl SearchComponent {
     fn build_search(&self, query: String) -> Result<SearchRequest> {
         let endpoint = self
             .endpoint
@@ -164,7 +164,7 @@ impl Search {
     }
 }
 
-impl Component for Search {
+impl Component for SearchComponent {
     fn init(&mut self, sender: mpsc::UnboundedSender<Action>) -> anyhow::Result<()> {
         self.action_tx = Some(sender);
         // FIXME: the endpoint and language should be set by the root component

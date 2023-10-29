@@ -1,6 +1,6 @@
 use wiki_api::{page::Page, search::Search};
 
-use crate::components::{page::Renderer, root::Context};
+use crate::{components::page::Renderer, app::Context};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Action {

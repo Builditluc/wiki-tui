@@ -1,5 +1,5 @@
 use crate::action::Action;
-use crate::components::root::Context;
+use crate::app::Context;
 use crate::components::Component;
 use crate::terminal::Frame;
 use crossterm::event::{KeyCode, KeyEvent};
@@ -40,12 +40,12 @@ Keybinding help:
 "#;
 
 #[derive(Default)]
-pub struct Home {
+pub struct HomeComponent {
     scroll: usize,
     action_tx: Option<UnboundedSender<Action>>,
 }
 
-impl Home {
+impl HomeComponent {
     fn scroll_up(&mut self, amount: usize) {
         self.scroll = self.scroll.saturating_sub(amount);
     }
@@ -55,7 +55,7 @@ impl Home {
     }
 }
 
-impl Component for Home {
+impl Component for HomeComponent {
     fn init(&mut self, sender: UnboundedSender<Action>) -> anyhow::Result<()> {
         self.action_tx = Some(sender);
         Ok(())
