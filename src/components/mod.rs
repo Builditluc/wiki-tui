@@ -13,7 +13,7 @@ pub mod search;
 
 pub trait Component {
     #[allow(unused_variables)]
-    fn init(&mut self, sender: mpsc::UnboundedSender<Action>) -> Result<()> {
+    fn init(&mut self, action_tx: mpsc::UnboundedSender<Action>) -> Result<()> {
         Ok(())
     }
 
@@ -44,6 +44,5 @@ pub trait Component {
         None
     }
 
-    // TODO: Rename frame to f and size to area
-    fn render(&mut self, frame: &mut Frame<'_>, size: Rect);
+    fn render(&mut self, f: &mut Frame<'_>, area: Rect);
 }
