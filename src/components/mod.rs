@@ -9,6 +9,7 @@ pub mod home;
 pub mod logger;
 pub mod page;
 pub mod search;
+pub mod search_bar;
 pub mod status;
 
 pub trait Component {

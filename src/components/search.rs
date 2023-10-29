@@ -1,21 +1,24 @@
 use anyhow::{anyhow, Result};
-use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+use crossterm::event::{KeyCode, KeyEvent};
 use ratatui::{
     prelude::{Alignment, Constraint, Direction, Layout, Rect},
     style::{Color, Modifier, Style, Stylize},
     text::{Line, Span, Text},
-    widgets::{Block, BorderType, Borders, List, ListItem, ListState, Paragraph},
+    widgets::{Block, Borders, List, ListItem, ListState, Paragraph},
 };
 use tokio::sync::mpsc;
 use tracing::error;
-use tui_input::{backend::crossterm::EventHandler, Input};
 use wiki_api::{
     languages::Language,
     search::{Search as ApiSearch, SearchContinue, SearchInfo, SearchRequest, SearchResult},
     Endpoint,
 };
 
-use crate::{action::Action, terminal::Frame, app::Context};
+use crate::{
+    action::{Action, PageAction, SearchAction},
+    terminal::Frame,
+    ui::centered_rect,
+};
 
 use super::Component;
 
@@ -77,13 +80,11 @@ impl<T> ResultsList<T> {
 enum Mode {
     #[default]
     Normal,
-    Insert,
     Processing,
 }
 
 pub struct SearchComponent {
     mode: Mode,
-    input: Input,
     endpoint: Option<Endpoint>,
     language: Option<Language>,
 
@@ -98,7 +99,6 @@ impl Default for SearchComponent {
     fn default() -> SearchComponent {
         SearchComponent {
             mode: Mode::default(),
-            input: Input::default(),
             endpoint: None,
             language: None,
 
@@ -140,7 +140,9 @@ impl SearchComponent {
         tokio::spawn(async move {
             tx.send(Action::EnterProcessing).unwrap();
             match search_request.search().await {
-                Ok(search) => tx.send(Action::FinshSearch(search)).unwrap(),
+                Ok(search) => tx
+                    .send(Action::Search(SearchAction::FinshSearch(search)))
+                    .unwrap(),
                 Err(error) => error!("Unable to complete the search: {:?}", error),
             };
             tx.send(Action::ExitProcessing).unwrap();
@@ -156,9 +158,10 @@ impl SearchComponent {
     fn open_selected_result(&self) {
         if let Some(selected_result) = self.search_results.selected() {
             let action_tx = self.action_tx.clone().unwrap();
-            action_tx.send(Action::EnterContext(Context::Page)).unwrap();
             action_tx
-                .send(Action::OpenPage(selected_result.title.to_string()))
+                .send(Action::Page(PageAction::OpenPage(
+                    selected_result.title.clone(),
+                )))
                 .unwrap();
         }
     }
@@ -176,23 +179,11 @@ impl Component for SearchComponent {
     fn handle_key_events(&mut self, key: KeyEvent) -> Action {
         match self.mode {
             Mode::Normal => match key.code {
-                KeyCode::Char('h') if key.modifiers == KeyModifiers::CONTROL => {
-                    Action::EnterContext(Context::Home)
-                }
-                KeyCode::Char('i') => Action::EnterInsert,
                 KeyCode::Enter if self.search_results.is_selected() => {
                     self.open_selected_result();
                     Action::Noop
                 }
                 _ => Action::Noop,
-            },
-            Mode::Insert => match key.code {
-                KeyCode::Esc => Action::ExitInsert,
-                KeyCode::Enter => Action::StartSearch(self.input.value().to_string()),
-                _ => {
-                    self.input.handle_event(&crossterm::event::Event::Key(key));
-                    Action::Noop
-                }
             },
             Mode::Processing => Action::Noop,
         }
@@ -201,15 +192,17 @@ impl Component for SearchComponent {
     fn dispatch(&mut self, action: Action) -> Option<Action> {
         // FIXME: make this cleaner
         match action {
+            Action::Search(search_action) => match search_action {
+                SearchAction::StartSearch(query) => {
+                    self.execute_search(query);
+                    None
+                }
+                SearchAction::FinshSearch(search) => {
+                    self.finish_search(search);
+                    None
+                }
+            },
             Action::EnterNormal => {
-                self.mode = Mode::Normal;
-                None
-            }
-            Action::EnterInsert => {
-                self.mode = Mode::Insert;
-                None
-            }
-            Action::ExitInsert => {
                 self.mode = Mode::Normal;
                 None
             }
@@ -220,18 +213,6 @@ impl Component for SearchComponent {
             Action::ExitProcessing => {
                 // TODO: make this exit to the previous mode
                 self.mode = Mode::Normal;
-                None
-            }
-            Action::StartSearch(query) => {
-                self.execute_search(query);
-                if self.mode == Mode::Insert {
-                    Some(Action::ExitInsert)
-                } else {
-                    None
-                }
-            }
-            Action::FinshSearch(search) => {
-                self.finish_search(search);
                 None
             }
             Action::ScrollUp(n) => {
@@ -254,39 +235,31 @@ impl Component for SearchComponent {
         }
     }
 
-    fn render(&mut self, frame: &mut Frame<'_>, size: Rect) {
-        let [input_area, results_area, info_area] = {
+    fn render(&mut self, f: &mut Frame<'_>, area: Rect) {
+        if self.search_results.items.is_empty() {
+            f.render_widget(
+                Paragraph::new("Start a search to view the results!").alignment(Alignment::Center),
+                centered_rect(area, 100, 50),
+            );
+            return;
+        }
+
+        let [info_area, results_area] = {
             let rects = Layout::default()
                 .direction(Direction::Vertical)
-                .constraints([
-                    Constraint::Length(3),
-                    Constraint::Percentage(100),
-                    Constraint::Min(1),
-                ])
-                .split(size);
-            [rects[0], rects[1], rects[2]]
+                .constraints([Constraint::Min(1), Constraint::Percentage(100)])
+                .split(area);
+            [rects[0], rects[1]]
         };
 
-        let width = input_area.width.max(3) - 3;
-        let scroll = self.input.visual_scroll(width as usize);
-        let input = Paragraph::new(self.input.value())
-            .style(match self.mode {
-                Mode::Insert => Style::default().fg(Color::Yellow),
-                _ => Style::default(),
-            })
-            .scroll((0, scroll as u16))
-            .block(
-                Block::new()
-                    .title("Search")
-                    .title_alignment(Alignment::Center)
-                    .borders(Borders::ALL)
-                    .border_type(BorderType::Rounded),
-            );
+        if let Some(ref search_info) = self.search_info {
+            let info = Paragraph::new(format!(
+                "Results: {} | Language: {}",
+                search_info.total_hits.unwrap_or_default(),
+                search_info.language.name()
+            ));
 
-        frame.render_widget(input, input_area);
-
-        if self.search_results.items.is_empty() {
-            return;
+            f.render_widget(info, info_area);
         }
 
         // TODO: Somehow implement list item margin
@@ -325,16 +298,6 @@ impl Component for SearchComponent {
                     .add_modifier(Modifier::BOLD),
             );
 
-        frame.render_stateful_widget(items, results_area, &mut self.search_results.state);
-
-        if let Some(ref search_info) = self.search_info {
-            let info = Paragraph::new(format!(
-                "Results: {} | Language: {}",
-                search_info.total_hits.unwrap_or_default(),
-                search_info.language.name()
-            ));
-
-            frame.render_widget(info, info_area);
-        }
+        f.render_stateful_widget(items, results_area, &mut self.search_results.state);
     }
 }

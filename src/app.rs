@@ -1,17 +1,18 @@
 use anyhow::Result;
-use crossterm::event::{KeyCode, KeyEvent};
+use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 use ratatui::prelude::{Constraint, Direction, Layout, Rect};
 use std::sync::Arc;
 
 use tokio::sync::{mpsc, Mutex};
 
 use crate::{
-    action::Action,
+    action::{Action, PageAction},
     components::{
         home::HomeComponent,
         logger::LoggerComponent,
         page::PageComponent,
         search::SearchComponent,
+        search_bar::{SearchBarComponent, SEARCH_BAR_HEIGTH},
         status::{StatusComponent, STATUS_HEIGHT},
         Component,
     },
@@ -35,9 +36,9 @@ pub struct AppComponent {
     page: PageComponent,
     logger: LoggerComponent,
     status: StatusComponent,
+    search_bar: SearchBarComponent,
 
     is_logger: bool,
-    is_input: bool,
 
     context: Context,
 
@@ -56,69 +57,97 @@ impl Component for AppComponent {
         self.home.init(action_tx.clone())?;
         self.search.init(action_tx.clone())?;
         self.page.init(action_tx.clone())?;
+        self.search_bar.init(action_tx.clone())?;
 
         self.action_tx = Some(action_tx);
         Ok(())
     }
 
     fn handle_key_events(&mut self, key: KeyEvent) -> Action {
-        match key.code {
-            // HACK: handle global events after the component handled it
-            // When we are in the input mode, we don't want to handle the global events
-            KeyCode::Char('l') if !self.is_input => Action::ToggleShowLogger,
-            KeyCode::Char('q') if !self.is_input => Action::Quit,
-            KeyCode::Char('j') if !self.is_input => Action::ScrollDown(1),
-            KeyCode::Char('k') if !self.is_input => Action::ScrollUp(1),
-            KeyCode::Char('h') if !self.is_input => Action::UnselectScroll,
-            // TEST: this is just for quickly opening a page
-            // will be removed before release
-            KeyCode::Char('p') => {
-                let action_tx = self.action_tx.as_ref().unwrap();
-                action_tx.send(Action::EnterContext(Context::Page)).unwrap();
-                action_tx
-                    .send(Action::OpenPage("Linux".to_string()))
-                    .unwrap();
-                Action::Noop
+        let action = {
+            if self.search_bar.is_focussed {
+                return self.search_bar.handle_key_events(key);
             }
-            _ => match self.context {
+
+            match self.context {
                 Context::Home => self.home.handle_key_events(key),
                 Context::Search => self.search.handle_key_events(key),
                 Context::Page => self.page.handle_key_events(key),
-            },
+            }
+        };
+
+        if action == Action::Noop {
+            match key.code {
+                KeyCode::Char('l') => Action::ToggleShowLogger,
+                KeyCode::Char('q') => Action::Quit,
+                KeyCode::Char('s') => Action::EnterContext(Context::Search),
+                KeyCode::Char('h') if key.modifiers == KeyModifiers::CONTROL => {
+                    Action::EnterContext(Context::Home)
+                }
+                KeyCode::Char('j') => Action::ScrollDown(1),
+                KeyCode::Char('k') => Action::ScrollUp(1),
+                KeyCode::Char('h') => Action::UnselectScroll,
+                KeyCode::Char('i') => Action::EnterSearchBar,
+
+                // TEST: this is just for quickly opening a page
+                // will be removed before release
+                KeyCode::Char('p') => Action::Page(PageAction::OpenPage("Linux".to_string())),
+
+                _ => Action::Noop,
+            }
+        } else {
+            action
         }
     }
 
     fn dispatch(&mut self, action: Action) -> Option<Action> {
-        // HACK: handle global actions after the component handlet it
-        match action {
-            Action::ToggleShowLogger => self.is_logger = !self.is_logger,
-            Action::EnterContext(ref context) => self.enter_context(context.to_owned()),
-            Action::EnterInsert => self.is_input = true,
-            Action::ExitInsert => self.is_input = false,
-            _ => {}
-        }
+        let action_cb = {
+            let action = action.clone();
+            match action {
+                Action::Search(..) if self.context != Context::Search => {
+                    self.context = Context::Search;
+                    self.search.dispatch(action)
+                }
+                Action::Page(..) if self.context != Context::Page => {
+                    self.context = Context::Page;
+                    self.page.dispatch(action)
+                }
+                _ => match self.context {
+                    Context::Home => self.home.dispatch(action),
+                    Context::Search => self.search.dispatch(action),
+                    Context::Page => self.page.dispatch(action),
+                },
+            }
+        };
 
-        // all other actions are passed on to the current component
-        if let Some(action_cb) = match self.context {
-            Context::Home => self.home.dispatch(action),
-            Context::Search => self.search.dispatch(action),
-            Context::Page => self.page.dispatch(action),
-        } {
-            return Some(action_cb);
+        if action_cb.is_none() {
+            match action {
+                Action::ToggleShowLogger => self.is_logger = !self.is_logger,
+                Action::EnterContext(ref context) => self.enter_context(context.to_owned()),
+                Action::EnterSearchBar => self.search_bar.is_focussed = true,
+                Action::ExitSearchBar => self.search_bar.is_focussed = false,
+                _ => {}
+            }
+            None
+        } else {
+            action_cb
         }
-
-        None
     }
 
     fn render(&mut self, f: &mut Frame<'_>, area: Rect) {
-        let (area, status_area) = {
+        let (search_bar_area, area, status_area) = {
             let chunks = Layout::default()
                 .direction(Direction::Vertical)
-                .constraints([Constraint::Percentage(100), Constraint::Min(STATUS_HEIGHT)])
+                .constraints([
+                    Constraint::Min(SEARCH_BAR_HEIGTH),
+                    Constraint::Percentage(100),
+                    Constraint::Min(STATUS_HEIGHT),
+                ])
                 .split(area);
-            (chunks[0], chunks[1])
+            (chunks[0], chunks[1], chunks[2])
         };
 
+        self.search_bar.render(f, search_bar_area);
         self.status.render(f, status_area);
 
         let area = if self.is_logger {

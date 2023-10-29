@@ -1,13 +1,11 @@
 use crate::action::Action;
-use crate::app::Context;
 use crate::components::Component;
 use crate::terminal::Frame;
-use crossterm::event::{KeyCode, KeyEvent};
 use ratatui::layout::Rect;
 use ratatui::widgets::{Paragraph, Wrap};
 use tokio::sync::mpsc::UnboundedSender;
 
-const INFO_TEXT: &'static str = r#"Welcome to wiki-tui. This version is a part of the rewrite of wiki-tui in ratatui.
+const INFO_TEXT: &str = r#"Welcome to wiki-tui. This version is a part of the rewrite of wiki-tui in ratatui.
 Since this conversion is ongoing, there are going to be bugs and missing features. To get going, here are a few tipps:
 
 Keybinding help:
@@ -59,13 +57,6 @@ impl Component for HomeComponent {
     fn init(&mut self, sender: UnboundedSender<Action>) -> anyhow::Result<()> {
         self.action_tx = Some(sender);
         Ok(())
-    }
-
-    fn handle_key_events(&mut self, key: KeyEvent) -> Action {
-        match key.code {
-            KeyCode::Char('s') => Action::EnterContext(Context::Search),
-            _ => Action::Noop,
-        }
     }
 
     fn dispatch(&mut self, action: Action) -> Option<Action> {

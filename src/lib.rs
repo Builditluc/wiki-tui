@@ -6,3 +6,4 @@ pub mod logging;
 pub mod panic_handler;
 pub mod renderer;
 pub mod terminal;
+pub mod ui;

@@ -1,6 +1,6 @@
 use wiki_api::{page::Page, search::Search};
 
-use crate::{components::page::Renderer, app::Context};
+use crate::{app::Context, components::page::Renderer};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Action {
@@ -28,11 +28,23 @@ pub enum Action {
     EnterProcessing,
     ExitProcessing,
 
-    // Search
+    // Search Bar
+    EnterSearchBar,
+    ClearSearchBar,
+    ExitSearchBar,
+
+    Search(SearchAction),
+    Page(PageAction),
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum SearchAction {
     StartSearch(String),
     FinshSearch(Search),
+}
 
-    // Page
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum PageAction {
     OpenPage(String),
     FinishPage(Page),
     SwitchRenderer(Renderer),

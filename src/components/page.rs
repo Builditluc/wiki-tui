@@ -16,10 +16,10 @@ use wiki_api::{
 };
 
 use crate::{
-    action::Action,
+    action::{Action, PageAction},
     components::Component,
     renderer::{default_renderer::render_document, RenderedDocument},
-    terminal::Frame, app::Context,
+    terminal::Frame,
 };
 
 #[cfg(debug_assertions)]
@@ -104,7 +104,7 @@ impl PageComponent {
         tokio::spawn(async move {
             tx.send(Action::EnterProcessing).unwrap();
             match page_request.fetch().await {
-                Ok(page) => tx.send(Action::FinishPage(page)).unwrap(),
+                Ok(page) => tx.send(Action::Page(PageAction::FinishPage(page))).unwrap(),
                 Err(error) => error!("Unable to complete the fetch: {:?}", error),
             };
             tx.send(Action::ExitProcessing).unwrap();
@@ -172,12 +172,8 @@ impl Component for PageComponent {
 
     fn handle_key_events(&mut self, key: KeyEvent) -> Action {
         match key.code {
-            KeyCode::Char('s') => Action::EnterContext(Context::Search),
-            KeyCode::Char('h') if key.modifiers == KeyModifiers::CONTROL => {
-                Action::EnterContext(Context::Home)
-            }
             KeyCode::Char('r') if key.modifiers == KeyModifiers::CONTROL => {
-                Action::SwitchRenderer(self.renderer.next())
+                Action::Page(PageAction::SwitchRenderer(self.renderer.next()))
             }
             _ => Action::Noop,
         }
@@ -185,9 +181,11 @@ impl Component for PageComponent {
 
     fn dispatch(&mut self, action: Action) -> Option<Action> {
         match action {
-            Action::OpenPage(title) => self.open_page(title),
-            Action::FinishPage(page) => self.page = Some(page),
-            Action::SwitchRenderer(renderer) => self.switch_renderer(renderer),
+            Action::Page(page_action) => match page_action {
+                PageAction::OpenPage(title) => self.open_page(title),
+                PageAction::FinishPage(page) => self.page = Some(page),
+                PageAction::SwitchRenderer(renderer) => self.switch_renderer(renderer),
+            },
             Action::ScrollUp(amount) => self.scroll_up(amount),
             Action::ScrollDown(amount) => self.scroll_down(amount),
             Action::Resize(..) => self.flush_cache(),
