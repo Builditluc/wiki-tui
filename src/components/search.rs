@@ -5,7 +5,7 @@ use ratatui::{
     style::{Color, Modifier, Style, Stylize},
     text::{Line, Span, Text},
     widgets::{
-        Block, BorderType, Borders, List, ListItem, ListState, Paragraph,
+        Block, BorderType, Borders, List, ListItem, ListState, Paragraph, HighlightSpacing,
     },
 };
 use tokio::sync::mpsc;
@@ -300,8 +300,10 @@ impl Component for SearchComponent {
             .block(Block::default().borders(Borders::ALL).title("Results"))
             .repeat_highlight_symbol(true)
             .highlight_symbol("| ")
+            .highlight_spacing(HighlightSpacing::Always)
             .highlight_style(
                 Style::default()
+                    .bg(Color::DarkGray)
                     .add_modifier(Modifier::ITALIC),
             );
         f.render_stateful_widget(items, results_area, &mut self.search_results.state);

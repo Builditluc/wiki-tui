@@ -6,7 +6,7 @@ use crossterm::{
 };
 use ratatui::prelude::CrosstermBackend as Backend;
 
-pub type Frame<'a> = ratatui::Frame<'a, Backend<std::io::Stderr>>;
+pub type Frame<'a> = ratatui::Frame<'a>;
 
 pub struct Tui {
     pub terminal: ratatui::Terminal<Backend<std::io::Stderr>>,

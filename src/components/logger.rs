@@ -3,7 +3,7 @@ use log::LevelFilter;
 use ratatui::{
     prelude::Rect,
     style::{Color, Style},
-    widgets::{Block, Borders},
+    widgets::{Borders, Block},
 };
 use tokio::sync::mpsc;
 use tui_logger::{TuiLoggerWidget, TuiWidgetState};

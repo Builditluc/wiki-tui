@@ -152,12 +152,12 @@ impl PageComponent {
 
     fn scroll_down(&mut self, amount: usize) {
         self.scroll = self.scroll.saturating_add(amount);
-        self.scroll_state = self.scroll_state.position(self.scroll as u16);
+        self.scroll_state = self.scroll_state.position(self.scroll);
     }
 
     fn scroll_up(&mut self, amount: usize) {
         self.scroll = self.scroll.saturating_sub(amount);
-        self.scroll_state = self.scroll_state.position(self.scroll as u16);
+        self.scroll_state = self.scroll_state.position(self.scroll);
     }
 }
 
