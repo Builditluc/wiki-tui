@@ -212,15 +212,17 @@ impl Component for PageComponent {
             return;
         }
 
-        let viewport_top = area.top().saturating_add(self.scroll as u16) as usize;
-        let viewport_bottom = area.bottom().saturating_add(self.scroll as u16) as usize;
+        let area = padded_rect(area, 1, 1);
+        let viewport_top = self.scroll;
+        let viewport_bottom = viewport_top.saturating_add(area.height as usize);
 
         let rendered_page = self.render_page(area.width);
         let lines: Vec<Line> = rendered_page
             .lines
             .iter()
             .enumerate()
-            .filter(|(y, _)| &viewport_top <= y && y <= &viewport_bottom)
+            .skip(viewport_top)
+            .take(viewport_bottom)
             .map(|(_, line)| {
                 let mut spans: Vec<Span> = Vec::new();
                 line.iter()
@@ -242,6 +244,6 @@ impl Component for PageComponent {
             })
             .collect();
 
-        f.render_widget(Paragraph::new(lines), padded_rect(area, 1, 1));
+        f.render_widget(Paragraph::new(lines), area);
     }
 }

@@ -51,7 +51,7 @@ impl Component for SearchBarComponent {
         let scroll = self.input.visual_scroll(area.width as usize);
         let value = self.input.value();
 
-        let input = if value.is_empty() {
+        let input = if value.is_empty() && !self.is_focussed {
             Paragraph::new(Text::styled(
                 EMPTY_PROMPT,
                 Style::default()
@@ -71,6 +71,15 @@ impl Component for SearchBarComponent {
                 }),
         );
 
-        f.render_widget(input, centered_rect(area, SEARCH_BAR_X, 100));
+        let input_area = centered_rect(area, SEARCH_BAR_X, 100);
+        f.render_widget(input, input_area);
+        if self.is_focussed {
+            f.set_cursor(
+                // Put cursor past the end of the input text
+                input_area.x + ((self.input.visual_cursor()).max(scroll) - scroll) as u16 + 1,
+                // Move one line down, from the border to the input line
+                input_area.y + 1,
+            );
+        }
     }
 }

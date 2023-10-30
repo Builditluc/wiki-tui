@@ -60,6 +60,7 @@ impl Component for AppComponent {
         self.search_bar.init(action_tx.clone())?;
 
         self.action_tx = Some(action_tx);
+
         Ok(())
     }
 
