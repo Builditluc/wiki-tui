@@ -21,7 +21,7 @@ use crate::{
     components::Component,
     renderer::{default_renderer::render_document, RenderedDocument},
     terminal::Frame,
-    ui::centered_rect,
+    ui::{centered_rect, padded_rect},
 };
 
 #[cfg(debug_assertions)]
@@ -242,6 +242,6 @@ impl Component for PageComponent {
             })
             .collect();
 
-        f.render_widget(Paragraph::new(lines), area);
+        f.render_widget(Paragraph::new(lines), padded_rect(area, 1, 1));
     }
 }

@@ -1,6 +1,7 @@
 use crate::action::Action;
 use crate::components::Component;
 use crate::terminal::Frame;
+use crate::ui::padded_rect;
 use ratatui::layout::Rect;
 use ratatui::widgets::{Paragraph, Wrap};
 use tokio::sync::mpsc::UnboundedSender;
@@ -72,10 +73,10 @@ impl Component for HomeComponent {
         None
     }
 
-    fn render(&mut self, frame: &mut Frame<'_>, size: Rect) {
+    fn render(&mut self, f: &mut Frame<'_>, area: Rect) {
         let info_widget = Paragraph::new(INFO_TEXT)
             .wrap(Wrap { trim: false })
             .scroll((self.scroll as u16, 0));
-        frame.render_widget(info_widget, size);
+        f.render_widget(info_widget, padded_rect(area, 1, 1));
     }
 }
