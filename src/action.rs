@@ -41,6 +41,7 @@ pub enum Action {
 pub enum SearchAction {
     StartSearch(String),
     FinshSearch(Search),
+    ClearSearchResults,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]

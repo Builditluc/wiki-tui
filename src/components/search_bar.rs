@@ -26,6 +26,12 @@ pub struct SearchBarComponent {
     pub is_focussed: bool,
 }
 
+impl SearchBarComponent {
+    pub fn clear(&mut self) {
+        self.input = Input::default();
+    }
+}
+
 impl Component for SearchBarComponent {
     fn handle_key_events(&mut self, key: KeyEvent) -> Action {
         match key.code {

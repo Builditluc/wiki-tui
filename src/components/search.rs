@@ -139,6 +139,8 @@ impl SearchComponent {
         };
         tokio::spawn(async move {
             tx.send(Action::EnterProcessing).unwrap();
+            tx.send(Action::Search(SearchAction::ClearSearchResults))
+                .unwrap();
             match search_request.search().await {
                 Ok(search) => tx
                     .send(Action::Search(SearchAction::FinshSearch(search)))
@@ -158,12 +160,19 @@ impl SearchComponent {
     fn open_selected_result(&self) {
         if let Some(selected_result) = self.search_results.selected() {
             let action_tx = self.action_tx.clone().unwrap();
+            action_tx.send(Action::ClearSearchBar).unwrap();
             action_tx
                 .send(Action::Page(PageAction::OpenPage(
                     selected_result.title.clone(),
                 )))
                 .unwrap();
         }
+    }
+
+    fn clear_search_results(&mut self) {
+        self.search_results = ResultsList::with_items(Vec::new());
+        self.continue_search = None;
+        self.search_info = None;
     }
 }
 
@@ -194,6 +203,7 @@ impl Component for SearchComponent {
             Action::Search(search_action) => match search_action {
                 SearchAction::StartSearch(query) => self.start_search(query),
                 SearchAction::FinshSearch(search) => self.finish_search(search),
+                SearchAction::ClearSearchResults => self.clear_search_results(),
             },
             Action::EnterNormal => self.mode = Mode::Normal,
             Action::EnterProcessing => self.mode = Mode::Processing,

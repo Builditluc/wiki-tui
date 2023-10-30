@@ -124,8 +124,10 @@ impl Component for AppComponent {
             match action {
                 Action::ToggleShowLogger => self.is_logger = !self.is_logger,
                 Action::EnterContext(ref context) => self.enter_context(context.to_owned()),
+
                 Action::EnterSearchBar => self.search_bar.is_focussed = true,
                 Action::ExitSearchBar => self.search_bar.is_focussed = false,
+                Action::ClearSearchBar => self.search_bar.clear(),
                 _ => {}
             }
             None
