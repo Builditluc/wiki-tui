@@ -188,8 +188,8 @@ impl Component for PageComponent {
                 PageAction::FinishPage(page) => self.page = Some(page),
                 PageAction::SwitchRenderer(renderer) => self.switch_renderer(renderer),
             },
-            Action::ScrollUp(amount) => self.scroll_up(amount),
-            Action::ScrollDown(amount) => self.scroll_down(amount),
+            Action::ScrollUp(amount) if self.page.is_some() => self.scroll_up(amount),
+            Action::ScrollDown(amount) if self.page.is_some() => self.scroll_down(amount),
             Action::Resize(..) => self.flush_cache(),
             _ => (),
         }

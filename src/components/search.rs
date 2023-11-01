@@ -4,9 +4,7 @@ use ratatui::{
     prelude::{Alignment, Constraint, Direction, Layout, Rect},
     style::{Color, Modifier, Style, Stylize},
     text::{Line, Span, Text},
-    widgets::{
-        Block, BorderType, Borders, List, ListItem, ListState, Paragraph, HighlightSpacing,
-    },
+    widgets::{Block, BorderType, Borders, HighlightSpacing, List, ListItem, ListState, Paragraph},
 };
 use tokio::sync::mpsc;
 use tracing::error;
@@ -269,7 +267,8 @@ impl Component for SearchComponent {
         }
 
         // TODO: Somehow implement list item margin
-        let results_list_width = results_area.width;
+        let results_list_width = results_area.width.saturating_sub(3); // HACK: subtract 3 for
+                                                                       // border and highlight symbol
         let items: Vec<ListItem> = self
             .search_results
             .items
