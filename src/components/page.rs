@@ -3,10 +3,12 @@ use std::collections::HashMap;
 use anyhow::{anyhow, Result};
 use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 use ratatui::{
-    prelude::{Alignment, Rect},
+    prelude::{Alignment, Margin, Rect},
     style::{Color, Style},
     text::{Line, Span},
-    widgets::{Block, BorderType, Borders, Paragraph, ScrollbarState},
+    widgets::{
+        Block, BorderType, Borders, Paragraph, Scrollbar, ScrollbarOrientation, ScrollbarState,
+    },
 };
 use tokio::sync::mpsc;
 use tracing::{debug, error};
@@ -26,6 +28,8 @@ use crate::{
 
 #[cfg(debug_assertions)]
 use crate::renderer::test_renderer::{render_nodes_raw, render_tree_data, render_tree_raw};
+
+const SCROLLBAR: bool = true;
 
 #[derive(Default, Debug, Clone, PartialEq, Eq)]
 #[repr(u8)]
@@ -68,7 +72,6 @@ pub struct PageComponent {
     endpoint: Option<Endpoint>,
     language: Option<Language>,
 
-    scroll_state: ScrollbarState,
     scroll: usize,
 
     action_tx: Option<mpsc::UnboundedSender<Action>>,
@@ -146,18 +149,15 @@ impl PageComponent {
     fn flush_cache(&mut self) {
         debug!("flushing '{}' cached renders", self.render_cache.len());
         self.render_cache.clear();
-        self.scroll_state = ScrollbarState::default();
         self.scroll = 0;
     }
 
     fn scroll_down(&mut self, amount: usize) {
         self.scroll = self.scroll.saturating_add(amount);
-        self.scroll_state = self.scroll_state.position(self.scroll);
     }
 
     fn scroll_up(&mut self, amount: usize) {
         self.scroll = self.scroll.saturating_sub(amount);
-        self.scroll_state = self.scroll_state.position(self.scroll);
     }
 }
 
@@ -213,10 +213,19 @@ impl Component for PageComponent {
         }
 
         let area = padded_rect(area, 1, 1);
-        let viewport_top = self.scroll;
-        let viewport_bottom = viewport_top.saturating_add(area.height as usize);
+        let page_area = if SCROLLBAR {
+            area.inner(&Margin {
+                vertical: 0,
+                horizontal: 1, // for the scrollbar
+            })
+        } else {
+            area
+        };
 
-        let rendered_page = self.render_page(area.width);
+        let viewport_top = self.scroll;
+        let viewport_bottom = viewport_top.saturating_add(page_area.height as usize);
+
+        let rendered_page = self.render_page(page_area.width);
         let lines: Vec<Line> = rendered_page
             .lines
             .iter()
@@ -244,6 +253,13 @@ impl Component for PageComponent {
             })
             .collect();
 
-        f.render_widget(Paragraph::new(lines), area);
+        if SCROLLBAR {
+            let scrollbar = Scrollbar::default().orientation(ScrollbarOrientation::VerticalRight);
+            let mut scrollbar_state =
+                ScrollbarState::new(rendered_page.lines.len()).position(self.scroll);
+            f.render_stateful_widget(scrollbar, area, &mut scrollbar_state);
+        }
+
+        f.render_widget(Paragraph::new(lines), page_area);
     }
 }
