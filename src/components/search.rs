@@ -153,6 +153,8 @@ impl SearchComponent {
 
     fn finish_search(&mut self, mut search: ApiSearch) {
         self.search_results.items.append(&mut search.results);
+        self.search_results.next();
+
         self.continue_search = search.continue_data().take();
         self.search_info = Some(search.info);
     }
