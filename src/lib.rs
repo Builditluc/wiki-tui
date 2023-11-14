@@ -3,6 +3,7 @@ pub mod app;
 pub mod components;
 pub mod event;
 pub mod logging;
+pub mod page_loader;
 pub mod panic_handler;
 pub mod renderer;
 pub mod terminal;

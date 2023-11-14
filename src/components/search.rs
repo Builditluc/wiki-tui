@@ -15,7 +15,7 @@ use wiki_api::{
 };
 
 use crate::{
-    action::{Action, PageAction, SearchAction},
+    action::{Action, SearchAction},
     terminal::Frame,
     ui::centered_rect,
 };
@@ -164,9 +164,7 @@ impl SearchComponent {
             let action_tx = self.action_tx.clone().unwrap();
             action_tx.send(Action::ClearSearchBar).unwrap();
             action_tx
-                .send(Action::Page(PageAction::OpenPage(
-                    selected_result.title.clone(),
-                )))
+                .send(Action::LoadPage(selected_result.title.clone()))
                 .unwrap();
         }
     }

@@ -2,21 +2,23 @@ use anyhow::Result;
 use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 use ratatui::prelude::{Constraint, Direction, Layout, Rect};
 use std::sync::Arc;
+use wiki_api::{languages::Language, Endpoint};
 
 use tokio::sync::{mpsc, Mutex};
 
 use crate::{
-    action::{Action, PageAction},
+    action::Action,
     components::{
         home::HomeComponent,
         logger::LoggerComponent,
-        page::PageComponent,
+        page_viewer::PageViewer,
         search::SearchComponent,
         search_bar::{SearchBarComponent, SEARCH_BAR_HEIGTH},
         status::{StatusComponent, STATUS_HEIGHT},
         Component,
     },
     event::EventHandler,
+    page_loader::PageLoader,
     terminal::{Frame, Tui},
     trace_dbg,
 };
@@ -33,10 +35,11 @@ pub enum Context {
 pub struct AppComponent {
     home: HomeComponent,
     search: SearchComponent,
-    page: PageComponent,
+    page: PageViewer,
     logger: LoggerComponent,
     status: StatusComponent,
     search_bar: SearchBarComponent,
+    page_loader: Option<PageLoader>,
 
     is_logger: bool,
 
@@ -58,6 +61,12 @@ impl Component for AppComponent {
         self.search.init(action_tx.clone())?;
         self.page.init(action_tx.clone())?;
         self.search_bar.init(action_tx.clone())?;
+
+        self.page_loader = Some(PageLoader::new(
+            Endpoint::parse("https://en.wikipedia.org/w/api.php").unwrap(),
+            Language::default(),
+            action_tx.clone(),
+        ));
 
         self.action_tx = Some(action_tx);
 
@@ -92,7 +101,7 @@ impl Component for AppComponent {
 
                 // TEST: this is just for quickly opening a page
                 // will be removed before release
-                KeyCode::Char('p') => Action::Page(PageAction::OpenPage("Linux".to_string())),
+                KeyCode::Char('p') => Action::LoadPage("Linux".to_string()),
 
                 _ => Action::Noop,
             }
@@ -109,7 +118,7 @@ impl Component for AppComponent {
                     self.context = Context::Search;
                     self.search.dispatch(action)
                 }
-                Action::Page(..) if self.context != Context::Page => {
+                Action::Page(..) | Action::PageViewer(..) if self.context != Context::Page => {
                     self.context = Context::Page;
                     self.page.dispatch(action)
                 }
@@ -121,6 +130,7 @@ impl Component for AppComponent {
             }
         };
 
+        // TODO: use ActionCB::is_consumed
         if action_cb.is_none() {
             match action {
                 Action::ToggleShowLogger => self.is_logger = !self.is_logger,
@@ -129,6 +139,8 @@ impl Component for AppComponent {
                 Action::EnterSearchBar => self.search_bar.is_focussed = true,
                 Action::ExitSearchBar => self.search_bar.is_focussed = false,
                 Action::ClearSearchBar => self.search_bar.clear(),
+
+                Action::LoadPage(title) => self.page_loader.as_ref().unwrap().load_page(title),
                 _ => {}
             }
             None

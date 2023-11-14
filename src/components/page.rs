@@ -1,29 +1,20 @@
 use std::collections::HashMap;
 
-use anyhow::{anyhow, Result};
 use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 use ratatui::{
-    prelude::{Alignment, Margin, Rect},
-    style::{Color, Style},
+    prelude::{Margin, Rect},
     text::{Line, Span},
-    widgets::{
-        Block, BorderType, Borders, Paragraph, Scrollbar, ScrollbarOrientation, ScrollbarState,
-    },
+    widgets::{Paragraph, Scrollbar, ScrollbarOrientation, ScrollbarState},
 };
-use tokio::sync::mpsc;
-use tracing::{debug, error};
-use wiki_api::{
-    languages::Language,
-    page::{Page, PageRequest},
-    Endpoint,
-};
+use tracing::debug;
+use wiki_api::page::Page;
 
 use crate::{
     action::{Action, PageAction},
     components::Component,
     renderer::{default_renderer::render_document, RenderedDocument},
     terminal::Frame,
-    ui::{centered_rect, padded_rect},
+    ui::padded_rect,
 };
 
 #[cfg(debug_assertions)]
@@ -63,57 +54,21 @@ impl Renderer {
     }
 }
 
-#[derive(Default)]
 pub struct PageComponent {
-    page: Option<Page>,
+    page: Page,
     renderer: Renderer,
     render_cache: HashMap<u16, RenderedDocument>,
-
-    endpoint: Option<Endpoint>,
-    language: Option<Language>,
-
     scroll: usize,
-
-    action_tx: Option<mpsc::UnboundedSender<Action>>,
 }
 
 impl PageComponent {
-    fn build_page(&self, title: String) -> Result<PageRequest> {
-        let endpoint = self
-            .endpoint
-            .clone()
-            .ok_or(anyhow!("No Endpoint configured"))?;
-        let language = self
-            .language
-            .clone()
-            .ok_or(anyhow!("No Language configured"))?;
-
-        Ok(Page::builder()
-            .page(title)
-            .endpoint(endpoint)
-            .language(language))
-    }
-
-    fn open_page(&mut self, title: String) {
-        self.page = None;
-        self.flush_cache();
-
-        let tx = self.action_tx.clone().unwrap();
-        let page_request = match self.build_page(title) {
-            Ok(page_request) => page_request,
-            Err(error) => {
-                error!("Unable to build the page request: {:?}", error);
-                return;
-            }
-        };
-        tokio::spawn(async move {
-            tx.send(Action::EnterProcessing).unwrap();
-            match page_request.fetch().await {
-                Ok(page) => tx.send(Action::Page(PageAction::FinishPage(page))).unwrap(),
-                Err(error) => error!("Unable to complete the fetch: {:?}", error),
-            };
-            tx.send(Action::ExitProcessing).unwrap();
-        });
+    pub fn new(page: Page) -> Self {
+        Self {
+            page,
+            renderer: Renderer::default(),
+            render_cache: HashMap::new(),
+            scroll: 0,
+        }
     }
 
     fn render_page(&mut self, width: u16) -> &RenderedDocument {
@@ -126,15 +81,13 @@ impl PageComponent {
             self.renderer, width
         );
         let document = match self.renderer {
-            Renderer::Default => render_document(&self.page.as_ref().unwrap().content, width),
+            Renderer::Default => render_document(&self.page.content, width),
             #[cfg(debug_assertions)]
-            Renderer::TestRendererTreeData => {
-                render_tree_data(&self.page.as_ref().unwrap().content)
-            }
+            Renderer::TestRendererTreeData => render_tree_data(&self.page.content),
             #[cfg(debug_assertions)]
-            Renderer::TestRendererTreeRaw => render_tree_raw(&self.page.as_ref().unwrap().content),
+            Renderer::TestRendererTreeRaw => render_tree_raw(&self.page.content),
             #[cfg(debug_assertions)]
-            Renderer::TestRendererNodeRaw => render_nodes_raw(&self.page.as_ref().unwrap().content),
+            Renderer::TestRendererNodeRaw => render_nodes_raw(&self.page.content),
         };
 
         self.render_cache.insert(width, document);
@@ -162,16 +115,6 @@ impl PageComponent {
 }
 
 impl Component for PageComponent {
-    fn init(&mut self, sender: mpsc::UnboundedSender<Action>) -> Result<()> {
-        self.action_tx = Some(sender);
-
-        // FIXME: the endpoint and language should be set by the root component
-        self.endpoint = Some(Endpoint::parse("https://en.wikipedia.org/w/api.php").unwrap());
-        self.language = Some(Language::default());
-
-        Ok(())
-    }
-
     fn handle_key_events(&mut self, key: KeyEvent) -> Action {
         match key.code {
             KeyCode::Char('r') if key.modifiers == KeyModifiers::CONTROL => {
@@ -184,12 +127,10 @@ impl Component for PageComponent {
     fn dispatch(&mut self, action: Action) -> Option<Action> {
         match action {
             Action::Page(page_action) => match page_action {
-                PageAction::OpenPage(title) => self.open_page(title),
-                PageAction::FinishPage(page) => self.page = Some(page),
                 PageAction::SwitchRenderer(renderer) => self.switch_renderer(renderer),
             },
-            Action::ScrollUp(amount) if self.page.is_some() => self.scroll_up(amount),
-            Action::ScrollDown(amount) if self.page.is_some() => self.scroll_down(amount),
+            Action::ScrollUp(amount) => self.scroll_up(amount),
+            Action::ScrollDown(amount) => self.scroll_down(amount),
             Action::Resize(..) => self.flush_cache(),
             _ => (),
         }
@@ -197,21 +138,6 @@ impl Component for PageComponent {
     }
 
     fn render(&mut self, f: &mut Frame, area: Rect) {
-        if self.page.is_none() {
-            f.render_widget(
-                Block::default()
-                    .borders(Borders::ALL)
-                    .border_type(BorderType::Rounded)
-                    .border_style(Style::default().fg(Color::Yellow)),
-                area,
-            );
-            f.render_widget(
-                Paragraph::new("Processing").alignment(Alignment::Center),
-                centered_rect(area, 100, 50),
-            );
-            return;
-        }
-
         let area = padded_rect(area, 1, 1);
         let page_area = if SCROLLBAR {
             area.inner(&Margin {

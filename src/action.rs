@@ -33,8 +33,12 @@ pub enum Action {
     ClearSearchBar,
     ExitSearchBar,
 
+    // Page loading
+    LoadPage(String),
+
     Search(SearchAction),
     Page(PageAction),
+    PageViewer(PageViewerAction),
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -46,7 +50,10 @@ pub enum SearchAction {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum PageAction {
-    OpenPage(String),
-    FinishPage(Page),
     SwitchRenderer(Renderer),
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum PageViewerAction {
+    DisplayPage(Page),
 }
