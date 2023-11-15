@@ -1,0 +1,9 @@
+[book]
+authors = ["Builditluc"]
+language = "en"
+
+[rust]
+edition = "2018"
+
+[output.html]
+git-repository-url = "https://github.com/builditluc/wiki-tui/tree/main/book"
