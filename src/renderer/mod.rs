@@ -4,6 +4,7 @@ pub mod test_renderer;
 
 use ratatui::style::Style;
 use textwrap::core::Fragment;
+use wiki_api::document::{Document, Node};
 
 #[derive(Debug, Clone)]
 pub struct Word {
@@ -16,6 +17,12 @@ pub struct Word {
     pub whitespace_width: f64,
     // TODO: Change penalty_width type to u8
     pub penalty_width: f64,
+}
+
+impl<'a> Word {
+    pub fn node(&self, document: &'a Document) -> Option<Node<'a>> {
+        return document.nth(self.index);
+    }
 }
 
 impl Fragment for Word {

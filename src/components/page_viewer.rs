@@ -43,6 +43,14 @@ impl Component for PageViewer {
         Ok(())
     }
 
+    fn handle_key_events(&mut self, key: crossterm::event::KeyEvent) -> Action {
+        if let Some(page) = self.current_page_mut() {
+            return page.handle_key_events(key);
+        }
+
+        Action::Noop
+    }
+
     fn dispatch(&mut self, action: Action) -> Option<Action> {
         match action {
             Action::PageViewer(page_viewer_action) => match page_viewer_action {
@@ -51,7 +59,7 @@ impl Component for PageViewer {
             Action::EnterProcessing => self.is_processing = true,
             Action::ExitProcessing => self.is_processing = false,
             _ => {
-                if let Some(page) = self.current_page_mut().as_mut() {
+                if let Some(page) = self.current_page_mut() {
                     return page.dispatch(action);
                 }
             }

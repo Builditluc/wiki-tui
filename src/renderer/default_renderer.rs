@@ -1,7 +1,7 @@
 use ratatui::style::{Color, Modifier, Style};
 use textwrap::wrap_algorithms::{wrap_optimal_fit, Penalties};
 use tracing::warn;
-use wiki_api::document::{Data, Document, Node};
+use wiki_api::document::{Data, Document, HeaderKind, Node};
 
 use crate::renderer::Word;
 
@@ -119,6 +119,14 @@ impl<'a> Renderer {
         self.rendered_lines.push(Vec::new());
     }
 
+    fn current_width(&self) -> usize {
+        let mut current_width: f64 = 0.0;
+        for word in self.current_line.iter() {
+            current_width = current_width + word.width + word.whitespace_width;
+        }
+        current_width as usize
+    }
+
     /// Wraps and appends words
     ///
     /// This fills up the current line with words and wraps the remaining words into lines, appending them to the finished words. Note: This leaves the current line empty, except when there are not enough words to fill it up completely
@@ -127,11 +135,7 @@ impl<'a> Renderer {
             return;
         }
 
-        let mut current_width: f64 = 0.0;
-        for word in self.current_line.iter() {
-            current_width = current_width + word.width + word.whitespace_width;
-        }
-
+        let current_width = self.current_width() as f64;
         let mut remaining_width = (self.width as f64) - current_width;
 
         // if the first word doesn't fit onto the current line, the line wrapping algorithm gets confuesed.
@@ -244,6 +248,20 @@ impl<'a> Renderer {
         self.prefix = None;
     }
 
+    fn add_horizontal_line(&mut self) {
+        let remaining_width = (self.width as usize) - self.current_width();
+        let line = Word {
+            index: usize::MAX,
+            content: "─".repeat(remaining_width),
+            style: self.text_style,
+            width: remaining_width as f64,
+            whitespace_width: 0.0,
+            penalty_width: 0.0,
+        };
+        self.current_line.push(line);
+        self.clear_line();
+    }
+
     fn render_children(&mut self, node: Node<'a>) {
         for child in node.children() {
             self.render_node(child);
@@ -264,20 +282,29 @@ impl<'a> Renderer {
     }
 
     fn render_header(&mut self, node: Node<'a>) {
-        if !matches!(node.data(), Data::Header { .. }) {
+        let Data::Header { kind , .. } = node.data() else {
             warn!("expected header data, got other data");
             return;
-        }
+        };
 
         self.ensure_empty_line();
 
-        self.add_modifier(Modifier::BOLD);
+        if !matches!(kind, &HeaderKind::Main | &HeaderKind::Sub) {
+            self.add_modifier(Modifier::BOLD);
+        }
         self.set_text_fg(Color::Red);
 
         self.render_children(node);
 
-        self.remove_modifier(Modifier::BOLD);
+        if !matches!(kind, &HeaderKind::Main | &HeaderKind::Sub) {
+            self.remove_modifier(Modifier::BOLD);
+        }
         self.reset_text_fg();
+
+        if matches!(kind, &HeaderKind::Main | &HeaderKind::Sub) {
+            self.clear_line();
+            self.add_horizontal_line();
+        }
 
         self.ensure_empty_line();
     }
@@ -411,24 +438,24 @@ impl<'a> Renderer {
 
     fn render_italic(&mut self, node: Node<'a>) {
         self.add_modifier(Modifier::ITALIC);
+        self.set_text_fg(Color::Blue);
 
         self.render_children(node);
 
+        self.reset_text_fg();
         self.remove_modifier(Modifier::ITALIC);
         self.add_whitespace();
     }
 
     fn render_wiki_link(&mut self, node: Node<'a>) {
-        self.add_modifier(Modifier::UNDERLINED);
-
+        self.set_text_fg(Color::Blue);
         self.render_children(node);
+        self.reset_text_fg();
 
-        self.remove_modifier(Modifier::UNDERLINED);
         self.add_whitespace();
     }
 
     fn render_red_link(&mut self, node: Node<'a>) {
-        self.add_modifier(Modifier::UNDERLINED);
         self.add_modifier(Modifier::ITALIC);
         self.set_text_fg(Color::Red);
 
@@ -436,29 +463,28 @@ impl<'a> Renderer {
 
         self.reset_text_fg();
         self.remove_modifier(Modifier::ITALIC);
-        self.remove_modifier(Modifier::UNDERLINED);
         self.add_whitespace();
     }
 
     fn render_media_link(&mut self, node: Node<'a>) {
-        self.add_modifier(Modifier::UNDERLINED);
         self.add_modifier(Modifier::ITALIC);
+        self.set_text_fg(Color::Blue);
 
         self.render_children(node);
 
+        self.reset_text_fg();
         self.remove_modifier(Modifier::ITALIC);
-        self.remove_modifier(Modifier::UNDERLINED);
         self.add_whitespace();
     }
 
     fn render_external_link(&mut self, node: Node<'a>) {
-        self.add_modifier(Modifier::UNDERLINED);
         self.add_modifier(Modifier::ITALIC);
+        self.set_text_fg(Color::Blue);
 
         self.render_children(node);
 
+        self.reset_text_fg();
         self.remove_modifier(Modifier::ITALIC);
-        self.remove_modifier(Modifier::UNDERLINED);
         self.add_whitespace();
     }
 

@@ -3,15 +3,17 @@ use std::collections::HashMap;
 use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 use ratatui::{
     prelude::{Margin, Rect},
+    style::{Modifier, Style, Stylize},
     text::{Line, Span},
     widgets::{Paragraph, Scrollbar, ScrollbarOrientation, ScrollbarState},
 };
-use tracing::debug;
-use wiki_api::page::Page;
+use tracing::{debug, info};
+use wiki_api::{document::Data, page::Page};
 
 use crate::{
     action::{Action, PageAction},
     components::Component,
+    has_modifier,
     renderer::{default_renderer::render_document, RenderedDocument},
     terminal::Frame,
     ui::padded_rect,
@@ -21,6 +23,7 @@ use crate::{
 use crate::renderer::test_renderer::{render_nodes_raw, render_tree_data, render_tree_raw};
 
 const SCROLLBAR: bool = true;
+const LINK_SELECT: bool = true;
 
 #[derive(Default, Debug, Clone, PartialEq, Eq)]
 #[repr(u8)]
@@ -58,7 +61,8 @@ pub struct PageComponent {
     page: Page,
     renderer: Renderer,
     render_cache: HashMap<u16, RenderedDocument>,
-    scroll: usize,
+    viewport: Rect,
+    selected: (usize, usize),
 }
 
 impl PageComponent {
@@ -67,20 +71,13 @@ impl PageComponent {
             page,
             renderer: Renderer::default(),
             render_cache: HashMap::new(),
-            scroll: 0,
+            viewport: Rect::default(),
+            selected: (0, 0),
         }
     }
 
-    fn render_page(&mut self, width: u16) -> &RenderedDocument {
-        if self.render_cache.get(&width).is_some() {
-            return self.render_cache.get(&width).unwrap();
-        }
-
-        debug!(
-            "rebuilding cache for renderer '{:?}' with width '{}'",
-            self.renderer, width
-        );
-        let document = match self.renderer {
+    fn render_page(&self, width: u16) -> RenderedDocument {
+        match self.renderer {
             Renderer::Default => render_document(&self.page.content, width),
             #[cfg(debug_assertions)]
             Renderer::TestRendererTreeData => render_tree_data(&self.page.content),
@@ -88,10 +85,7 @@ impl PageComponent {
             Renderer::TestRendererTreeRaw => render_tree_raw(&self.page.content),
             #[cfg(debug_assertions)]
             Renderer::TestRendererNodeRaw => render_nodes_raw(&self.page.content),
-        };
-
-        self.render_cache.insert(width, document);
-        self.render_cache.get(&width).unwrap()
+        }
     }
 
     fn switch_renderer(&mut self, renderer: Renderer) {
@@ -102,24 +96,147 @@ impl PageComponent {
     fn flush_cache(&mut self) {
         debug!("flushing '{}' cached renders", self.render_cache.len());
         self.render_cache.clear();
-        self.scroll = 0;
+        if LINK_SELECT {
+            self.selected = (0, 0);
+        }
     }
 
-    fn scroll_down(&mut self, amount: usize) {
-        self.scroll = self.scroll.saturating_add(amount);
+    fn scroll_down(&mut self, amount: u16) {
+        self.viewport.y += amount;
     }
 
-    fn scroll_up(&mut self, amount: usize) {
-        self.scroll = self.scroll.saturating_sub(amount);
+    fn scroll_up(&mut self, amount: u16) {
+        self.viewport.y = self.viewport.y.saturating_sub(amount);
+    }
+
+    fn select_first(&mut self) {
+        if self.page.content.nth(0).is_none() {
+            return;
+        }
+
+        let selectable_node = self
+            .page
+            .content
+            .nth(0)
+            .unwrap()
+            .descendants()
+            .find(|node| matches!(node.data(), &Data::WikiLink { .. }));
+
+        if let Some(selectable_node) = selectable_node {
+            let first_index = selectable_node.index();
+            let last_index = selectable_node
+                .last_child()
+                .map(|child| child.index())
+                .unwrap_or(first_index);
+            self.selected = (first_index, last_index);
+        }
+    }
+
+    fn select_prev(&mut self) {
+        if self.page.content.nth(0).is_none() {
+            return;
+        }
+
+        let selectable_node = self
+            .page
+            .content
+            .nth(0)
+            .unwrap()
+            .descendants()
+            .filter(|node| {
+                matches!(node.data(), &Data::WikiLink { .. }) && node.index() < self.selected.0
+            })
+            .last();
+
+        if let Some(selectable_node) = selectable_node {
+            let first_index = selectable_node.index();
+            let last_index = selectable_node
+                .last_child()
+                .map(|child| child.index())
+                .unwrap_or(first_index);
+            self.selected = (first_index, last_index);
+        }
+    }
+
+    fn select_next(&mut self) {
+        if self.page.content.nth(0).is_none() {
+            return;
+        }
+
+        let selectable_node = self
+            .page
+            .content
+            .nth(0)
+            .unwrap()
+            .descendants()
+            .find(|node| {
+                matches!(node.data(), &Data::WikiLink { .. }) && self.selected.1 < node.index()
+            });
+
+        if let Some(selectable_node) = selectable_node {
+            let first_index = selectable_node.index();
+            let last_index = selectable_node
+                .last_child()
+                .map(|child| child.index())
+                .unwrap_or(first_index);
+            self.selected = (first_index, last_index);
+        }
+    }
+
+    fn select_last(&mut self) {
+        if self.page.content.nth(0).is_none() {
+            return;
+        }
+
+        let selectable_node = self
+            .page
+            .content
+            .nth(0)
+            .unwrap()
+            .descendants()
+            .filter(|node| {
+                matches!(node.data(), &Data::WikiLink { .. }) && node.index() > self.selected.1
+            })
+            .last();
+
+        if let Some(selectable_node) = selectable_node {
+            let first_index = selectable_node.index();
+            let last_index = selectable_node
+                .last_child()
+                .map(|child| child.index())
+                .unwrap_or(first_index);
+            self.selected = (first_index, last_index);
+        }
+    }
+
+    fn resize(&mut self, width: u16, height: u16) {
+        self.viewport.width = width;
+        self.viewport.height = height;
+
+        self.flush_cache();
     }
 }
 
 impl Component for PageComponent {
     fn handle_key_events(&mut self, key: KeyEvent) -> Action {
         match key.code {
-            KeyCode::Char('r') if key.modifiers == KeyModifiers::CONTROL => {
+            KeyCode::Char('r') if has_modifier!(key, Modifier::CONTROL) => {
                 Action::Page(PageAction::SwitchRenderer(self.renderer.next()))
             }
+            KeyCode::Left if has_modifier!(key, Modifier::SHIFT) => {
+                Action::Page(PageAction::SelectFirstLink)
+            }
+            KeyCode::Right if has_modifier!(key, Modifier::SHIFT) => {
+                Action::Page(PageAction::SelectLastLink)
+            }
+            KeyCode::Up if has_modifier!(key, Modifier::SHIFT) => {
+                Action::Page(PageAction::SelectTopLink)
+            }
+            KeyCode::Down if has_modifier!(key, Modifier::SHIFT) => {
+                Action::Page(PageAction::SelectBottomLink)
+            }
+            KeyCode::Left => Action::Page(PageAction::SelectPrevLink),
+            KeyCode::Right => Action::Page(PageAction::SelectNextLink),
             _ => Action::Noop,
         }
     }
@@ -128,10 +245,18 @@ impl Component for PageComponent {
         match action {
             Action::Page(page_action) => match page_action {
                 PageAction::SwitchRenderer(renderer) => self.switch_renderer(renderer),
+
+                PageAction::SelectFirstLink => self.select_first(),
+                PageAction::SelectLastLink => self.select_last(),
+
+                PageAction::SelectTopLink | PageAction::SelectBottomLink => todo!(),
+
+                PageAction::SelectPrevLink => self.select_prev(),
+                PageAction::SelectNextLink => self.select_next(),
             },
             Action::ScrollUp(amount) => self.scroll_up(amount),
             Action::ScrollDown(amount) => self.scroll_down(amount),
-            Action::Resize(..) => self.flush_cache(),
+            Action::Resize(width, heigth) => self.resize(width, heigth),
             _ => (),
         }
         None
@@ -142,34 +267,51 @@ impl Component for PageComponent {
         let page_area = if SCROLLBAR {
             area.inner(&Margin {
                 vertical: 0,
-                horizontal: 1, // for the scrollbar
+                horizontal: 2, // for the scrollbar
             })
         } else {
             area
         };
 
-        let viewport_top = self.scroll;
-        let viewport_bottom = viewport_top.saturating_add(page_area.height as usize);
+        self.viewport.width = page_area.width;
+        self.viewport.height = page_area.height;
 
-        let rendered_page = self.render_page(page_area.width);
+        let rendered_page = match self.render_cache.get(&page_area.width) {
+            Some(rendered_page) => rendered_page,
+            None => {
+                let rendered_page = self.render_page(page_area.width);
+                info!("rebuilding cache for '{}'", page_area.width);
+                self.render_cache.insert(page_area.width, rendered_page);
+                self.render_cache.get(&page_area.width).unwrap()
+            }
+        };
+
         let lines: Vec<Line> = rendered_page
             .lines
             .iter()
-            .enumerate()
-            .skip(viewport_top)
-            .take(viewport_bottom)
-            .map(|(_, line)| {
+            .skip(self.viewport.top() as usize)
+            .take(self.viewport.bottom() as usize)
+            .map(|line| {
                 let mut spans: Vec<Span> = Vec::new();
                 line.iter()
                     .map(|word| {
-                        spans.push(Span::styled(
+                        let mut span = Span::styled(
                             format!(
                                 "{}{}",
                                 word.content,
                                 " ".repeat(word.whitespace_width as usize)
                             ),
                             word.style,
-                        ));
+                        );
+
+                        if let Some(node) = word.node(&self.page.content) {
+                            let index = node.index();
+                            if self.selected.0 <= index && index <= self.selected.1 {
+                                span.patch_style(Style::new().add_modifier(Modifier::UNDERLINED))
+                            }
+                        }
+
+                        spans.push(span);
                     })
                     .count();
                 Line {
@@ -180,9 +322,15 @@ impl Component for PageComponent {
             .collect();
 
         if SCROLLBAR {
-            let scrollbar = Scrollbar::default().orientation(ScrollbarOrientation::VerticalRight);
-            let mut scrollbar_state =
-                ScrollbarState::new(rendered_page.lines.len()).position(self.scroll);
+            let scrollbar = Scrollbar::default()
+                .begin_symbol(None)
+                .end_symbol(None)
+                .track_symbol(Some(" "))
+                .track_style(Style::new().black().on_black())
+                .thumb_style(Style::new().blue())
+                .orientation(ScrollbarOrientation::VerticalRight);
+            let mut scrollbar_state = ScrollbarState::new(rendered_page.lines.len())
+                .position(self.viewport.top() as usize);
             f.render_stateful_widget(scrollbar, area, &mut scrollbar_state);
         }
 

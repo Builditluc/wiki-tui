@@ -68,6 +68,7 @@ impl Component for AppComponent {
             action_tx.clone(),
         ));
 
+        action_tx.send(Action::EnterSearchBar).unwrap();
         self.action_tx = Some(action_tx);
 
         Ok(())

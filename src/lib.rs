@@ -2,6 +2,7 @@ pub mod action;
 pub mod app;
 pub mod components;
 pub mod event;
+pub mod key_macros;
 pub mod logging;
 pub mod page_loader;
 pub mod panic_handler;

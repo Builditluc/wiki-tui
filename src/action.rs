@@ -15,8 +15,8 @@ pub enum Action {
     EnterContext(Context),
 
     // Scrolling
-    ScrollUp(usize),
-    ScrollDown(usize),
+    ScrollUp(u16),
+    ScrollDown(u16),
     UnselectScroll,
 
     // Mode
@@ -51,6 +51,15 @@ pub enum SearchAction {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum PageAction {
     SwitchRenderer(Renderer),
+
+    SelectFirstLink,
+    SelectLastLink,
+
+    SelectTopLink,
+    SelectBottomLink,
+
+    SelectPrevLink,
+    SelectNextLink,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]

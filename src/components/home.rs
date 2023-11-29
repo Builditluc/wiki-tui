@@ -43,16 +43,16 @@ SearchBar keybindings:
 
 #[derive(Default)]
 pub struct HomeComponent {
-    scroll: usize,
+    scroll: u16,
     action_tx: Option<UnboundedSender<Action>>,
 }
 
 impl HomeComponent {
-    fn scroll_up(&mut self, amount: usize) {
+    fn scroll_up(&mut self, amount: u16) {
         self.scroll = self.scroll.saturating_sub(amount);
     }
 
-    fn scroll_down(&mut self, amount: usize) {
+    fn scroll_down(&mut self, amount: u16) {
         self.scroll = self.scroll.saturating_add(amount);
     }
 }
@@ -76,7 +76,7 @@ impl Component for HomeComponent {
     fn render(&mut self, f: &mut Frame<'_>, area: Rect) {
         let info_widget = Paragraph::new(INFO_TEXT)
             .wrap(Wrap { trim: false })
-            .scroll((self.scroll as u16, 0));
+            .scroll((self.scroll, 0));
         f.render_widget(info_widget, padded_rect(area, 1, 1));
     }
 }
