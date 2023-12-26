@@ -8,7 +8,7 @@ use ratatui::{
 use tui_input::{backend::crossterm::EventHandler, Input};
 
 use crate::{
-    action::{Action, SearchAction},
+    action::{Action, ActionResult, SearchAction},
     terminal::Frame,
     ui::centered_rect,
 };
@@ -30,19 +30,20 @@ impl SearchBarComponent {
     pub fn clear(&mut self) {
         self.input = Input::default();
     }
+
+    pub fn submit(&self) -> Action {
+        Action::Search(SearchAction::StartSearch(self.input.value().to_string()))
+    }
 }
 
 impl Component for SearchBarComponent {
-    fn handle_key_events(&mut self, key: KeyEvent) -> Action {
+    fn handle_key_events(&mut self, key: KeyEvent) -> ActionResult {
         match key.code {
-            KeyCode::Enter => {
-                self.is_focussed = false;
-                Action::Search(SearchAction::StartSearch(self.input.value().to_string()))
-            }
-            KeyCode::Esc => Action::ExitSearchBar,
+            KeyCode::Enter => Action::SubmitSearchBar.into(),
+            KeyCode::Esc => Action::ExitSearchBar.into(),
             _ => {
                 self.input.handle_event(&crossterm::event::Event::Key(key));
-                Action::Noop
+                ActionResult::consumed()
             }
         }
     }

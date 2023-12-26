@@ -1,9 +1,13 @@
 use anyhow::Result;
-use crossterm::event::{KeyEvent, MouseEvent};
+use crossterm::event::KeyEvent;
 use ratatui::prelude::Rect;
 use tokio::sync::mpsc;
 
-use crate::{action::Action, event::Event, terminal::Frame};
+use crate::{
+    action::{Action, ActionResult},
+    event::Event,
+    terminal::Frame,
+};
 
 pub mod logger;
 pub mod page;
@@ -20,30 +24,24 @@ pub trait Component {
     }
 
     #[allow(unused_variables)]
-    fn handle_events(&mut self, event: Option<Event>) -> Action {
+    fn handle_events(&mut self, event: Option<Event>) -> ActionResult {
         match event {
-            Some(Event::Quit) => Action::Quit,
-            Some(Event::RenderTick) => Action::RenderTick,
+            Some(Event::Quit) => Action::Quit.into(),
+            Some(Event::RenderTick) => Action::RenderTick.into(),
             Some(Event::Key(key_event)) => self.handle_key_events(key_event),
-            Some(Event::Mouse(mouse_event)) => self.handle_mouse_events(mouse_event),
-            Some(Event::Resize(x, y)) => Action::Resize(x, y),
-            None => Action::Noop,
+            Some(Event::Resize(x, y)) => Action::Resize(x, y).into(),
+            None => ActionResult::Ignored,
         }
     }
 
     #[allow(unused_variables)]
-    fn handle_key_events(&mut self, key: KeyEvent) -> Action {
-        Action::Noop
+    fn handle_key_events(&mut self, key: KeyEvent) -> ActionResult {
+        ActionResult::Ignored
     }
 
     #[allow(unused_variables)]
-    fn handle_mouse_events(&mut self, mouse: MouseEvent) -> Action {
-        Action::Noop
-    }
-
-    #[allow(unused_variables)]
-    fn dispatch(&mut self, action: Action) -> Option<Action> {
-        None
+    fn update(&mut self, action: Action) -> ActionResult {
+        ActionResult::Ignored
     }
 
     fn render(&mut self, f: &mut Frame<'_>, area: Rect);

@@ -2,10 +2,7 @@ use tokio::sync::mpsc::UnboundedSender;
 use tracing::error;
 use wiki_api::{languages::Language, page::Page, Endpoint};
 
-use crate::{
-    action::{Action, PageViewerAction},
-    app::Context,
-};
+use crate::action::{Action, PageViewerAction};
 
 /// Responsible for loading a page
 pub struct PageLoader {
@@ -32,7 +29,7 @@ impl PageLoader {
 
         let tx = self.action_tx.clone();
         tokio::spawn(async move {
-            tx.send(Action::EnterContext(Context::Page)).unwrap();
+            tx.send(Action::SwitchContextPage).unwrap();
             tx.send(Action::EnterProcessing).unwrap();
 
             match page_request.fetch().await {
@@ -42,7 +39,7 @@ impl PageLoader {
                 Err(error) => error!("Unable to fetch the page: {:?}", error),
             };
 
-            tx.send(Action::ExitProcessing).unwrap();
+            tx.send(Action::EnterNormal).unwrap();
         });
     }
 }

@@ -15,7 +15,7 @@ use wiki_api::{
 };
 
 use crate::{
-    action::{Action, SearchAction},
+    action::{Action, ActionPacket, ActionResult, SearchAction},
     terminal::Frame,
     ui::centered_rect,
 };
@@ -128,13 +128,13 @@ impl SearchComponent {
             .language(language))
     }
 
-    fn start_search(&mut self, query: String) {
+    fn start_search(&mut self, query: String) -> ActionResult {
         let tx = self.action_tx.clone().unwrap();
         let search_request = match self.build_search(query) {
             Ok(search_request) => search_request,
             Err(error) => {
                 error!("Unable to build the search request: {:?}", error);
-                return;
+                return ActionResult::consumed();
             }
         };
         tokio::spawn(async move {
@@ -147,32 +147,38 @@ impl SearchComponent {
                     .unwrap(),
                 Err(error) => error!("Unable to complete the search: {:?}", error),
             };
-            tx.send(Action::ExitProcessing).unwrap();
+            tx.send(Action::EnterNormal).unwrap();
         });
+
+        ActionResult::consumed()
     }
 
-    fn finish_search(&mut self, mut search: ApiSearch) {
+    fn finish_search(&mut self, mut search: ApiSearch) -> ActionResult {
         self.search_results.items.append(&mut search.results);
         self.search_results.next();
 
         self.continue_search = search.continue_data().take();
         self.search_info = Some(search.info);
+
+        ActionResult::consumed()
     }
 
-    fn open_selected_result(&self) {
+    fn open_selected_result(&self) -> ActionResult {
         if let Some(selected_result) = self.search_results.selected() {
-            let action_tx = self.action_tx.clone().unwrap();
-            action_tx.send(Action::ClearSearchBar).unwrap();
-            action_tx
-                .send(Action::LoadPage(selected_result.title.clone()))
-                .unwrap();
+            return ActionPacket::default()
+                .append(Action::ClearSearchBar)
+                .append(Action::LoadPage(selected_result.title.clone()))
+                .into();
         }
+        ActionResult::Ignored
     }
 
-    fn clear_search_results(&mut self) {
+    fn clear_search_results(&mut self) -> ActionResult {
         self.search_results = ResultsList::with_items(Vec::new());
         self.continue_search = None;
         self.search_info = None;
+
+        ActionResult::consumed()
     }
 }
 
@@ -185,43 +191,49 @@ impl Component for SearchComponent {
         Ok(())
     }
 
-    fn handle_key_events(&mut self, key: KeyEvent) -> Action {
+    fn handle_key_events(&mut self, key: KeyEvent) -> ActionResult {
         match self.mode {
             Mode::Normal => match key.code {
-                KeyCode::Enter if self.search_results.is_selected() => {
-                    self.open_selected_result();
-                    Action::Noop
-                }
-                _ => Action::Noop,
+                KeyCode::Enter if self.search_results.is_selected() => self.open_selected_result(),
+                _ => ActionResult::Ignored,
             },
-            Mode::Processing => Action::Noop,
+            Mode::Processing => ActionResult::Ignored,
         }
     }
 
-    fn dispatch(&mut self, action: Action) -> Option<Action> {
+    fn update(&mut self, action: Action) -> ActionResult {
         match action {
             Action::Search(search_action) => match search_action {
                 SearchAction::StartSearch(query) => self.start_search(query),
                 SearchAction::FinshSearch(search) => self.finish_search(search),
                 SearchAction::ClearSearchResults => self.clear_search_results(),
             },
-            Action::EnterNormal => self.mode = Mode::Normal,
-            Action::EnterProcessing => self.mode = Mode::Processing,
-            Action::ExitProcessing => self.mode = Mode::Normal,
+            Action::EnterNormal => {
+                self.mode = Mode::Normal;
+                ActionResult::consumed()
+            }
+            Action::EnterProcessing => {
+                self.mode = Mode::Processing;
+                ActionResult::consumed()
+            }
             Action::ScrollUp(n) => {
                 for _ in 0..n {
                     self.search_results.previous()
                 }
+                ActionResult::consumed()
             }
             Action::ScrollDown(n) => {
                 for _ in 0..n {
                     self.search_results.next()
                 }
+                ActionResult::consumed()
             }
-            Action::UnselectScroll => self.search_results.unselect(),
-            _ => {}
-        };
-        None
+            Action::UnselectScroll => {
+                self.search_results.unselect();
+                ActionResult::consumed()
+            }
+            _ => ActionResult::Ignored,
+        }
     }
 
     fn render(&mut self, f: &mut Frame<'_>, area: Rect) {

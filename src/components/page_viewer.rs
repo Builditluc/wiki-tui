@@ -8,7 +8,7 @@ use tokio::sync::mpsc::UnboundedSender;
 use wiki_api::page::Page;
 
 use crate::{
-    action::{Action, PageViewerAction},
+    action::{Action, ActionResult, PageViewerAction},
     terminal::Frame,
     ui::centered_rect,
 };
@@ -49,34 +49,34 @@ impl Component for PageViewer {
         Ok(())
     }
 
-    fn handle_key_events(&mut self, key: crossterm::event::KeyEvent) -> Action {
+    fn handle_key_events(&mut self, key: crossterm::event::KeyEvent) -> ActionResult {
         if matches!(key.code, KeyCode::Esc) {
-            return Action::PageViewer(PageViewerAction::PopPage);
+            return Action::PageViewer(PageViewerAction::PopPage).into();
         }
 
         if let Some(page) = self.current_page_mut() {
             return page.handle_key_events(key);
         }
 
-        Action::Noop
+        ActionResult::Ignored
     }
 
-    fn dispatch(&mut self, action: Action) -> Option<Action> {
+    fn update(&mut self, action: Action) -> ActionResult {
         match action {
             Action::PageViewer(page_viewer_action) => match page_viewer_action {
                 PageViewerAction::DisplayPage(page) => self.display_page(page),
                 PageViewerAction::PopPage => self.pop(),
             },
             Action::EnterProcessing => self.is_processing = true,
-            Action::ExitProcessing => self.is_processing = false,
+            Action::EnterNormal => self.is_processing = false,
             _ => {
                 if let Some(page) = self.current_page_mut() {
-                    return page.dispatch(action);
+                    return page.update(action);
                 }
+                return ActionResult::Ignored;
             }
         }
-
-        None
+        ActionResult::consumed()
     }
 
     fn render(&mut self, f: &mut Frame<'_>, area: Rect) {

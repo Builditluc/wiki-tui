@@ -11,7 +11,7 @@ use tracing::{debug, info};
 use wiki_api::{document::Data, page::Page};
 
 use crate::{
-    action::{Action, PageAction},
+    action::{Action, ActionResult, PageAction},
     components::Component,
     has_modifier,
     renderer::{default_renderer::render_document, RenderedDocument},
@@ -218,30 +218,30 @@ impl PageComponent {
 }
 
 impl Component for PageComponent {
-    fn handle_key_events(&mut self, key: KeyEvent) -> Action {
+    fn handle_key_events(&mut self, key: KeyEvent) -> ActionResult {
         match key.code {
             KeyCode::Char('r') if has_modifier!(key, Modifier::CONTROL) => {
-                Action::Page(PageAction::SwitchRenderer(self.renderer.next()))
+                Action::Page(PageAction::SwitchRenderer(self.renderer.next())).into()
             }
             KeyCode::Left if has_modifier!(key, Modifier::SHIFT) => {
-                Action::Page(PageAction::SelectFirstLink)
+                Action::Page(PageAction::SelectFirstLink).into()
             }
             KeyCode::Right if has_modifier!(key, Modifier::SHIFT) => {
-                Action::Page(PageAction::SelectLastLink)
+                Action::Page(PageAction::SelectLastLink).into()
             }
             KeyCode::Up if has_modifier!(key, Modifier::SHIFT) => {
-                Action::Page(PageAction::SelectTopLink)
+                Action::Page(PageAction::SelectTopLink).into()
             }
             KeyCode::Down if has_modifier!(key, Modifier::SHIFT) => {
-                Action::Page(PageAction::SelectBottomLink)
+                Action::Page(PageAction::SelectBottomLink).into()
             }
-            KeyCode::Left => Action::Page(PageAction::SelectPrevLink),
-            KeyCode::Right => Action::Page(PageAction::SelectNextLink),
-            _ => Action::Noop,
+            KeyCode::Left => Action::Page(PageAction::SelectPrevLink).into(),
+            KeyCode::Right => Action::Page(PageAction::SelectNextLink).into(),
+            _ => ActionResult::Ignored,
         }
     }
 
-    fn dispatch(&mut self, action: Action) -> Option<Action> {
+    fn update(&mut self, action: Action) -> ActionResult {
         match action {
             Action::Page(page_action) => match page_action {
                 PageAction::SwitchRenderer(renderer) => self.switch_renderer(renderer),
@@ -257,9 +257,9 @@ impl Component for PageComponent {
             Action::ScrollUp(amount) => self.scroll_up(amount),
             Action::ScrollDown(amount) => self.scroll_down(amount),
             Action::Resize(width, heigth) => self.resize(width, heigth),
-            _ => (),
+            _ => return ActionResult::Ignored,
         }
-        None
+        ActionResult::consumed()
     }
 
     fn render(&mut self, f: &mut Frame, area: Rect) {

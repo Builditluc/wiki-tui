@@ -1,4 +1,4 @@
-use crossterm::event::{Event as CrosstermEvent, KeyEvent, KeyEventKind, MouseEvent};
+use crossterm::event::{Event as CrosstermEvent, KeyEvent, KeyEventKind};
 use futures::FutureExt;
 use tokio::{sync::mpsc, task::JoinHandle};
 use tokio_stream::StreamExt;
@@ -10,7 +10,6 @@ pub enum Event {
     Quit,
     RenderTick,
     Key(KeyEvent),
-    Mouse(MouseEvent),
     Resize(u16, u16),
 }
 

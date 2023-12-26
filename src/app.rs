@@ -2,12 +2,13 @@ use anyhow::Result;
 use crossterm::event::{KeyCode, KeyEvent};
 use ratatui::prelude::{Constraint, Direction, Layout, Rect};
 use std::sync::Arc;
+use tracing::warn;
 use wiki_api::{languages::Language, Endpoint};
 
 use tokio::sync::{mpsc, Mutex};
 
 use crate::{
-    action::Action,
+    action::{Action, ActionPacket, ActionResult},
     components::{
         logger::LoggerComponent,
         page_viewer::PageViewer,
@@ -22,12 +23,8 @@ use crate::{
     trace_dbg,
 };
 
-#[derive(Default, Debug, Clone, PartialEq, Eq)]
-pub enum Context {
-    #[default]
-    Search,
-    Page,
-}
+const CONTEXT_SEARCH: u8 = 0;
+const CONTEXT_PAGE: u8 = 1;
 
 #[derive(Default)]
 pub struct AppComponent {
@@ -40,16 +37,9 @@ pub struct AppComponent {
 
     is_logger: bool,
 
-    context: Context,
+    context: u8,
 
     action_tx: Option<mpsc::UnboundedSender<Action>>,
-}
-
-impl AppComponent {
-    fn enter_context(&mut self, context: Context) {
-        self.context = context.clone();
-        self.status.set_focus(context)
-    }
 }
 
 impl Component for AppComponent {
@@ -71,75 +61,74 @@ impl Component for AppComponent {
         Ok(())
     }
 
-    fn handle_key_events(&mut self, key: KeyEvent) -> Action {
-        let action = {
-            if self.search_bar.is_focussed {
-                return self.search_bar.handle_key_events(key);
-            }
+    fn handle_key_events(&mut self, key: KeyEvent) -> ActionResult {
+        if self.search_bar.is_focussed {
+            return self.search_bar.handle_key_events(key);
+        }
 
-            match self.context {
-                Context::Search => self.search.handle_key_events(key),
-                Context::Page => self.page.handle_key_events(key),
+        let result = match self.context {
+            CONTEXT_SEARCH => self.search.handle_key_events(key),
+            CONTEXT_PAGE => self.page.handle_key_events(key),
+            _ => {
+                warn!("unknown context");
+                return ActionResult::Ignored;
             }
         };
 
-        if action == Action::Noop {
-            match key.code {
-                KeyCode::Char('l') => Action::ToggleShowLogger,
-                KeyCode::Char('q') => Action::Quit,
-                KeyCode::Char('s') => Action::EnterContext(Context::Search),
-                KeyCode::Char('j') => Action::ScrollDown(1),
-                KeyCode::Char('k') => Action::ScrollUp(1),
-                KeyCode::Char('h') => Action::UnselectScroll,
-                KeyCode::Char('i') => Action::EnterSearchBar,
+        if matches!(result, ActionResult::Consumed { .. }) {
+            return result;
+        }
 
-                // TEST: this is just for quickly opening a page
-                // will be removed before release
-                KeyCode::Char('p') => Action::LoadPage("Linux".to_string()),
-
-                _ => Action::Noop,
-            }
-        } else {
-            action
+        match key.code {
+            KeyCode::Char('l') => Action::ToggleShowLogger.into(),
+            KeyCode::Char('q') => Action::Quit.into(),
+            KeyCode::Char('s') => Action::SwitchContextSearch.into(),
+            KeyCode::Char('p') => Action::SwitchContextPage.into(),
+            KeyCode::Char('j') => Action::ScrollDown(1).into(),
+            KeyCode::Char('k') => Action::ScrollUp(1).into(),
+            KeyCode::Char('h') => Action::UnselectScroll.into(),
+            KeyCode::Char('i') => Action::EnterSearchBar.into(),
+            _ => ActionResult::Ignored,
         }
     }
 
-    fn dispatch(&mut self, action: Action) -> Option<Action> {
-        let action_cb = {
-            let action = action.clone();
-            match action {
-                Action::Search(..) if self.context != Context::Search => {
-                    self.context = Context::Search;
-                    self.search.dispatch(action)
-                }
-                Action::Page(..) if self.context != Context::Page => {
-                    self.context = Context::Page;
-                    self.page.dispatch(action)
-                }
-                _ => match self.context {
-                    Context::Search => self.search.dispatch(action),
-                    Context::Page => self.page.dispatch(action),
-                },
+    fn update(&mut self, action: Action) -> ActionResult {
+        let result = match self.context {
+            CONTEXT_SEARCH => self.search.update(action.clone()),
+            CONTEXT_PAGE => self.page.update(action.clone()),
+            _ => {
+                warn!("unknown context");
+                return ActionResult::Ignored;
             }
         };
 
-        // TODO: use ActionCB::is_consumed
-        if action_cb.is_none() {
-            match action {
-                Action::ToggleShowLogger => self.is_logger = !self.is_logger,
-                Action::EnterContext(ref context) => self.enter_context(context.to_owned()),
-
-                Action::EnterSearchBar => self.search_bar.is_focussed = true,
-                Action::ExitSearchBar => self.search_bar.is_focussed = false,
-                Action::ClearSearchBar => self.search_bar.clear(),
-
-                Action::LoadPage(title) => self.page_loader.as_ref().unwrap().load_page(title),
-                _ => {}
-            }
-            None
-        } else {
-            action_cb
+        if result.is_consumed() {
+            return result;
         }
+
+        // global actions
+        match action {
+            Action::ToggleShowLogger => self.is_logger = !self.is_logger,
+
+            Action::SwitchContextSearch => self.context = CONTEXT_SEARCH,
+            Action::SwitchContextPage => self.context = CONTEXT_PAGE,
+
+            Action::EnterSearchBar => self.search_bar.is_focussed = true,
+            Action::ExitSearchBar => self.search_bar.is_focussed = false,
+            Action::ClearSearchBar => self.search_bar.clear(),
+            Action::SubmitSearchBar => {
+                return ActionPacket::default()
+                    .append(Action::ExitSearchBar)
+                    .append(Action::SwitchContextSearch)
+                    .append(self.search_bar.submit())
+                    .into()
+            }
+
+            Action::LoadPage(title) => self.page_loader.as_ref().unwrap().load_page(title),
+            _ => return ActionResult::Ignored,
+        };
+
+        ActionResult::consumed()
     }
 
     fn render(&mut self, f: &mut Frame<'_>, area: Rect) {
@@ -170,8 +159,9 @@ impl Component for AppComponent {
         };
 
         match self.context {
-            Context::Search => self.search.render(f, area),
-            Context::Page => self.page.render(f, area),
+            CONTEXT_SEARCH => self.search.render(f, area),
+            CONTEXT_PAGE => self.page.render(f, area),
+            _ => warn!("unknown context"),
         }
     }
 }
@@ -205,8 +195,9 @@ impl App {
             let mut event_handler = EventHandler::new(render_tick);
             loop {
                 let event = event_handler.next().await;
-                let action = _root.lock().await.handle_events(event);
-                _action_tx.send(action).unwrap();
+                if let ActionResult::Consumed(action) = _root.lock().await.handle_events(event) {
+                    action.send(&_action_tx);
+                }
             }
         });
 
@@ -215,7 +206,6 @@ impl App {
                 if !matches!(
                     action,
                     Action::RenderTick
-                        | Action::Noop
                         | Action::ScrollDown(..)
                         | Action::ScrollUp(..)
                         | Action::UnselectScroll
@@ -231,11 +221,10 @@ impl App {
                             .unwrap();
                     }
                     Action::Quit => self.should_quit = true,
-                    action => {
-                        if let Some(action_cb) = self.app_component.lock().await.dispatch(action) {
-                            action_tx.send(action_cb).unwrap()
-                        }
-                    }
+                    action => match self.app_component.lock().await.update(action) {
+                        ActionResult::Consumed(action) => action.send(&action_tx),
+                        ActionResult::Ignored => {}
+                    },
                 }
             }
 
