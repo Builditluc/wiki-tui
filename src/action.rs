@@ -65,4 +65,5 @@ pub enum PageAction {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum PageViewerAction {
     DisplayPage(Page),
+    PopPage,
 }

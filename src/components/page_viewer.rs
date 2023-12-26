@@ -1,3 +1,4 @@
+use crossterm::event::KeyCode;
 use ratatui::{
     prelude::{Alignment, Rect},
     style::{Color, Style},
@@ -35,6 +36,11 @@ impl PageViewer {
         self.page_n = self.page.len();
         self.page.push(PageComponent::new(page));
     }
+
+    fn pop(&mut self) {
+        self.page.pop();
+        self.page_n = self.page_n.saturating_sub(1);
+    }
 }
 
 impl Component for PageViewer {
@@ -44,6 +50,10 @@ impl Component for PageViewer {
     }
 
     fn handle_key_events(&mut self, key: crossterm::event::KeyEvent) -> Action {
+        if matches!(key.code, KeyCode::Esc) {
+            return Action::PageViewer(PageViewerAction::PopPage);
+        }
+
         if let Some(page) = self.current_page_mut() {
             return page.handle_key_events(key);
         }
@@ -55,6 +65,7 @@ impl Component for PageViewer {
         match action {
             Action::PageViewer(page_viewer_action) => match page_viewer_action {
                 PageViewerAction::DisplayPage(page) => self.display_page(page),
+                PageViewerAction::PopPage => self.pop(),
             },
             Action::EnterProcessing => self.is_processing = true,
             Action::ExitProcessing => self.is_processing = false,
