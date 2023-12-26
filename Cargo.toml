@@ -16,7 +16,9 @@ keywords = ["tui", "wikipedia"]
 [dependencies]
 anyhow = "1.0.75"
 better-panic = "0.3.0"
+clap = { version = "4.4.11", features = ["cargo", "derive"] }
 crossterm = { version = "0.27.0", default-features = false, features = ["event-stream"] }
+directories = "5.0.1"
 futures = "0.3.28"
 libc = "0.2.147"
 log = "0.4.20"

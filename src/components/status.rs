@@ -30,13 +30,6 @@ impl Component for StatusComponent {
             .constraints([Constraint::Percentage(100), Constraint::Min(HELP_MSG_LEN)])
             .split(area);
 
-        f.render_widget(
-            Paragraph::new(format!(
-                "Current focus: [{:?}] | [C+H]ome | [S]earch | Page",
-                self.focus
-            )),
-            chunks[0],
-        );
         f.render_widget(Paragraph::new(HELP_MSG), chunks[1]);
     }
 }

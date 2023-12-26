@@ -51,7 +51,7 @@ impl Component for SearchBarComponent {
         let scroll = self.input.visual_scroll(area.width as usize);
         let value = self.input.value();
 
-        let input = if value.is_empty() && !self.is_focussed {
+        let input = if value.is_empty() {
             Paragraph::new(Text::styled(
                 EMPTY_PROMPT,
                 Style::default()

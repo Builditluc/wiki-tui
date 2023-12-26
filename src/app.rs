@@ -1,5 +1,5 @@
 use anyhow::Result;
-use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+use crossterm::event::{KeyCode, KeyEvent};
 use ratatui::prelude::{Constraint, Direction, Layout, Rect};
 use std::sync::Arc;
 use wiki_api::{languages::Language, Endpoint};
@@ -9,7 +9,6 @@ use tokio::sync::{mpsc, Mutex};
 use crate::{
     action::Action,
     components::{
-        home::HomeComponent,
         logger::LoggerComponent,
         page_viewer::PageViewer,
         search::SearchComponent,
@@ -26,14 +25,12 @@ use crate::{
 #[derive(Default, Debug, Clone, PartialEq, Eq)]
 pub enum Context {
     #[default]
-    Home,
     Search,
     Page,
 }
 
 #[derive(Default)]
 pub struct AppComponent {
-    home: HomeComponent,
     search: SearchComponent,
     page: PageViewer,
     logger: LoggerComponent,
@@ -57,7 +54,6 @@ impl AppComponent {
 
 impl Component for AppComponent {
     fn init(&mut self, action_tx: mpsc::UnboundedSender<Action>) -> Result<()> {
-        self.home.init(action_tx.clone())?;
         self.search.init(action_tx.clone())?;
         self.page.init(action_tx.clone())?;
         self.search_bar.init(action_tx.clone())?;
@@ -69,6 +65,7 @@ impl Component for AppComponent {
         ));
 
         action_tx.send(Action::EnterSearchBar).unwrap();
+
         self.action_tx = Some(action_tx);
 
         Ok(())
@@ -81,7 +78,6 @@ impl Component for AppComponent {
             }
 
             match self.context {
-                Context::Home => self.home.handle_key_events(key),
                 Context::Search => self.search.handle_key_events(key),
                 Context::Page => self.page.handle_key_events(key),
             }
@@ -92,9 +88,6 @@ impl Component for AppComponent {
                 KeyCode::Char('l') => Action::ToggleShowLogger,
                 KeyCode::Char('q') => Action::Quit,
                 KeyCode::Char('s') => Action::EnterContext(Context::Search),
-                KeyCode::Char('h') if key.modifiers == KeyModifiers::CONTROL => {
-                    Action::EnterContext(Context::Home)
-                }
                 KeyCode::Char('j') => Action::ScrollDown(1),
                 KeyCode::Char('k') => Action::ScrollUp(1),
                 KeyCode::Char('h') => Action::UnselectScroll,
@@ -119,12 +112,11 @@ impl Component for AppComponent {
                     self.context = Context::Search;
                     self.search.dispatch(action)
                 }
-                Action::Page(..) | Action::PageViewer(..) if self.context != Context::Page => {
+                Action::Page(..) if self.context != Context::Page => {
                     self.context = Context::Page;
                     self.page.dispatch(action)
                 }
                 _ => match self.context {
-                    Context::Home => self.home.dispatch(action),
                     Context::Search => self.search.dispatch(action),
                     Context::Page => self.page.dispatch(action),
                 },
@@ -178,7 +170,6 @@ impl Component for AppComponent {
         };
 
         match self.context {
-            Context::Home => self.home.render(f, area),
             Context::Search => self.search.render(f, area),
             Context::Page => self.page.render(f, area),
         }

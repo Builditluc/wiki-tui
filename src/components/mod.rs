@@ -5,7 +5,6 @@ use tokio::sync::mpsc;
 
 use crate::{action::Action, event::Event, terminal::Frame};
 
-pub mod home;
 pub mod logger;
 pub mod page;
 pub mod page_viewer;

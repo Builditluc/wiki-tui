@@ -1,13 +1,13 @@
 use anyhow::{Context, Result};
-use std::path::PathBuf;
 use tracing_subscriber::{
     self, filter::EnvFilter, prelude::__tracing_subscriber_SubscriberExt, util::SubscriberInitExt,
     Layer,
 };
 
+use crate::config;
+
 pub fn initialize_logging() -> Result<()> {
-    // FIXME: implement proper configuration of logging directories
-    let directory = PathBuf::from("./logs/");
+    let directory = config::data_dir()?;
     std::fs::create_dir_all(directory.clone())
         .context(format!("{directory:?} could not be created"))?;
     let log_path = directory.join("wiki-tui.log");
