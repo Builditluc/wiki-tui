@@ -1,9 +1,17 @@
 use crate::terminal::Tui;
-use better_panic::Settings;
+use anyhow::Result;
 use tracing::error;
 
-pub fn initialize_panic_handler() {
-    std::panic::set_hook(Box::new(|panic_info| {
+pub fn initialize_panic_handler() -> Result<()> {
+    #[allow(unused_variables)]
+    let (panic_hook, eyre_hook) = color_eyre::config::HookBuilder::default()
+        .display_location_section(true)
+        .display_env_section(true)
+        .into_hooks();
+
+    eyre_hook.install()?;
+
+    std::panic::set_hook(Box::new(move |panic_info| {
         match Tui::new() {
             Ok(tui) => {
                 if let Err(error) = tui.exit() {
@@ -12,10 +20,34 @@ pub fn initialize_panic_handler() {
             }
             Err(error) => error!("unable to exit terminal {error:?}"),
         }
-        Settings::auto()
-            .most_recent_first(false)
-            .lineno_suffix(true)
-            .create_panic_handler()(panic_info);
+
+        #[cfg(not(debug_assertions))]
+        {
+            eprintln!("{}", panic_hook.panic_report(panic_info));
+            use human_panic::{handle_dump, print_msg, Metadata};
+            let meta = Metadata {
+                version: env!("CARGO_PKG_VERSION").into(),
+                name: env!("CARGO_PKG_NAME").into(),
+                authors: env!("CARGO_PKG_AUTHORS").replace(':', ", ").into(),
+                homepage: env!("CARGO_PKG_HOMEPAGE").into(),
+            };
+
+            let file_path = handle_dump(&meta, panic_info);
+            print_msg(file_path, &meta)
+                .expect("human-panic: printing error message to console failed");
+        }
+
+        #[cfg(debug_assertions)]
+        {
+            better_panic::Settings::auto()
+                .most_recent_first(false)
+                .lineno_suffix(true)
+                .verbosity(better_panic::Verbosity::Full)
+                .create_panic_handler()(panic_info);
+        }
+
         std::process::exit(libc::EXIT_FAILURE);
-    }))
+    }));
+
+    Ok(())
 }

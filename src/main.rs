@@ -8,7 +8,7 @@ async fn main() -> Result<()> {
     match_cli();
 
     initialize_logging()?;
-    initialize_panic_handler();
+    initialize_panic_handler()?;
 
     let mut app = App::new();
     app.run().await?;
