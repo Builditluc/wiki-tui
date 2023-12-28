@@ -9,12 +9,37 @@ use crate::{
     terminal::Frame,
 };
 
+use self::help::Keymap;
+
+pub mod help;
 pub mod logger;
 pub mod page;
 pub mod page_viewer;
 pub mod search;
 pub mod search_bar;
 pub mod status;
+
+#[macro_export]
+macro_rules! key_event {
+    (Key::$key: ident, Modifier::$modifier: ident) => {
+        crossterm::event::KeyEvent::new(
+            crossterm::event::KeyCode::$key,
+            crossterm::event::KeyModifiers::$modifier,
+        )
+    };
+    (Key::$key: ident) => {
+        key_event!(Key::$key, Modifier::NONE)
+    };
+    ($char: expr, Modifier::$modifier: ident) => {
+        crossterm::event::KeyEvent::new(
+            crossterm::event::KeyCode::Char($char),
+            crossterm::event::KeyModifiers::$modifier,
+        )
+    };
+    ($char: expr) => {
+        key_event!($char, Modifier::NONE)
+    };
+}
 
 pub trait Component {
     // TODO: use custom error type
@@ -37,6 +62,10 @@ pub trait Component {
     #[allow(unused_variables)]
     fn handle_key_events(&mut self, key: KeyEvent) -> ActionResult {
         ActionResult::Ignored
+    }
+
+    fn keymap(&self) -> Keymap {
+        Vec::new()
     }
 
     #[allow(unused_variables)]

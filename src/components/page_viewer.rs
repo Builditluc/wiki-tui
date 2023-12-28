@@ -9,6 +9,7 @@ use wiki_api::page::Page;
 
 use crate::{
     action::{Action, ActionResult, PageViewerAction},
+    key_event,
     terminal::Frame,
     ui::centered_rect,
 };
@@ -30,6 +31,10 @@ pub struct PageViewer {
 impl PageViewer {
     fn current_page_mut(&mut self) -> Option<&mut PageComponent> {
         self.page.get_mut(self.page_n)
+    }
+
+    fn current_page(&self) -> Option<&PageComponent> {
+        self.page.get(self.page_n)
     }
 
     fn display_page(&mut self, page: Page) {
@@ -59,6 +64,19 @@ impl Component for PageViewer {
         }
 
         ActionResult::Ignored
+    }
+
+    fn keymap(&self) -> super::help::Keymap {
+        let mut keymap = vec![(
+            key_event!(Key::Esc),
+            Action::PageViewer(PageViewerAction::PopPage).into(),
+        )];
+
+        if let Some(page) = self.current_page() {
+            keymap.append(&mut page.keymap());
+        }
+
+        keymap
     }
 
     fn update(&mut self, action: Action) -> ActionResult {

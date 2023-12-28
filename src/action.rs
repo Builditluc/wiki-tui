@@ -1,3 +1,5 @@
+use std::fmt::Debug;
+
 use tokio::sync::mpsc;
 use wiki_api::{page::Page, search::Search};
 
@@ -13,9 +15,11 @@ pub enum Action {
 
     // View Focus
     ToggleShowLogger,
+    ToggleShowHelp,
 
     SwitchContextSearch,
     SwitchContextPage,
+    SwitchPreviousContext,
 
     // Scrolling
     ScrollUp(u16),
@@ -46,6 +50,7 @@ pub enum SearchAction {
     StartSearch(String),
     FinshSearch(Search),
     ClearSearchResults,
+    OpenSearchResult,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -116,5 +121,23 @@ impl ActionPacket {
         for action in self.actions {
             action_tx.send(action).unwrap();
         }
+    }
+}
+
+impl From<Action> for ActionPacket {
+    fn from(value: Action) -> Self {
+        ActionPacket::single(value)
+    }
+}
+
+impl Debug for ActionPacket {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        if self.actions.len() == 1 {
+            return write!(f, "{:?}", self.actions.first().unwrap());
+        } else if self.actions.is_empty() {
+            return write!(f, "Nothing");
+        }
+
+        f.debug_list().entries(&mut self.actions.iter()).finish()
     }
 }

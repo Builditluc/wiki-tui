@@ -4,7 +4,7 @@ use ratatui::{
     prelude::{Alignment, Constraint, Direction, Layout, Rect},
     style::{Color, Modifier, Style, Stylize},
     text::{Line, Span, Text},
-    widgets::{Block, BorderType, Borders, HighlightSpacing, List, ListItem, ListState, Paragraph},
+    widgets::{Block, BorderType, Borders, HighlightSpacing, List, ListItem, Paragraph},
 };
 use tokio::sync::mpsc;
 use tracing::error;
@@ -16,65 +16,12 @@ use wiki_api::{
 
 use crate::{
     action::{Action, ActionPacket, ActionResult, SearchAction},
+    key_event,
     terminal::Frame,
-    ui::centered_rect,
+    ui::{centered_rect, ScrollBehaviour, StatefulList},
 };
 
 use super::Component;
-
-struct ResultsList<T> {
-    state: ListState,
-    items: Vec<T>,
-}
-
-impl<T> ResultsList<T> {
-    fn with_items(items: Vec<T>) -> Self {
-        ResultsList {
-            state: ListState::default(),
-            items,
-        }
-    }
-
-    fn next(&mut self) {
-        let i = match self.state.selected() {
-            Some(i) => {
-                if i >= self.items.len().saturating_sub(1) {
-                    0
-                } else {
-                    i.saturating_add(1)
-                }
-            }
-            None => 0,
-        };
-        self.state.select(Some(i));
-    }
-
-    fn previous(&mut self) {
-        let i = match self.state.selected() {
-            Some(i) => {
-                if i == 0 {
-                    self.items.len().saturating_sub(1)
-                } else {
-                    i.saturating_sub(1)
-                }
-            }
-            None => 0,
-        };
-        self.state.select(Some(i))
-    }
-
-    fn unselect(&mut self) {
-        self.state.select(None)
-    }
-
-    fn is_selected(&self) -> bool {
-        self.state.selected().is_some()
-    }
-
-    fn selected(&self) -> Option<&T> {
-        self.state.selected().map(|i| &self.items[i])
-    }
-}
 
 #[derive(Default, Debug, PartialEq, Eq)]
 enum Mode {
@@ -88,7 +35,7 @@ pub struct SearchComponent {
     endpoint: Option<Endpoint>,
     language: Option<Language>,
 
-    search_results: ResultsList<SearchResult>,
+    search_results: StatefulList<SearchResult>,
     search_info: Option<SearchInfo>,
     continue_search: Option<SearchContinue>,
 
@@ -102,7 +49,8 @@ impl Default for SearchComponent {
             endpoint: None,
             language: None,
 
-            search_results: ResultsList::with_items(Vec::new()),
+            search_results: StatefulList::with_items(Vec::new())
+                .scroll_behavior(ScrollBehaviour::StickToEnds),
             search_info: None,
             continue_search: None,
 
@@ -154,7 +102,9 @@ impl SearchComponent {
     }
 
     fn finish_search(&mut self, mut search: ApiSearch) -> ActionResult {
-        self.search_results.items.append(&mut search.results);
+        self.search_results
+            .get_items_mut()
+            .append(&mut search.results);
         self.search_results.next();
 
         self.continue_search = search.continue_data().take();
@@ -174,7 +124,7 @@ impl SearchComponent {
     }
 
     fn clear_search_results(&mut self) -> ActionResult {
-        self.search_results = ResultsList::with_items(Vec::new());
+        self.search_results = StatefulList::with_items(Vec::new());
         self.continue_search = None;
         self.search_info = None;
 
@@ -194,11 +144,20 @@ impl Component for SearchComponent {
     fn handle_key_events(&mut self, key: KeyEvent) -> ActionResult {
         match self.mode {
             Mode::Normal => match key.code {
-                KeyCode::Enter if self.search_results.is_selected() => self.open_selected_result(),
+                KeyCode::Enter if self.search_results.is_selected() => {
+                    Action::Search(SearchAction::OpenSearchResult).into()
+                }
                 _ => ActionResult::Ignored,
             },
             Mode::Processing => ActionResult::Ignored,
         }
+    }
+
+    fn keymap(&self) -> super::help::Keymap {
+        vec![(
+            key_event!(Key::Enter),
+            ActionPacket::single(Action::Search(SearchAction::OpenSearchResult)),
+        )]
     }
 
     fn update(&mut self, action: Action) -> ActionResult {
@@ -207,6 +166,7 @@ impl Component for SearchComponent {
                 SearchAction::StartSearch(query) => self.start_search(query),
                 SearchAction::FinshSearch(search) => self.finish_search(search),
                 SearchAction::ClearSearchResults => self.clear_search_results(),
+                SearchAction::OpenSearchResult => self.open_selected_result(),
             },
             Action::EnterNormal => {
                 self.mode = Mode::Normal;
@@ -252,7 +212,7 @@ impl Component for SearchComponent {
             return;
         }
 
-        if self.search_results.items.is_empty() {
+        if self.search_results.get_items().is_empty() {
             f.render_widget(
                 Paragraph::new("Start a search to view the results!").alignment(Alignment::Center),
                 centered_rect(area, 100, 50),
@@ -283,7 +243,7 @@ impl Component for SearchComponent {
                                                                        // border and highlight symbol
         let items: Vec<ListItem> = self
             .search_results
-            .items
+            .get_items()
             .iter()
             .map(|result| {
                 let snippet = result.snippet.clone().unwrap();
@@ -317,6 +277,6 @@ impl Component for SearchComponent {
                     .bg(Color::DarkGray)
                     .add_modifier(Modifier::ITALIC),
             );
-        f.render_stateful_widget(items, results_area, &mut self.search_results.state);
+        f.render_stateful_widget(items, results_area, self.search_results.get_state_mut());
     }
 }

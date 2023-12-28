@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+use crossterm::event::{KeyCode, KeyEvent};
 use ratatui::{
     prelude::{Margin, Rect},
     style::{Modifier, Style, Stylize},
@@ -13,7 +13,7 @@ use wiki_api::{document::Data, page::Page};
 use crate::{
     action::{Action, ActionResult, PageAction},
     components::Component,
-    has_modifier,
+    has_modifier, key_event,
     renderer::{default_renderer::render_document, RenderedDocument},
     terminal::Frame,
     ui::padded_rect,
@@ -239,6 +239,39 @@ impl Component for PageComponent {
             KeyCode::Right => Action::Page(PageAction::SelectNextLink).into(),
             _ => ActionResult::Ignored,
         }
+    }
+
+    fn keymap(&self) -> super::help::Keymap {
+        vec![
+            (
+                key_event!('r', Modifier::CONTROL),
+                Action::Page(PageAction::SwitchRenderer(self.renderer.next())).into(),
+            ),
+            (
+                key_event!(Key::Left, Modifier::SHIFT),
+                Action::Page(PageAction::SelectFirstLink).into(),
+            ),
+            (
+                key_event!(Key::Left),
+                Action::Page(PageAction::SelectPrevLink).into(),
+            ),
+            (
+                key_event!(Key::Right, Modifier::SHIFT),
+                Action::Page(PageAction::SelectLastLink).into(),
+            ),
+            (
+                key_event!(Key::Right),
+                Action::Page(PageAction::SelectNextLink).into(),
+            ),
+            (
+                key_event!(Key::Up, Modifier::SHIFT),
+                Action::Page(PageAction::SelectTopLink).into(),
+            ),
+            (
+                key_event!(Key::Down, Modifier::SHIFT),
+                Action::Page(PageAction::SelectBottomLink).into(),
+            ),
+        ]
     }
 
     fn update(&mut self, action: Action) -> ActionResult {
