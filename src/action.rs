@@ -112,9 +112,13 @@ impl ActionPacket {
         }
     }
 
-    pub fn append(mut self, action: Action) -> Self {
+    pub fn action(mut self, action: Action) -> Self {
         self.actions.push(action);
         self
+    }
+
+    pub fn add_action(&mut self, action: Action) {
+        self.actions.push(action);
     }
 
     pub fn send(self, action_tx: &mpsc::UnboundedSender<Action>) {

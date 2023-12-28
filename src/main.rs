@@ -5,13 +5,13 @@ use wiki_tui::{
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    match_cli();
+    let actions = match_cli();
 
     initialize_logging()?;
     initialize_panic_handler()?;
 
     let mut app = App::new();
-    app.run().await?;
+    app.run(actions).await?;
 
     Ok(())
 }

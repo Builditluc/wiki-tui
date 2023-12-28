@@ -116,8 +116,8 @@ impl SearchComponent {
     fn open_selected_result(&self) -> ActionResult {
         if let Some(selected_result) = self.search_results.selected() {
             return ActionPacket::default()
-                .append(Action::ClearSearchBar)
-                .append(Action::LoadPage(selected_result.title.clone()))
+                .action(Action::ClearSearchBar)
+                .action(Action::LoadPage(selected_result.title.clone()))
                 .into();
         }
         ActionResult::Ignored

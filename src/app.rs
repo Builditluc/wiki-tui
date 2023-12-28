@@ -189,9 +189,9 @@ impl Component for AppComponent {
             Action::ClearSearchBar => self.search_bar.clear(),
             Action::SubmitSearchBar => {
                 return ActionPacket::default()
-                    .append(Action::ExitSearchBar)
-                    .append(Action::SwitchContextSearch)
-                    .append(self.search_bar.submit())
+                    .action(Action::ExitSearchBar)
+                    .action(Action::SwitchContextSearch)
+                    .action(self.search_bar.submit())
                     .into()
             }
 
@@ -256,7 +256,7 @@ impl App {
         }
     }
 
-    pub async fn run(&mut self) -> Result<()> {
+    pub async fn run(&mut self, actions: Option<ActionPacket>) -> Result<()> {
         let (action_tx, mut action_rx) = mpsc::unbounded_channel();
 
         self.app_component.lock().await.init(action_tx.clone())?;
@@ -278,15 +278,16 @@ impl App {
             }
         });
 
+        if let Some(actions) = actions {
+            let _action_tx = action_tx.clone();
+            tokio::spawn(async move {
+                actions.send(&_action_tx);
+            });
+        }
+
         loop {
             if let Some(action) = action_rx.recv().await {
-                if !matches!(
-                    action,
-                    Action::RenderTick
-                        | Action::ScrollDown(..)
-                        | Action::ScrollUp(..)
-                        | Action::UnselectScroll
-                ) {
+                if !matches!(action, Action::RenderTick) {
                     trace_dbg!(&action);
                 }
 
