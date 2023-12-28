@@ -1,10 +1,10 @@
 use anyhow::{Context, Result};
-use tracing_subscriber::{
-    self, filter::EnvFilter, prelude::__tracing_subscriber_SubscriberExt, util::SubscriberInitExt,
-    Layer,
-};
+use tracing_log::AsLog;
+use tracing_subscriber::{self, prelude::*, EnvFilter};
 
 use crate::config;
+
+const LOG_ENV: &str = "WIKI_TUI_LOG";
 
 pub fn initialize_logging() -> Result<()> {
     let directory = config::data_dir()?;
@@ -12,18 +12,24 @@ pub fn initialize_logging() -> Result<()> {
         .context(format!("{directory:?} could not be created"))?;
     let log_path = directory.join("wiki-tui.log");
     let log_file = std::fs::File::create(log_path)?;
+
+    let env_filter = EnvFilter::from_env(LOG_ENV);
+    let level = env_filter.max_level_hint().context("no log level found")?;
+
     let file_subscriber = tracing_subscriber::fmt::layer()
         .with_file(true)
         .with_line_number(true)
         .with_writer(log_file)
         .with_target(false)
         .with_ansi(false)
-        .with_filter(EnvFilter::from_default_env());
+        .with_filter(env_filter);
 
     tracing_subscriber::registry()
         .with(file_subscriber)
         .with(tui_logger::tracing_subscriber_layer())
         .init();
+
+    tui_logger::set_default_level(level.as_log());
 
     Ok(())
 }

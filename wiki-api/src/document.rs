@@ -1,8 +1,14 @@
 use serde_repr::Deserialize_repr;
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, PartialEq, Eq)]
 pub struct Document {
     pub nodes: Vec<Raw>,
+}
+
+impl std::fmt::Debug for Document {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "nodes: {}", self.nodes.len())
+    }
 }
 
 impl Document {

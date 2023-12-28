@@ -1,5 +1,4 @@
 use anyhow::Result;
-use log::LevelFilter;
 use ratatui::{
     prelude::Rect,
     style::{Color, Style},
@@ -19,7 +18,7 @@ pub struct LoggerComponent {
 
 impl Component for LoggerComponent {
     fn init(&mut self, _: mpsc::UnboundedSender<Action>) -> Result<()> {
-        self.state = TuiWidgetState::new().set_default_display_level(LevelFilter::Debug);
+        self.state = TuiWidgetState::new();
         Ok(())
     }
 

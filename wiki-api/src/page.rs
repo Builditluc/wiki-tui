@@ -87,7 +87,7 @@ pub struct Section {
     anchor: String,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Clone, PartialEq, Eq)]
 pub struct Page {
     pub title: String,
     pub pageid: usize,
@@ -108,6 +108,20 @@ impl Page {
             return Some(links.len());
         }
         None
+    }
+}
+
+impl std::fmt::Debug for Page {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Page")
+            .field("title", &self.title)
+            .field("pageid", &self.pageid)
+            .field("content", &self.content)
+            .field("language", &self.language)
+            .field("language_links", &self.language_links.is_some())
+            .field("sections", &self.sections.is_some())
+            .field("revision_id", &self.revision_id)
+            .finish()
     }
 }
 
