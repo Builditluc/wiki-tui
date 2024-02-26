@@ -24,6 +24,13 @@ pub enum Action {
     // Scrolling
     ScrollUp(u16),
     ScrollDown(u16),
+
+    ScrollToTop,
+    ScrollToBottom,
+
+    ScrollHalfUp,
+    ScrollHalfDown,
+
     UnselectScroll,
 
     // Mode

@@ -19,7 +19,7 @@ use crate::{
         Component,
     },
     event::EventHandler,
-    key_event,
+    has_modifier, key_event,
     page_loader::PageLoader,
     terminal::{Frame, Tui},
     trace_dbg,
@@ -118,7 +118,19 @@ impl Component for AppComponent {
 
             KeyCode::Char('j') => Action::ScrollDown(1).into(),
             KeyCode::Char('k') => Action::ScrollUp(1).into(),
+
+            KeyCode::Char('g') => Action::ScrollToTop.into(),
+            KeyCode::Char('G') => Action::ScrollToBottom.into(),
+
+            KeyCode::Char('d') if has_modifier!(key, Modifier::CONTROL) => {
+                Action::ScrollHalfDown.into()
+            }
+            KeyCode::Char('u') if has_modifier!(key, Modifier::CONTROL) => {
+                Action::ScrollHalfUp.into()
+            }
+
             KeyCode::Char('h') => Action::UnselectScroll.into(),
+
             KeyCode::Char('i') => Action::EnterSearchBar.into(),
 
             _ => ActionResult::Ignored,

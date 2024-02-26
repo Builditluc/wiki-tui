@@ -289,6 +289,19 @@ impl Component for PageComponent {
             },
             Action::ScrollUp(amount) => self.scroll_up(amount),
             Action::ScrollDown(amount) => self.scroll_down(amount),
+
+            Action::ScrollHalfUp => self.scroll_up(self.viewport.height / 2),
+            Action::ScrollHalfDown => self.scroll_down(self.viewport.height / 2),
+
+            Action::ScrollToTop => self.viewport.y = 0,
+            Action::ScrollToBottom => {
+                self.viewport.y = self
+                    .render_cache
+                    .get(&self.viewport.width)
+                    .map(|doc| doc.lines.len() as u16)
+                    .unwrap_or(self.viewport.y)
+            }
+
             Action::Resize(width, heigth) => self.resize(width, heigth),
             _ => return ActionResult::Ignored,
         }
