@@ -1,11 +1,10 @@
 use anyhow::Result;
 use crossterm::event::{KeyCode, KeyEvent};
 use ratatui::prelude::{Constraint, Direction, Layout, Rect};
-use std::sync::Arc;
 use tracing::warn;
 use wiki_api::{languages::Language, Endpoint};
 
-use tokio::sync::{mpsc, Mutex};
+use tokio::sync::mpsc;
 
 use crate::{
     action::{Action, ActionPacket, ActionResult},
@@ -18,11 +17,9 @@ use crate::{
         status::{StatusComponent, STATUS_HEIGHT},
         Component,
     },
-    event::EventHandler,
     has_modifier, key_event,
     page_loader::PageLoader,
-    terminal::{Frame, Tui},
-    trace_dbg,
+    terminal::Frame,
     ui::centered_rect,
 };
 
@@ -252,84 +249,5 @@ impl Component for AppComponent {
             CONTEXT_PAGE => self.page.render(f, area),
             _ => warn!("unknown context"),
         }
-    }
-}
-
-pub struct App {
-    pub app_component: Arc<Mutex<AppComponent>>,
-    pub should_quit: bool,
-}
-
-impl App {
-    pub fn new() -> Self {
-        Self {
-            app_component: Arc::new(Mutex::new(AppComponent::default())),
-            should_quit: false,
-        }
-    }
-
-    pub async fn run(&mut self, actions: Option<ActionPacket>) -> Result<()> {
-        let (action_tx, mut action_rx) = mpsc::unbounded_channel();
-
-        self.app_component.lock().await.init(action_tx.clone())?;
-
-        let mut tui = Tui::new()?;
-        tui.enter()?;
-
-        let _action_tx = action_tx.clone();
-        let _root = self.app_component.clone();
-
-        tokio::spawn(async move {
-            let render_tick = 20;
-            let mut event_handler = EventHandler::new(render_tick);
-            loop {
-                let event = event_handler.next().await;
-                if let ActionResult::Consumed(action) = _root.lock().await.handle_events(event) {
-                    action.send(&_action_tx);
-                }
-            }
-        });
-
-        if let Some(actions) = actions {
-            let _action_tx = action_tx.clone();
-            tokio::spawn(async move {
-                actions.send(&_action_tx);
-            });
-        }
-
-        loop {
-            if let Some(action) = action_rx.recv().await {
-                if !matches!(action, Action::RenderTick) {
-                    trace_dbg!(&action);
-                }
-
-                match action {
-                    Action::RenderTick => {
-                        let mut app_component = self.app_component.lock().await;
-                        tui.terminal
-                            .draw(|frame| app_component.render(frame, frame.size()))
-                            .unwrap();
-                    }
-                    Action::Quit => self.should_quit = true,
-                    action => match self.app_component.lock().await.update(action) {
-                        ActionResult::Consumed(action) => action.send(&action_tx),
-                        ActionResult::Ignored => {}
-                    },
-                }
-            }
-
-            if self.should_quit {
-                break;
-            }
-        }
-
-        tui.exit()?;
-        Ok(())
-    }
-}
-
-impl Default for App {
-    fn default() -> Self {
-        Self::new()
     }
 }
