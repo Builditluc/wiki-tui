@@ -500,7 +500,7 @@ impl Component for PageComponent {
             }
         };
 
-        let lines: Vec<Line> = rendered_page
+        let mut lines: Vec<Line> = rendered_page
             .lines
             .iter()
             .skip(self.viewport.top() as usize)
@@ -534,6 +534,14 @@ impl Component for PageComponent {
                 }
             })
             .collect();
+
+        if self.viewport.y == 0 {
+            let mut title_line = Line::raw(&self.page.title);
+            title_line.patch_style(Style::default().fg(Color::Red).bold());
+
+            lines.insert(0, title_line);
+            lines.pop();
+        }
 
         if SCROLLBAR {
             let scrollbar = Scrollbar::default()
