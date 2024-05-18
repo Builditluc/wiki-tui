@@ -56,8 +56,10 @@ pub enum Action {
 pub enum SearchAction {
     StartSearch(String),
     FinshSearch(Search),
+    ContinueSearch,
     ClearSearchResults,
     OpenSearchResult,
+    ChangeMode(crate::components::search::Mode),
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]

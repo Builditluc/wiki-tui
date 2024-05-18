@@ -4,10 +4,10 @@ use ratatui::{
     prelude::{Alignment, Constraint, Direction, Layout, Rect},
     style::{Color, Modifier, Style, Stylize},
     text::{Line, Span, Text},
-    widgets::{Block, BorderType, Borders, HighlightSpacing, List, ListItem, Paragraph},
+    widgets::{Block, BorderType, Borders, HighlightSpacing, List, ListItem, Paragraph, Wrap},
 };
 use tokio::sync::mpsc;
-use tracing::error;
+use tracing::{error, info, warn};
 use wiki_api::{
     languages::Language,
     search::{Search as ApiSearch, SearchContinue, SearchInfo, SearchRequest, SearchResult},
@@ -23,11 +23,16 @@ use crate::{
 
 use super::Component;
 
-#[derive(Default, Debug, PartialEq, Eq)]
-enum Mode {
+#[derive(Default, Debug, PartialEq, Eq, Clone)]
+pub enum Mode {
     #[default]
-    Normal,
-    Processing,
+    NoSearch,
+    FinishedSearch,
+
+    NoResults,
+    Suggestion,
+
+    Searching,
 }
 
 pub struct SearchComponent {
@@ -86,7 +91,8 @@ impl SearchComponent {
             }
         };
         tokio::spawn(async move {
-            tx.send(Action::EnterProcessing).unwrap();
+            tx.send(Action::Search(SearchAction::ChangeMode(Mode::Searching)))
+                .unwrap();
             tx.send(Action::Search(SearchAction::ClearSearchResults))
                 .unwrap();
             match search_request.search().await {
@@ -95,13 +101,15 @@ impl SearchComponent {
                     .unwrap(),
                 Err(error) => error!("Unable to complete the search: {:?}", error),
             };
-            tx.send(Action::EnterNormal).unwrap();
         });
 
         ActionResult::consumed()
     }
 
     fn finish_search(&mut self, mut search: ApiSearch) -> ActionResult {
+        let has_results = search.info.total_hits.unwrap_or_default() != 0;
+        let has_suggestion = search.info.suggestion.is_some();
+
         self.search_results
             .get_items_mut()
             .append(&mut search.results);
@@ -109,6 +117,45 @@ impl SearchComponent {
 
         self.continue_search = search.continue_data().take();
         self.search_info = Some(search.info);
+
+        crate::trace_dbg!(has_results);
+        crate::trace_dbg!(has_suggestion);
+
+        if !has_results && !has_suggestion {
+            warn!("could not find any results and no suggestion was given");
+            return Action::Search(SearchAction::ChangeMode(Mode::NoResults)).into();
+        }
+
+        if !has_results && has_suggestion {
+            info!("could not find any results, but a suggestion was given",);
+            return Action::Search(SearchAction::ChangeMode(Mode::Suggestion)).into();
+        }
+
+        Action::Search(SearchAction::ChangeMode(Mode::FinishedSearch)).into()
+    }
+
+    fn continue_search(&mut self) -> ActionResult {
+        if self.continue_search.is_none() {
+            return Action::Search(SearchAction::ChangeMode(Mode::NoResults)).into();
+        }
+
+        let code = self.continue_search.as_ref().unwrap();
+        let tx = self.action_tx.clone().unwrap();
+        let search_request = ApiSearch::builder()
+            .query(code.query.clone())
+            .endpoint(code.endpoint.clone())
+            .language(code.language.clone())
+            .offset(code.offset);
+        tokio::spawn(async move {
+            tx.send(Action::Search(SearchAction::ChangeMode(Mode::Searching)))
+                .unwrap();
+            match search_request.search().await {
+                Ok(search) => tx
+                    .send(Action::Search(SearchAction::FinshSearch(search)))
+                    .unwrap(),
+                Err(error) => error!("Unable to complete the search: {:?}", error),
+            };
+        });
 
         ActionResult::consumed()
     }
@@ -130,6 +177,11 @@ impl SearchComponent {
 
         ActionResult::consumed()
     }
+
+    fn change_mode(&mut self, mode: Mode) -> ActionResult {
+        self.mode = mode;
+        ActionResult::consumed()
+    }
 }
 
 impl Component for SearchComponent {
@@ -143,13 +195,35 @@ impl Component for SearchComponent {
 
     fn handle_key_events(&mut self, key: KeyEvent) -> ActionResult {
         match self.mode {
-            Mode::Normal => match key.code {
+            Mode::Searching => ActionResult::Ignored,
+            Mode::Suggestion => {
+                match key.code {
+                    KeyCode::Char('y') => {
+                        // HACK: well, some checks would be cool
+                        let suggestion = self
+                            .search_info
+                            .as_ref()
+                            .unwrap()
+                            .suggestion
+                            .as_ref()
+                            .unwrap()
+                            .as_str();
+                        Action::Search(SearchAction::StartSearch(suggestion.to_string())).into()
+                    }
+                    KeyCode::Char('n') => {
+                        Action::Search(SearchAction::ChangeMode(Mode::NoSearch)).into()
+                    }
+                    _ => ActionResult::Ignored,
+                }
+            }
+            Mode::FinishedSearch => match key.code {
                 KeyCode::Enter if self.search_results.is_selected() => {
                     Action::Search(SearchAction::OpenSearchResult).into()
                 }
+                KeyCode::Char('c') => Action::Search(SearchAction::ContinueSearch).into(),
                 _ => ActionResult::Ignored,
             },
-            Mode::Processing => ActionResult::Ignored,
+            _ => ActionResult::Ignored,
         }
     }
 
@@ -165,17 +239,12 @@ impl Component for SearchComponent {
             Action::Search(search_action) => match search_action {
                 SearchAction::StartSearch(query) => self.start_search(query),
                 SearchAction::FinshSearch(search) => self.finish_search(search),
+                SearchAction::ContinueSearch => self.continue_search(),
                 SearchAction::ClearSearchResults => self.clear_search_results(),
                 SearchAction::OpenSearchResult => self.open_selected_result(),
+                SearchAction::ChangeMode(mode) => self.change_mode(mode),
             },
-            Action::EnterNormal => {
-                self.mode = Mode::Normal;
-                ActionResult::consumed()
-            }
-            Action::EnterProcessing => {
-                self.mode = Mode::Processing;
-                ActionResult::consumed()
-            }
+
             Action::ScrollUp(n) => {
                 for _ in 0..n {
                     self.search_results.previous()
@@ -197,7 +266,7 @@ impl Component for SearchComponent {
     }
 
     fn render(&mut self, f: &mut Frame<'_>, area: Rect) {
-        if self.mode == Mode::Processing {
+        if self.mode == Mode::Searching {
             f.render_widget(
                 Block::default()
                     .borders(Borders::ALL)
@@ -206,9 +275,57 @@ impl Component for SearchComponent {
                 area,
             );
             f.render_widget(
-                Paragraph::new("Processing Search. Please wait...").alignment(Alignment::Center),
+                Paragraph::new("Searching. Please wait...").alignment(Alignment::Center),
                 centered_rect(area, 100, 50),
             );
+            return;
+        }
+
+        if self.mode == Mode::NoSearch {
+            f.render_widget(
+                Paragraph::new("Start a search!").alignment(Alignment::Center),
+                centered_rect(area, 100, 50),
+            );
+            return;
+        }
+
+        if self.mode == Mode::NoResults {
+            let block = Block::default().title("Warning").borders(Borders::ALL);
+            let msg = "Could not find any search results and no other suggestion could be made"
+                .to_string();
+            let area = centered_rect(area, 60, 25);
+            f.render_widget(
+                Paragraph::new(msg).block(block).wrap(Wrap { trim: true }),
+                area,
+            );
+            return;
+        }
+
+        if self.mode == Mode::Suggestion {
+            if self.search_info.is_none() {
+                return;
+            }
+
+            let block = Block::default().title("Information").borders(Borders::ALL);
+            let msg = format!(
+                "No results for '{}' were found. Do you want to search for '{}' instead?\n\n[y]/[n]",
+                self.search_info.as_ref().unwrap().query.as_str(),
+                self.search_info
+                    .as_ref()
+                    .unwrap()
+                    .suggestion
+                    .as_ref()
+                    .unwrap()
+            );
+            let area = centered_rect(area, 60, 25);
+            f.render_widget(
+                Paragraph::new(msg).block(block).wrap(Wrap { trim: true }),
+                area,
+            );
+        }
+
+        // below this we should be in FinishedSearch mode
+        if self.mode != Mode::FinishedSearch {
             return;
         }
 
@@ -223,14 +340,14 @@ impl Component for SearchComponent {
         let [info_area, results_area] = {
             let rects = Layout::default()
                 .direction(Direction::Vertical)
-                .constraints([Constraint::Min(1), Constraint::Percentage(100)])
+                .constraints([Constraint::Percentage(100), Constraint::Min(1)])
                 .split(area);
-            [rects[0], rects[1]]
+            [rects[1], rects[0]]
         };
 
         if let Some(ref search_info) = self.search_info {
             let info = Paragraph::new(format!(
-                "Results: {} | Language: {}",
+                "Results: {} | Language: {} | [c]ontinue",
                 search_info.total_hits.unwrap_or_default(),
                 search_info.language.name()
             ));
