@@ -112,10 +112,12 @@ impl Component for PageViewer {
             );
             return;
         }
+
         if let Some(page) = self.current_page_mut() {
             page.render(f, area);
             return;
         }
+
         f.render_widget(
             Paragraph::new("No page opened").alignment(Alignment::Center),
             centered_rect(area, 100, 50),

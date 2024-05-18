@@ -65,6 +65,7 @@ pub enum SearchAction {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum PageAction {
     SwitchRenderer(Renderer),
+    ToggleContents,
 
     SelectFirstLink,
     SelectLastLink,
@@ -74,6 +75,8 @@ pub enum PageAction {
 
     SelectPrevLink,
     SelectNextLink,
+
+    GoToHeader(String),
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]

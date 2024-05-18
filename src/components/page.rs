@@ -2,13 +2,19 @@ use std::collections::HashMap;
 
 use crossterm::event::{KeyCode, KeyEvent};
 use ratatui::{
+    layout::{Constraint, Direction, Layout},
     prelude::{Margin, Rect},
-    style::{Modifier, Style, Stylize},
+    style::{Color, Modifier, Style, Stylize},
     text::{Line, Span},
-    widgets::{Paragraph, Scrollbar, ScrollbarOrientation, ScrollbarState},
+    widgets::{
+        Block, Borders, List, ListState, Paragraph, Scrollbar, ScrollbarOrientation, ScrollbarState,
+    },
 };
-use tracing::{debug, info};
-use wiki_api::{document::Data, page::Page};
+use tracing::{debug, info, warn};
+use wiki_api::{
+    document::Data,
+    page::{Page, Section},
+};
 
 use crate::{
     action::{Action, ActionResult, PageAction},
@@ -57,22 +63,38 @@ impl Renderer {
     }
 }
 
+#[derive(Default)]
+struct PageContentsState {
+    list_state: ListState,
+    max_idx_section: u8,
+}
+
 pub struct PageComponent {
     page: Page,
     renderer: Renderer,
     render_cache: HashMap<u16, RenderedDocument>,
     viewport: Rect,
     selected: (usize, usize),
+
+    is_contents: bool,
+    contents_state: PageContentsState,
 }
 
 impl PageComponent {
     pub fn new(page: Page) -> Self {
+        let contents_state = PageContentsState {
+            list_state: ListState::default().with_selected(Some(0)),
+            max_idx_section: page.sections().map(|x| x.len() as u8).unwrap_or_default(),
+        };
         Self {
             page,
             renderer: Renderer::default(),
             render_cache: HashMap::new(),
             viewport: Rect::default(),
             selected: (0, 0),
+
+            is_contents: false,
+            contents_state,
         }
     }
 
@@ -86,6 +108,34 @@ impl PageComponent {
             #[cfg(debug_assertions)]
             Renderer::TestRendererNodeRaw => render_nodes_raw(&self.page.content),
         }
+    }
+
+    fn render_contents(&mut self, f: &mut Frame<'_>, area: Rect) {
+        let sections = self.page.sections.as_ref();
+        let block = Block::default().title("Contents").borders(Borders::ALL);
+
+        if sections.is_none() {
+            f.render_widget(Paragraph::new("No Contents available").block(block), area);
+            return;
+        }
+
+        let sections = sections.unwrap();
+        let list = List::new(sections.iter().map(|x| format!("{} {}", x.number, x.text)))
+            .block(block)
+            .highlight_style(
+                Style::default()
+                    .bg(Color::DarkGray)
+                    .add_modifier(Modifier::ITALIC),
+            );
+        f.render_stateful_widget(list, area, &mut self.contents_state.list_state);
+    }
+
+    fn selected_header(&self) -> Option<&Section> {
+        let sections = self.page.sections()?;
+        let section_idx = self.contents_state.list_state.selected()?;
+        assert!(section_idx < self.contents_state.max_idx_section as usize);
+
+        Some(&sections[section_idx])
     }
 
     fn switch_renderer(&mut self, renderer: Renderer) {
@@ -102,10 +152,42 @@ impl PageComponent {
     }
 
     fn scroll_down(&mut self, amount: u16) {
+        if self.is_contents {
+            let i = match self.contents_state.list_state.selected() {
+                Some(i) => {
+                    if i >= self.contents_state.max_idx_section as usize - 1 {
+                        0
+                    } else {
+                        i + 1
+                    }
+                }
+                None => 0,
+            };
+
+            self.contents_state.list_state.select(Some(i));
+            return;
+        }
+
         self.viewport.y += amount;
     }
 
     fn scroll_up(&mut self, amount: u16) {
+        if self.is_contents {
+            let i = match self.contents_state.list_state.selected() {
+                Some(i) => {
+                    if i == 0 {
+                        self.contents_state.max_idx_section as usize - 1
+                    } else {
+                        i - 1
+                    }
+                }
+                None => 0,
+            };
+
+            self.contents_state.list_state.select(Some(i));
+            return;
+        }
+
         self.viewport.y = self.viewport.y.saturating_sub(amount);
     }
 
@@ -215,14 +297,84 @@ impl PageComponent {
 
         self.flush_cache();
     }
+
+    fn select_header(&mut self, anchor: String) {
+        // HACK: do not hardcode this
+        if &anchor == "Content_Top" {
+            info!("special case: jumping to top");
+            self.viewport.y = 0;
+            return;
+        }
+
+        let header_node = self
+            .page
+            .content
+            .nth(0)
+            .unwrap()
+            .descendants()
+            .filter(|node| {
+                if let Data::Header { id, .. } = node.data() {
+                    id == &anchor
+                } else {
+                    false
+                }
+            })
+            .last();
+
+        if header_node.is_none() {
+            warn!("no header with the anchor '{}' could be found", anchor);
+            return;
+        }
+
+        let header_node = header_node.unwrap();
+        let first_index = header_node.index();
+        let last_index = header_node
+            .last_child()
+            .map(|child| child.index())
+            .unwrap_or(first_index);
+
+        for (y, line) in self
+            .render_page(self.viewport.width)
+            .lines
+            .iter()
+            .enumerate()
+        {
+            for word in line {
+                if let Some(node) = word.node(&self.page.content) {
+                    if node.index() <= last_index && node.index() >= first_index {
+                        self.viewport.y = y as u16;
+                        return;
+                    }
+                }
+            }
+        }
+
+        warn!("no word could be matched to the header node");
+    }
 }
 
 impl Component for PageComponent {
     fn handle_key_events(&mut self, key: KeyEvent) -> ActionResult {
+        if self.is_contents {
+            return match key.code {
+                KeyCode::Char('t') => Action::Page(PageAction::ToggleContents).into(),
+                KeyCode::Enter if self.contents_state.list_state.selected().is_some() => {
+                    let header = self.selected_header();
+                    if header.is_none() {
+                        info!("no header selected");
+                        return ActionResult::Ignored;
+                    }
+                    Action::Page(PageAction::GoToHeader(header.unwrap().anchor.to_string())).into()
+                }
+                _ => ActionResult::Ignored,
+            };
+        }
+
         match key.code {
             KeyCode::Char('r') if has_modifier!(key, Modifier::CONTROL) => {
                 Action::Page(PageAction::SwitchRenderer(self.renderer.next())).into()
             }
+            KeyCode::Char('t') => Action::Page(PageAction::ToggleContents).into(),
             KeyCode::Left if has_modifier!(key, Modifier::SHIFT) => {
                 Action::Page(PageAction::SelectFirstLink).into()
             }
@@ -278,6 +430,7 @@ impl Component for PageComponent {
         match action {
             Action::Page(page_action) => match page_action {
                 PageAction::SwitchRenderer(renderer) => self.switch_renderer(renderer),
+                PageAction::ToggleContents => self.is_contents = !self.is_contents,
 
                 PageAction::SelectFirstLink => self.select_first(),
                 PageAction::SelectLastLink => self.select_last(),
@@ -286,6 +439,8 @@ impl Component for PageComponent {
 
                 PageAction::SelectPrevLink => self.select_prev(),
                 PageAction::SelectNextLink => self.select_next(),
+
+                PageAction::GoToHeader(anchor) => self.select_header(anchor),
             },
             Action::ScrollUp(amount) => self.scroll_up(amount),
             Action::ScrollDown(amount) => self.scroll_down(amount),
@@ -310,6 +465,19 @@ impl Component for PageComponent {
 
     fn render(&mut self, f: &mut Frame, area: Rect) {
         let area = padded_rect(area, 1, 1);
+
+        let area = if self.is_contents {
+            let splits = Layout::default()
+                .direction(Direction::Horizontal)
+                .constraints([Constraint::Percentage(80), Constraint::Percentage(20)])
+                .split(area);
+
+            self.render_contents(f, splits[1]);
+            splits[0]
+        } else {
+            area
+        };
+
         let page_area = if SCROLLBAR {
             area.inner(&Margin {
                 vertical: 0,

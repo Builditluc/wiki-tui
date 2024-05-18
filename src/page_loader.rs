@@ -1,6 +1,10 @@
 use tokio::sync::mpsc::UnboundedSender;
 use tracing::error;
-use wiki_api::{languages::Language, page::Page, Endpoint};
+use wiki_api::{
+    languages::Language,
+    page::{Page, Property},
+    Endpoint,
+};
 
 use crate::action::{Action, PageViewerAction};
 
@@ -24,6 +28,7 @@ impl PageLoader {
     pub fn load_page(&self, title: String) {
         let page_request = Page::builder()
             .page(title)
+            .properties(vec![Property::Text, Property::Sections])
             .endpoint(self.endpoint.clone())
             .language(self.language.clone());
 
