@@ -168,6 +168,13 @@ impl PageComponent {
             return;
         }
 
+        if let Some(page) = self.render_cache.get(&self.viewport.width) {
+            let n_lines = page.lines.len() as u16;
+            if self.viewport.bottom() + amount >= n_lines {
+                self.viewport.y = n_lines.saturating_sub(self.viewport.height);
+                return;
+            }
+        }
         self.viewport.y += amount;
     }
 
@@ -450,11 +457,9 @@ impl Component for PageComponent {
 
             Action::ScrollToTop => self.viewport.y = 0,
             Action::ScrollToBottom => {
-                self.viewport.y = self
-                    .render_cache
-                    .get(&self.viewport.width)
-                    .map(|doc| doc.lines.len() as u16)
-                    .unwrap_or(self.viewport.y)
+                if let Some(page) = self.render_cache.get(&self.viewport.width) {
+                    self.scroll_down(page.lines.len() as u16)
+                }
             }
 
             Action::Resize(width, heigth) => self.resize(width, heigth),
@@ -551,8 +556,13 @@ impl Component for PageComponent {
                 .track_style(Style::new().black().on_black())
                 .thumb_style(Style::new().blue())
                 .orientation(ScrollbarOrientation::VerticalRight);
-            let mut scrollbar_state = ScrollbarState::new(rendered_page.lines.len())
-                .position(self.viewport.top() as usize);
+            let mut scrollbar_state = ScrollbarState::new(
+                rendered_page
+                    .lines
+                    .len()
+                    .saturating_sub(self.viewport.height as usize),
+            )
+            .position(self.viewport.top() as usize);
             f.render_stateful_widget(scrollbar, area, &mut scrollbar_state);
         }
 
