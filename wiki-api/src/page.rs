@@ -78,13 +78,13 @@ pub struct LanguageLink {
 #[derive(Debug, Deserialize, Clone, PartialEq, Eq)]
 pub struct Section {
     #[serde(skip_deserializing)]
-    index: usize,
+    pub index: usize,
     #[serde(rename = "toclevel")]
-    header_kind: HeaderKind,
+    pub header_kind: HeaderKind,
     #[serde(rename = "line")]
-    text: String,
-    number: String,
-    anchor: String,
+    pub text: String,
+    pub number: String,
+    pub anchor: String,
 }
 
 #[derive(Clone, PartialEq, Eq)]
@@ -106,6 +106,13 @@ impl Page {
     pub fn available_languages(&self) -> Option<usize> {
         if let Some(ref links) = self.language_links {
             return Some(links.len());
+        }
+        None
+    }
+
+    pub fn sections(&self) -> Option<&Vec<Section>> {
+        if let Some(ref sections) = self.sections {
+            return Some(sections);
         }
         None
     }
@@ -388,18 +395,20 @@ impl<I, P> PageBuilder<I, P, WithEndpoint, WithLanguage> {
             .map(|x| x as usize)
             .ok_or_else(|| anyhow!("missing the pageid"))?;
 
+        let endpoint = self.endpoint.0;
+        let language = self.language.0;
         let content = res_json
             .get("parse")
             .and_then(|x| x.get("text"))
             .and_then(|x| x.as_str())
             .map(|x| {
-                let parser = WikipediaParser::parse_document(x);
+                let parser = WikipediaParser::parse_document(x, endpoint, language.clone());
                 Document {
                     nodes: parser.nodes(),
                 }
             })
             // HACK: implement correct errors
-            .ok_or(anyhow!("failed parsing the content"))?;
+            .ok_or(anyhow!("missing the content or failed parsing the content"))?;
 
         let language_links = res_json
             .get("parse")
@@ -463,7 +472,7 @@ impl<I, P> PageBuilder<I, P, WithEndpoint, WithLanguage> {
             title,
             pageid,
             content,
-            language: self.language.0,
+            language,
             language_links,
             sections,
             revision_id,

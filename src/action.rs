@@ -56,13 +56,16 @@ pub enum Action {
 pub enum SearchAction {
     StartSearch(String),
     FinshSearch(Search),
+    ContinueSearch,
     ClearSearchResults,
     OpenSearchResult,
+    ChangeMode(crate::components::search::Mode),
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum PageAction {
     SwitchRenderer(Renderer),
+    ToggleContents,
 
     SelectFirstLink,
     SelectLastLink,
@@ -72,6 +75,8 @@ pub enum PageAction {
 
     SelectPrevLink,
     SelectNextLink,
+
+    GoToHeader(String),
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]

@@ -4,11 +4,10 @@ use reqwest::{Client, Response};
 use serde_repr::Deserialize_repr;
 use std::fmt::Debug;
 use std::fmt::Display;
-use std::str::FromStr;
 
 use crate::Endpoint;
 
-use super::languages::Language;
+use crate::languages::Language;
 
 /// A finished search containing the found results and additional optional information regarding
 /// the search
@@ -196,27 +195,26 @@ impl Display for Namespace {
     }
 }
 
-impl FromStr for Namespace {
-    type Err = ();
-    fn from_str(namespace: &str) -> Result<Namespace, Self::Err> {
+impl Namespace {
+    pub fn from_string(namespace: &str) -> Option<Namespace> {
         match namespace.to_lowercase().as_str() {
-            "main" => Ok(Namespace::Main),
-            "main_talk" => Ok(Namespace::MainTalk),
-            "user" => Ok(Namespace::User),
-            "user_talk" => Ok(Namespace::UserTalk),
-            "project" => Ok(Namespace::Project),
-            "project_talk" => Ok(Namespace::ProjectTalk),
-            "file" => Ok(Namespace::File),
-            "file_talk" => Ok(Namespace::FileTalk),
-            "mediawiki" => Ok(Namespace::MediaWiki),
-            "mediawiki_talk" => Ok(Namespace::MediaWikiTalk),
-            "template" => Ok(Namespace::Template),
-            "template_talk" => Ok(Namespace::TemplateTalk),
-            "help" => Ok(Namespace::Help),
-            "help_talk" => Ok(Namespace::HelpTalk),
-            "category" => Ok(Namespace::Category),
-            "category_talk" => Ok(Namespace::CategoryTalk),
-            _ => Err(()),
+            "main" => Some(Namespace::Main),
+            "main_talk" => Some(Namespace::MainTalk),
+            "user" => Some(Namespace::User),
+            "user_talk" => Some(Namespace::UserTalk),
+            "project" => Some(Namespace::Project),
+            "project_talk" => Some(Namespace::ProjectTalk),
+            "file" => Some(Namespace::File),
+            "file_talk" => Some(Namespace::FileTalk),
+            "mediawiki" => Some(Namespace::MediaWiki),
+            "mediawiki_talk" => Some(Namespace::MediaWikiTalk),
+            "template" => Some(Namespace::Template),
+            "template_talk" => Some(Namespace::TemplateTalk),
+            "help" => Some(Namespace::Help),
+            "help_talk" => Some(Namespace::HelpTalk),
+            "category" => Some(Namespace::Category),
+            "category_talk" => Some(Namespace::CategoryTalk),
+            _ => None,
         }
     }
 }
