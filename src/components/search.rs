@@ -347,7 +347,7 @@ impl Component for SearchComponent {
 
         if let Some(ref search_info) = self.search_info {
             let info = Paragraph::new(format!(
-                "Results: {} | Language: {} | [c]ontinue",
+                " wiki-tui | Results: '{}' | Language: '{}' | [c]ontinue",
                 search_info.total_hits.unwrap_or_default(),
                 search_info.language.name()
             ));

@@ -478,7 +478,21 @@ impl Component for PageComponent {
     }
 
     fn render(&mut self, f: &mut Frame, area: Rect) {
-        let area = padded_rect(area, 1, 1);
+        let (area, status_area) = {
+            let splits = Layout::default()
+                .direction(Direction::Vertical)
+                .constraints([Constraint::Percentage(100), Constraint::Min(1)])
+                .split(padded_rect(area, 1, 1));
+            (splits[0], splits[1])
+        };
+
+        let status_msg = format!(
+            " wiki-tui | Page '{}' | Language '{}' | '{}' other languages available",
+            self.page.title,
+            self.page.language.name(),
+            self.page.available_languages().unwrap_or_default()
+        );
+        f.render_widget(Paragraph::new(status_msg), status_area);
 
         let area = {
             let splits = Layout::default()

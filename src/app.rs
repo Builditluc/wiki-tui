@@ -14,7 +14,6 @@ use crate::{
         page_viewer::PageViewer,
         search::SearchComponent,
         search_bar::{SearchBarComponent, SEARCH_BAR_HEIGTH},
-        status::{StatusComponent, STATUS_HEIGHT},
         Component,
     },
     has_modifier, key_event,
@@ -31,7 +30,6 @@ pub struct AppComponent {
     search: SearchComponent,
     page: PageViewer,
     logger: LoggerComponent,
-    status: StatusComponent,
     search_bar: SearchBarComponent,
     help: HelpComponent,
 
@@ -212,19 +210,16 @@ impl Component for AppComponent {
     }
 
     fn render(&mut self, f: &mut Frame<'_>, area: Rect) {
-        let (search_bar_area, area, status_area) = {
+        let (search_bar_area, area) = {
             let chunks = Layout::default()
                 .direction(Direction::Vertical)
                 .constraints([
                     Constraint::Min(SEARCH_BAR_HEIGTH),
                     Constraint::Percentage(100),
-                    Constraint::Min(STATUS_HEIGHT),
                 ])
                 .split(area);
-            (chunks[0], chunks[1], chunks[2])
+            (chunks[0], chunks[1])
         };
-
-        self.status.render(f, status_area);
 
         if self.is_help {
             self.help.render(f, centered_rect(area, 30, 50));
