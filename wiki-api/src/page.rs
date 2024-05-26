@@ -395,12 +395,14 @@ impl<I, P> PageBuilder<I, P, WithEndpoint, WithLanguage> {
             .map(|x| x as usize)
             .ok_or_else(|| anyhow!("missing the pageid"))?;
 
+        let endpoint = self.endpoint.0;
+        let language = self.language.0;
         let content = res_json
             .get("parse")
             .and_then(|x| x.get("text"))
             .and_then(|x| x.as_str())
             .map(|x| {
-                let parser = WikipediaParser::parse_document(x);
+                let parser = WikipediaParser::parse_document(x, endpoint, language.clone());
                 Document {
                     nodes: parser.nodes(),
                 }
@@ -470,7 +472,7 @@ impl<I, P> PageBuilder<I, P, WithEndpoint, WithLanguage> {
             title,
             pageid,
             content,
-            language: self.language.0,
+            language,
             language_links,
             sections,
             revision_id,

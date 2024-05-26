@@ -12,8 +12,8 @@ use ratatui::{
 };
 use tracing::{debug, info, warn};
 use wiki_api::{
-    document::Data,
-    page::{Page, Section},
+    document::{Data, Node},
+    page::{Link, Page, Section},
 };
 
 use crate::{
@@ -218,7 +218,7 @@ impl PageComponent {
             .nth(0)
             .unwrap()
             .descendants()
-            .find(|node| matches!(node.data(), &Data::WikiLink { .. }));
+            .find(|node| matches!(node.data(), &Data::Link(_)));
 
         if let Some(selectable_node) = selectable_node {
             let first_index = selectable_node.index();
@@ -241,9 +241,7 @@ impl PageComponent {
             .nth(0)
             .unwrap()
             .descendants()
-            .filter(|node| {
-                matches!(node.data(), &Data::WikiLink { .. }) && node.index() < self.selected.0
-            })
+            .filter(|node| matches!(node.data(), &Data::Link(_)) && node.index() < self.selected.0)
             .last();
 
         if let Some(selectable_node) = selectable_node {
@@ -267,9 +265,7 @@ impl PageComponent {
             .nth(0)
             .unwrap()
             .descendants()
-            .find(|node| {
-                matches!(node.data(), &Data::WikiLink { .. }) && self.selected.1 < node.index()
-            });
+            .find(|node| matches!(node.data(), &Data::Link(_)) && self.selected.1 < node.index());
 
         if let Some(selectable_node) = selectable_node {
             let first_index = selectable_node.index();
@@ -292,9 +288,7 @@ impl PageComponent {
             .nth(0)
             .unwrap()
             .descendants()
-            .filter(|node| {
-                matches!(node.data(), &Data::WikiLink { .. }) && node.index() > self.selected.1
-            })
+            .filter(|node| matches!(node.data(), &Data::Link(_)) && node.index() > self.selected.1)
             .last();
 
         if let Some(selectable_node) = selectable_node {
@@ -304,6 +298,17 @@ impl PageComponent {
                 .map(|child| child.index())
                 .unwrap_or(first_index);
             self.selected = (first_index, last_index);
+        }
+    }
+
+    fn open_link(&self) -> ActionResult {
+        let index = self.selected.0;
+        let node = Node::new(&self.page.content, index).unwrap();
+        let data = node.data().to_owned();
+
+        match data {
+            Data::Link(Link::Internal(link_data)) => Action::LoadPage(link_data.page).into(),
+            _ => ActionResult::consumed(),
         }
     }
 
@@ -405,6 +410,7 @@ impl Component for PageComponent {
             }
             KeyCode::Left => Action::Page(PageAction::SelectPrevLink).into(),
             KeyCode::Right => Action::Page(PageAction::SelectNextLink).into(),
+            KeyCode::Enter => self.open_link(),
             _ => ActionResult::Ignored,
         }
     }

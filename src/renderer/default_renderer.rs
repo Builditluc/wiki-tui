@@ -1,7 +1,10 @@
 use ratatui::style::{Color, Modifier, Style};
 use textwrap::wrap_algorithms::{wrap_optimal_fit, Penalties};
 use tracing::warn;
-use wiki_api::document::{Data, Document, HeaderKind, Node};
+use wiki_api::{
+    document::{Data, Document, HeaderKind, Node},
+    page::Link,
+};
 
 use crate::renderer::Word;
 
@@ -447,6 +450,16 @@ impl<'a> Renderer {
         self.add_whitespace();
     }
 
+    fn render_link(&mut self, node: Node<'a>, link: Link) {
+        match link {
+            Link::Internal(_) => self.render_wiki_link(node),
+            Link::Anchor(_) => self.render_wiki_link(node),
+            Link::RedLink(_) => self.render_red_link(node),
+            Link::External(_) => self.render_external_link(node),
+            Link::ExternalToInternal(_) => self.render_external_link(node),
+        }
+    }
+
     fn render_wiki_link(&mut self, node: Node<'a>) {
         self.set_text_fg(Color::Blue);
         self.render_children(node);
@@ -508,6 +521,7 @@ impl<'a> Renderer {
             Data::DerscriptionListDescription => self.render_description_list_description(node),
             Data::Bold => self.render_bold(node),
             Data::Italic => self.render_italic(node),
+            Data::Link(link) => self.render_link(node, link.clone()),
             Data::WikiLink { href: _, title: _ } => self.render_wiki_link(node),
             Data::RedLink { title: _ } => self.render_red_link(node),
             Data::MediaLink { href: _, title: _ } => self.render_media_link(node),

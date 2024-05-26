@@ -28,7 +28,11 @@ impl PageLoader {
     pub fn load_page(&self, title: String) {
         let page_request = Page::builder()
             .page(title)
-            .properties(vec![Property::Text, Property::Sections, Property::LangLinks])
+            .properties(vec![
+                Property::Text,
+                Property::Sections,
+                Property::LangLinks,
+            ])
             .endpoint(self.endpoint.clone())
             .language(self.language.clone());
 
