@@ -112,7 +112,16 @@ impl PageComponent {
 
     fn render_contents(&mut self, f: &mut Frame<'_>, area: Rect) {
         let sections = self.page.sections.as_ref();
-        let block = Block::default().title("Contents").borders(Borders::ALL);
+        let block = Block::default()
+            .title("Contents")
+            .borders(Borders::ALL)
+            .border_style({
+                if self.is_contents {
+                    Style::default().fg(Color::Yellow)
+                } else {
+                    Style::default()
+                }
+            });
 
         if sections.is_none() {
             f.render_widget(Paragraph::new("No Contents available").block(block), area);
@@ -471,7 +480,7 @@ impl Component for PageComponent {
     fn render(&mut self, f: &mut Frame, area: Rect) {
         let area = padded_rect(area, 1, 1);
 
-        let area = if self.is_contents {
+        let area = {
             let splits = Layout::default()
                 .direction(Direction::Horizontal)
                 .constraints([Constraint::Percentage(80), Constraint::Percentage(20)])
@@ -479,8 +488,6 @@ impl Component for PageComponent {
 
             self.render_contents(f, splits[1]);
             splits[0]
-        } else {
-            area
         };
 
         let page_area = if SCROLLBAR {
