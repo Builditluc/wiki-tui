@@ -99,6 +99,33 @@ pub struct Page {
 }
 
 impl Page {
+    #[cfg(debug_assertions)]
+    pub fn from_path(path: &std::path::PathBuf) -> Option<Page> {
+        if !path.exists() {
+            println!("no page exists");
+            return None;
+        }
+
+        let content = std::fs::read_to_string(path).ok()?;
+        println!("found content");
+        let nodes = WikipediaParser::parse_document(
+            &content,
+            url::Url::parse("https://en.wikipeida.org/w/api.php").ok()?,
+            Language::default(),
+        )
+        .nodes();
+
+        Some(Page {
+            title: "DEBUG: FILE".to_string(),
+            pageid: 0,
+            content: Document { nodes },
+            language: Language::default(),
+            language_links: None,
+            sections: None,
+            revision_id: None,
+        })
+    }
+
     pub fn builder() -> PageBuilder<NoPageID, NoPage, NoEndpoint, NoLanguage> {
         PageBuilder::default()
     }

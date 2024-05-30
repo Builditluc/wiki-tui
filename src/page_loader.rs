@@ -2,7 +2,7 @@ use tokio::sync::mpsc::UnboundedSender;
 use tracing::error;
 use wiki_api::{
     languages::Language,
-    page::{Page, Property},
+    page::{Link, Page, Property},
     Endpoint,
 };
 
@@ -26,6 +26,19 @@ impl PageLoader {
     }
 
     pub fn load_page(&self, title: String) {
+        self.load_page_custom(self.endpoint.clone(), self.language.clone(), title);
+    }
+
+    pub fn load_link(&self, link: Link) {
+        let link_data = match link {
+            Link::Internal(data) => data,
+            _ => return,
+        };
+
+        self.load_page_custom(link_data.endpoint, link_data.language, link_data.title);
+    }
+
+    fn load_page_custom(&self, endpoint: Endpoint, language: Language, title: String) {
         let page_request = Page::builder()
             .page(title)
             .properties(vec![
@@ -33,8 +46,8 @@ impl PageLoader {
                 Property::Sections,
                 Property::LangLinks,
             ])
-            .endpoint(self.endpoint.clone())
-            .language(self.language.clone());
+            .endpoint(endpoint)
+            .language(language);
 
         let tx = self.action_tx.clone();
         tokio::spawn(async move {

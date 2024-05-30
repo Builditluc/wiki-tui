@@ -13,7 +13,7 @@ use ratatui::{
 use tracing::{debug, info, warn};
 use wiki_api::{
     document::{Data, Node},
-    page::{Link, Page, Section},
+    page::{Page, Section},
 };
 
 use crate::{
@@ -307,7 +307,7 @@ impl PageComponent {
         let data = node.data().to_owned();
 
         match data {
-            Data::Link(Link::Internal(link_data)) => Action::LoadPage(link_data.page).into(),
+            Data::Link(link) => Action::LoadLink(link).into(),
             _ => ActionResult::consumed(),
         }
     }

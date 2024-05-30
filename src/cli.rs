@@ -1,6 +1,8 @@
+use std::path::PathBuf;
+
 use clap::{Args, Parser, Subcommand};
 
-use crate::action::{Action, ActionPacket, SearchAction};
+use crate::action::{Action, ActionPacket, PageViewerAction, SearchAction};
 
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
@@ -24,6 +26,9 @@ struct DebugCommand {
     /// Print debug information
     #[arg(short, long)]
     list: bool,
+    /// Load a custom page
+    #[arg(short, long)]
+    page: Option<PathBuf>,
 }
 
 pub fn match_cli() -> Option<ActionPacket> {
@@ -37,15 +42,15 @@ pub fn match_cli() -> Option<ActionPacket> {
         packet.add_action(Action::Search(SearchAction::StartSearch(search_query)));
     }
 
-    match &cli.commands {
-        Some(Commands::Debug(command)) => command_debug(command),
-        None => {}
-    }
+    packet = match &cli.commands {
+        Some(Commands::Debug(command)) => command_debug(command, packet),
+        None => packet
+    };
 
     Some(packet)
 }
 
-fn command_debug(command: &DebugCommand) {
+fn command_debug(command: &DebugCommand, mut packet: ActionPacket) ->  ActionPacket {
     println!("wiki-tui DEBUG: Debug Information");
 
     if command.list {
@@ -65,5 +70,15 @@ fn command_debug(command: &DebugCommand) {
         std::process::exit(libc::EXIT_SUCCESS)
     }
 
-    std::process::exit(libc::EXIT_SUCCESS)
+    if let Some(ref page_path) = command.page {
+        #[cfg(debug_assertions)]
+        {
+            if let Some(page) = wiki_api::page::Page::from_path(page_path) {
+                packet.add_action(Action::SwitchContextPage);
+                packet.add_action(Action::PageViewer(PageViewerAction::DisplayPage(page)));
+            }
+        }
+    }
+
+    packet
 }

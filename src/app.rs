@@ -203,6 +203,7 @@ impl Component for AppComponent {
             }
 
             Action::LoadPage(title) => self.page_loader.as_ref().unwrap().load_page(title),
+            Action::LoadLink(link) => self.page_loader.as_ref().unwrap().load_link(link),
             _ => return ActionResult::Ignored,
         };
 
