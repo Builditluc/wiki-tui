@@ -44,13 +44,13 @@ pub fn match_cli() -> Option<ActionPacket> {
 
     packet = match &cli.commands {
         Some(Commands::Debug(command)) => command_debug(command, packet),
-        None => packet
+        None => packet,
     };
 
     Some(packet)
 }
 
-fn command_debug(command: &DebugCommand, mut packet: ActionPacket) ->  ActionPacket {
+fn command_debug(command: &DebugCommand, mut packet: ActionPacket) -> ActionPacket {
     println!("wiki-tui DEBUG: Debug Information");
 
     if command.list {

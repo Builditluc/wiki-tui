@@ -39,6 +39,12 @@ pub mod link_data {
     }
 
     #[derive(Debug, Clone, PartialEq, Eq)]
+    pub struct MediaData {
+        pub url: Url,
+        pub title: String,
+    }
+
+    #[derive(Debug, Clone, PartialEq, Eq)]
     pub struct ExternalData {
         pub url: Url,
     }
@@ -57,6 +63,8 @@ pub enum Link {
     Anchor(link_data::AnchorData),
     /// A special type of link that leads to an internal page that doesn't exist yet
     RedLink(link_data::RedLinkData),
+    /// Link pointing to a media
+    MediaLink(link_data::MediaData),
     /// External link to a page at another website
     External(link_data::ExternalData),
     /// External link to an interal page in the same wiki
@@ -110,7 +118,7 @@ impl Page {
         println!("found content");
         let nodes = WikipediaParser::parse_document(
             &content,
-            url::Url::parse("https://en.wikipeida.org/w/api.php").ok()?,
+            url::Url::parse("https://en.wikipedia.org/w/api.php").ok()?,
             Language::default(),
         )
         .nodes();

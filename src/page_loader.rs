@@ -35,7 +35,7 @@ impl PageLoader {
             _ => return,
         };
 
-        self.load_page_custom(link_data.endpoint, link_data.language, link_data.title);
+        self.load_page_custom(link_data.endpoint, link_data.language, link_data.page);
     }
 
     fn load_page_custom(&self, endpoint: Endpoint, language: Language, title: String) {

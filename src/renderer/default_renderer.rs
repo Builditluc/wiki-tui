@@ -285,7 +285,7 @@ impl<'a> Renderer {
     }
 
     fn render_header(&mut self, node: Node<'a>) {
-        let Data::Header { kind , .. } = node.data() else {
+        let Data::Header { kind, .. } = node.data() else {
             warn!("expected header data, got other data");
             return;
         };
@@ -455,6 +455,7 @@ impl<'a> Renderer {
             Link::Internal(_) => self.render_wiki_link(node),
             Link::Anchor(_) => self.render_wiki_link(node),
             Link::RedLink(_) => self.render_red_link(node),
+            Link::MediaLink(_) => self.render_media_link(node),
             Link::External(_) => self.render_external_link(node),
             Link::ExternalToInternal(_) => self.render_external_link(node),
         }
@@ -492,11 +493,9 @@ impl<'a> Renderer {
 
     fn render_external_link(&mut self, node: Node<'a>) {
         self.add_modifier(Modifier::ITALIC);
-        self.set_text_fg(Color::Blue);
 
         self.render_children(node);
 
-        self.reset_text_fg();
         self.remove_modifier(Modifier::ITALIC);
         self.add_whitespace();
     }
@@ -522,14 +521,6 @@ impl<'a> Renderer {
             Data::Bold => self.render_bold(node),
             Data::Italic => self.render_italic(node),
             Data::Link(link) => self.render_link(node, link.clone()),
-            Data::WikiLink { href: _, title: _ } => self.render_wiki_link(node),
-            Data::RedLink { title: _ } => self.render_red_link(node),
-            Data::MediaLink { href: _, title: _ } => self.render_media_link(node),
-            Data::ExternalLink {
-                href: _,
-                title: _,
-                autonumber: _,
-            } => self.render_external_link(node),
             Data::Unknown => self.render_children(node),
         }
     }

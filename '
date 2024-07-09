@@ -160,6 +160,16 @@ impl PageComponent {
         }
     }
 
+    /// Returns the y-Position of the selected element
+    fn selected_y(&self) -> usize {
+        self.render_cache.get(&self.viewport.width as usize);
+    }
+
+    /// Checks if the current link is out of the viewport and moves the selection accordingly. If
+    /// no links could be found in the current viewport, the selection stays as it was
+    fn check_and_update_selection(&mut self) {
+    }
+
     fn scroll_down(&mut self, amount: u16) {
         if self.is_contents {
             let i = match self.contents_state.list_state.selected() {
@@ -557,8 +567,7 @@ impl Component for PageComponent {
                         if let Some(node) = word.node(&self.page.content) {
                             let index = node.index();
                             if self.selected.0 <= index && index <= self.selected.1 {
-                                span = span
-                                    .patch_style(Style::new().add_modifier(Modifier::UNDERLINED))
+                                span.patch_style(Style::new().add_modifier(Modifier::UNDERLINED))
                             }
                         }
 
@@ -573,8 +582,8 @@ impl Component for PageComponent {
             .collect();
 
         if self.viewport.y == 0 {
-            let title_line =
-                Line::raw(&self.page.title).patch_style(Style::default().fg(Color::Red).bold());
+            let mut title_line = Line::raw(&self.page.title);
+            title_line.patch_style(Style::default().fg(Color::Red).bold());
 
             lines.insert(0, title_line);
             lines.pop();

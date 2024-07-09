@@ -62,23 +62,6 @@ pub enum Data {
     Italic,
 
     Link(Link),
-    WikiLink {
-        href: String,
-        title: Option<String>,
-    },
-    RedLink {
-        title: Option<String>,
-    },
-    MediaLink {
-        href: String,
-        title: Option<String>,
-    },
-    ExternalLink {
-        href: String,
-        title: Option<String>,
-        autonumber: bool,
-    },
-
     #[default]
     Unknown,
 }

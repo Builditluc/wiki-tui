@@ -1,14 +1,14 @@
 use html5ever::{parse_document, tendril::TendrilSink};
 use markup5ever_rcdom::{Handle, NodeData, RcDom};
-use snafu::Snafu;
 use std::str::FromStr;
-use tracing::{debug, trace, warn};
+use tracing::{trace, warn};
+use url::Url;
 
 use crate::{
     document::{Data, HeaderKind, Raw},
     languages::Language,
     page::{
-        link_data::{AnchorData, ExternalData, InternalData, RedLinkData},
+        link_data::{AnchorData, ExternalData, ExternalToInteralData, InternalData, MediaData},
         Link,
     },
     search::Namespace,
@@ -22,9 +22,9 @@ pub trait Parser {
 }
 
 pub struct WikipediaParser {
+    nodes: Vec<Raw>,
     endpoint: Endpoint,
     language: Language,
-    nodes: Vec<Raw>,
 }
 
 impl WikipediaParser {
@@ -189,30 +189,9 @@ impl WikipediaParser {
                         Data::Disambiguation
                     }
 
-                    "a" => self.parse_link(attrs.iter()).unwrap_or_default(),
+                    "a" => Self::parse_link(&self.endpoint, self.language.clone(), &attrs)
+                        .unwrap_or_default(),
 
-                    /*
-                    "a" if attrs.iter().any(|(name, value)| {
-                        name.as_str() == "rel" && value.as_str() == "mw:WikiLink"
-                    }) =>
-                    {
-                        self.parse_wiki_link(attrs.iter()).unwrap_or_default()
-                    }
-
-                    "a" if attrs.iter().any(|(name, value)| {
-                        name.as_str() == "rel" && value.as_str() == "mw:MediaLink"
-                    }) =>
-                    {
-                        self.parse_media_link(attrs.iter()).unwrap_or_default()
-                    }
-
-                    "a" if attrs.iter().any(|(name, value)| {
-                        name.as_str() == "rel" && value.as_str() == "mw:ExtLink"
-                    }) =>
-                    {
-                        self.parse_external_link(attrs.iter()).unwrap_or_default()
-                    }
-                    */
                     "div" => Data::Division,
                     _ => {
                         warn!("unknown node '{name}'");
@@ -290,32 +269,102 @@ impl WikipediaParser {
         })
     }
 
-    fn parse_link<'a>(
-        &mut self,
-        mut attrs: impl Iterator<Item = &'a (String, String)>,
-    ) -> Option<Data> {
+    fn parse_link(endpoint: &Url, language: Language, attrs: &[(String, String)]) -> Option<Data> {
         let href = attrs
+            .iter()
             .find(|(name, _)| name.as_str() == "href")
             .map(|(_, value)| value.to_owned())?;
 
         let title = attrs
+            .iter()
             .find(|(name, _)| name.as_str() == "title")
-            .map(|(_, value)| value.to_owned());
+            .map(|(_, value)| value.to_owned())
+            .unwrap_or_default();
 
-        let link = match parse_href_to_link(
-            self.endpoint.clone(),
-            href.strip_prefix("//en.wikipedia.org").unwrap_or_default(),
-            title,
-            self.language.clone(),
-        ) {
-            Ok(link) => link,
-            Err(error) => {
-                warn!("{:?}", error);
-                return None;
-            }
+        let link_url = endpoint.join(&href).ok()?;
+        let link_type: &str = match attrs
+            .iter()
+            .find(|(name, _)| name.as_str() == "rel")
+            .map(|(_, value)| value.to_owned())?
+            .as_str()
+        {
+            "mw:WikiLink" => "wiki",
+            "mw:MediaLink" => "media",
+            "mw:ExtLink" => "external",
+            _ => "",
         };
 
-        Some(Data::Link(link))
+        let anchor = link_url.fragment().map(|fragment| AnchorData {
+            title: title.to_string(),
+            anchor: fragment.to_string(),
+        });
+
+        if link_type == "wiki" {
+            let namespace = Namespace::Main;
+
+            let is_same_wiki = link_url.domain() == endpoint.domain();
+            if !is_same_wiki {
+                return Some(Data::Link(Link::ExternalToInternal(
+                    ExternalToInteralData {},
+                )));
+            }
+
+            let page = link_url.path_segments()?.last()?;
+
+            const NAMESPACE_DELIMITER: char = ':';
+            let (namespace, page) =
+                if let Some((ns_str, page_str)) = page.split_once(NAMESPACE_DELIMITER) {
+                    (
+                        Namespace::from_string(ns_str).unwrap_or_else(|| {
+                            warn!("invalid namespace '{}', using default", ns_str);
+                            namespace
+                        }),
+                        page_str,
+                    )
+                } else {
+                    (namespace, page)
+                };
+
+            // we get the language from the host
+            // for wikipedia, the host looks like this
+            //      [lang].wikipedia.org/
+            // where [lang] is the language code, for example
+            //      en.wikipedia.org/
+            // for the english wikipedia
+
+            let lang_str = link_url
+                .host_str()
+                .and_then(|x| x.split_once('.').map(|x| x.0));
+
+            let language = match lang_str {
+                Some(lang_str) => Language::from(lang_str),
+                None => language,
+            };
+
+            let link_data = InternalData {
+                namespace,
+                page: page.to_string(),
+                title,
+                endpoint: endpoint.clone(),
+                language,
+                anchor,
+            };
+
+            return Some(Data::Link(Link::Internal(link_data)));
+        }
+
+        if link_type == "media" {
+            return Some(Data::Link(Link::MediaLink(MediaData {
+                url: link_url,
+                title,
+            })));
+        }
+
+        if link_type == "external" {
+            return Some(Data::Link(Link::External(ExternalData { url: link_url })));
+        }
+
+        None
     }
 }
 
@@ -335,370 +384,5 @@ impl Parser for WikipediaParser {
 
     fn nodes(self) -> Vec<Raw> {
         self.nodes
-    }
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Snafu)]
-enum ParsingError {
-    #[snafu(display("The link leads to an invalid namespace: '{namespace}"))]
-    InvalidNamespace { namespace: String },
-    #[snafu(display("The link is missing data: '{data}'"))]
-    MissingData { data: String },
-    #[snafu(display("Error while processing the link: '{process}'"))]
-    ProcessingFailure { process: String },
-    #[snafu(display("Link is not UTF-8 encoded"))]
-    InvalidEncoding,
-}
-
-fn parse_href_to_link(
-    endpoint: Endpoint,
-    href: impl Into<String>,
-    title: Option<impl Into<String>>,
-    language: Language,
-) -> Result<Link, ParsingError> {
-    let href: String = match urlencoding::decode(&href.into()) {
-        Ok(href) => href.into_owned(),
-        Err(_) => return Err(ParsingError::InvalidEncoding),
-    };
-
-    let title: Option<String> = title.map(|title| title.into());
-
-    debug!("parsing the link '{}'", href);
-    debug!("link title: '{:?}'", title);
-    debug!("link endpoint: '{}'", endpoint.as_str());
-
-    // the prefix /wiki/ indicates that the link is a internal link
-    const INTERNAL_LINK_PREFIX: &str = "/wiki/";
-    // the character used to separate the namespace and the page
-    const NAMESPACE_DELIMITER: char = ':';
-    // the character used to separate the page and the anchor
-    const ANCHOR_DELIMITER: char = '#';
-    // the parameter indicating a redlink (non existent link)
-    const REDLINK_PARAM: &str = "redlink=1";
-
-    if href.starts_with(INTERNAL_LINK_PREFIX) {
-        let title = title.ok_or(ParsingError::MissingData {
-            data: "title".to_string(),
-        })?;
-        return parse_internal_link(href, title, endpoint, language);
-    }
-
-    if href.starts_with(ANCHOR_DELIMITER) {
-        let anchor_str =
-            href.strip_prefix(ANCHOR_DELIMITER)
-                .ok_or(ParsingError::ProcessingFailure {
-                    process: "removing ANCHOR_DELIMITER prefix".to_string(),
-                })?;
-        return Ok(Link::Anchor(AnchorData {
-            anchor: anchor_str.to_string(),
-            title: anchor_str.replace('_', " "),
-        }));
-    }
-
-    if href.contains(REDLINK_PARAM) {
-        let url = endpoint
-            .join(&href)
-            .map_err(|_| ParsingError::ProcessingFailure {
-                process: "joining endpoint and href for REDLINK".to_string(),
-            })?;
-        let title = title.ok_or(ParsingError::MissingData {
-            data: "title".to_string(),
-        })?;
-        return Ok(Link::RedLink(RedLinkData { url, title }));
-    }
-
-    if let Ok(url) = Endpoint::parse(&href) {
-        return Ok(Link::External(ExternalData { url }));
-    }
-
-    fn parse_internal_link(
-        href: String,
-        title: String,
-        endpoint: Endpoint,
-        language: Language,
-    ) -> Result<Link, ParsingError> {
-        let mut href =
-            href.strip_prefix(INTERNAL_LINK_PREFIX)
-                .ok_or(ParsingError::ProcessingFailure {
-                    process: "removing INTERNAL_LINK_PREFIX".to_string(),
-                })?;
-        let mut namespace = Namespace::Main;
-        let mut anchor: Option<AnchorData> = None;
-
-        if href.contains(NAMESPACE_DELIMITER) {
-            debug!("link contains a namespace");
-            let (namespace_str, href_split) =
-                href.split_once(NAMESPACE_DELIMITER)
-                    .ok_or(ParsingError::ProcessingFailure {
-                        process: "splitting at NAMESPACE_DELIMITER".to_string(),
-                    })?;
-
-            href = href_split;
-            namespace =
-                Namespace::from_string(namespace_str).ok_or(ParsingError::InvalidNamespace {
-                    namespace: namespace_str.to_string(),
-                })?;
-
-            debug!("link namespace: '{}'", namespace);
-        }
-
-        if href.contains(ANCHOR_DELIMITER) {
-            debug!("link contains an anchor");
-            let (page_ref, anchor_str) =
-                href.split_once(ANCHOR_DELIMITER)
-                    .ok_or(ParsingError::ProcessingFailure {
-                        process: "splitting at ANCHOR_DELIMITER".to_string(),
-                    })?;
-
-            href = page_ref;
-            anchor = Some(AnchorData {
-                anchor: anchor_str.to_string(),
-                title: anchor_str.replace('_', " "),
-            });
-
-            debug!("link anchor: '{}'", anchor_str);
-        }
-
-        Ok(Link::Internal(InternalData {
-            namespace,
-            page: href.to_string(),
-            title,
-            language,
-            endpoint,
-            anchor,
-        }))
-    }
-
-    Err(ParsingError::ProcessingFailure {
-        process: "invalid link".to_string(),
-    })
-}
-
-#[cfg(test)]
-mod tests {
-    use url::Url;
-
-    use crate::{
-        languages::Language,
-        page::{
-            link_data::{AnchorData, ExternalData, InternalData, RedLinkData},
-            Link,
-        },
-        parser::ParsingError,
-        search::Namespace,
-    };
-
-    use super::parse_href_to_link;
-
-    const ENDPOINT: &str = "https://en.wikipedia.org/w/api.php";
-    const LANGUAGE: Language = Language::English;
-
-    fn internal_link(
-        namespace: Namespace,
-        page: impl Into<String>,
-        title: impl Into<String>,
-        endpoint: Url,
-        anchor: Option<AnchorData>,
-    ) -> Link {
-        Link::Internal(InternalData {
-            namespace,
-            page: page.into(),
-            title: title.into(),
-            endpoint,
-            anchor,
-            language: LANGUAGE.clone(),
-        })
-    }
-
-    fn anchor_data(anchor: impl Into<String>, title: impl Into<String>) -> AnchorData {
-        AnchorData {
-            anchor: anchor.into(),
-            title: title.into(),
-        }
-    }
-
-    fn endpoint() -> Url {
-        Url::parse(ENDPOINT).expect("hard-coded endpoint should be valid")
-    }
-
-    #[test]
-    fn test_parse_link_unknown_namespace() {
-        assert!(matches!(
-            parse_href_to_link(
-                endpoint(),
-                "/wiki/UnknownNamespace:Main_Page",
-                Some("Main Page"),
-                LANGUAGE
-            ),
-            Err(ParsingError::InvalidNamespace { .. })
-        ))
-    }
-
-    #[test]
-    fn test_parse_link_invalid_link() {
-        assert!(matches!(
-            parse_href_to_link(endpoint(), "/invalid/hello", Some("hello"), LANGUAGE),
-            Err(ParsingError::ProcessingFailure { .. })
-        ))
-    }
-
-    #[test]
-    fn test_parse_internal_link_no_namespace() {
-        assert_eq!(
-            parse_href_to_link(endpoint(), "/wiki/Main_Page", Some("Main Page"), LANGUAGE),
-            Ok(internal_link(
-                Namespace::Main,
-                "Main_Page",
-                "Main Page",
-                endpoint(),
-                None
-            ))
-        )
-    }
-
-    #[test]
-    fn test_parse_internal_link_with_namespace() {
-        assert_eq!(
-            parse_href_to_link(
-                endpoint(),
-                "/wiki/Help:Contents",
-                Some("Help:Contents"),
-                LANGUAGE
-            ),
-            Ok(internal_link(
-                Namespace::Help,
-                "Contents",
-                "Help:Contents",
-                endpoint(),
-                None
-            ))
-        );
-
-        assert_eq!(
-            parse_href_to_link(
-                endpoint(),
-                "/wiki/Help:Editing_pages",
-                Some("Help:Editing pages"),
-                LANGUAGE
-            ),
-            Ok(internal_link(
-                Namespace::Help,
-                "Editing_pages",
-                "Help:Editing pages",
-                endpoint(),
-                None
-            ))
-        );
-    }
-
-    #[test]
-    fn test_parse_internal_link_with_anchor() {
-        assert_eq!(
-            parse_href_to_link(
-                endpoint(),
-                "/wiki/Help:Editing_pages#Preview",
-                Some("Help:Editing pages"),
-                LANGUAGE
-            ),
-            Ok(internal_link(
-                Namespace::Help,
-                "Editing_pages",
-                "Help:Editing pages",
-                endpoint(),
-                Some(anchor_data("Preview", "Preview"))
-            ))
-        );
-    }
-
-    #[test]
-    fn test_parse_internal_link_with_anchor_whitespace() {
-        assert_eq!(
-            parse_href_to_link(
-                endpoint(),
-                "/wiki/Help:Editing_pages#See_also",
-                Some("Help:Editing pages"),
-                LANGUAGE
-            ),
-            Ok(internal_link(
-                Namespace::Help,
-                "Editing_pages",
-                "Help:Editing pages",
-                endpoint(),
-                Some(anchor_data("See_also", "See also"))
-            ))
-        );
-    }
-
-    #[test]
-    fn test_parse_internal_link_with_subpage() {
-        assert_eq!(
-            parse_href_to_link(
-                endpoint(),
-                "/wiki/Help:Links/example",
-                Some("Help:Links/example"),
-                LANGUAGE
-            ),
-            Ok(internal_link(
-                Namespace::Help,
-                "Links/example",
-                "Help:Links/example",
-                endpoint(),
-                None,
-            ))
-        )
-    }
-
-    #[test]
-    fn test_parse_anchor_link() {
-        assert_eq!(
-            parse_href_to_link(endpoint(), "#See_also", None::<String>, LANGUAGE),
-            Ok(Link::Anchor(anchor_data("See_also", "See also")))
-        )
-    }
-
-    #[test]
-    fn test_parse_redlink() {
-        let link = "/w/index.php?title=Help:Links/example2&action=edit&redlink=1";
-        let title = "Help:Links/example2 (page does not exist)";
-        assert_eq!(
-            parse_href_to_link(endpoint(), link, Some(title), LANGUAGE),
-            Ok(Link::RedLink(RedLinkData {
-                url: endpoint().join(link).unwrap(),
-                title: title.to_string(),
-            }))
-        )
-    }
-
-    #[test]
-    fn test_parse_external_link() {
-        let link = "https://mediawiki.org/";
-        assert_eq!(
-            parse_href_to_link(endpoint(), link, None::<String>, LANGUAGE),
-            Ok(Link::External(ExternalData {
-                url: Url::parse(link).expect("hard-coded url should be valid")
-            }))
-        );
-    }
-
-    #[test]
-    fn test_parse_external_link_with_params() {
-        let link = "https://google.com/search?q=link";
-        assert_eq!(
-            parse_href_to_link(endpoint(), link, None::<String>, LANGUAGE),
-            Ok(Link::External(ExternalData {
-                url: Url::parse(link).expect("hard-coded url should be valid")
-            }))
-        )
-    }
-
-    #[test]
-    fn test_parse_external_link_with_mailto() {
-        let link = "mailto:info@example.org";
-        assert_eq!(
-            parse_href_to_link(endpoint(), link, None::<String>, LANGUAGE),
-            Ok(Link::External(ExternalData {
-                url: Url::parse(link).expect("hard-coded url should be valid")
-            }))
-        )
     }
 }

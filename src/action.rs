@@ -1,7 +1,10 @@
 use std::fmt::Debug;
 
 use tokio::sync::mpsc;
-use wiki_api::{page::{Link, Page}, search::Search};
+use wiki_api::{
+    page::{Link, Page},
+    search::Search,
+};
 
 use crate::components::page::Renderer;
 
