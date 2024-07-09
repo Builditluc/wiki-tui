@@ -45,4 +45,6 @@ impl Fragment for Word {
 #[derive(Debug)]
 pub struct RenderedDocument {
     pub lines: Vec<Vec<Word>>,
+    /// Vec<(y-Coord, idx)>
+    pub links: Vec<(usize, usize)>,
 }

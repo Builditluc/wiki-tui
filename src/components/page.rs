@@ -29,7 +29,6 @@ use crate::{
 use crate::renderer::test_renderer::{render_nodes_raw, render_tree_data, render_tree_raw};
 
 const SCROLLBAR: bool = true;
-const LINK_SELECT: bool = true;
 
 #[derive(Default, Debug, Clone, PartialEq, Eq)]
 #[repr(u8)]
@@ -69,6 +68,18 @@ struct PageContentsState {
     max_idx_section: u8,
 }
 
+macro_rules! rendered_page {
+    ($self: ident, $width: expr) => {
+        match $self.rendered_page($width) {
+            Some(page) => page,
+            None => {
+                $self.render_page($width);
+                $self.rendered_page($width).unwrap()
+            }
+        }
+    };
+}
+
 pub struct PageComponent {
     page: Page,
     renderer: Renderer,
@@ -98,8 +109,8 @@ impl PageComponent {
         }
     }
 
-    fn render_page(&self, width: u16) -> RenderedDocument {
-        match self.renderer {
+    fn render_page(&mut self, width: u16) {
+        let page = match self.renderer {
             Renderer::Default => render_document(&self.page.content, width),
             #[cfg(debug_assertions)]
             Renderer::TestRendererTreeData => render_tree_data(&self.page.content),
@@ -107,7 +118,13 @@ impl PageComponent {
             Renderer::TestRendererTreeRaw => render_tree_raw(&self.page.content),
             #[cfg(debug_assertions)]
             Renderer::TestRendererNodeRaw => render_nodes_raw(&self.page.content),
-        }
+        };
+
+        self.render_cache.insert(width, page);
+    }
+
+    fn rendered_page(&self, width: u16) -> Option<&RenderedDocument> {
+        self.render_cache.get(&width)
     }
 
     fn render_contents(&mut self, f: &mut Frame<'_>, area: Rect) {
@@ -139,184 +156,12 @@ impl PageComponent {
         f.render_stateful_widget(list, area, &mut self.contents_state.list_state);
     }
 
-    fn selected_header(&self) -> Option<&Section> {
-        let sections = self.page.sections()?;
-        let section_idx = self.contents_state.list_state.selected()?;
-        assert!(section_idx < self.contents_state.max_idx_section as usize);
-
-        Some(&sections[section_idx])
-    }
-
     fn switch_renderer(&mut self, renderer: Renderer) {
         self.renderer = renderer;
-        self.flush_cache();
-    }
 
-    fn flush_cache(&mut self) {
         debug!("flushing '{}' cached renders", self.render_cache.len());
         self.render_cache.clear();
-        if LINK_SELECT {
-            self.selected = (0, 0);
-        }
-    }
-
-    fn scroll_down(&mut self, amount: u16) {
-        if self.is_contents {
-            let i = match self.contents_state.list_state.selected() {
-                Some(i) => {
-                    if i >= self.contents_state.max_idx_section as usize - 1 {
-                        0
-                    } else {
-                        i + 1
-                    }
-                }
-                None => 0,
-            };
-
-            self.contents_state.list_state.select(Some(i));
-            return;
-        }
-
-        if let Some(page) = self.render_cache.get(&self.viewport.width) {
-            let n_lines = page.lines.len() as u16;
-            if self.viewport.bottom() + amount >= n_lines {
-                self.viewport.y = n_lines.saturating_sub(self.viewport.height);
-                return;
-            }
-        }
-        self.viewport.y += amount;
-    }
-
-    fn scroll_up(&mut self, amount: u16) {
-        if self.is_contents {
-            let i = match self.contents_state.list_state.selected() {
-                Some(i) => {
-                    if i == 0 {
-                        self.contents_state.max_idx_section as usize - 1
-                    } else {
-                        i - 1
-                    }
-                }
-                None => 0,
-            };
-
-            self.contents_state.list_state.select(Some(i));
-            return;
-        }
-
-        self.viewport.y = self.viewport.y.saturating_sub(amount);
-    }
-
-    fn select_first(&mut self) {
-        if self.page.content.nth(0).is_none() {
-            return;
-        }
-
-        let selectable_node = self
-            .page
-            .content
-            .nth(0)
-            .unwrap()
-            .descendants()
-            .find(|node| matches!(node.data(), &Data::Link(_)));
-
-        if let Some(selectable_node) = selectable_node {
-            let first_index = selectable_node.index();
-            let last_index = selectable_node
-                .last_child()
-                .map(|child| child.index())
-                .unwrap_or(first_index);
-            self.selected = (first_index, last_index);
-        }
-    }
-
-    fn select_prev(&mut self) {
-        if self.page.content.nth(0).is_none() {
-            return;
-        }
-
-        let selectable_node = self
-            .page
-            .content
-            .nth(0)
-            .unwrap()
-            .descendants()
-            .filter(|node| matches!(node.data(), &Data::Link(_)) && node.index() < self.selected.0)
-            .last();
-
-        if let Some(selectable_node) = selectable_node {
-            let first_index = selectable_node.index();
-            let last_index = selectable_node
-                .last_child()
-                .map(|child| child.index())
-                .unwrap_or(first_index);
-            self.selected = (first_index, last_index);
-        }
-    }
-
-    fn select_next(&mut self) {
-        if self.page.content.nth(0).is_none() {
-            return;
-        }
-
-        let selectable_node = self
-            .page
-            .content
-            .nth(0)
-            .unwrap()
-            .descendants()
-            .find(|node| matches!(node.data(), &Data::Link(_)) && self.selected.1 < node.index());
-
-        if let Some(selectable_node) = selectable_node {
-            let first_index = selectable_node.index();
-            let last_index = selectable_node
-                .last_child()
-                .map(|child| child.index())
-                .unwrap_or(first_index);
-            self.selected = (first_index, last_index);
-        }
-    }
-
-    fn select_last(&mut self) {
-        if self.page.content.nth(0).is_none() {
-            return;
-        }
-
-        let selectable_node = self
-            .page
-            .content
-            .nth(0)
-            .unwrap()
-            .descendants()
-            .filter(|node| matches!(node.data(), &Data::Link(_)) && node.index() > self.selected.1)
-            .last();
-
-        if let Some(selectable_node) = selectable_node {
-            let first_index = selectable_node.index();
-            let last_index = selectable_node
-                .last_child()
-                .map(|child| child.index())
-                .unwrap_or(first_index);
-            self.selected = (first_index, last_index);
-        }
-    }
-
-    fn open_link(&self) -> ActionResult {
-        let index = self.selected.0;
-        let node = Node::new(&self.page.content, index).unwrap();
-        let data = node.data().to_owned();
-
-        match data {
-            Data::Link(link) => Action::LoadLink(link).into(),
-            _ => ActionResult::consumed(),
-        }
-    }
-
-    fn resize(&mut self, width: u16, height: u16) {
-        self.viewport.width = width;
-        self.viewport.height = height;
-
-        self.flush_cache();
+        self.selected = (0, 0);
     }
 
     fn select_header(&mut self, anchor: String) {
@@ -348,29 +193,278 @@ impl PageComponent {
         }
 
         let header_node = header_node.unwrap();
-        let first_index = header_node.index();
-        let last_index = header_node
-            .last_child()
-            .map(|child| child.index())
-            .unwrap_or(first_index);
+        self.scroll_to_node(header_node.index());
+    }
 
-        for (y, line) in self
-            .render_page(self.viewport.width)
-            .lines
-            .iter()
-            .enumerate()
-        {
-            for word in line {
-                if let Some(node) = word.node(&self.page.content) {
-                    if node.index() <= last_index && node.index() >= first_index {
-                        self.viewport.y = y as u16;
-                        return;
-                    }
-                }
+    fn selected_header(&self) -> Option<&Section> {
+        let sections = self.page.sections()?;
+        let section_idx = self.contents_state.list_state.selected()?;
+        assert!(section_idx < self.contents_state.max_idx_section as usize);
+
+        Some(&sections[section_idx])
+    }
+
+    /// Returns the y-Position of the selected element
+    fn selected_y(&self) -> usize {
+        let page = match self.render_cache.get(&self.viewport.width) {
+            Some(page) => page,
+            None => return 0,
+        };
+
+        for (y, line) in page.lines.iter().enumerate() {
+            if line
+                .iter()
+                .any(|word| self.selected.0 <= word.index && self.selected.1 >= word.index)
+            {
+                return y;
             }
         }
 
-        warn!("no word could be matched to the header node");
+        0
+    }
+
+    fn select_node(&mut self, idx: usize) {
+        let node = match Node::new(&self.page.content, idx) {
+            Some(node) => node,
+            None => return,
+        };
+
+        let first_index = node.index();
+        let last_index = node.last_child().map(|x| x.index()).unwrap_or(first_index);
+
+        self.selected = (first_index, last_index);
+        self.check_and_update_scrolling();
+    }
+
+    fn selected_node(&self) -> Option<Node> {
+        self.page.content.nth(self.selected.0)
+    }
+
+    fn select_first(&mut self) {
+        if self.page.content.nth(0).is_none() {
+            return;
+        }
+
+        let selectable_node = self
+            .page
+            .content
+            .nth(0)
+            .unwrap()
+            .descendants()
+            .find(|node| matches!(node.data(), &Data::Link(_)));
+
+        if let Some(node) = selectable_node {
+            self.select_node(node.index())
+        }
+    }
+
+    fn select_last(&mut self) {
+        if self.page.content.nth(0).is_none() {
+            return;
+        }
+
+        let selectable_node = self
+            .page
+            .content
+            .nth(0)
+            .unwrap()
+            .descendants()
+            .filter(|node| matches!(node.data(), &Data::Link(_)) && node.index() > self.selected.1)
+            .last();
+
+        if let Some(node) = selectable_node {
+            self.select_node(node.index())
+        }
+    }
+
+    fn select_next(&mut self) {
+        if self.page.content.nth(0).is_none() {
+            return;
+        }
+
+        let selectable_node = self
+            .page
+            .content
+            .nth(0)
+            .unwrap()
+            .descendants()
+            .find(|node| matches!(node.data(), &Data::Link(_)) && self.selected.1 < node.index());
+
+        if let Some(node) = selectable_node {
+            self.select_node(node.index())
+        }
+    }
+
+    fn select_prev(&mut self) {
+        if self.page.content.nth(0).is_none() {
+            return;
+        }
+
+        let selectable_node = self
+            .page
+            .content
+            .nth(0)
+            .unwrap()
+            .descendants()
+            .filter(|node| matches!(node.data(), &Data::Link(_)) && node.index() < self.selected.0)
+            .last();
+
+        if let Some(node) = selectable_node {
+            self.select_node(node.index())
+        }
+    }
+
+    /// Checks if the current link is out of the viewport and moves the selection accordingly. If
+    /// no links could be found in the current viewport, the selection stays as it was
+    fn check_and_update_selection(&mut self) {
+        let page = rendered_page!(self, self.viewport.width);
+
+        let selected_y = self.selected_y() as u16;
+        let selected_node = match self.selected_node() {
+            Some(node) => node,
+            None => return,
+        };
+
+        if self.viewport.contains((0_u16, selected_y).into()) {
+            return;
+        }
+
+        if selected_y < self.viewport.top() {
+            let (_, idx) = page
+                .links
+                .iter()
+                .find(|(y, _)| self.viewport.contains((0, *y as u16).into()))
+                .map(|x| x.to_owned())
+                .unwrap_or((selected_y as usize, selected_node.index()));
+
+            self.select_node(idx);
+            return;
+        }
+
+        if selected_y > self.viewport.bottom() {
+            let (_, idx) = page
+                .links
+                .iter()
+                .rev()
+                .find(|(y, _)| self.viewport.contains((0, *y as u16).into()))
+                .map(|x| x.to_owned())
+                .unwrap_or((selected_y as usize, selected_node.index()));
+
+            self.select_node(idx)
+        }
+    }
+
+    fn scroll_up(&mut self, amount: u16) {
+        if self.is_contents {
+            let i = match self.contents_state.list_state.selected() {
+                Some(i) => {
+                    if i == 0 {
+                        self.contents_state.max_idx_section as usize - 1
+                    } else {
+                        i - 1
+                    }
+                }
+                None => 0,
+            };
+
+            self.contents_state.list_state.select(Some(i));
+            return;
+        }
+
+        self.scroll_to_y(self.viewport.y.saturating_sub(amount));
+    }
+
+    fn scroll_down(&mut self, amount: u16) {
+        if self.is_contents {
+            let i = match self.contents_state.list_state.selected() {
+                Some(i) => {
+                    if i >= self.contents_state.max_idx_section as usize - 1 {
+                        0
+                    } else {
+                        i + 1
+                    }
+                }
+                None => 0,
+            };
+
+            self.contents_state.list_state.select(Some(i));
+            return;
+        }
+
+        self.scroll_to_y(self.viewport.y + amount);
+    }
+
+    fn scroll_to_bottom(&mut self) {
+        let page = rendered_page!(self, self.viewport.width);
+        self.scroll_to_y(page.lines.len() as u16);
+    }
+
+    fn scroll_to_y(&mut self, y: u16) {
+        let page = rendered_page!(self, self.viewport.width);
+        let n_lines = page.lines.len() as u16;
+        self.viewport.y = y;
+
+        if self.viewport.bottom() >= n_lines {
+            self.viewport.y = n_lines.saturating_sub(self.viewport.height);
+        }
+
+        self.check_and_update_selection();
+    }
+
+    fn scroll_to_node(&mut self, idx: usize) {
+        let page = rendered_page!(self, self.viewport.width);
+        let node = match Node::new(&self.page.content, idx) {
+            Some(node) => node,
+            None => return,
+        };
+        let first_index = idx;
+        let last_index = node.last_child().map(|x| x.index()).unwrap_or(first_index);
+        let y = page.lines.iter().enumerate().find_map(|(y, line)| {
+            line.iter()
+                .find(|word| {
+                    if let Some(node) = word.node(&self.page.content) {
+                        first_index <= node.index() && node.index() <= last_index
+                    } else {
+                        false
+                    }
+                })
+                .map(|_| y)
+        });
+
+        if let Some(y) = y {
+            self.scroll_to_y(y as u16);
+        }
+    }
+
+    /// Checks if the current viewport shows the selected link and if not, moves the viewport so
+    /// the link is visible
+    fn check_and_update_scrolling(&mut self) {
+        let selection_y = self.selected_y() as u16;
+
+        if selection_y < self.viewport.top() {
+            self.scroll_to_y(selection_y);
+            return;
+        }
+
+        if selection_y >= self.viewport.bottom() {
+            self.scroll_to_y(selection_y.saturating_sub(self.viewport.height) + 1);
+        }
+    }
+
+    fn open_link(&self) -> ActionResult {
+        let index = self.selected.0;
+        let node = Node::new(&self.page.content, index).unwrap();
+        let data = node.data().to_owned();
+
+        match data {
+            Data::Link(link) => Action::LoadLink(link).into(),
+            _ => ActionResult::consumed(),
+        }
+    }
+
+    fn resize(&mut self, width: u16, height: u16) {
+        self.viewport.width = width;
+        self.viewport.height = height;
     }
 }
 
@@ -474,12 +568,8 @@ impl Component for PageComponent {
             Action::ScrollHalfUp => self.scroll_up(self.viewport.height / 2),
             Action::ScrollHalfDown => self.scroll_down(self.viewport.height / 2),
 
-            Action::ScrollToTop => self.viewport.y = 0,
-            Action::ScrollToBottom => {
-                if let Some(page) = self.render_cache.get(&self.viewport.width) {
-                    self.scroll_down(page.lines.len() as u16)
-                }
-            }
+            Action::ScrollToTop => self.scroll_to_y(0),
+            Action::ScrollToBottom => self.scroll_to_bottom(),
 
             Action::Resize(width, heigth) => self.resize(width, heigth),
             _ => return ActionResult::Ignored,
@@ -526,16 +616,7 @@ impl Component for PageComponent {
         self.viewport.width = page_area.width;
         self.viewport.height = page_area.height;
 
-        let rendered_page = match self.render_cache.get(&page_area.width) {
-            Some(rendered_page) => rendered_page,
-            None => {
-                let rendered_page = self.render_page(page_area.width);
-                info!("rebuilding cache for '{}'", page_area.width);
-                self.render_cache.insert(page_area.width, rendered_page);
-                self.render_cache.get(&page_area.width).unwrap()
-            }
-        };
-
+        let rendered_page = rendered_page!(self, page_area.width);
         let mut lines: Vec<Line> = rendered_page
             .lines
             .iter()

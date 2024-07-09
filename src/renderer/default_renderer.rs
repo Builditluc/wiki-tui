@@ -18,6 +18,8 @@ const LIST_PREFIX: char = '-';
 
 struct Renderer {
     rendered_lines: Vec<Vec<Word>>,
+    links: Vec<(usize, usize)>,
+
     current_line: Vec<Word>,
     width: u16,
 
@@ -31,11 +33,16 @@ impl<'a> Renderer {
     fn render_document(document: &'a Document, width: u16) -> RenderedDocument {
         if document.nodes.is_empty() {
             warn!("document contains no nodes, aborting the render");
-            return RenderedDocument { lines: Vec::new() };
+            return RenderedDocument {
+                lines: Vec::new(),
+                links: Vec::new(),
+            };
         }
 
         let mut renderer = Renderer {
             rendered_lines: Vec::new(),
+            links: Vec::new(),
+
             current_line: Vec::new(),
             width,
 
@@ -49,6 +56,7 @@ impl<'a> Renderer {
 
         RenderedDocument {
             lines: renderer.rendered_lines,
+            links: renderer.links,
         }
     }
 
@@ -451,6 +459,8 @@ impl<'a> Renderer {
     }
 
     fn render_link(&mut self, node: Node<'a>, link: Link) {
+        self.links.push((self.rendered_lines.len(), node.index()));
+
         match link {
             Link::Internal(_) => self.render_wiki_link(node),
             Link::Anchor(_) => self.render_wiki_link(node),
