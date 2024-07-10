@@ -3,6 +3,7 @@ use tracing::error;
 use wiki_api::{
     languages::Language,
     page::{LanguageLink, Link, Page, Property},
+    search::SearchResult,
     Endpoint,
 };
 
@@ -10,23 +11,16 @@ use crate::action::{Action, PageViewerAction};
 
 /// Responsible for loading a page
 pub struct PageLoader {
-    endpoint: Endpoint,
-    language: Language,
-
     action_tx: UnboundedSender<Action>,
 }
 
 impl PageLoader {
-    pub fn new(endpoint: Endpoint, language: Language, action_tx: UnboundedSender<Action>) -> Self {
-        Self {
-            endpoint,
-            language,
-            action_tx,
-        }
+    pub fn new(action_tx: UnboundedSender<Action>) -> Self {
+        Self { action_tx }
     }
 
-    pub fn load_page(&self, title: String) {
-        self.load_page_custom(self.endpoint.clone(), self.language.clone(), title);
+    pub fn load_search_result(&self, result: SearchResult) {
+        self.load_page_custom(result.endpoint, result.language, result.title);
     }
 
     pub fn load_link(&self, link: Link) {
@@ -39,9 +33,7 @@ impl PageLoader {
     }
 
     pub fn load_language_link(&self, link: LanguageLink) {
-        let mut endpoint = self.endpoint.clone();
-        let _ = endpoint.set_host(Some(link.url.host_str().unwrap()));
-        self.load_page_custom(endpoint, link.language, link.title);
+        self.load_page_custom(link.endpoint, link.language, link.title);
     }
 
     fn load_page_custom(&self, endpoint: Endpoint, language: Language, title: String) {

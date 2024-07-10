@@ -37,8 +37,8 @@ pub enum Mode {
 
 pub struct SearchComponent {
     mode: Mode,
-    endpoint: Option<Endpoint>,
-    language: Option<Language>,
+    pub endpoint: Option<Endpoint>,
+    pub language: Option<Language>,
 
     search_results: StatefulList<SearchResult>,
     search_info: Option<SearchInfo>,
@@ -163,7 +163,7 @@ impl SearchComponent {
         if let Some(selected_result) = self.search_results.selected() {
             return ActionPacket::default()
                 .action(Action::ClearSearchBar)
-                .action(Action::LoadPage(selected_result.title.clone()))
+                .action(Action::LoadSearchResult(selected_result.clone()))
                 .into();
         }
         ActionResult::Ignored
@@ -181,14 +181,20 @@ impl SearchComponent {
         self.mode = mode;
         ActionResult::consumed()
     }
+
+    fn change_language(&mut self, lang: Language) -> ActionResult {
+        self.endpoint = Some(
+            // HACK: we need a way to get the API endpoint from the language
+            Endpoint::parse(&format!("https://{}.wikipedia.org/w/api.php", lang.code())).unwrap(),
+        );
+        self.language = Some(lang);
+        ActionResult::consumed()
+    }
 }
 
 impl Component for SearchComponent {
     fn init(&mut self, sender: mpsc::UnboundedSender<Action>) -> anyhow::Result<()> {
         self.action_tx = Some(sender);
-        // FIXME: the endpoint and language should be set by the root component
-        self.endpoint = Some(Endpoint::parse("https://en.wikipedia.org/w/api.php").unwrap());
-        self.language = Some(Language::default());
         Ok(())
     }
 
@@ -242,6 +248,7 @@ impl Component for SearchComponent {
                 SearchAction::ClearSearchResults => self.clear_search_results(),
                 SearchAction::OpenSearchResult => self.open_selected_result(),
                 SearchAction::ChangeMode(mode) => self.change_mode(mode),
+                SearchAction::ChangeLanguage(lang) => self.change_language(lang),
             },
 
             Action::ScrollUp(n) => {

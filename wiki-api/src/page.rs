@@ -1,6 +1,7 @@
 use crate::{
     document::{Document, HeaderKind},
     parser::{Parser, WikipediaParser},
+    Endpoint,
 };
 use anyhow::{anyhow, Context, Result};
 use reqwest::{Client, Response};
@@ -72,15 +73,25 @@ pub enum Link {
 }
 
 // TODO: replace this with Link::Internal
-#[derive(Debug, Deserialize, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct LanguageLink {
-    #[serde(rename = "langname")]
     pub name: String,
-    #[serde(rename = "lang")]
     pub language: Language,
     pub autonym: String,
     pub title: String,
     pub url: Url,
+    pub endpoint: Endpoint,
+}
+
+#[derive(Deserialize)]
+struct LanguageLinkInt {
+    #[serde(rename = "langname")]
+    name: String,
+    #[serde(rename = "lang")]
+    language: Language,
+    autonym: String,
+    title: String,
+    url: Url,
 }
 
 #[derive(Debug, Deserialize, Clone, PartialEq, Eq)]
@@ -437,7 +448,7 @@ impl<I, P> PageBuilder<I, P, WithEndpoint, WithLanguage> {
             .and_then(|x| x.get("text"))
             .and_then(|x| x.as_str())
             .map(|x| {
-                let parser = WikipediaParser::parse_document(x, endpoint, language.clone());
+                let parser = WikipediaParser::parse_document(x, endpoint.clone(), language.clone());
                 Document {
                     nodes: parser.nodes(),
                 }
@@ -453,9 +464,19 @@ impl<I, P> PageBuilder<I, P, WithEndpoint, WithLanguage> {
             .map(|x| {
                 x.into_iter()
                     .filter_map(|x| {
-                        serde_json::from_value(x)
+                        let language_int: LanguageLinkInt = serde_json::from_value(x)
                             .map_err(|err| warn!("language_link parsing error: {:?}", err))
-                            .ok()
+                            .ok()?;
+                        let mut endpoint = endpoint.clone();
+                        let _ = endpoint.set_host(Some(language_int.url.host_str().unwrap()));
+                        Some(LanguageLink {
+                            name: language_int.name,
+                            language: language_int.language,
+                            autonym: language_int.autonym,
+                            title: language_int.title,
+                            url: language_int.url,
+                            endpoint,
+                        })
                     })
                     .collect::<Vec<LanguageLink>>()
             })

@@ -2,8 +2,9 @@ use std::fmt::Debug;
 
 use tokio::sync::mpsc;
 use wiki_api::{
+    languages::Language,
     page::{LanguageLink, Link, Page},
-    search::Search,
+    search::{Search, SearchResult},
 };
 
 use crate::components::page::Renderer;
@@ -48,7 +49,7 @@ pub enum Action {
     ExitSearchBar,
 
     // Page loading
-    LoadPage(String),
+    LoadSearchResult(SearchResult),
     LoadLink(Link),
     LoadLangaugeLink(LanguageLink),
 
@@ -65,6 +66,7 @@ pub enum SearchAction {
     ClearSearchResults,
     OpenSearchResult,
     ChangeMode(crate::components::search::Mode),
+    ChangeLanguage(Language),
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]

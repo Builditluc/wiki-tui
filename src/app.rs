@@ -1,6 +1,9 @@
 use anyhow::Result;
 use crossterm::event::{KeyCode, KeyEvent};
-use ratatui::prelude::{Constraint, Direction, Layout, Rect};
+use ratatui::{
+    prelude::{Constraint, Direction, Layout, Rect},
+    widgets::Clear,
+};
 use tracing::warn;
 use wiki_api::{languages::Language, Endpoint};
 
@@ -14,6 +17,7 @@ use crate::{
         page_viewer::PageViewer,
         search::SearchComponent,
         search_bar::{SearchBarComponent, SEARCH_BAR_HEIGTH},
+        search_language_popup::SearchLanguageSelectionComponent,
         Component,
     },
     has_modifier, key_event,
@@ -37,6 +41,8 @@ pub struct AppComponent {
 
     is_logger: bool,
     is_help: bool,
+
+    search_lang_selection: Option<SearchLanguageSelectionComponent>,
 
     context: u8,
     prev_context: u8,
@@ -73,11 +79,13 @@ impl Component for AppComponent {
         self.page.init(action_tx.clone())?;
         self.search_bar.init(action_tx.clone())?;
 
-        self.page_loader = Some(PageLoader::new(
-            Endpoint::parse("https://en.wikipedia.org/w/api.php").unwrap(),
-            Language::default(),
-            action_tx.clone(),
-        ));
+        let endpoint = Endpoint::parse("https://en.wikipedia.org/w/api.php").unwrap();
+        let language = Language::English;
+
+        self.page_loader = Some(PageLoader::new(action_tx.clone()));
+
+        self.search.endpoint = Some(endpoint);
+        self.search.language = Some(language);
 
         action_tx.send(Action::EnterSearchBar).unwrap();
         self.action_tx = Some(action_tx);
@@ -95,9 +103,24 @@ impl Component for AppComponent {
             CONTEXT_PAGE => self.page.handle_key_events(key),
             _ => {
                 warn!("unknown context");
-                return ActionResult::Ignored;
+                ActionResult::Ignored
             }
         };
+
+        if let Some(ref mut search_lang_selection) = self.search_lang_selection {
+            if matches!(key.code, KeyCode::Esc | KeyCode::F(2)) {
+                self.search_lang_selection = None;
+                return ActionResult::consumed();
+            }
+
+            let result = search_lang_selection.handle_key_events(key);
+            if result.is_consumed() {
+                if matches!(key.code, KeyCode::Enter) {
+                    self.search_lang_selection = None;
+                }
+                return result;
+            }
+        }
 
         if result.is_consumed() {
             return result;
@@ -128,6 +151,10 @@ impl Component for AppComponent {
 
             KeyCode::Char('i') => Action::EnterSearchBar.into(),
 
+            KeyCode::F(2) if self.search_lang_selection.is_none() => {
+                self.search_lang_selection = Some(SearchLanguageSelectionComponent::default());
+                ActionResult::consumed()
+            }
             _ => ActionResult::Ignored,
         }
     }
@@ -167,6 +194,8 @@ impl Component for AppComponent {
     fn update(&mut self, action: Action) -> ActionResult {
         let result = if self.is_help {
             self.help.update(action.clone())
+        } else if let Some(ref mut search_lang_selection) = self.search_lang_selection {
+            search_lang_selection.update(action.clone())
         } else {
             match self.context {
                 CONTEXT_SEARCH => self.search.update(action.clone()),
@@ -202,7 +231,9 @@ impl Component for AppComponent {
                     .into()
             }
 
-            Action::LoadPage(title) => self.page_loader.as_ref().unwrap().load_page(title),
+            Action::LoadSearchResult(title) => {
+                self.page_loader.as_ref().unwrap().load_search_result(title)
+            }
             Action::LoadLink(link) => self.page_loader.as_ref().unwrap().load_link(link),
             Action::LoadLangaugeLink(link) => {
                 self.page_loader.as_ref().unwrap().load_language_link(link)
@@ -225,11 +256,6 @@ impl Component for AppComponent {
             (chunks[0], chunks[1])
         };
 
-        if self.is_help {
-            self.help.render(f, centered_rect(area, 30, 50));
-            return;
-        }
-
         self.search_bar.render(f, search_bar_area);
 
         let area = if self.is_logger {
@@ -247,6 +273,16 @@ impl Component for AppComponent {
             CONTEXT_SEARCH => self.search.render(f, area),
             CONTEXT_PAGE => self.page.render(f, area),
             _ => warn!("unknown context"),
+        }
+
+        if self.is_help {
+            let help_area = centered_rect(area, 30, 50);
+            f.render_widget(Clear, help_area);
+            self.help.render(f, help_area);
+        }
+
+        if let Some(ref mut search_lang_selection) = self.search_lang_selection {
+            search_lang_selection.render(f, area);
         }
     }
 }

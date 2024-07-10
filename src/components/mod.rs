@@ -18,6 +18,7 @@ pub mod page_language_popup;
 pub mod page_viewer;
 pub mod search;
 pub mod search_bar;
+pub mod search_language_popup;
 
 #[macro_export]
 macro_rules! key_event {
