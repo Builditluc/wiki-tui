@@ -2,7 +2,7 @@ use std::fmt::Debug;
 
 use tokio::sync::mpsc;
 use wiki_api::{
-    page::{Link, Page},
+    page::{LanguageLink, Link, Page},
     search::Search,
 };
 
@@ -50,6 +50,7 @@ pub enum Action {
     // Page loading
     LoadPage(String),
     LoadLink(Link),
+    LoadLangaugeLink(LanguageLink),
 
     Search(SearchAction),
     Page(PageAction),

@@ -2,7 +2,7 @@ use tokio::sync::mpsc::UnboundedSender;
 use tracing::error;
 use wiki_api::{
     languages::Language,
-    page::{Link, Page, Property},
+    page::{LanguageLink, Link, Page, Property},
     Endpoint,
 };
 
@@ -36,6 +36,12 @@ impl PageLoader {
         };
 
         self.load_page_custom(link_data.endpoint, link_data.language, link_data.page);
+    }
+
+    pub fn load_language_link(&self, link: LanguageLink) {
+        let mut endpoint = self.endpoint.clone();
+        let _ = endpoint.set_host(Some(link.url.host_str().unwrap()));
+        self.load_page_custom(endpoint, link.language, link.title);
     }
 
     fn load_page_custom(&self, endpoint: Endpoint, language: Language, title: String) {

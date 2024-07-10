@@ -81,7 +81,7 @@ macro_rules! rendered_page {
 }
 
 pub struct PageComponent {
-    page: Page,
+    pub page: Page,
     renderer: Renderer,
     render_cache: HashMap<u16, RenderedDocument>,
     viewport: Rect,

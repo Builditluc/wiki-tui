@@ -5,6 +5,7 @@ use ratatui::{
     widgets::{Block, BorderType, Borders, Paragraph},
 };
 use tokio::sync::mpsc::UnboundedSender;
+
 use wiki_api::page::Page;
 
 use crate::{
@@ -14,7 +15,7 @@ use crate::{
     ui::centered_rect,
 };
 
-use super::{page::PageComponent, Component};
+use super::{page::PageComponent, page_language_popup::PageLanguageSelectionComponent, Component};
 
 /// Can display multiple pages and supports selecting between them
 /// Responsible for fetching the pages and managing them (NOT rendering)
@@ -24,6 +25,7 @@ pub struct PageViewer {
     page_n: usize,
 
     is_processing: bool,
+    changing_page_language_popup: Option<PageLanguageSelectionComponent>,
 
     action_tx: Option<UnboundedSender<Action>>,
 }
@@ -40,6 +42,10 @@ impl PageViewer {
     fn display_page(&mut self, page: Page) {
         self.page_n = self.page.len();
         self.page.push(PageComponent::new(page));
+
+        if self.changing_page_language_popup.is_some() {
+            self.changing_page_language_popup = None;
+        }
     }
 
     fn pop(&mut self) {
@@ -55,6 +61,29 @@ impl Component for PageViewer {
     }
 
     fn handle_key_events(&mut self, key: crossterm::event::KeyEvent) -> ActionResult {
+        if self.changing_page_language_popup.is_some() {
+            if matches!(key.code, KeyCode::F(3) | KeyCode::Esc) {
+                self.changing_page_language_popup = None;
+                return ActionResult::consumed();
+            }
+
+            return self
+                .changing_page_language_popup
+                .as_mut()
+                .unwrap()
+                .handle_key_events(key);
+        }
+
+        if matches!(key.code, KeyCode::F(3)) {
+            let language_links = self
+                .current_page()
+                .and_then(|x| x.page.language_links.to_owned())
+                .unwrap_or_default();
+            self.changing_page_language_popup =
+                Some(PageLanguageSelectionComponent::new(language_links));
+            return ActionResult::consumed();
+        }
+
         if matches!(key.code, KeyCode::Esc) {
             return Action::PageViewer(PageViewerAction::PopPage).into();
         }
@@ -88,6 +117,9 @@ impl Component for PageViewer {
             Action::EnterProcessing => self.is_processing = true,
             Action::EnterNormal => self.is_processing = false,
             _ => {
+                if let Some(ref mut popup) = self.changing_page_language_popup {
+                    return popup.update(action);
+                }
                 if let Some(page) = self.current_page_mut() {
                     return page.update(action);
                 }
@@ -113,14 +145,20 @@ impl Component for PageViewer {
             return;
         }
 
-        if let Some(page) = self.current_page_mut() {
-            page.render(f, area);
+        if self.current_page().is_none() {
+            f.render_widget(
+                Paragraph::new("No page opened").alignment(Alignment::Center),
+                centered_rect(area, 100, 50),
+            );
             return;
         }
 
-        f.render_widget(
-            Paragraph::new("No page opened").alignment(Alignment::Center),
-            centered_rect(area, 100, 50),
-        );
+        if let Some(page) = self.current_page_mut() {
+            page.render(f, area);
+        }
+
+        if let Some(ref mut page_language_popup) = self.changing_page_language_popup {
+            page_language_popup.render(f, area);
+        }
     }
 }

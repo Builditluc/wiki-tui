@@ -113,7 +113,6 @@ impl SearchComponent {
         self.search_results
             .get_items_mut()
             .append(&mut search.results);
-        self.search_results.next();
 
         self.continue_search = search.continue_data().take();
         self.search_info = Some(search.info);

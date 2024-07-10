@@ -14,6 +14,7 @@ use self::help::Keymap;
 pub mod help;
 pub mod logger;
 pub mod page;
+pub mod page_language_popup;
 pub mod page_viewer;
 pub mod search;
 pub mod search_bar;
