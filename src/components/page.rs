@@ -19,7 +19,7 @@ use wiki_api::{
 use crate::{
     action::{Action, ActionPacket, ActionResult, PageAction},
     components::Component,
-    has_modifier, key_event,
+    has_modifier,
     renderer::{default_renderer::render_document, RenderedDocument},
     terminal::Frame,
     ui::padded_rect,
@@ -511,39 +511,6 @@ impl Component for PageComponent {
             KeyCode::Enter => self.open_link(),
             _ => ActionResult::Ignored,
         }
-    }
-
-    fn keymap(&self) -> super::help::Keymap {
-        vec![
-            (
-                key_event!('r', Modifier::CONTROL),
-                Action::Page(PageAction::SwitchRenderer(self.renderer.next())).into(),
-            ),
-            (
-                key_event!(Key::Left, Modifier::SHIFT),
-                Action::Page(PageAction::SelectFirstLink).into(),
-            ),
-            (
-                key_event!(Key::Left),
-                Action::Page(PageAction::SelectPrevLink).into(),
-            ),
-            (
-                key_event!(Key::Right, Modifier::SHIFT),
-                Action::Page(PageAction::SelectLastLink).into(),
-            ),
-            (
-                key_event!(Key::Right),
-                Action::Page(PageAction::SelectNextLink).into(),
-            ),
-            (
-                key_event!(Key::Up, Modifier::SHIFT),
-                Action::Page(PageAction::SelectTopLink).into(),
-            ),
-            (
-                key_event!(Key::Down, Modifier::SHIFT),
-                Action::Page(PageAction::SelectBottomLink).into(),
-            ),
-        ]
     }
 
     fn update(&mut self, action: Action) -> ActionResult {

@@ -9,7 +9,6 @@ use tokio::sync::mpsc;
 use crate::{
     action::{Action, ActionPacket, ActionResult},
     components::{
-        help::{HelpComponent, Keymap},
         logger::LoggerComponent,
         page_viewer::PageViewer,
         search::SearchComponent,
@@ -17,7 +16,7 @@ use crate::{
         search_language_popup::SearchLanguageSelectionComponent,
         Component,
     },
-    has_modifier, key_event,
+    has_modifier,
     page_loader::PageLoader,
     terminal::Frame,
 };
@@ -47,19 +46,6 @@ impl AppComponent {
     fn switch_context(&mut self, context: u8) {
         self.prev_context = context;
         std::mem::swap(&mut self.prev_context, &mut self.context);
-    }
-
-    fn show_help(&mut self) {
-        let mut help_widget = HelpComponent::default();
-        let mut keymap = self.keymap();
-        keymap.append(&mut match self.context {
-            CONTEXT_SEARCH => self.search.keymap(),
-            CONTEXT_PAGE => self.page.keymap(),
-            _ => return warn!("unknown context"),
-        });
-        help_widget.set_keymap(keymap);
-
-        self.popups.push(Box::new(help_widget));
     }
 
     fn show_page_language(&mut self) {
@@ -123,7 +109,6 @@ impl Component for AppComponent {
             KeyCode::Esc => Action::PopPopup.into(),
 
             KeyCode::Char('l') => Action::ToggleShowLogger.into(),
-            KeyCode::Char('?') => Action::ShowHelp.into(),
 
             KeyCode::Char('s') => Action::SwitchContextSearch.into(),
             KeyCode::Char('p') => Action::SwitchContextPage.into(),
@@ -154,35 +139,6 @@ impl Component for AppComponent {
         }
     }
 
-    fn keymap(&self) -> Keymap {
-        vec![
-            (
-                key_event!('l'),
-                ActionPacket::single(Action::ToggleShowLogger),
-            ),
-            (key_event!('?'), ActionPacket::single(Action::ShowHelp)),
-            (key_event!('q'), ActionPacket::single(Action::Quit)),
-            (
-                key_event!('s'),
-                ActionPacket::single(Action::SwitchContextSearch),
-            ),
-            (
-                key_event!('p'),
-                ActionPacket::single(Action::SwitchContextPage),
-            ),
-            (key_event!('j'), ActionPacket::single(Action::ScrollDown(1))),
-            (key_event!('k'), ActionPacket::single(Action::ScrollUp(1))),
-            (
-                key_event!('h'),
-                ActionPacket::single(Action::UnselectScroll),
-            ),
-            (
-                key_event!('i'),
-                ActionPacket::single(Action::EnterSearchBar),
-            ),
-        ]
-    }
-
     fn update(&mut self, action: Action) -> ActionResult {
         if let Some(ref mut popup) = self.popups.last_mut() {
             let result = popup.update(action.clone());
@@ -210,7 +166,6 @@ impl Component for AppComponent {
             }
 
             Action::ToggleShowLogger => self.is_logger = !self.is_logger,
-            Action::ShowHelp => self.show_help(),
             Action::ShowPageLanguageSelection => self.show_page_language(),
 
             Action::SwitchContextSearch => self.switch_context(CONTEXT_SEARCH),

@@ -19,7 +19,6 @@ pub enum Action {
 
     // View Focus
     ToggleShowLogger,
-    ShowHelp,
     ShowPageLanguageSelection,
 
     PopPopup,

@@ -16,7 +16,6 @@ use wiki_api::{
 
 use crate::{
     action::{Action, ActionPacket, ActionResult, SearchAction},
-    key_event,
     terminal::Frame,
     ui::{centered_rect, ScrollBehaviour, StatefulList},
 };
@@ -230,13 +229,6 @@ impl Component for SearchComponent {
             },
             _ => ActionResult::Ignored,
         }
-    }
-
-    fn keymap(&self) -> super::help::Keymap {
-        vec![(
-            key_event!(Key::Enter),
-            ActionPacket::single(Action::Search(SearchAction::OpenSearchResult)),
-        )]
     }
 
     fn update(&mut self, action: Action) -> ActionResult {
