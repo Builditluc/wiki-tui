@@ -19,7 +19,10 @@ pub enum Action {
 
     // View Focus
     ToggleShowLogger,
-    ToggleShowHelp,
+    ShowHelp,
+    ShowPageLanguageSelection,
+
+    PopPopup,
 
     SwitchContextSearch,
     SwitchContextPage,

@@ -52,6 +52,14 @@ impl PageViewer {
         self.page.pop();
         self.page_n = self.page_n.saturating_sub(1);
     }
+
+    pub fn get_page_language_selection_popup(&self) -> PageLanguageSelectionComponent {
+        let language_links = self
+            .current_page()
+            .and_then(|x| x.page.language_links.to_owned())
+            .unwrap_or_default();
+        PageLanguageSelectionComponent::new(language_links)
+    }
 }
 
 impl Component for PageViewer {
@@ -61,27 +69,8 @@ impl Component for PageViewer {
     }
 
     fn handle_key_events(&mut self, key: crossterm::event::KeyEvent) -> ActionResult {
-        if self.changing_page_language_popup.is_some() {
-            if matches!(key.code, KeyCode::F(3) | KeyCode::Esc) {
-                self.changing_page_language_popup = None;
-                return ActionResult::consumed();
-            }
-
-            return self
-                .changing_page_language_popup
-                .as_mut()
-                .unwrap()
-                .handle_key_events(key);
-        }
-
         if matches!(key.code, KeyCode::F(3)) {
-            let language_links = self
-                .current_page()
-                .and_then(|x| x.page.language_links.to_owned())
-                .unwrap_or_default();
-            self.changing_page_language_popup =
-                Some(PageLanguageSelectionComponent::new(language_links));
-            return ActionResult::consumed();
+            return Action::ShowPageLanguageSelection.into();
         }
 
         if matches!(key.code, KeyCode::Esc) {
@@ -117,9 +106,6 @@ impl Component for PageViewer {
             Action::EnterProcessing => self.is_processing = true,
             Action::EnterNormal => self.is_processing = false,
             _ => {
-                if let Some(ref mut popup) = self.changing_page_language_popup {
-                    return popup.update(action);
-                }
                 if let Some(page) = self.current_page_mut() {
                     return page.update(action);
                 }
@@ -155,10 +141,6 @@ impl Component for PageViewer {
 
         if let Some(page) = self.current_page_mut() {
             page.render(f, area);
-        }
-
-        if let Some(ref mut page_language_popup) = self.changing_page_language_popup {
-            page_language_popup.render(f, area);
         }
     }
 }

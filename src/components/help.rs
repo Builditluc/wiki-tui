@@ -1,13 +1,13 @@
-use crossterm::event::KeyEvent;
+use crossterm::event::{KeyCode, KeyEvent};
 use ratatui::{
     prelude::{Alignment, Constraint, Direction, Layout, Margin, Rect},
     style::{Color, Modifier, Style},
-    widgets::{Block, Borders, List, ListItem, Paragraph},
+    widgets::{Block, Borders, Clear, List, ListItem, Paragraph},
 };
 
 use crate::{
     action::{Action, ActionPacket, ActionResult},
-    ui::{ScrollBehaviour, StatefulList},
+    ui::{centered_rect, ScrollBehaviour, StatefulList},
 };
 
 use super::Component;
@@ -30,6 +30,13 @@ impl HelpComponent {
 }
 
 impl Component for HelpComponent {
+    fn handle_key_events(&mut self, key: KeyEvent) -> ActionResult {
+        match key.code {
+            KeyCode::Esc | KeyCode::Char('?') => Action::PopPopup.into(),
+            _ => ActionResult::Ignored,
+        }
+    }
+
     fn update(&mut self, action: Action) -> ActionResult {
         match action {
             Action::ScrollUp(n) => {
@@ -51,6 +58,9 @@ impl Component for HelpComponent {
     }
 
     fn render(&mut self, f: &mut crate::terminal::Frame<'_>, area: Rect) {
+        let area = centered_rect(area, 30, 50);
+
+        f.render_widget(Clear, area);
         f.render_widget(Block::default().borders(Borders::ALL), area);
         let area = area.inner(&Margin::new(1, 1));
 

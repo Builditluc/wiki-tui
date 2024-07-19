@@ -8,7 +8,7 @@ use tui_input::{backend::crossterm::EventHandler, Input};
 use wiki_api::page::LanguageLink;
 
 use crate::{
-    action::{Action, ActionResult},
+    action::{Action, ActionPacket, ActionResult},
     terminal::Frame,
     ui::{centered_rect, StatefulList},
 };
@@ -56,7 +56,9 @@ impl Component for PageLanguageSelectionComponent {
         match key.code {
             KeyCode::Enter => {
                 if let Some(link) = self.list.selected() {
-                    return Action::LoadLangaugeLink(link.to_owned()).into();
+                    return ActionPacket::single(Action::LoadLangaugeLink(link.to_owned()))
+                        .action(Action::PopPopup)
+                        .into();
                 }
                 ActionResult::Ignored
             }
@@ -75,6 +77,7 @@ impl Component for PageLanguageSelectionComponent {
                 self.focus = FOCUS_INPUT;
                 ActionResult::consumed()
             }
+            KeyCode::Esc | KeyCode::F(3) => Action::PopPopup.into(),
             _ if self.focus == FOCUS_INPUT => {
                 self.input.handle_event(&crossterm::event::Event::Key(key));
                 self.update_list();

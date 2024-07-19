@@ -49,6 +49,7 @@ impl Component for SearchLanguageSelectionComponent {
                         .action(Action::Search(SearchAction::ChangeLanguage(
                             lang.to_owned(),
                         )))
+                        .action(Action::PopPopup)
                         .into();
                 }
                 ActionResult::Ignored
@@ -68,6 +69,9 @@ impl Component for SearchLanguageSelectionComponent {
                 self.focus = FOCUS_INPUT;
                 ActionResult::consumed()
             }
+
+            KeyCode::Esc | KeyCode::F(2) => Action::PopPopup.into(),
+
             _ if self.focus == FOCUS_INPUT => {
                 self.input.handle_event(&crossterm::event::Event::Key(key));
                 self.update_list();
