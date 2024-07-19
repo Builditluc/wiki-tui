@@ -10,6 +10,7 @@ use crate::{
 };
 
 pub mod logger;
+pub mod message_popup;
 pub mod page;
 pub mod page_language_popup;
 pub mod page_viewer;

@@ -21,6 +21,8 @@ pub enum Action {
     ToggleShowLogger,
     ShowPageLanguageSelection,
 
+    /// PopupMessage(Title, Content)
+    PopupMessage(String, String),
     PopPopup,
 
     SwitchContextSearch,

@@ -10,6 +10,7 @@ use crate::{
     action::{Action, ActionPacket, ActionResult},
     components::{
         logger::LoggerComponent,
+        message_popup::MessagePopupComponent,
         page_viewer::PageViewer,
         search::SearchComponent,
         search_bar::{SearchBarComponent, SEARCH_BAR_HEIGTH},
@@ -140,25 +141,6 @@ impl Component for AppComponent {
     }
 
     fn update(&mut self, action: Action) -> ActionResult {
-        if let Some(ref mut popup) = self.popups.last_mut() {
-            let result = popup.update(action.clone());
-            if result.is_consumed() {
-                return result;
-            }
-        }
-
-        let result = match self.context {
-            CONTEXT_SEARCH => self.search.update(action.clone()),
-            CONTEXT_PAGE => self.page.update(action.clone()),
-            _ => {
-                warn!("unknown context");
-                return ActionResult::Ignored;
-            }
-        };
-        if result.is_consumed() {
-            return result;
-        }
-
         // global actions
         match action {
             Action::PopPopup => {
@@ -190,7 +172,30 @@ impl Component for AppComponent {
             Action::LoadLangaugeLink(link) => {
                 self.page_loader.as_ref().unwrap().load_language_link(link)
             }
-            _ => return ActionResult::Ignored,
+
+            Action::PopupMessage(title, content) => self
+                .popups
+                .push(Box::new(MessagePopupComponent::new(title, content))),
+            _ => {
+                if let Some(ref mut popup) = self.popups.last_mut() {
+                    let result = popup.update(action.clone());
+                    if result.is_consumed() {
+                        return result;
+                    }
+                }
+
+                let result = match self.context {
+                    CONTEXT_SEARCH => self.search.update(action.clone()),
+                    CONTEXT_PAGE => self.page.update(action.clone()),
+                    _ => {
+                        warn!("unknown context");
+                        return ActionResult::Ignored;
+                    }
+                };
+                if result.is_consumed() {
+                    return result;
+                }
+            }
         };
 
         ActionResult::consumed()

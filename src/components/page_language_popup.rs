@@ -56,8 +56,15 @@ impl Component for PageLanguageSelectionComponent {
         match key.code {
             KeyCode::Enter => {
                 if let Some(link) = self.list.selected() {
-                    return ActionPacket::single(Action::LoadLangaugeLink(link.to_owned()))
-                        .action(Action::PopPopup)
+                    return ActionPacket::single(Action::PopPopup)
+                        .action(Action::PopupMessage(
+                            "Information".to_string(),
+                            format!(
+                                "Changing the language of the page to '{}'",
+                                link.language.name()
+                            ),
+                        ))
+                        .action(Action::LoadLangaugeLink(link.to_owned()))
                         .into();
                 }
                 ActionResult::Ignored

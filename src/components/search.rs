@@ -28,7 +28,6 @@ pub enum Mode {
     NoSearch,
     FinishedSearch,
 
-    NoResults,
     Suggestion,
 
     Searching,
@@ -121,7 +120,12 @@ impl SearchComponent {
 
         if !has_results && !has_suggestion {
             warn!("could not find any results and no suggestion was given");
-            return Action::Search(SearchAction::ChangeMode(Mode::NoResults)).into();
+            return ActionPacket::single(Action::PopupMessage(
+                "Warning".to_string(),
+                "Could not find any search results and no suggestion could be made".to_string(),
+            ))
+            .action(Action::Search(SearchAction::ChangeMode(Mode::NoSearch)))
+            .into();
         }
 
         if !has_results && has_suggestion {
@@ -134,7 +138,12 @@ impl SearchComponent {
 
     fn continue_search(&mut self) -> ActionResult {
         if self.continue_search.is_none() {
-            return Action::Search(SearchAction::ChangeMode(Mode::NoResults)).into();
+            return ActionPacket::single(Action::PopupMessage(
+                "Warning".to_string(),
+                "Could not find any search results and no suggestion could be made".to_string(),
+            ))
+            .action(Action::Search(SearchAction::ChangeMode(Mode::NoSearch)))
+            .into();
         }
 
         let code = self.continue_search.as_ref().unwrap();
@@ -283,18 +292,6 @@ impl Component for SearchComponent {
             f.render_widget(
                 Paragraph::new("Start a search!").alignment(Alignment::Center),
                 centered_rect(area, 100, 50),
-            );
-            return;
-        }
-
-        if self.mode == Mode::NoResults {
-            let block = Block::default().title("Warning").borders(Borders::ALL);
-            let msg = "Could not find any search results and no other suggestion could be made"
-                .to_string();
-            let area = centered_rect(area, 60, 25);
-            f.render_widget(
-                Paragraph::new(msg).block(block).wrap(Wrap { trim: true }),
-                area,
             );
             return;
         }

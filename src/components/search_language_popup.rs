@@ -46,10 +46,14 @@ impl Component for SearchLanguageSelectionComponent {
             KeyCode::Enter => {
                 if let Some(lang) = self.list.selected() {
                     return ActionPacket::single(Action::SwitchContextSearch)
+                        .action(Action::PopPopup)
+                        .action(Action::PopupMessage(
+                            "Information".to_string(),
+                            format!("Changed the language for searches to '{}'", lang.name()),
+                        ))
                         .action(Action::Search(SearchAction::ChangeLanguage(
                             lang.to_owned(),
                         )))
-                        .action(Action::PopPopup)
                         .into();
                 }
                 ActionResult::Ignored
