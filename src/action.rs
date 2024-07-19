@@ -23,6 +23,8 @@ pub enum Action {
 
     /// PopupMessage(Title, Content)
     PopupMessage(String, String),
+    /// PopupError(Error)
+    PopupError(String),
     PopPopup,
 
     SwitchContextSearch,

@@ -56,7 +56,11 @@ impl PageLoader {
                 Ok(page) => tx
                     .send(Action::PageViewer(PageViewerAction::DisplayPage(page)))
                     .unwrap(),
-                Err(error) => error!("Unable to fetch the page: {:?}", error),
+                Err(error) => {
+                    let error = error.context("Unable to fetch the page");
+                    tx.send(Action::PopupError(error.to_string())).unwrap();
+                    error!("{:?}", error);
+                }
             };
 
             tx.send(Action::EnterNormal).unwrap();

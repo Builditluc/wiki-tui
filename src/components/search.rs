@@ -97,7 +97,11 @@ impl SearchComponent {
                 Ok(search) => tx
                     .send(Action::Search(SearchAction::FinshSearch(search)))
                     .unwrap(),
-                Err(error) => error!("Unable to complete the search: {:?}", error),
+                Err(error) => {
+                    let error = error.context("Unable to execute the search");
+                    tx.send(Action::PopupError(error.to_string())).unwrap();
+                    error!("{:?}", error);
+                }
             };
         });
 
@@ -160,7 +164,11 @@ impl SearchComponent {
                 Ok(search) => tx
                     .send(Action::Search(SearchAction::FinshSearch(search)))
                     .unwrap(),
-                Err(error) => error!("Unable to complete the search: {:?}", error),
+                Err(error) => {
+                    let error = error.context("Unable to continue the search");
+                    tx.send(Action::PopupError(error.to_string())).unwrap();
+                    error!("{:?}", error)
+                }
             };
         });
 

@@ -1,8 +1,9 @@
 use crossterm::event::{KeyCode, KeyEvent};
 use ratatui::{
-    layout::Rect,
+    layout::{Alignment, Rect},
+    style::Stylize,
     text::Line,
-    widgets::{Block, BorderType, Borders, Clear, Paragraph, Wrap},
+    widgets::{block::Title, Block, BorderType, Borders, Clear, Paragraph},
 };
 
 use crate::{
@@ -12,18 +13,34 @@ use crate::{
 
 use super::Component;
 
-pub struct MessagePopupComponent {
-    title: String,
+pub struct MessagePopupComponent<'a> {
+    title: Title<'a>,
     content: String,
+    content_alignment: Alignment,
 }
 
-impl MessagePopupComponent {
-    pub fn new(title: String, content: String) -> Self {
-        Self { title, content }
+impl<'a> MessagePopupComponent<'a> {
+    pub fn new_raw(title: String, content: String) -> Self {
+        Self {
+            title: Title::from(title).alignment(Alignment::Center),
+            content,
+            content_alignment: Alignment::Center,
+        }
+    }
+
+    pub fn new_error(error: String) -> Self {
+        const ERROR_MESSAGE: &str =
+            "An error occurred\nCheck the logs for further information\n\nError: {ERROR}";
+
+        Self {
+            title: Title::from("Error".bold().red()).alignment(Alignment::Center),
+            content: ERROR_MESSAGE.replace("{ERROR}", &error),
+            content_alignment: Alignment::Left,
+        }
     }
 }
 
-impl Component for MessagePopupComponent {
+impl<'a> Component for MessagePopupComponent<'a> {
     fn handle_key_events(&mut self, key: KeyEvent) -> ActionResult {
         match key.code {
             KeyCode::Esc => Action::PopPopup.into(),
@@ -47,16 +64,20 @@ impl Component for MessagePopupComponent {
         };
 
         f.render_widget(Clear, area);
-        let message_widget = Paragraph::new(self.content.as_str())
-            .centered()
-            .wrap(Wrap { trim: true })
-            .block(
-                Block::default()
-                    .title(self.title.as_str())
-                    .title_bottom(Line::from("<ESC> Dismiss").right_aligned())
-                    .borders(Borders::ALL)
-                    .border_type(BorderType::Rounded),
-            );
+        let message_widget = Paragraph::new(
+            wrapped_message
+                .iter()
+                .map(|x| Line::from(x.to_string()))
+                .collect::<Vec<Line>>(),
+        )
+        .alignment(self.content_alignment)
+        .block(
+            Block::default()
+                .title(self.title.clone())
+                .title_bottom(Line::from("<ESC> Dismiss").right_aligned())
+                .borders(Borders::ALL)
+                .border_type(BorderType::Rounded),
+        );
         f.render_widget(message_widget, area);
     }
 }
