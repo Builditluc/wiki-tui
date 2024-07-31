@@ -1,6 +1,7 @@
 use crate::{
     document::{Document, HeaderKind},
     parser::{Parser, WikipediaParser},
+    Endpoint,
 };
 use anyhow::{anyhow, Context, Result};
 use reqwest::{Client, Response};
@@ -39,6 +40,12 @@ pub mod link_data {
     }
 
     #[derive(Debug, Clone, PartialEq, Eq)]
+    pub struct MediaData {
+        pub url: Url,
+        pub title: String,
+    }
+
+    #[derive(Debug, Clone, PartialEq, Eq)]
     pub struct ExternalData {
         pub url: Url,
     }
@@ -57,34 +64,59 @@ pub enum Link {
     Anchor(link_data::AnchorData),
     /// A special type of link that leads to an internal page that doesn't exist yet
     RedLink(link_data::RedLinkData),
+    /// Link pointing to a media
+    MediaLink(link_data::MediaData),
     /// External link to a page at another website
     External(link_data::ExternalData),
     /// External link to an interal page in the same wiki
     ExternalToInternal(link_data::ExternalToInteralData),
 }
 
+impl Link {
+    pub fn title(&self) -> Option<&str> {
+        match self {
+            Link::Anchor(link_data) => Some(&link_data.title),
+            Link::RedLink(link_data) => Some(&link_data.title),
+            &Link::External(_) => None,
+            &Link::ExternalToInternal(_) => None,
+            Link::MediaLink(link_data) => Some(&link_data.title),
+            Link::Internal(link_data) => Some(&link_data.title),
+        }
+    }
+}
+
 // TODO: replace this with Link::Internal
-#[derive(Debug, Deserialize, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct LanguageLink {
-    #[serde(rename = "langname")]
     pub name: String,
-    #[serde(rename = "lang")]
     pub language: Language,
     pub autonym: String,
     pub title: String,
     pub url: Url,
+    pub endpoint: Endpoint,
+}
+
+#[derive(Deserialize)]
+struct LanguageLinkInt {
+    #[serde(rename = "langname")]
+    name: String,
+    #[serde(rename = "lang")]
+    language: Language,
+    autonym: String,
+    title: String,
+    url: Url,
 }
 
 #[derive(Debug, Deserialize, Clone, PartialEq, Eq)]
 pub struct Section {
     #[serde(skip_deserializing)]
-    index: usize,
+    pub index: usize,
     #[serde(rename = "toclevel")]
-    header_kind: HeaderKind,
+    pub header_kind: HeaderKind,
     #[serde(rename = "line")]
-    text: String,
-    number: String,
-    anchor: String,
+    pub text: String,
+    pub number: String,
+    pub anchor: String,
 }
 
 #[derive(Clone, PartialEq, Eq)]
@@ -99,6 +131,33 @@ pub struct Page {
 }
 
 impl Page {
+    #[cfg(debug_assertions)]
+    pub fn from_path(path: &std::path::PathBuf) -> Option<Page> {
+        if !path.exists() {
+            println!("no page exists");
+            return None;
+        }
+
+        let content = std::fs::read_to_string(path).ok()?;
+        println!("found content");
+        let nodes = WikipediaParser::parse_document(
+            &content,
+            url::Url::parse("https://en.wikipedia.org/w/api.php").ok()?,
+            Language::default(),
+        )
+        .nodes();
+
+        Some(Page {
+            title: "DEBUG: FILE".to_string(),
+            pageid: 0,
+            content: Document { nodes },
+            language: Language::default(),
+            language_links: None,
+            sections: None,
+            revision_id: None,
+        })
+    }
+
     pub fn builder() -> PageBuilder<NoPageID, NoPage, NoEndpoint, NoLanguage> {
         PageBuilder::default()
     }
@@ -106,6 +165,13 @@ impl Page {
     pub fn available_languages(&self) -> Option<usize> {
         if let Some(ref links) = self.language_links {
             return Some(links.len());
+        }
+        None
+    }
+
+    pub fn sections(&self) -> Option<&Vec<Section>> {
+        if let Some(ref sections) = self.sections {
+            return Some(sections);
         }
         None
     }
@@ -388,18 +454,20 @@ impl<I, P> PageBuilder<I, P, WithEndpoint, WithLanguage> {
             .map(|x| x as usize)
             .ok_or_else(|| anyhow!("missing the pageid"))?;
 
+        let endpoint = self.endpoint.0;
+        let language = self.language.0;
         let content = res_json
             .get("parse")
             .and_then(|x| x.get("text"))
             .and_then(|x| x.as_str())
             .map(|x| {
-                let parser = WikipediaParser::parse_document(x);
+                let parser = WikipediaParser::parse_document(x, endpoint.clone(), language.clone());
                 Document {
                     nodes: parser.nodes(),
                 }
             })
             // HACK: implement correct errors
-            .ok_or(anyhow!("failed parsing the content"))?;
+            .ok_or(anyhow!("missing the content or failed parsing the content"))?;
 
         let language_links = res_json
             .get("parse")
@@ -409,9 +477,19 @@ impl<I, P> PageBuilder<I, P, WithEndpoint, WithLanguage> {
             .map(|x| {
                 x.into_iter()
                     .filter_map(|x| {
-                        serde_json::from_value(x)
+                        let language_int: LanguageLinkInt = serde_json::from_value(x)
                             .map_err(|err| warn!("language_link parsing error: {:?}", err))
-                            .ok()
+                            .ok()?;
+                        let mut endpoint = endpoint.clone();
+                        let _ = endpoint.set_host(Some(language_int.url.host_str().unwrap()));
+                        Some(LanguageLink {
+                            name: language_int.name,
+                            language: language_int.language,
+                            autonym: language_int.autonym,
+                            title: language_int.title,
+                            url: language_int.url,
+                            endpoint,
+                        })
                     })
                     .collect::<Vec<LanguageLink>>()
             })
@@ -463,7 +541,7 @@ impl<I, P> PageBuilder<I, P, WithEndpoint, WithLanguage> {
             title,
             pageid,
             content,
-            language: self.language.0,
+            language,
             language_links,
             sections,
             revision_id,

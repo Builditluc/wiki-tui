@@ -9,15 +9,14 @@ use crate::{
     terminal::Frame,
 };
 
-use self::help::Keymap;
-
-pub mod help;
 pub mod logger;
+pub mod message_popup;
 pub mod page;
+pub mod page_language_popup;
 pub mod page_viewer;
 pub mod search;
 pub mod search_bar;
-pub mod status;
+pub mod search_language_popup;
 
 #[macro_export]
 macro_rules! key_event {
@@ -62,10 +61,6 @@ pub trait Component {
     #[allow(unused_variables)]
     fn handle_key_events(&mut self, key: KeyEvent) -> ActionResult {
         ActionResult::Ignored
-    }
-
-    fn keymap(&self) -> Keymap {
-        Vec::new()
     }
 
     #[allow(unused_variables)]

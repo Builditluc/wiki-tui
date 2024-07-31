@@ -1,7 +1,10 @@
 use ratatui::style::{Color, Modifier, Style};
 use textwrap::wrap_algorithms::{wrap_optimal_fit, Penalties};
 use tracing::warn;
-use wiki_api::document::{Data, Document, HeaderKind, Node};
+use wiki_api::{
+    document::{Data, Document, HeaderKind, Node},
+    page::Link,
+};
 
 use crate::renderer::Word;
 
@@ -15,6 +18,8 @@ const LIST_PREFIX: char = '-';
 
 struct Renderer {
     rendered_lines: Vec<Vec<Word>>,
+    links: Vec<(usize, usize)>,
+
     current_line: Vec<Word>,
     width: u16,
 
@@ -28,11 +33,16 @@ impl<'a> Renderer {
     fn render_document(document: &'a Document, width: u16) -> RenderedDocument {
         if document.nodes.is_empty() {
             warn!("document contains no nodes, aborting the render");
-            return RenderedDocument { lines: Vec::new() };
+            return RenderedDocument {
+                lines: Vec::new(),
+                links: Vec::new(),
+            };
         }
 
         let mut renderer = Renderer {
             rendered_lines: Vec::new(),
+            links: Vec::new(),
+
             current_line: Vec::new(),
             width,
 
@@ -46,6 +56,7 @@ impl<'a> Renderer {
 
         RenderedDocument {
             lines: renderer.rendered_lines,
+            links: renderer.links,
         }
     }
 
@@ -282,7 +293,7 @@ impl<'a> Renderer {
     }
 
     fn render_header(&mut self, node: Node<'a>) {
-        let Data::Header { kind , .. } = node.data() else {
+        let Data::Header { kind, .. } = node.data() else {
             warn!("expected header data, got other data");
             return;
         };
@@ -447,6 +458,19 @@ impl<'a> Renderer {
         self.add_whitespace();
     }
 
+    fn render_link(&mut self, node: Node<'a>, link: Link) {
+        self.links.push((self.rendered_lines.len(), node.index()));
+
+        match link {
+            Link::Internal(_) => self.render_wiki_link(node),
+            Link::Anchor(_) => self.render_wiki_link(node),
+            Link::RedLink(_) => self.render_red_link(node),
+            Link::MediaLink(_) => self.render_media_link(node),
+            Link::External(_) => self.render_external_link(node),
+            Link::ExternalToInternal(_) => self.render_external_link(node),
+        }
+    }
+
     fn render_wiki_link(&mut self, node: Node<'a>) {
         self.set_text_fg(Color::Blue);
         self.render_children(node);
@@ -479,11 +503,9 @@ impl<'a> Renderer {
 
     fn render_external_link(&mut self, node: Node<'a>) {
         self.add_modifier(Modifier::ITALIC);
-        self.set_text_fg(Color::Blue);
 
         self.render_children(node);
 
-        self.reset_text_fg();
         self.remove_modifier(Modifier::ITALIC);
         self.add_whitespace();
     }
@@ -508,14 +530,7 @@ impl<'a> Renderer {
             Data::DerscriptionListDescription => self.render_description_list_description(node),
             Data::Bold => self.render_bold(node),
             Data::Italic => self.render_italic(node),
-            Data::WikiLink { href: _, title: _ } => self.render_wiki_link(node),
-            Data::RedLink { title: _ } => self.render_red_link(node),
-            Data::MediaLink { href: _, title: _ } => self.render_media_link(node),
-            Data::ExternalLink {
-                href: _,
-                title: _,
-                autonumber: _,
-            } => self.render_external_link(node),
+            Data::Link(link) => self.render_link(node, link.clone()),
             Data::Unknown => self.render_children(node),
         }
     }

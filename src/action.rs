@@ -1,7 +1,11 @@
 use std::fmt::Debug;
 
 use tokio::sync::mpsc;
-use wiki_api::{page::Page, search::Search};
+use wiki_api::{
+    languages::Language,
+    page::{LanguageLink, Link, Page},
+    search::{Search, SearchResult},
+};
 
 use crate::components::page::Renderer;
 
@@ -15,7 +19,15 @@ pub enum Action {
 
     // View Focus
     ToggleShowLogger,
-    ToggleShowHelp,
+    ShowPageLanguageSelection,
+
+    /// PopupMessage(Title, Content)
+    PopupMessage(String, String),
+    /// PopupError(Error)
+    PopupError(String),
+    /// PopupError(Title, Content, Callback)
+    PopupDialog(String, String, Box<ActionPacket>),
+    PopPopup,
 
     SwitchContextSearch,
     SwitchContextPage,
@@ -45,7 +57,9 @@ pub enum Action {
     ExitSearchBar,
 
     // Page loading
-    LoadPage(String),
+    LoadSearchResult(SearchResult),
+    LoadLink(Link),
+    LoadLangaugeLink(LanguageLink),
 
     Search(SearchAction),
     Page(PageAction),
@@ -56,13 +70,17 @@ pub enum Action {
 pub enum SearchAction {
     StartSearch(String),
     FinshSearch(Search),
+    ContinueSearch,
     ClearSearchResults,
     OpenSearchResult,
+    ChangeMode(crate::components::search::Mode),
+    ChangeLanguage(Language),
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum PageAction {
     SwitchRenderer(Renderer),
+    ToggleContents,
 
     SelectFirstLink,
     SelectLastLink,
@@ -72,6 +90,8 @@ pub enum PageAction {
 
     SelectPrevLink,
     SelectNextLink,
+
+    GoToHeader(String),
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -107,7 +127,7 @@ impl From<ActionPacket> for ActionResult {
     }
 }
 
-#[derive(Default)]
+#[derive(Default, Clone, PartialEq, Eq)]
 pub struct ActionPacket {
     actions: Vec<Action>,
 }

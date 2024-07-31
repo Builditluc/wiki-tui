@@ -1,31 +1,51 @@
 use tokio::sync::mpsc::UnboundedSender;
 use tracing::error;
-use wiki_api::{languages::Language, page::Page, Endpoint};
+use wiki_api::{
+    languages::Language,
+    page::{LanguageLink, Link, Page, Property},
+    search::SearchResult,
+    Endpoint,
+};
 
 use crate::action::{Action, PageViewerAction};
 
 /// Responsible for loading a page
 pub struct PageLoader {
-    endpoint: Endpoint,
-    language: Language,
-
     action_tx: UnboundedSender<Action>,
 }
 
 impl PageLoader {
-    pub fn new(endpoint: Endpoint, language: Language, action_tx: UnboundedSender<Action>) -> Self {
-        Self {
-            endpoint,
-            language,
-            action_tx,
-        }
+    pub fn new(action_tx: UnboundedSender<Action>) -> Self {
+        Self { action_tx }
     }
 
-    pub fn load_page(&self, title: String) {
+    pub fn load_search_result(&self, result: SearchResult) {
+        self.load_page_custom(result.endpoint, result.language, result.title);
+    }
+
+    pub fn load_link(&self, link: Link) {
+        let link_data = match link {
+            Link::Internal(data) => data,
+            _ => return,
+        };
+
+        self.load_page_custom(link_data.endpoint, link_data.language, link_data.page);
+    }
+
+    pub fn load_language_link(&self, link: LanguageLink) {
+        self.load_page_custom(link.endpoint, link.language, link.title);
+    }
+
+    fn load_page_custom(&self, endpoint: Endpoint, language: Language, title: String) {
         let page_request = Page::builder()
             .page(title)
-            .endpoint(self.endpoint.clone())
-            .language(self.language.clone());
+            .properties(vec![
+                Property::Text,
+                Property::Sections,
+                Property::LangLinks,
+            ])
+            .endpoint(endpoint)
+            .language(language);
 
         let tx = self.action_tx.clone();
         tokio::spawn(async move {
@@ -36,7 +56,11 @@ impl PageLoader {
                 Ok(page) => tx
                     .send(Action::PageViewer(PageViewerAction::DisplayPage(page)))
                     .unwrap(),
-                Err(error) => error!("Unable to fetch the page: {:?}", error),
+                Err(error) => {
+                    let error = error.context("Unable to fetch the page");
+                    tx.send(Action::PopupError(error.to_string())).unwrap();
+                    error!("{:?}", error);
+                }
             };
 
             tx.send(Action::EnterNormal).unwrap();

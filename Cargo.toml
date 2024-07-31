@@ -24,7 +24,7 @@ futures = "0.3.28"
 human-panic = "1.2.2"
 libc = "0.2.147"
 log = "0.4.20"
-ratatui = "0.24.0"
+ratatui = "0.26.3"
 signal-hook = "0.3.17"
 textwrap = { version = "0.16.0", features = ["smawk"] }
 tokio = { version = "1.32.0", features = ["full"] }
@@ -33,13 +33,8 @@ tokio-util = "0.7.8"
 tracing = "0.1.37"
 tracing-log = "0.2.0"
 tracing-subscriber = { version = "0.3.17", features = ["env-filter"] }
-tui-input = "0.8.0"
-
-#tui-logger = { version = "0.9.6", default-features = false, features = ["ratatui-support", "tracing-support"] }
-# Until tui-logger releases a new version with ratatui v0.24, we have to use the git repository
-tui-logger = { git = "https://github.com/gin66/tui-logger/", rev = "b9460de320b25a9862d54d151519487f414579d3", default-features = false, features = [ "tracing-support" ]}
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+tui-input = "0.9"
+tui-logger = { version = "0.11.1", default-features = false, features = ["crossterm", "tracing-support"] }
 
 [dependencies.wiki-api]
 path = "wiki-api"

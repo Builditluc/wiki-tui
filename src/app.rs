@@ -9,18 +9,17 @@ use tokio::sync::mpsc;
 use crate::{
     action::{Action, ActionPacket, ActionResult},
     components::{
-        help::{HelpComponent, Keymap},
         logger::LoggerComponent,
+        message_popup::MessagePopupComponent,
         page_viewer::PageViewer,
         search::SearchComponent,
         search_bar::{SearchBarComponent, SEARCH_BAR_HEIGTH},
-        status::{StatusComponent, STATUS_HEIGHT},
+        search_language_popup::SearchLanguageSelectionComponent,
         Component,
     },
-    has_modifier, key_event,
+    has_modifier,
     page_loader::PageLoader,
     terminal::Frame,
-    ui::centered_rect,
 };
 
 const CONTEXT_SEARCH: u8 = 0;
@@ -31,14 +30,12 @@ pub struct AppComponent {
     search: SearchComponent,
     page: PageViewer,
     logger: LoggerComponent,
-    status: StatusComponent,
     search_bar: SearchBarComponent,
-    help: HelpComponent,
-
     page_loader: Option<PageLoader>,
 
     is_logger: bool,
-    is_help: bool,
+
+    popups: Vec<Box<dyn Component + Send>>,
 
     context: u8,
     prev_context: u8,
@@ -52,20 +49,9 @@ impl AppComponent {
         std::mem::swap(&mut self.prev_context, &mut self.context);
     }
 
-    fn toggle_show_help(&mut self) {
-        self.is_help = !self.is_help;
-
-        if !self.is_help {
-            return;
-        }
-
-        let mut keymap = self.keymap();
-        keymap.append(&mut match self.context {
-            CONTEXT_SEARCH => self.search.keymap(),
-            CONTEXT_PAGE => self.page.keymap(),
-            _ => return warn!("unknown context"),
-        });
-        self.help.set_keymap(keymap);
+    fn show_page_language(&mut self) {
+        let selection_widget = self.page.get_page_language_selection_popup();
+        self.popups.push(Box::new(selection_widget));
     }
 }
 
@@ -75,11 +61,13 @@ impl Component for AppComponent {
         self.page.init(action_tx.clone())?;
         self.search_bar.init(action_tx.clone())?;
 
-        self.page_loader = Some(PageLoader::new(
-            Endpoint::parse("https://en.wikipedia.org/w/api.php").unwrap(),
-            Language::default(),
-            action_tx.clone(),
-        ));
+        let endpoint = Endpoint::parse("https://en.wikipedia.org/w/api.php").unwrap();
+        let language = Language::English;
+
+        self.page_loader = Some(PageLoader::new(action_tx.clone()));
+
+        self.search.endpoint = Some(endpoint);
+        self.search.language = Some(language);
 
         action_tx.send(Action::EnterSearchBar).unwrap();
         self.action_tx = Some(action_tx);
@@ -88,8 +76,20 @@ impl Component for AppComponent {
     }
 
     fn handle_key_events(&mut self, key: KeyEvent) -> ActionResult {
+        // we need to always handle CTRL-C
+        if matches!(key.code, KeyCode::Char('c') if has_modifier!(key, Modifier::CONTROL)) {
+            return Action::Quit.into();
+        }
+
         if self.search_bar.is_focussed {
             return self.search_bar.handle_key_events(key);
+        }
+
+        if let Some(ref mut popup) = self.popups.last_mut() {
+            let result = popup.handle_key_events(key);
+            if result.is_consumed() {
+                return result;
+            }
         }
 
         let result = match self.context {
@@ -97,7 +97,7 @@ impl Component for AppComponent {
             CONTEXT_PAGE => self.page.handle_key_events(key),
             _ => {
                 warn!("unknown context");
-                return ActionResult::Ignored;
+                ActionResult::Ignored
             }
         };
 
@@ -106,9 +106,10 @@ impl Component for AppComponent {
         }
 
         match key.code {
-            KeyCode::Char('l') => Action::ToggleShowLogger.into(),
-            KeyCode::Char('?') => Action::ToggleShowHelp.into(),
             KeyCode::Char('q') => Action::Quit.into(),
+            KeyCode::Esc => Action::PopPopup.into(),
+
+            KeyCode::Char('l') => Action::ToggleShowLogger.into(),
 
             KeyCode::Char('s') => Action::SwitchContextSearch.into(),
             KeyCode::Char('p') => Action::SwitchContextPage.into(),
@@ -130,64 +131,24 @@ impl Component for AppComponent {
 
             KeyCode::Char('i') => Action::EnterSearchBar.into(),
 
+            KeyCode::F(2) => {
+                self.popups
+                    .push(Box::<SearchLanguageSelectionComponent>::default());
+                ActionResult::consumed()
+            }
             _ => ActionResult::Ignored,
         }
     }
 
-    fn keymap(&self) -> Keymap {
-        vec![
-            (
-                key_event!('l'),
-                ActionPacket::single(Action::ToggleShowLogger),
-            ),
-            (
-                key_event!('?'),
-                ActionPacket::single(Action::ToggleShowHelp),
-            ),
-            (key_event!('q'), ActionPacket::single(Action::Quit)),
-            (
-                key_event!('s'),
-                ActionPacket::single(Action::SwitchContextSearch),
-            ),
-            (
-                key_event!('p'),
-                ActionPacket::single(Action::SwitchContextPage),
-            ),
-            (key_event!('j'), ActionPacket::single(Action::ScrollDown(1))),
-            (key_event!('k'), ActionPacket::single(Action::ScrollUp(1))),
-            (
-                key_event!('h'),
-                ActionPacket::single(Action::UnselectScroll),
-            ),
-            (
-                key_event!('i'),
-                ActionPacket::single(Action::EnterSearchBar),
-            ),
-        ]
-    }
-
     fn update(&mut self, action: Action) -> ActionResult {
-        let result = if self.is_help {
-            self.help.update(action.clone())
-        } else {
-            match self.context {
-                CONTEXT_SEARCH => self.search.update(action.clone()),
-                CONTEXT_PAGE => self.page.update(action.clone()),
-                _ => {
-                    warn!("unknown context");
-                    return ActionResult::Ignored;
-                }
-            }
-        };
-
-        if result.is_consumed() {
-            return result;
-        }
-
         // global actions
         match action {
+            Action::PopPopup => {
+                self.popups.pop();
+            }
+
             Action::ToggleShowLogger => self.is_logger = !self.is_logger,
-            Action::ToggleShowHelp => self.toggle_show_help(),
+            Action::ShowPageLanguageSelection => self.show_page_language(),
 
             Action::SwitchContextSearch => self.switch_context(CONTEXT_SEARCH),
             Action::SwitchContextPage => self.switch_context(CONTEXT_PAGE),
@@ -204,32 +165,62 @@ impl Component for AppComponent {
                     .into()
             }
 
-            Action::LoadPage(title) => self.page_loader.as_ref().unwrap().load_page(title),
-            _ => return ActionResult::Ignored,
+            Action::LoadSearchResult(title) => {
+                self.page_loader.as_ref().unwrap().load_search_result(title)
+            }
+            Action::LoadLink(link) => self.page_loader.as_ref().unwrap().load_link(link),
+            Action::LoadLangaugeLink(link) => {
+                self.page_loader.as_ref().unwrap().load_language_link(link)
+            }
+
+            Action::PopupMessage(title, content) => self
+                .popups
+                .push(Box::new(MessagePopupComponent::new_raw(title, content))),
+            Action::PopupError(error) => self
+                .popups
+                .push(Box::new(MessagePopupComponent::new_error(error))),
+            Action::PopupDialog(title, content, cb) => {
+                self.popups
+                    .push(Box::new(MessagePopupComponent::new_confirmation(
+                        title, content, *cb,
+                    )))
+            }
+            _ => {
+                if let Some(ref mut popup) = self.popups.last_mut() {
+                    let result = popup.update(action.clone());
+                    if result.is_consumed() {
+                        return result;
+                    }
+                }
+
+                let result = match self.context {
+                    CONTEXT_SEARCH => self.search.update(action.clone()),
+                    CONTEXT_PAGE => self.page.update(action.clone()),
+                    _ => {
+                        warn!("unknown context");
+                        return ActionResult::Ignored;
+                    }
+                };
+                if result.is_consumed() {
+                    return result;
+                }
+            }
         };
 
         ActionResult::consumed()
     }
 
     fn render(&mut self, f: &mut Frame<'_>, area: Rect) {
-        let (search_bar_area, area, status_area) = {
+        let (search_bar_area, area) = {
             let chunks = Layout::default()
                 .direction(Direction::Vertical)
                 .constraints([
                     Constraint::Min(SEARCH_BAR_HEIGTH),
                     Constraint::Percentage(100),
-                    Constraint::Min(STATUS_HEIGHT),
                 ])
                 .split(area);
-            (chunks[0], chunks[1], chunks[2])
+            (chunks[0], chunks[1])
         };
-
-        self.status.render(f, status_area);
-
-        if self.is_help {
-            self.help.render(f, centered_rect(area, 30, 50));
-            return;
-        }
 
         self.search_bar.render(f, search_bar_area);
 
@@ -248,6 +239,10 @@ impl Component for AppComponent {
             CONTEXT_SEARCH => self.search.render(f, area),
             CONTEXT_PAGE => self.page.render(f, area),
             _ => warn!("unknown context"),
+        }
+
+        if let Some(ref mut popup) = self.popups.last_mut() {
+            popup.render(f, area);
         }
     }
 }

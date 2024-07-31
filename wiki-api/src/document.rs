@@ -1,5 +1,7 @@
 use serde_repr::Deserialize_repr;
 
+use crate::page::Link;
+
 #[derive(Clone, PartialEq, Eq)]
 pub struct Document {
     pub nodes: Vec<Raw>,
@@ -59,23 +61,7 @@ pub enum Data {
     Bold,
     Italic,
 
-    WikiLink {
-        href: String,
-        title: Option<String>,
-    },
-    RedLink {
-        title: Option<String>,
-    },
-    MediaLink {
-        href: String,
-        title: Option<String>,
-    },
-    ExternalLink {
-        href: String,
-        title: Option<String>,
-        autonumber: bool,
-    },
-
+    Link(Link),
     #[default]
     Unknown,
 }

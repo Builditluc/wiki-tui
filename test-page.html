@@ -1,0 +1,84 @@
+<!-- Refer to the DOM Spec: https://www.mediawiki.org/wiki/Specs/HTML/2.8.0 -->
+<div class="mw-content-ltr mw-parser-output" lang="en" dir="ltr" data-mw-parsoid-version="0.20.0.0-alpha2" id="mwpg">
+  <section data-mw-section-id="0">
+  </section>
+
+  <section data-mw-section-id="1">
+    <h2 id="foo=bar">foo=bar</h2>
+  </section>
+
+  <section data-mw-section-id="2">
+    <h2 id="Link Testing">Link Testing</h3>
+
+    <!-- Wiki Links -->
+    <section data-mw-section-id="3">
+      <h4 id="Wikilinks">Wiki Links</h4>
+      <p>
+      <a rel="mw:WikiLink" href="./Main_Page">alternate linked content</a><br>
+      </p>
+      <p>
+      <a rel="mw:WikiLink" href="./Main_Page">Main Page</a>
+      </p>
+      <p>
+      <a rel="mw:WikiLink" href="./Potato">Potatoes</a>
+      </p>
+      <p>
+      <a href="./Non_existing_page?action=edit&amp;redlink=1" title="Non existing page" rel="mw:WikiLink" class="new" typeof="mw:LocalizedAttrs" data-mw-i18n='{"title":{"lang":"x-page","key":"red-link-title","params":["Non existing page"]}}'>Non existing page</a>
+      </p>
+    </section>
+
+    <!-- Media Links -->
+    <section data-mw-section-id="4">
+      <h4 id="Medialinks">Media Links</h4>
+      <p>
+        <a rel="mw:MediaLink" href="//upload.wikimedia.org/wikipedia/commons/0/06/Foo.jpg" title="Foo.jpg">Media:Foo.jpg</a>
+      </p>
+      <p>
+      <a rel="mw:MediaLink" href="//upload.wikimedia.org/wikipedia/commons/0/06/Foo.jpg" title="Foo.jpg">Link text</a>
+      </p>
+    </section>
+
+    <!-- External Links -->
+    <section data-mw-section-id="5">
+      <h4 id="external-links">External Links</h4>
+      <p>
+      <a rel="mw:ExtLink" class="external free" href="http://example.com">http://example.com</a>
+      </p>
+      <p>
+      <a rel="mw:ExtLink" class="external text" href="http://example.com">Link content</a>
+      </p>
+    </section>
+
+    <!-- Magic Links -->
+    <section data-mw-section-id="6">
+      <h4 id="magic-links">Magic Links</h4>
+      <p>
+      <a rel="mw:WikiLink"
+         href="./Special:BookSources/9781413304541">
+        ISBN 978-1413304541
+      </a>
+      </p>
+      <p>
+      <a rel="mw:ExtLink" 
+         href="http://tools.ietf.org/html/rfc1945">
+        RFC 1945
+      </a>
+      </p>
+      <a rel="mw:ExtLink"
+         href="//www.ncbi.nlm.nih.gov/pubmed/20610307?dopt=Abstract">
+        PMID 20610307
+      </a>
+      </p>
+    </section>
+  </section>
+
+  <section data-mw-section-id="7">
+    <h2 id="html-entities">HTML entities</h2>
+    <span typeof="mw:Entity">&nbsp;</span>
+  </section>
+
+  <section data-mw-section-id="8">
+    <h2 id="display-space">Display space</h2>
+    <span typeof="mw:DisplaySpace">&nbsp;</span>
+  </section>
+</div>

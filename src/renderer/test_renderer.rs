@@ -78,7 +78,10 @@ pub fn render_tree_data(document: &Document) -> RenderedDocument {
         }])
     }
 
-    RenderedDocument { lines }
+    RenderedDocument {
+        lines,
+        links: Vec::new(),
+    }
 }
 
 pub fn render_tree_raw(document: &Document) -> RenderedDocument {
@@ -102,7 +105,10 @@ pub fn render_tree_raw(document: &Document) -> RenderedDocument {
         }])
     }
 
-    RenderedDocument { lines }
+    RenderedDocument {
+        lines,
+        links: Vec::new(),
+    }
 }
 
 pub fn render_nodes_raw(document: &Document) -> RenderedDocument {
@@ -120,5 +126,8 @@ pub fn render_nodes_raw(document: &Document) -> RenderedDocument {
         }])
     }
 
-    RenderedDocument { lines }
+    RenderedDocument {
+        lines,
+        links: Vec::new(),
+    }
 }

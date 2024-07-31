@@ -5,16 +5,16 @@ use ratatui::{
     widgets::{Block, BorderType, Borders, Paragraph},
 };
 use tokio::sync::mpsc::UnboundedSender;
+
 use wiki_api::page::Page;
 
 use crate::{
     action::{Action, ActionResult, PageViewerAction},
-    key_event,
     terminal::Frame,
     ui::centered_rect,
 };
 
-use super::{page::PageComponent, Component};
+use super::{page::PageComponent, page_language_popup::PageLanguageSelectionComponent, Component};
 
 /// Can display multiple pages and supports selecting between them
 /// Responsible for fetching the pages and managing them (NOT rendering)
@@ -24,6 +24,7 @@ pub struct PageViewer {
     page_n: usize,
 
     is_processing: bool,
+    changing_page_language_popup: Option<PageLanguageSelectionComponent>,
 
     action_tx: Option<UnboundedSender<Action>>,
 }
@@ -40,11 +41,23 @@ impl PageViewer {
     fn display_page(&mut self, page: Page) {
         self.page_n = self.page.len();
         self.page.push(PageComponent::new(page));
+
+        if self.changing_page_language_popup.is_some() {
+            self.changing_page_language_popup = None;
+        }
     }
 
     fn pop(&mut self) {
         self.page.pop();
         self.page_n = self.page_n.saturating_sub(1);
+    }
+
+    pub fn get_page_language_selection_popup(&self) -> PageLanguageSelectionComponent {
+        let language_links = self
+            .current_page()
+            .and_then(|x| x.page.language_links.to_owned())
+            .unwrap_or_default();
+        PageLanguageSelectionComponent::new(language_links)
     }
 }
 
@@ -55,6 +68,10 @@ impl Component for PageViewer {
     }
 
     fn handle_key_events(&mut self, key: crossterm::event::KeyEvent) -> ActionResult {
+        if matches!(key.code, KeyCode::F(3)) {
+            return Action::ShowPageLanguageSelection.into();
+        }
+
         if matches!(key.code, KeyCode::Esc) {
             return Action::PageViewer(PageViewerAction::PopPage).into();
         }
@@ -64,19 +81,6 @@ impl Component for PageViewer {
         }
 
         ActionResult::Ignored
-    }
-
-    fn keymap(&self) -> super::help::Keymap {
-        let mut keymap = vec![(
-            key_event!(Key::Esc),
-            Action::PageViewer(PageViewerAction::PopPage).into(),
-        )];
-
-        if let Some(page) = self.current_page() {
-            keymap.append(&mut page.keymap());
-        }
-
-        keymap
     }
 
     fn update(&mut self, action: Action) -> ActionResult {
@@ -112,13 +116,17 @@ impl Component for PageViewer {
             );
             return;
         }
-        if let Some(page) = self.current_page_mut() {
-            page.render(f, area);
+
+        if self.current_page().is_none() {
+            f.render_widget(
+                Paragraph::new("No page opened").alignment(Alignment::Center),
+                centered_rect(area, 100, 50),
+            );
             return;
         }
-        f.render_widget(
-            Paragraph::new("No page opened").alignment(Alignment::Center),
-            centered_rect(area, 100, 50),
-        );
+
+        if let Some(page) = self.current_page_mut() {
+            page.render(f, area);
+        }
     }
 }

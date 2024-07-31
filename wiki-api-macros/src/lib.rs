@@ -97,6 +97,7 @@ pub fn parse_languages(input: TokenStream) -> TokenStream {
         #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
         #[serde(from = "String")]
         pub enum Language{
+            Unknown,
             #variants
         }
 
@@ -105,6 +106,7 @@ pub fn parse_languages(input: TokenStream) -> TokenStream {
             /// (Language name in English, Local Language name, Language Code)
             fn language_data(&self) -> (&str, &str, &str) {
                 match self {
+                    Language::Unknown => ("UNKNOWN", "UNKNOWN", "UNKNOWN"),
                     #language_data_arms
                 }
             }
@@ -146,7 +148,7 @@ pub fn parse_languages(input: TokenStream) -> TokenStream {
 
         impl Default for Language {
             fn default() -> Self {
-                Language::English
+                Language::Unknown
             }
         }
     };

@@ -2,17 +2,29 @@ use html5ever::{parse_document, tendril::TendrilSink};
 use markup5ever_rcdom::{Handle, NodeData, RcDom};
 use std::str::FromStr;
 use tracing::{trace, warn};
+use url::Url;
 
-use crate::document::{Data, HeaderKind, Raw};
+use crate::{
+    document::{Data, HeaderKind, Raw},
+    languages::Language,
+    page::{
+        link_data::{AnchorData, ExternalData, ExternalToInteralData, InternalData, MediaData},
+        Link,
+    },
+    search::Namespace,
+    Endpoint,
+};
 
 // TODO: remove Parser and replace it with normal functions and helper functions
 pub trait Parser {
-    fn parse_document(docuemnt: &str) -> Self;
+    fn parse_document(document: &str, endpoint: Endpoint, language: Language) -> Self;
     fn nodes(self) -> Vec<Raw>;
 }
 
 pub struct WikipediaParser {
     nodes: Vec<Raw>,
+    endpoint: Endpoint,
+    language: Language,
 }
 
 impl WikipediaParser {
@@ -177,26 +189,8 @@ impl WikipediaParser {
                         Data::Disambiguation
                     }
 
-                    "a" if attrs.iter().any(|(name, value)| {
-                        name.as_str() == "rel" && value.as_str() == "mw:WikiLink"
-                    }) =>
-                    {
-                        self.parse_wiki_link(attrs.iter()).unwrap_or_default()
-                    }
-
-                    "a" if attrs.iter().any(|(name, value)| {
-                        name.as_str() == "rel" && value.as_str() == "mw:MediaLink"
-                    }) =>
-                    {
-                        self.parse_media_link(attrs.iter()).unwrap_or_default()
-                    }
-
-                    "a" if attrs.iter().any(|(name, value)| {
-                        name.as_str() == "rel" && value.as_str() == "mw:ExtLink"
-                    }) =>
-                    {
-                        self.parse_external_link(attrs.iter()).unwrap_or_default()
-                    }
+                    "a" => Self::parse_link(&self.endpoint, self.language.clone(), &attrs)
+                        .unwrap_or_default(),
 
                     "div" => Data::Division,
                     _ => {
@@ -275,70 +269,112 @@ impl WikipediaParser {
         })
     }
 
-    fn parse_wiki_link<'a>(
-        &mut self,
-        mut attrs: impl Iterator<Item = &'a (String, String)>,
-    ) -> Option<Data> {
+    fn parse_link(endpoint: &Url, language: Language, attrs: &[(String, String)]) -> Option<Data> {
         let href = attrs
+            .iter()
             .find(|(name, _)| name.as_str() == "href")
             .map(|(_, value)| value.to_owned())?;
 
         let title = attrs
+            .iter()
             .find(|(name, _)| name.as_str() == "title")
-            .map(|(_, value)| value.to_owned());
+            .map(|(_, value)| value.to_owned())
+            .unwrap_or_default();
 
-        if attrs.any(|(name, value)| name.as_str() == "class" && value.contains("new")) {
-            return Some(Data::RedLink { title });
+        let link_url = endpoint.join(&href).ok()?;
+        let link_type: &str = match attrs
+            .iter()
+            .find(|(name, _)| name.as_str() == "rel")
+            .map(|(_, value)| value.to_owned())?
+            .as_str()
+        {
+            "mw:WikiLink" => "wiki",
+            "mw:MediaLink" => "media",
+            "mw:ExtLink" => "external",
+            _ => "",
+        };
+
+        let anchor = link_url.fragment().map(|fragment| AnchorData {
+            title: title.to_string(),
+            anchor: fragment.to_string(),
+        });
+
+        if link_type == "wiki" {
+            let namespace = Namespace::Main;
+
+            let is_same_wiki = link_url.domain() == endpoint.domain();
+            if !is_same_wiki {
+                return Some(Data::Link(Link::ExternalToInternal(
+                    ExternalToInteralData {},
+                )));
+            }
+
+            let page = link_url.path_segments()?.last()?;
+
+            const NAMESPACE_DELIMITER: char = ':';
+            let (namespace, page) =
+                if let Some((ns_str, page_str)) = page.split_once(NAMESPACE_DELIMITER) {
+                    (
+                        Namespace::from_string(ns_str).unwrap_or_else(|| {
+                            warn!("invalid namespace '{}', using default", ns_str);
+                            namespace
+                        }),
+                        page_str,
+                    )
+                } else {
+                    (namespace, page)
+                };
+
+            // we get the language from the host
+            // for wikipedia, the host looks like this
+            //      [lang].wikipedia.org/
+            // where [lang] is the language code, for example
+            //      en.wikipedia.org/
+            // for the english wikipedia
+
+            let lang_str = link_url
+                .host_str()
+                .and_then(|x| x.split_once('.').map(|x| x.0));
+
+            let language = match lang_str {
+                Some(lang_str) => Language::from(lang_str),
+                None => language,
+            };
+
+            let link_data = InternalData {
+                namespace,
+                page: page.to_string(),
+                title,
+                endpoint: endpoint.clone(),
+                language,
+                anchor,
+            };
+
+            return Some(Data::Link(Link::Internal(link_data)));
         }
 
-        Some(Data::WikiLink { href, title })
-    }
-
-    fn parse_media_link<'a>(
-        &mut self,
-        mut attrs: impl Iterator<Item = &'a (String, String)>,
-    ) -> Option<Data> {
-        let href = attrs
-            .find(|(name, _)| name.as_str() == "href")
-            .map(|(_, value)| value.to_owned())?;
-
-        let title = attrs
-            .find(|(name, _)| name.as_str() == "title")
-            .map(|(_, value)| value.to_owned());
-
-        if attrs.any(|(name, value)| name.as_str() == "class" && value.contains("new")) {
-            return Some(Data::RedLink { title });
+        if link_type == "media" {
+            return Some(Data::Link(Link::MediaLink(MediaData {
+                url: link_url,
+                title,
+            })));
         }
 
-        Some(Data::MediaLink { href, title })
-    }
+        if link_type == "external" {
+            return Some(Data::Link(Link::External(ExternalData { url: link_url })));
+        }
 
-    fn parse_external_link<'a>(
-        &self,
-        mut attrs: impl Iterator<Item = &'a (String, String)>,
-    ) -> Option<Data> {
-        let href = attrs
-            .find(|(name, _)| name.as_str() == "href")
-            .map(|(_, value)| value.to_owned())?;
-
-        let title = attrs
-            .find(|(name, _)| name.as_str() == "title")
-            .map(|(_, value)| value.to_owned());
-
-        let autonumber =
-            attrs.any(|(name, value)| name.as_str() == "class" && value.contains("autonumber"));
-
-        Some(Data::ExternalLink {
-            href,
-            title,
-            autonumber,
-        })
+        None
     }
 }
 
 impl Parser for WikipediaParser {
-    fn parse_document(document: &str) -> Self {
-        let mut parser = WikipediaParser { nodes: Vec::new() };
+    fn parse_document(document: &str, endpoint: Endpoint, language: Language) -> Self {
+        let mut parser = WikipediaParser {
+            nodes: Vec::new(),
+            endpoint,
+            language,
+        };
 
         let rc_dom = parse_document(RcDom::default(), Default::default()).one(document);
         parser.parse_node(&rc_dom.document, None, None);
