@@ -21,3 +21,4 @@ to dive in and start contributing!
 
 * Merge a pull request [here](./maintainers.md#merging-a-pull-request)
 * Create an release [here](./maintainers.md#creating-an-release)
+* Versioning the website [here](./maintainers.md#versioning)

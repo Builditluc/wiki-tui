@@ -58,3 +58,44 @@ To create a new release of wiki-tui, follow these steps:
 * Wait for the continuous integration (CI) process to complete building the precompiled binaries.
 * Finally, run `cargo install wiki-tui` to install the new release onto your local machine, and 
   verify that it is working correctly.
+
+## Nix Development Shell for the documentation website
+
+When using nix, the following command can be used to quickly enter a shell with all the necessary
+requirements for developing the site (running a test version locally, publishing a new version, etc.)
+
+```sh
+nix-shell -p \
+    python312Packages.mkdocs \
+    python312Packages.mike \
+    python312Packages.mkdocs-material \
+    python312Packages.mkdocs-git-revision-date-localized-plugin \
+    python312Packages.pillow \
+    python312Packages.cairosvg
+```
+
+## Versioning
+
+Versioning is done using [mike](https://github.com/jimporter/mike), a tool which lets us manage
+multiple versions of our mkdocs documentation site.
+
+When deploying a new version, if it is a new minor version (eg. 0.8->0.9), we deploy a new version 
+
+```sh 
+mike deploy --update-aliases 0.9 latest
+```
+
+If however, we want to deploy a new patch (eg. 0.8.0->0.8.1), we delete the old patch and deploy the
+new one
+```sh
+mike delete 0.8.0
+mike deploy --update-aliases 0.8.1 latest
+```
+
+To verify the changes, we can run `mike list`, and when everything is correct, we can publish the
+site by pushing the local `gh-pages` branch.
+
+### Development Versions
+
+After updating the documentation site, we create / update the `develop` version of the site, which
+gets deleted after publishing a new version.

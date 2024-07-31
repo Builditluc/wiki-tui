@@ -33,7 +33,7 @@ complete.
 
 <br>
 
-You can find the **installation instructions**, **configuration options**, **more preview images**, **a feature overview** and more on our website, [builditluc.github.io/wiki-tui](https://builditluc.github.io/wiki-tui/)
+You can find the **installation instructions**, **configuration options**, **more preview images**, **a feature overview** and more on our website, [wiki-tui.net](https://wiki-tui.net/latest)
 
 # What can it do?
 
@@ -64,7 +64,7 @@ You can find the **installation instructions**, **configuration options**, **mor
 
 ## How it looks
 
-[![preview-3](https://raw.githubusercontent.com/Builditluc/wiki-tui/main/docs/assets/images/preview-3.png)](docs/assets/images/preview-3.png)
+[![preview-3](https://raw.githubusercontent.com/Builditluc/wiki-tui/main/docs/docs/assets/images/preview-3.png)](docs/docs/assets/images/preview-3.png)
 > Note: This screenshot was taken on [iTerm2](https://iterm2.com) (MacOS) with the [Fira Code](https://github.com/tonsky/FiraCode) font
 
 ## Similar Projects

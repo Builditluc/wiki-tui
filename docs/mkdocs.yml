@@ -1,7 +1,7 @@
 # yaml-language-server: $schema=https://squidfunk.github.io/mkdocs-material/schema.json
 
 site_name: wiki-tui
-site_url: https://builditluc.github.io/wiki-tui
+site_url: https://wiki-tui.net
 site_author: Builditluc
 
 repo_name: builditluc/wiki-tui
@@ -65,7 +65,7 @@ nav:
     - Keybindings: configuration/keybindings.md
     - Table of Contents: configuration/toc.md
 
-edit_uri: edit/main/docs/
+edit_uri: edit/main/docs/docs/
 
 markdown_extensions:
   - meta
@@ -80,8 +80,8 @@ markdown_extensions:
   - pymdownx.tabbed:
       alternate_style: true
   - pymdownx.emoji:
-      emoji_index: !!python/name:materialx.emoji.twemoji
-      emoji_generator: !!python/name:materialx.emoji.to_svg
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
 
 plugins:
   - tags
@@ -96,4 +96,4 @@ extra:
     - icon: fontawesome/brands/github
       link: https://github.com/builditluc/
 
-copyright: Copyright &copy; 2021 - 2023 Builditluc
+copyright: Copyright &copy; 2021 - 2024 Builditluc
