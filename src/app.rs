@@ -179,6 +179,12 @@ impl Component for AppComponent {
             Action::PopupError(error) => self
                 .popups
                 .push(Box::new(MessagePopupComponent::new_error(error))),
+            Action::PopupDialog(title, content, cb) => {
+                self.popups
+                    .push(Box::new(MessagePopupComponent::new_confirmation(
+                        title, content, *cb,
+                    )))
+            }
             _ => {
                 if let Some(ref mut popup) = self.popups.last_mut() {
                     let result = popup.update(action.clone());

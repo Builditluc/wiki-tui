@@ -7,7 +7,7 @@ use ratatui::{
 };
 
 use crate::{
-    action::{Action, ActionResult},
+    action::{Action, ActionPacket, ActionResult},
     ui::centered_rect,
 };
 
@@ -17,6 +17,8 @@ pub struct MessagePopupComponent<'a> {
     title: Title<'a>,
     content: String,
     content_alignment: Alignment,
+
+    confirmation: Option<ActionPacket>,
 }
 
 impl<'a> MessagePopupComponent<'a> {
@@ -25,6 +27,8 @@ impl<'a> MessagePopupComponent<'a> {
             title: Title::from(title).alignment(Alignment::Center),
             content,
             content_alignment: Alignment::Center,
+
+            confirmation: None,
         }
     }
 
@@ -36,6 +40,18 @@ impl<'a> MessagePopupComponent<'a> {
             title: Title::from("Error".bold().red()).alignment(Alignment::Center),
             content: ERROR_MESSAGE.replace("{ERROR}", &error),
             content_alignment: Alignment::Left,
+
+            confirmation: None,
+        }
+    }
+
+    pub fn new_confirmation(title: String, content: String, cb: ActionPacket) -> Self {
+        Self {
+            title: Title::from(title).alignment(Alignment::Center),
+            content,
+            content_alignment: Alignment::Center,
+
+            confirmation: Some(cb),
         }
     }
 }
@@ -43,6 +59,14 @@ impl<'a> MessagePopupComponent<'a> {
 impl<'a> Component for MessagePopupComponent<'a> {
     fn handle_key_events(&mut self, key: KeyEvent) -> ActionResult {
         match key.code {
+            KeyCode::Char('y') if self.confirmation.is_some() => self
+                .confirmation
+                .take()
+                .unwrap()
+                .action(Action::PopPopup)
+                .into(),
+            KeyCode::Char('n') if self.confirmation.is_some() => Action::PopPopup.into(),
+
             KeyCode::Esc => Action::PopPopup.into(),
             _ => ActionResult::Ignored,
         }
@@ -64,6 +88,20 @@ impl<'a> Component for MessagePopupComponent<'a> {
         };
 
         f.render_widget(Clear, area);
+
+        let mut block = Block::default()
+            .title(self.title.clone())
+            .borders(Borders::ALL)
+            .border_type(BorderType::Rounded);
+
+        block = if self.confirmation.is_some() {
+            block
+                .title_bottom(Line::from(vec!["Y".bold(), "es".into()]).right_aligned())
+                .title_bottom(Line::from(vec!["N".bold(), "o".into()]).right_aligned())
+        } else {
+            block.title_bottom(Line::from("<ESC> Dismiss").right_aligned())
+        };
+
         let message_widget = Paragraph::new(
             wrapped_message
                 .iter()
@@ -71,13 +109,7 @@ impl<'a> Component for MessagePopupComponent<'a> {
                 .collect::<Vec<Line>>(),
         )
         .alignment(self.content_alignment)
-        .block(
-            Block::default()
-                .title(self.title.clone())
-                .title_bottom(Line::from("<ESC> Dismiss").right_aligned())
-                .borders(Borders::ALL)
-                .border_type(BorderType::Rounded),
-        );
+        .block(block);
         f.render_widget(message_widget, area);
     }
 }

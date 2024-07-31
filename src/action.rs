@@ -25,6 +25,8 @@ pub enum Action {
     PopupMessage(String, String),
     /// PopupError(Error)
     PopupError(String),
+    /// PopupError(Title, Content, Callback)
+    PopupDialog(String, String, Box<ActionPacket>),
     PopPopup,
 
     SwitchContextSearch,
@@ -125,7 +127,7 @@ impl From<ActionPacket> for ActionResult {
     }
 }
 
-#[derive(Default)]
+#[derive(Default, Clone, PartialEq, Eq)]
 pub struct ActionPacket {
     actions: Vec<Action>,
 }

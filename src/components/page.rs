@@ -13,7 +13,7 @@ use ratatui::{
 use tracing::{debug, info, warn};
 use wiki_api::{
     document::{Data, Node},
-    page::{Page, Section},
+    page::{Link, Page, Section},
 };
 
 use crate::{
@@ -456,10 +456,42 @@ impl PageComponent {
         let node = Node::new(&self.page.content, index).unwrap();
         let data = node.data().to_owned();
 
-        match data {
-            Data::Link(link) => Action::LoadLink(link).into(),
-            _ => ActionResult::consumed(),
+        let link = match data {
+            Data::Link(link) => link,
+            _ => {
+                warn!("tried to open an element that is not a link");
+                return ActionResult::Ignored;
+            }
+        };
+
+        match link {
+            Link::Internal(_) | Link::Anchor(_) => (),
+            Link::External(link_data) => return Action::PopupMessage(
+                "Warning".to_string(), 
+                format!("This link doesn't point to another page. \nInstead, it leads to the following external webpage: \n\n{}", link_data.url.as_str())
+            ).into(),
+            Link::RedLink(link_data) => return Action::PopupMessage(
+                "Information".to_string(), 
+                format!("The page '{}' doesn't exist yet", link_data.title)
+            ).into(),
+            Link::MediaLink(_) | Link::ExternalToInternal(_) => {
+                info!("tried to open an unsupported link '{:?}'", link);
+                return Action::PopupMessage(
+                    "Information".to_string(), 
+                    "This type of link is not supported yet".to_string()
+                ).into()
+            }
         }
+
+        Action::PopupDialog(
+            "Information".to_string(),
+            format!(
+                "Do you want to open the page '{}'",
+                link.title().unwrap_or("UNKNOWN")
+            ),
+            Box::<ActionPacket>::new(Action::LoadLink(link).into()),
+        )
+        .into()
     }
 
     fn resize(&mut self, width: u16, height: u16) {

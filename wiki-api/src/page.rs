@@ -72,6 +72,19 @@ pub enum Link {
     ExternalToInternal(link_data::ExternalToInteralData),
 }
 
+impl Link {
+    pub fn title(&self) -> Option<&str> {
+        match self {
+            Link::Anchor(link_data) => Some(&link_data.title),
+            Link::RedLink(link_data) => Some(&link_data.title),
+            &Link::External(_) => None,
+            &Link::ExternalToInternal(_) => None,
+            Link::MediaLink(link_data) => Some(&link_data.title),
+            Link::Internal(link_data) => Some(&link_data.title),
+        }
+    }
+}
+
 // TODO: replace this with Link::Internal
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct LanguageLink {
