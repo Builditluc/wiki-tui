@@ -6,9 +6,7 @@ use ratatui::{
     prelude::{Margin, Rect},
     style::{Color, Modifier, Style, Stylize},
     text::{Line, Span},
-    widgets::{
-        Block, Borders, List, ListState, Paragraph, Scrollbar, ScrollbarOrientation, ScrollbarState,
-    },
+    widgets::{List, ListState, Paragraph, Scrollbar, ScrollbarOrientation, ScrollbarState},
 };
 use tracing::{debug, info, warn};
 use wiki_api::{
@@ -19,6 +17,7 @@ use wiki_api::{
 use crate::{
     action::{Action, ActionPacket, ActionResult, PageAction},
     components::Component,
+    config::Theme,
     has_modifier,
     renderer::{default_renderer::render_document, RenderedDocument},
     terminal::Frame,
@@ -87,12 +86,14 @@ pub struct PageComponent {
     viewport: Rect,
     selected: (usize, usize),
 
+    theme: Theme,
+
     is_contents: bool,
     contents_state: PageContentsState,
 }
 
 impl PageComponent {
-    pub fn new(page: Page) -> Self {
+    pub fn new(page: Page, theme: Theme) -> Self {
         let contents_state = PageContentsState {
             list_state: ListState::default().with_selected(Some(0)),
             max_idx_section: page.sections().map(|x| x.len() as u8).unwrap_or_default(),
@@ -103,6 +104,8 @@ impl PageComponent {
             render_cache: HashMap::new(),
             viewport: Rect::default(),
             selected: (0, 0),
+
+            theme,
 
             is_contents: false,
             contents_state,
@@ -129,30 +132,38 @@ impl PageComponent {
 
     fn render_contents(&mut self, f: &mut Frame<'_>, area: Rect) {
         let sections = self.page.sections.as_ref();
-        let block = Block::default()
-            .title("Contents")
-            .borders(Borders::ALL)
-            .border_style({
-                if self.is_contents {
-                    Style::default().fg(Color::Yellow)
-                } else {
-                    Style::default()
-                }
-            });
+        let mut block = self.theme.default_block().title("Contents");
+        if self.is_contents {
+            block = block.border_style(
+                Style::default()
+                    .fg(self.theme.border_highlight_fg)
+                    .bg(self.theme.border_highlight_bg),
+            );
+        }
 
         if sections.is_none() {
-            f.render_widget(Paragraph::new("No Contents available").block(block), area);
+            f.render_widget(
+                self.theme
+                    .default_paragraph("No Contents available")
+                    .block(block),
+                area,
+            );
             return;
         }
 
         let sections = sections.unwrap();
-        let list = List::new(sections.iter().map(|x| format!("{} {}", x.number, x.text)))
-            .block(block)
-            .highlight_style(
-                Style::default()
-                    .bg(Color::DarkGray)
-                    .add_modifier(Modifier::ITALIC),
-            );
+        let list = List::new(
+            sections
+                .iter()
+                .map(|x| format!("{} {}", x.number, x.text).fg(self.theme.fg)),
+        )
+        .block(block)
+        .highlight_style(
+            Style::default()
+                .fg(self.theme.selected_fg)
+                .bg(self.theme.selected_bg)
+                .add_modifier(Modifier::ITALIC),
+        );
         f.render_stateful_widget(list, area, &mut self.contents_state.list_state);
     }
 
@@ -591,7 +602,7 @@ impl Component for PageComponent {
             self.page.language.name(),
             self.page.available_languages().unwrap_or_default()
         );
-        f.render_widget(Paragraph::new(status_msg), status_area);
+        f.render_widget(self.theme.default_paragraph(status_msg), status_area);
 
         let area = {
             let splits = Layout::default()
@@ -665,8 +676,12 @@ impl Component for PageComponent {
                 .begin_symbol(None)
                 .end_symbol(None)
                 .track_symbol(Some(" "))
-                .track_style(Style::new().black().on_black())
-                .thumb_style(Style::new().blue())
+                .track_style(
+                    Style::new()
+                        .fg(self.theme.scrollbar_track_fg)
+                        .bg(self.theme.scrollbar_track_fg),
+                )
+                .thumb_style(Style::new().fg(self.theme.scrollbar_thumb_fg))
                 .orientation(ScrollbarOrientation::VerticalRight);
             let mut scrollbar_state = ScrollbarState::new(
                 rendered_page

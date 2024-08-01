@@ -4,7 +4,7 @@ use ratatui::{
     prelude::{Alignment, Constraint, Direction, Layout, Rect},
     style::{Color, Modifier, Style, Stylize},
     text::{Line, Span, Text},
-    widgets::{Block, BorderType, Borders, HighlightSpacing, List, ListItem, Paragraph, Wrap},
+    widgets::{HighlightSpacing, List, ListItem, Wrap},
 };
 use tokio::sync::mpsc;
 use tracing::{error, info, warn};
@@ -16,6 +16,7 @@ use wiki_api::{
 
 use crate::{
     action::{Action, ActionPacket, ActionResult, SearchAction},
+    config::Theme,
     terminal::Frame,
     ui::{centered_rect, ScrollBehaviour, StatefulList},
 };
@@ -42,6 +43,8 @@ pub struct SearchComponent {
     search_info: Option<SearchInfo>,
     continue_search: Option<SearchContinue>,
 
+    theme: Theme,
+
     action_tx: Option<mpsc::UnboundedSender<Action>>,
 }
 
@@ -56,6 +59,8 @@ impl Default for SearchComponent {
                 .scroll_behavior(ScrollBehaviour::StickToEnds),
             search_info: None,
             continue_search: None,
+
+            theme: Theme::default(),
 
             action_tx: None,
         }
@@ -209,8 +214,9 @@ impl SearchComponent {
 }
 
 impl Component for SearchComponent {
-    fn init(&mut self, sender: mpsc::UnboundedSender<Action>) -> anyhow::Result<()> {
+    fn init(&mut self, sender: mpsc::UnboundedSender<Action>, theme: Theme) -> anyhow::Result<()> {
         self.action_tx = Some(sender);
+        self.theme = theme;
         Ok(())
     }
 
@@ -283,14 +289,15 @@ impl Component for SearchComponent {
     fn render(&mut self, f: &mut Frame<'_>, area: Rect) {
         if self.mode == Mode::Searching {
             f.render_widget(
-                Block::default()
-                    .borders(Borders::ALL)
-                    .border_type(BorderType::Rounded)
+                self.theme
+                    .default_block()
                     .border_style(Style::default().fg(Color::Yellow)),
                 area,
             );
             f.render_widget(
-                Paragraph::new("Searching. Please wait...").alignment(Alignment::Center),
+                self.theme
+                    .default_paragraph("Searching. Please wait...")
+                    .alignment(Alignment::Center),
                 centered_rect(area, 100, 50),
             );
             return;
@@ -298,7 +305,9 @@ impl Component for SearchComponent {
 
         if self.mode == Mode::NoSearch {
             f.render_widget(
-                Paragraph::new("Start a search!").alignment(Alignment::Center),
+                self.theme
+                    .default_paragraph("Start a search!")
+                    .alignment(Alignment::Center),
                 centered_rect(area, 100, 50),
             );
             return;
@@ -309,7 +318,7 @@ impl Component for SearchComponent {
                 return;
             }
 
-            let block = Block::default().title("Information").borders(Borders::ALL);
+            let block = self.theme.default_block().title("Information");
             let msg = format!(
                 "No results for '{}' were found. Do you want to search for '{}' instead?\n\n[y]/[n]",
                 self.search_info.as_ref().unwrap().query.as_str(),
@@ -322,7 +331,10 @@ impl Component for SearchComponent {
             );
             let area = centered_rect(area, 60, 25);
             f.render_widget(
-                Paragraph::new(msg).block(block).wrap(Wrap { trim: true }),
+                self.theme
+                    .default_paragraph(msg)
+                    .block(block)
+                    .wrap(Wrap { trim: true }),
                 area,
             );
         }
@@ -334,7 +346,9 @@ impl Component for SearchComponent {
 
         if self.search_results.get_items().is_empty() {
             f.render_widget(
-                Paragraph::new("Start a search to view the results!").alignment(Alignment::Center),
+                self.theme
+                    .default_paragraph("Start a search to view the results!")
+                    .alignment(Alignment::Center),
                 centered_rect(area, 100, 50),
             );
             return;
@@ -349,7 +363,7 @@ impl Component for SearchComponent {
         };
 
         if let Some(ref search_info) = self.search_info {
-            let info = Paragraph::new(format!(
+            let info = self.theme.default_paragraph(format!(
                 " wiki-tui | Results: '{}' | Language: '{}' | [c]ontinue",
                 search_info.total_hits.unwrap_or_default(),
                 search_info.language.name()
@@ -376,11 +390,14 @@ impl Component for SearchComponent {
                     cleaned_snippet.push_str(&split_slice.join(""));
                 }
 
-                let mut text = Text::from(Span::raw(result.title.clone()).red());
+                let mut text =
+                    Text::from(Span::raw(result.title.clone()).fg(self.theme.search_title_fg));
                 text.lines.append(
                     &mut textwrap::wrap(&cleaned_snippet, results_list_width as usize)
                         .iter()
-                        .map(|s| Line::from(s.to_string()))
+                        .map(|s| {
+                            Line::from(s.to_string()).style(Style::default().fg(self.theme.fg))
+                        })
                         .collect(),
                 );
                 ListItem::new(text)
@@ -388,13 +405,14 @@ impl Component for SearchComponent {
             .collect();
 
         let items = List::new(items)
-            .block(Block::default().borders(Borders::ALL).title("Results"))
+            .block(self.theme.default_block().title("Results"))
             .repeat_highlight_symbol(true)
             .highlight_symbol("| ")
             .highlight_spacing(HighlightSpacing::Always)
             .highlight_style(
                 Style::default()
-                    .bg(Color::DarkGray)
+                    .fg(self.theme.selected_fg)
+                    .bg(self.theme.selected_bg)
                     .add_modifier(Modifier::ITALIC),
             );
         f.render_stateful_widget(items, results_area, self.search_results.get_state_mut());

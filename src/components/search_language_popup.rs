@@ -1,14 +1,15 @@
 use crossterm::event::KeyCode;
 use ratatui::{
     layout::{Constraint, Direction, Layout, Rect},
-    style::{Color, Modifier, Style},
-    widgets::{Block, BorderType, Borders, Clear, List, ListItem, Paragraph},
+    style::{Modifier, Style, Stylize},
+    widgets::{Clear, List, ListItem},
 };
 use tui_input::{backend::crossterm::EventHandler, Input};
 use wiki_api::languages::{Language, LANGUAGES};
 
 use crate::{
     action::{Action, ActionPacket, ActionResult, SearchAction},
+    config::Theme,
     terminal::Frame,
     ui::{centered_rect, StatefulList},
 };
@@ -22,9 +23,21 @@ pub struct SearchLanguageSelectionComponent {
     input: Input,
     focus: u8,
     list: StatefulList<Language>,
+
+    theme: Theme,
 }
 
 impl SearchLanguageSelectionComponent {
+    pub fn new(theme: Theme) -> Self {
+        Self {
+            input: Input::default(),
+            list: StatefulList::with_items(Vec::new()),
+            focus: 0,
+
+            theme,
+        }
+    }
+
     fn update_list(&mut self) {
         let input_value = self.input.value();
         let sorted_languages = LANGUAGES
@@ -108,11 +121,11 @@ impl Component for SearchLanguageSelectionComponent {
     }
 
     fn render(&mut self, f: &mut Frame<'_>, area: Rect) {
-        let popup_block = Block::default()
+        let popup_block = self
+            .theme
+            .default_block()
             .title("Switch Search Language")
-            .borders(Borders::ALL)
-            .border_type(BorderType::Rounded)
-            .border_style(Style::default());
+            .style(Style::default().bg(self.theme.bg));
         let area = centered_rect(area, 25, 60);
         f.render_widget(Clear, area);
         f.render_widget(popup_block, area);
@@ -130,13 +143,14 @@ impl Component for SearchLanguageSelectionComponent {
         let cursor = self.input.visual_cursor();
         let value = self.input.value();
 
-        let input_widget = Paragraph::new(format!(
-            "{}{}",
-            value,
-            "_".repeat((input_area.width as usize).saturating_sub(value.len()))
-        ))
-        .style(Style::default().bg(Color::Blue))
-        .scroll((0, scroll as u16));
+        let input_widget = self
+            .theme
+            .default_paragraph(format!(
+                "{}{}",
+                value,
+                "_".repeat((input_area.width as usize).saturating_sub(value.len()))
+            ))
+            .scroll((0, scroll as u16));
         f.render_widget(input_widget, input_area);
 
         if self.focus == FOCUS_INPUT {
@@ -150,24 +164,15 @@ impl Component for SearchLanguageSelectionComponent {
             .list
             .get_items()
             .iter()
-            .map(|x| ListItem::new(x.name().to_owned()));
+            .map(|x| ListItem::new(x.name().to_owned()).fg(self.theme.fg));
         let list_widget = List::new(list_items).highlight_style(if self.focus == FOCUS_LIST {
             Style::default()
-                .bg(Color::DarkGray)
+                .fg(self.theme.selected_fg)
+                .bg(self.theme.selected_bg)
                 .add_modifier(Modifier::ITALIC)
         } else {
             Style::default()
         });
         f.render_stateful_widget(list_widget, list_area, self.list.get_state_mut());
-    }
-}
-
-impl Default for SearchLanguageSelectionComponent {
-    fn default() -> Self {
-        Self {
-            input: Input::default(),
-            list: StatefulList::with_items(Vec::new()),
-            focus: 0,
-        }
     }
 }

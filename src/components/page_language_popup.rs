@@ -1,14 +1,15 @@
 use crossterm::event::KeyCode;
 use ratatui::{
     layout::{Constraint, Direction, Layout, Rect},
-    style::{Color, Modifier, Style},
-    widgets::{Block, BorderType, Borders, Clear, List, ListItem, Paragraph},
+    style::{Modifier, Style, Stylize},
+    widgets::{Clear, List, ListItem},
 };
 use tui_input::{backend::crossterm::EventHandler, Input};
 use wiki_api::page::LanguageLink;
 
 use crate::{
     action::{Action, ActionPacket, ActionResult},
+    config::Theme,
     terminal::Frame,
     ui::{centered_rect, StatefulList},
 };
@@ -23,15 +24,19 @@ pub struct PageLanguageSelectionComponent {
     focus: u8,
     list: StatefulList<LanguageLink>,
     language_links: Vec<LanguageLink>,
+
+    theme: Theme,
 }
 
 impl PageLanguageSelectionComponent {
-    pub fn new(language_links: Vec<LanguageLink>) -> Self {
+    pub fn new(language_links: Vec<LanguageLink>, theme: Theme) -> Self {
         Self {
             input: Input::default(),
             list: StatefulList::with_items(language_links.clone()),
             language_links,
             focus: 0,
+
+            theme,
         }
     }
 
@@ -117,11 +122,11 @@ impl Component for PageLanguageSelectionComponent {
     }
 
     fn render(&mut self, f: &mut Frame<'_>, area: Rect) {
-        let popup_block = Block::default()
+        let popup_block = self
+            .theme
+            .default_block()
             .title("Switch Page Language")
-            .borders(Borders::ALL)
-            .border_type(BorderType::Rounded)
-            .border_style(Style::default());
+            .style(Style::default().bg(self.theme.bg));
         let area = centered_rect(area, 25, 60);
         f.render_widget(Clear, area);
         f.render_widget(popup_block, area);
@@ -139,13 +144,14 @@ impl Component for PageLanguageSelectionComponent {
         let cursor = self.input.visual_cursor();
         let value = self.input.value();
 
-        let input_widget = Paragraph::new(format!(
-            "{}{}",
-            value,
-            "_".repeat((input_area.width as usize).saturating_sub(value.len()))
-        ))
-        .style(Style::default().bg(Color::Blue))
-        .scroll((0, scroll as u16));
+        let input_widget = self
+            .theme
+            .default_paragraph(format!(
+                "{}{}",
+                value,
+                "_".repeat((input_area.width as usize).saturating_sub(value.len()))
+            ))
+            .scroll((0, scroll as u16));
         f.render_widget(input_widget, input_area);
 
         if self.focus == FOCUS_INPUT {
@@ -159,10 +165,11 @@ impl Component for PageLanguageSelectionComponent {
             .list
             .get_items()
             .iter()
-            .map(|x| ListItem::new(x.language.name().to_owned()));
+            .map(|x| ListItem::new(x.language.name().to_owned()).fg(self.theme.fg));
         let list_widget = List::new(list_items).highlight_style(if self.focus == FOCUS_LIST {
             Style::default()
-                .bg(Color::DarkGray)
+                .fg(self.theme.selected_fg)
+                .bg(self.theme.selected_bg)
                 .add_modifier(Modifier::ITALIC)
         } else {
             Style::default()

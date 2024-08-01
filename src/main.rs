@@ -7,6 +7,7 @@ use wiki_tui::{
     app::AppComponent,
     cli::match_cli,
     components::Component,
+    config::Theme,
     event::EventHandler,
     logging::initialize_logging,
     panic_handler::initialize_panic_handler,
@@ -43,7 +44,10 @@ Thank you!
     let app_component = Arc::new(Mutex::new(AppComponent::default()));
     let mut should_quit = false;
 
-    app_component.lock().await.init(action_tx.clone())?;
+    app_component
+        .lock()
+        .await
+        .init(action_tx.clone(), Theme::default())?;
 
     let mut tui = Tui::new()?;
     tui.enter()?;
