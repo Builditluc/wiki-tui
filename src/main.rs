@@ -4,7 +4,7 @@ use anyhow::{Context, Result};
 use tokio::sync::{mpsc, Mutex};
 use tracing::warn;
 use wiki_tui::{
-    action::{Action, ActionResult},
+    action::{Action, ActionPacket, ActionResult},
     app::AppComponent,
     cli::match_cli,
     components::Component,
@@ -35,7 +35,7 @@ Thank you!
     "#
     );
 
-    let actions = match_cli();
+    let mut actions = match_cli();
 
     initialize_logging()?;
     initialize_panic_handler()?;
@@ -49,6 +49,11 @@ Thank you!
         .context("failed loading the theme")
         .unwrap_or_else(|err| {
             warn!("{:?}", err);
+            let action = Action::PopupMessage("Information".to_string(), "Something went wrong when trying to load your theme configuration\nCheck the logs for further information".to_string());
+            match actions {
+                Some(ref mut action_packet) => action_packet.add_action(action),
+                None => actions = Some(ActionPacket::single(action))
+            }
             Theme::default()
         });
 

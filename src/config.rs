@@ -1,6 +1,9 @@
 use anyhow::{bail, Context, Result};
 use directories::ProjectDirs;
-use ratatui::style::{Color, Style};
+use ratatui::{
+    style::{Color, Style},
+    widgets::BorderType,
+};
 use serde::Deserialize;
 use std::path::PathBuf;
 
@@ -62,6 +65,7 @@ pub fn load_theme() -> Result<Theme> {
 
     override_color!(default_theme, user_theme, border_fg);
     override_color!(default_theme, user_theme, border_bg);
+    override_color!(default_theme, user_theme, border_type);
 
     override_color!(default_theme, user_theme, border_highlight_fg);
     override_color!(default_theme, user_theme, border_highlight_bg);
@@ -78,8 +82,13 @@ fn load_user_theme() -> Result<UserTheme> {
     let path = config_dir()
         .context("failed retrieving the config dir")?
         .join(THEME_FILE_NAME);
+
+    if !path.exists() {
+        std::fs::write(&path, "").context("failed creating the theme config file")?;
+    }
+
     let user_theme_str =
-        std::fs::read_to_string(path).context("failed reading the theme config file")?;
+        std::fs::read_to_string(&path).context("failed reading the theme config file")?;
 
     toml::from_str::<UserTheme>(&user_theme_str).context("failed parsing the user theme")
 }
@@ -99,6 +108,7 @@ pub struct Theme {
 
     pub border_fg: Color,
     pub border_bg: Color,
+    pub border_type: ThemeBorderType,
 
     pub border_highlight_fg: Color,
     pub border_highlight_bg: Color,
@@ -125,6 +135,7 @@ impl Theme {
 
             border_fg: Color::White,
             border_bg: Color::Reset,
+            border_type: ThemeBorderType::Rounded,
 
             border_highlight_fg: Color::Yellow,
             border_highlight_bg: Color::Reset,
@@ -148,7 +159,7 @@ impl Theme {
     pub fn default_block(&self) -> ratatui::widgets::Block {
         ratatui::widgets::Block::default()
             .borders(ratatui::widgets::Borders::ALL)
-            .border_type(ratatui::widgets::BorderType::Rounded)
+            .border_type(self.border_type.clone().into())
             .border_style(Style::default().fg(self.border_fg).bg(self.border_bg))
             .title_style(Style::default().fg(self.title))
     }
@@ -157,6 +168,29 @@ impl Theme {
 impl Default for Theme {
     fn default() -> Self {
         Theme::new()
+    }
+}
+
+#[derive(Deserialize, Clone)]
+pub enum ThemeBorderType {
+    Plain,
+    Rounded,
+    Double,
+    Thick,
+    QuadrantInside,
+    QuadrantOutside,
+}
+
+impl From<ThemeBorderType> for BorderType {
+    fn from(val: ThemeBorderType) -> Self {
+        match val {
+            ThemeBorderType::Plain => BorderType::Plain,
+            ThemeBorderType::Rounded => BorderType::Rounded,
+            ThemeBorderType::Double => BorderType::Double,
+            ThemeBorderType::Thick => BorderType::Thick,
+            ThemeBorderType::QuadrantInside => BorderType::QuadrantInside,
+            ThemeBorderType::QuadrantOutside => BorderType::QuadrantOutside,
+        }
     }
 }
 
@@ -175,6 +209,7 @@ struct UserTheme {
 
     border_fg: Option<Color>,
     border_bg: Option<Color>,
+    border_type: Option<ThemeBorderType>,
 
     border_highlight_fg: Option<Color>,
     border_highlight_bg: Option<Color>,
