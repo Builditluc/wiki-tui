@@ -1,13 +1,14 @@
 use std::sync::Arc;
 
-use anyhow::Result;
+use anyhow::{Context, Result};
 use tokio::sync::{mpsc, Mutex};
+use tracing::warn;
 use wiki_tui::{
     action::{Action, ActionResult},
     app::AppComponent,
     cli::match_cli,
     components::Component,
-    config::Theme,
+    config::{load_theme, Theme},
     event::EventHandler,
     logging::initialize_logging,
     panic_handler::initialize_panic_handler,
@@ -44,10 +45,14 @@ Thank you!
     let app_component = Arc::new(Mutex::new(AppComponent::default()));
     let mut should_quit = false;
 
-    app_component
-        .lock()
-        .await
-        .init(action_tx.clone(), Theme::default())?;
+    let theme = load_theme()
+        .context("failed loading the theme")
+        .unwrap_or_else(|err| {
+            warn!("{:?}", err);
+            Theme::default()
+        });
+
+    app_component.lock().await.init(action_tx.clone(), theme)?;
 
     let mut tui = Tui::new()?;
     tui.enter()?;
