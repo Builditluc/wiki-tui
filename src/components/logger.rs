@@ -2,29 +2,30 @@ use anyhow::Result;
 use ratatui::{
     prelude::Rect,
     style::{Color, Style},
-    widgets::{Block, Borders},
 };
 use tokio::sync::mpsc;
 use tui_logger::{TuiLoggerWidget, TuiWidgetState};
 
-use crate::{action::Action, terminal::Frame};
+use crate::{action::Action, config::Theme, terminal::Frame};
 
 use super::Component;
 
 #[derive(Default)]
 pub struct LoggerComponent {
     state: TuiWidgetState,
+    theme: Theme,
 }
 
 impl Component for LoggerComponent {
-    fn init(&mut self, _: mpsc::UnboundedSender<Action>) -> Result<()> {
+    fn init(&mut self, _: mpsc::UnboundedSender<Action>, theme: Theme) -> Result<()> {
         self.state = TuiWidgetState::new();
+        self.theme = theme;
         Ok(())
     }
 
     fn render(&mut self, frame: &mut Frame<'_>, size: Rect) {
         let widget = TuiLoggerWidget::default()
-            .block(Block::new().title("Log").borders(Borders::ALL))
+            .block(self.theme.default_block().title("Log"))
             .style_error(Style::default().fg(Color::Red))
             .style_warn(Style::default().fg(Color::Yellow))
             .style_info(Style::default().fg(Color::Cyan))

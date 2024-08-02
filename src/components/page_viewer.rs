@@ -1,8 +1,7 @@
 use crossterm::event::KeyCode;
 use ratatui::{
     prelude::{Alignment, Rect},
-    style::{Color, Style},
-    widgets::{Block, BorderType, Borders, Paragraph},
+    style::Style,
 };
 use tokio::sync::mpsc::UnboundedSender;
 
@@ -10,6 +9,7 @@ use wiki_api::page::Page;
 
 use crate::{
     action::{Action, ActionResult, PageViewerAction},
+    config::Theme,
     terminal::Frame,
     ui::centered_rect,
 };
@@ -26,6 +26,8 @@ pub struct PageViewer {
     is_processing: bool,
     changing_page_language_popup: Option<PageLanguageSelectionComponent>,
 
+    theme: Theme,
+
     action_tx: Option<UnboundedSender<Action>>,
 }
 
@@ -40,7 +42,7 @@ impl PageViewer {
 
     fn display_page(&mut self, page: Page) {
         self.page_n = self.page.len();
-        self.page.push(PageComponent::new(page));
+        self.page.push(PageComponent::new(page, self.theme.clone()));
 
         if self.changing_page_language_popup.is_some() {
             self.changing_page_language_popup = None;
@@ -57,13 +59,14 @@ impl PageViewer {
             .current_page()
             .and_then(|x| x.page.language_links.to_owned())
             .unwrap_or_default();
-        PageLanguageSelectionComponent::new(language_links)
+        PageLanguageSelectionComponent::new(language_links, self.theme.clone())
     }
 }
 
 impl Component for PageViewer {
-    fn init(&mut self, action_tx: UnboundedSender<Action>) -> anyhow::Result<()> {
+    fn init(&mut self, action_tx: UnboundedSender<Action>, theme: Theme) -> anyhow::Result<()> {
         self.action_tx = Some(action_tx);
+        self.theme = theme;
         Ok(())
     }
 
@@ -104,14 +107,17 @@ impl Component for PageViewer {
     fn render(&mut self, f: &mut Frame<'_>, area: Rect) {
         if self.is_processing {
             f.render_widget(
-                Block::default()
-                    .borders(Borders::ALL)
-                    .border_type(BorderType::Rounded)
-                    .border_style(Style::default().fg(Color::Yellow)),
+                self.theme.default_block().border_style(
+                    Style::default()
+                        .fg(self.theme.border_highlight_fg)
+                        .bg(self.theme.border_highlight_bg),
+                ),
                 area,
             );
             f.render_widget(
-                Paragraph::new("Processing").alignment(Alignment::Center),
+                self.theme
+                    .default_paragraph("Processing")
+                    .alignment(Alignment::Center),
                 centered_rect(area, 100, 50),
             );
             return;
@@ -119,7 +125,9 @@ impl Component for PageViewer {
 
         if self.current_page().is_none() {
             f.render_widget(
-                Paragraph::new("No page opened").alignment(Alignment::Center),
+                self.theme
+                    .default_paragraph("No page opened")
+                    .alignment(Alignment::Center),
                 centered_rect(area, 100, 50),
             );
             return;

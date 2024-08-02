@@ -1,176 +1,156 @@
 # Theme Settings
 
+The configuration file of the theme can be found in `WIKI_TUI_CONFIG/theme.toml`
+
+Usually it's this path:
+
+```
+$HOME/.config/wiki-tui/theme.toml
+```
+
 !!! warning
     The actual colors displayed in your terminal can change depending on your terminal settings
 
 ## About Colors
 
-All color settings can be the actual color written out as a word, available values are:
+All colors from the [ANSI color table](https://en.wikipedia.org/wiki/ANSI_escape_code#Colors) are 
+supported (though some names are not exactly the same).
 
-* `black`
-* `red`
-* `green`
-* `yellow`
-* `blue`
-* `magenta`
-* `cyan`
-* `white`
+| Color Name     | Foreground | Background |
+|----------------|------------|------------|
+| `black`        | 30         | 40         |
+| `red`          | 31         | 41         |
+| `green`        | 32         | 42         |
+| `yellow`       | 33         | 43         |
+| `blue`         | 34         | 44         |
+| `magenta`      | 35         | 45         |
+| `cyan`         | 36         | 46         |
+| `gray`         | 37         | 47         |
+| `darkgray`     | 90         | 100        |
+| `lightred`     | 91         | 101        |
+| `lightgreen`   | 92         | 102        |
+| `lightyellow`  | 93         | 103        |
+| `lightblue`    | 94         | 104        |
+| `lightmagenta` | 95         | 105        |
+| `lightcyan`    | 96         | 106        |
+| `white`        | 97         | 107        |
 
-And their `light` variants (`light red`, `light white`, ...). Also if you want to use the terminal default, you can set the color to `default`
+### RGB Color
 
-Hex values are also supported.
+We also support RGB colors, but note that only terminals that support 24-bit true color will 
+display this correctly. Notably versions of Windows Terminal prior to Windows 10 and macOS 
+Terminal.app do not support this.
 
-## Global palette
+### 8-Bit 256 Indexed
 
-[:octicons-tag-24: 0.3.0][release-0.3.0]
+Indexed 8-bit colors are also supported, see
+[https://en.wikipedia.org/wiki/ANSI_escape_code#8-bit](https://en.wikipedia.org/wiki/ANSI_escape_code#8-bit)
+for more information about them.
 
-wiki-tui supports changing the color palette. If you change them globally, every interface of wiki-tui will change.
+??? note "Further Information about Color parsing"
+    This section of the documentation was taken mostly from the [ratatui::style::Color](https://docs.rs/ratatui/0.26.3/ratatui/style/enum.Color.html#)
+    documentation. If you want to see exactly how the colors are being parsed, you can check
+    ratatui's implementation [here](https://docs.rs/ratatui/0.26.3/src/ratatui/style/color.rs.html#278-334)
 
-#### Background
+## Theme
 
-[:octicons-tag-24: 0.3.0][release-0.3.0] ·
-:octicons-milestone-16: Default: `white`
+### Background
+[:octicons-tag-24: 0.9.0][release-0.9.0] :octicons-milestone-16: Default: `reset`
 
-This color is used for the view backgrounds
-
+The color used for the view backgrounds
 ```toml
-theme.background = "white"
+bg = "reset"
 ```
 
-#### Title
+### Foreground
+[:octicons-tag-24: 0.9.0][release-0.9.0] :octicons-milestone-16: Default: `reset`
 
-[:octicons-tag-24: 0.3.0][release-0.3.0] ·
-:octicons-milestone-16: Default: `red`
-
-This color is used for the title
-
+The color used for the foreground, mainly the color of the text
 ```toml
-theme.title = "red"
+fg = "reset"
 ```
 
-#### Highlight
+### Title
+[:octicons-tag-24: 0.9.0][release-0.9.0] :octicons-milestone-16: Default: `white`
 
-[:octicons-tag-24: 0.3.0][release-0.3.0] ·
-:octicons-milestone-16: Default: `red`
-
-This color is used for the highlighted text background
-
+The color is used for the title of the borders
 ```toml
-theme.highlight = "red"
+title = "white"
 ```
 
-#### Highlight Inactive
+### Search Title
+[:octicons-tag-24: 0.9.0][release-0.9.0] :octicons-milestone-16: Default: `red`
 
-[:octicons-tag-24: 0.3.0][release-0.3.0] ·
-:octicons-milestone-16: Default: `blue`
-
-This color is used for the inactive text that is highlighted
-
+The color for the titles in the search results
 ```toml
-theme.highlight_inactive = "blue"
+search_title_fg = "red"
 ```
 
-#### Highlight Text
+### Selected Items
+[:octicons-tag-24: 0.9.0][release-0.9.0] :octicons-milestone-16: Default: `darkgray` | `reset`
 
-[:octicons-tag-24: 0.3.0][release-0.3.0] ·
-:octicons-milestone-16: Default: `white`
-
-This color is used for the highlighted text
-
+The colors used for the foreground and background of selected items (eg. in lists)
 ```toml
-theme.highlight_text = "white"
+selected_bg = "darkgray"
+selected_fg = "reset"
 ```
 
-#### Text
+### Inactive
+[:octicons-tag-24: 0.9.0][release-0.9.0] :octicons-milestone-16: Default: `blue`
 
-[:octicons-tag-24: 0.3.0][release-0.3.0] ·
-:octicons-milestone-16: Default: `black`
-
-This color is used for the text color
-
+The color is used for inactive items (eg. inactive text)
 ```toml
-theme.text = "black"
+inactive_fg = "blue"
 ```
 
-#### Search Match 
+### Highlight
+[:octicons-tag-24: 0.9.0][release-0.9.0] :octicons-milestone-16: Default: `white`
 
-[:octicons-tag-24: 0.3.0][release-0.3.0] ·
-:octicons-milestone-16: Default: `red`
-
-This color is used for a search match
-
+The color is used for the highlighted items (eg. text)
 ```toml
-theme.search_match = "red"
+highlight_fg = "white"
 ```
 
-## Customize single views
+### Scrollbar
+[:octicons-tag-24: 0.9.0][release-0.9.0] :octicons-milestone-16: Default: `black` | `blue`
 
-[:octicons-tag-24: 0.4.0][release-0.4.0]
-
-You can also only change colors for a single view (for example the search bar). Every supported view has the same settings as the global theme settings. Supported Views are:
-
-* `search_bar`
-* `search_results`
-* `search_preview`
-* `article_view`
-* `toc_view`
-
-Here is a sample config for changing the colors of the search bar:
-
+The colors used for the thumb and track of scrollbars
 ```toml
-[theme.search_bar]
-background = "white"
-title = "red"
-highlight = "red"
-highlight_inactive = "blue"
-highlight_text = "white"
-text = "black"
+scrollbar_track_fg = "black"
+scrollbar_thumb_fg = "blue"
 ```
 
 ## Configure the borders
 
-[:octicons-tag-24: 0.6.0][release-0.6.0]
-:octicons-milestone-16: Default: `default` | `thin`
+### Colors
+[:octicons-tag-24: 0.9.0][release-0.9.0] :octicons-milestone-16: Default: `white` | `reset`
+
+The colors used for the foreground and background of the borders
+```toml
+border_fg = "white"
+border_bg = "reset"
+```
+
+### Border Type
+[:octicons-tag-24: 0.9.0][release-0.9.0] :octicons-milestone-16: Default: `Rounded`
 
 !!! warning
     Depending on your font, some border styles may differ from the examples below
 
 You can change the look of the borders in wiki-tui. Available styles are:
 
-* `thin` | `default`
-* `heavy`
-* `round`
+* `Plain`
+* `Rounded`
+* `Double`
+* `Thick`
+* `QuadrantInside`
+* `QuadrantOutside`
 
-> The excat unicode characters used for the borders can be found in the following file: `src/ui/panel.rs`
+```toml
+border_type = "Rounded"
+```
 
-??? example "Thin / Default"
-    ```toml
-    theme.border = "default"
-    ```
-    or
-    ```toml
-    theme.border = "thin"
-    ```
+> More information about the characters for the borders can be found on ratatui's documentation on
+> the `BorderType` [here](https://docs.rs/ratatui/0.26.3/ratatui/widgets/block/enum.BorderType.html)
 
-    ![Border-Thin-1](../assets/images/border-thin-1.png)
-    ![Border-Thin-2](../assets/images/border-thin-2.png)
-
-??? example "Heavy"
-    ```toml
-    theme.border = "heavy"
-    ```
-
-    ![Border-Heavy-1](../assets/images/border-heavy-1.png)
-    ![Border-Heavy-2](../assets/images/border-heavy-2.png)
-
-??? example "Round"
-    ```toml
-    theme.border = "round"
-    ```
-
-    ![Border-Round-1](../assets/images/border-round-1.png)
-    ![Border-Round-2](../assets/images/border-round-2.png)
-
-[release-0.3.0]: https://github.com/Builditluc/wiki-tui/releases/tag/v0.3
-[release-0.4.0]: https://github.com/Builditluc/wiki-tui/releases/tag/v0.4
-[release-0.6.0]: https://github.com/Builditluc/wiki-tui/releases/tag/v0.6
+[release-0.9.0]: https://github.com/Builditluc/wiki-tui/releases/tag/v0.9

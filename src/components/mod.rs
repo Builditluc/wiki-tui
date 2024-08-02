@@ -5,6 +5,7 @@ use tokio::sync::mpsc;
 
 use crate::{
     action::{Action, ActionResult},
+    config::Theme,
     event::Event,
     terminal::Frame,
 };
@@ -43,7 +44,7 @@ macro_rules! key_event {
 pub trait Component {
     // TODO: use custom error type
     #[allow(unused_variables)]
-    fn init(&mut self, action_tx: mpsc::UnboundedSender<Action>) -> Result<()> {
+    fn init(&mut self, action_tx: mpsc::UnboundedSender<Action>, theme: Theme) -> Result<()> {
         Ok(())
     }
 

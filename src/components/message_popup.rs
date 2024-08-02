@@ -1,13 +1,14 @@
 use crossterm::event::{KeyCode, KeyEvent};
 use ratatui::{
     layout::{Alignment, Rect},
-    style::Stylize,
+    style::{Style, Stylize},
     text::Line,
-    widgets::{block::Title, Block, BorderType, Borders, Clear, Paragraph},
+    widgets::{block::Title, Block, Clear},
 };
 
 use crate::{
     action::{Action, ActionPacket, ActionResult},
+    config::Theme,
     ui::centered_rect,
 };
 
@@ -18,21 +19,25 @@ pub struct MessagePopupComponent<'a> {
     content: String,
     content_alignment: Alignment,
 
+    theme: Theme,
+
     confirmation: Option<ActionPacket>,
 }
 
 impl<'a> MessagePopupComponent<'a> {
-    pub fn new_raw(title: String, content: String) -> Self {
+    pub fn new_raw(title: String, content: String, theme: Theme) -> Self {
         Self {
             title: Title::from(title).alignment(Alignment::Center),
             content,
             content_alignment: Alignment::Center,
 
+            theme,
+
             confirmation: None,
         }
     }
 
-    pub fn new_error(error: String) -> Self {
+    pub fn new_error(error: String, theme: Theme) -> Self {
         const ERROR_MESSAGE: &str =
             "An error occurred\nCheck the logs for further information\n\nError: {ERROR}";
 
@@ -41,15 +46,24 @@ impl<'a> MessagePopupComponent<'a> {
             content: ERROR_MESSAGE.replace("{ERROR}", &error),
             content_alignment: Alignment::Left,
 
+            theme,
+
             confirmation: None,
         }
     }
 
-    pub fn new_confirmation(title: String, content: String, cb: ActionPacket) -> Self {
+    pub fn new_confirmation(
+        title: String,
+        content: String,
+        cb: ActionPacket,
+        theme: Theme,
+    ) -> Self {
         Self {
             title: Title::from(title).alignment(Alignment::Center),
             content,
             content_alignment: Alignment::Center,
+
+            theme,
 
             confirmation: Some(cb),
         }
@@ -73,7 +87,7 @@ impl<'a> Component for MessagePopupComponent<'a> {
     }
 
     fn render(&mut self, f: &mut crate::terminal::Frame<'_>, area: ratatui::prelude::Rect) {
-        let max_area = centered_rect(area, 30, 50);
+        let max_area = centered_rect(area, 50, 80);
 
         let width = (max_area.width as usize).min(self.content.chars().count() + 2) as usize;
         let wrapped_message = textwrap::wrap(&self.content, width);
@@ -88,11 +102,12 @@ impl<'a> Component for MessagePopupComponent<'a> {
         };
 
         f.render_widget(Clear, area);
+        f.render_widget(
+            Block::default().style(Style::default().bg(self.theme.bg)),
+            area,
+        );
 
-        let mut block = Block::default()
-            .title(self.title.clone())
-            .borders(Borders::ALL)
-            .border_type(BorderType::Rounded);
+        let mut block = self.theme.default_block().title(self.title.clone());
 
         block = if self.confirmation.is_some() {
             block
@@ -102,14 +117,16 @@ impl<'a> Component for MessagePopupComponent<'a> {
             block.title_bottom(Line::from("<ESC> Dismiss").right_aligned())
         };
 
-        let message_widget = Paragraph::new(
-            wrapped_message
-                .iter()
-                .map(|x| Line::from(x.to_string()))
-                .collect::<Vec<Line>>(),
-        )
-        .alignment(self.content_alignment)
-        .block(block);
+        let message_widget = self
+            .theme
+            .default_paragraph(
+                wrapped_message
+                    .iter()
+                    .map(|x| Line::from(x.to_string()))
+                    .collect::<Vec<Line>>(),
+            )
+            .alignment(self.content_alignment)
+            .block(block);
         f.render_widget(message_widget, area);
     }
 }

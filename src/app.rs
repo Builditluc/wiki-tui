@@ -1,6 +1,10 @@
 use anyhow::Result;
 use crossterm::event::{KeyCode, KeyEvent};
-use ratatui::prelude::{Constraint, Direction, Layout, Rect};
+use ratatui::{
+    prelude::{Constraint, Direction, Layout, Rect},
+    style::Style,
+    widgets::Block,
+};
 use tracing::warn;
 use wiki_api::{languages::Language, Endpoint};
 
@@ -17,6 +21,7 @@ use crate::{
         search_language_popup::SearchLanguageSelectionComponent,
         Component,
     },
+    config::Theme,
     has_modifier,
     page_loader::PageLoader,
     terminal::Frame,
@@ -36,6 +41,7 @@ pub struct AppComponent {
     is_logger: bool,
 
     popups: Vec<Box<dyn Component + Send>>,
+    theme: Theme,
 
     context: u8,
     prev_context: u8,
@@ -56,10 +62,12 @@ impl AppComponent {
 }
 
 impl Component for AppComponent {
-    fn init(&mut self, action_tx: mpsc::UnboundedSender<Action>) -> Result<()> {
-        self.search.init(action_tx.clone())?;
-        self.page.init(action_tx.clone())?;
-        self.search_bar.init(action_tx.clone())?;
+    fn init(&mut self, action_tx: mpsc::UnboundedSender<Action>, theme: Theme) -> Result<()> {
+        self.search.init(action_tx.clone(), theme.clone())?;
+        self.page.init(action_tx.clone(), theme.clone())?;
+        self.search_bar.init(action_tx.clone(), theme.clone())?;
+
+        self.theme = theme;
 
         let endpoint = Endpoint::parse("https://en.wikipedia.org/w/api.php").unwrap();
         let language = Language::English;
@@ -74,7 +82,6 @@ impl Component for AppComponent {
 
         Ok(())
     }
-
     fn handle_key_events(&mut self, key: KeyEvent) -> ActionResult {
         // we need to always handle CTRL-C
         if matches!(key.code, KeyCode::Char('c') if has_modifier!(key, Modifier::CONTROL)) {
@@ -133,7 +140,9 @@ impl Component for AppComponent {
 
             KeyCode::F(2) => {
                 self.popups
-                    .push(Box::<SearchLanguageSelectionComponent>::default());
+                    .push(Box::new(SearchLanguageSelectionComponent::new(
+                        self.theme.clone(),
+                    )));
                 ActionResult::consumed()
             }
             _ => ActionResult::Ignored,
@@ -173,16 +182,19 @@ impl Component for AppComponent {
                 self.page_loader.as_ref().unwrap().load_language_link(link)
             }
 
-            Action::PopupMessage(title, content) => self
-                .popups
-                .push(Box::new(MessagePopupComponent::new_raw(title, content))),
-            Action::PopupError(error) => self
-                .popups
-                .push(Box::new(MessagePopupComponent::new_error(error))),
+            Action::PopupMessage(title, content) => self.popups.push(Box::new(
+                MessagePopupComponent::new_raw(title, content, self.theme.clone()),
+            )),
+            Action::PopupError(error) => self.popups.push(Box::new(
+                MessagePopupComponent::new_error(error, self.theme.clone()),
+            )),
             Action::PopupDialog(title, content, cb) => {
                 self.popups
                     .push(Box::new(MessagePopupComponent::new_confirmation(
-                        title, content, *cb,
+                        title,
+                        content,
+                        *cb,
+                        self.theme.clone(),
                     )))
             }
             _ => {
@@ -211,6 +223,11 @@ impl Component for AppComponent {
     }
 
     fn render(&mut self, f: &mut Frame<'_>, area: Rect) {
+        f.render_widget(
+            Block::default().style(Style::default().bg(self.theme.bg)),
+            area,
+        );
+
         let (search_bar_area, area) = {
             let chunks = Layout::default()
                 .direction(Direction::Vertical)

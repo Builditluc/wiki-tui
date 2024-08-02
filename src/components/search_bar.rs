@@ -3,12 +3,12 @@ use ratatui::{
     prelude::Rect,
     style::{Color, Modifier, Style},
     text::Text,
-    widgets::{Block, BorderType, Borders, Paragraph},
 };
 use tui_input::{backend::crossterm::EventHandler, Input};
 
 use crate::{
     action::{Action, ActionResult, SearchAction},
+    config::Theme,
     terminal::Frame,
     ui::centered_rect,
 };
@@ -23,6 +23,7 @@ pub const SEARCH_BAR_HEIGTH: u16 = 3;
 #[derive(Default)]
 pub struct SearchBarComponent {
     input: Input,
+    theme: Theme,
     pub is_focussed: bool,
 }
 
@@ -37,6 +38,15 @@ impl SearchBarComponent {
 }
 
 impl Component for SearchBarComponent {
+    fn init(
+        &mut self,
+        _: tokio::sync::mpsc::UnboundedSender<Action>,
+        theme: Theme,
+    ) -> anyhow::Result<()> {
+        self.theme = theme;
+        Ok(())
+    }
+
     fn handle_key_events(&mut self, key: KeyEvent) -> ActionResult {
         match key.code {
             KeyCode::Enter => Action::SubmitSearchBar.into(),
@@ -52,25 +62,28 @@ impl Component for SearchBarComponent {
         let scroll = self.input.visual_scroll(area.width as usize);
         let value = self.input.value();
 
+        let mut block = self.theme.default_block();
+        if self.is_focussed {
+            block = block.border_style(
+                Style::default()
+                    .fg(self.theme.border_highlight_fg)
+                    .bg(self.theme.border_highlight_bg),
+            )
+        }
+
         let input = if value.is_empty() {
-            Paragraph::new(Text::styled(
+            self.theme.default_paragraph(Text::styled(
                 EMPTY_PROMPT,
                 Style::default()
                     .fg(Color::Gray)
                     .add_modifier(Modifier::ITALIC),
             ))
         } else {
-            Paragraph::new(self.input.value()).scroll((0, scroll as u16))
+            self.theme
+                .default_paragraph(self.input.value())
+                .scroll((0, scroll as u16))
         }
-        .block(
-            Block::default()
-                .borders(Borders::ALL)
-                .border_type(BorderType::Rounded)
-                .border_style(match self.is_focussed {
-                    true => Style::default().fg(Color::Yellow),
-                    false => Style::default(),
-                }),
-        );
+        .block(block);
 
         let input_area = centered_rect(area, SEARCH_BAR_X, 100);
         f.render_widget(input, input_area);
