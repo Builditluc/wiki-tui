@@ -14,13 +14,27 @@ struct Cli {
     #[arg(value_name = "LANGUAGE", short = 'l', long = "language")]
     language: Option<String>,
 
+    /// Override the configured logging level
+    #[arg(value_name = "LEVEL", long = "level")]
+    level: Option<tracing::level_filters::LevelFilter>,
+
     #[cfg(debug_assertions)]
     #[arg(value_name = "PATH", long = "page")]
     debug_page: Option<std::path::PathBuf>,
 }
 
-pub fn match_cli() -> Option<ActionPacket> {
+pub struct CliResults {
+    pub actions: Option<ActionPacket>,
+    pub log_level: Option<tracing::level_filters::LevelFilter>,
+}
+
+pub fn match_cli() -> CliResults {
     let cli = Cli::parse();
+
+    let mut results = CliResults {
+        actions: None,
+        log_level: None,
+    };
 
     let mut packet = ActionPacket::default();
 
@@ -35,6 +49,10 @@ pub fn match_cli() -> Option<ActionPacket> {
         packet.add_action(Action::Search(SearchAction::ChangeLanguage(language)));
     }
 
+    if let Some(level) = cli.level {
+        results.log_level = Some(level);
+    }
+
     #[cfg(debug_assertions)]
     if let Some(ref debug_page) = cli.debug_page {
         if let Some(page) = wiki_api::page::Page::from_path(debug_page) {
@@ -45,5 +63,7 @@ pub fn match_cli() -> Option<ActionPacket> {
         }
     }
 
-    Some(packet)
+    results.actions = Some(packet);
+
+    results
 }

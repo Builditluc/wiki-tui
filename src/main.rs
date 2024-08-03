@@ -35,9 +35,10 @@ Thank you!
     "#
     );
 
-    let mut actions = match_cli();
+    let results = match_cli();
+    let mut actions = results.actions;
 
-    initialize_logging()?;
+    initialize_logging(results.log_level)?;
     initialize_panic_handler()?;
 
     let (action_tx, mut action_rx) = mpsc::unbounded_channel();
