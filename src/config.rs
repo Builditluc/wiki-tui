@@ -7,20 +7,21 @@ use ratatui::{
 use serde::Deserialize;
 use std::path::PathBuf;
 
-pub const DATA_ENV: &str = "WIKI_TUI_DATA";
+pub const CACHE_ENV: &str = "WIKI_TUI_CACHE";
 pub const CONFIG_ENV: &str = "WIKI_TUI_CONFIG";
 
-const THEME_FILE_NAME: &str = "theme.toml";
+pub const THEME_FILE_NAME: &str = "theme.toml";
+pub const CONFIG_FILE_NAME: &str = "config.toml";
 
 pub fn project_dir() -> Option<ProjectDirs> {
     ProjectDirs::from("com", "builditluc", "wiki-tui")
 }
 
-pub fn data_dir() -> Result<PathBuf> {
-    let directory = if let Ok(dir) = std::env::var(DATA_ENV) {
+pub fn cache_dir() -> Result<PathBuf> {
+    let directory = if let Ok(dir) = std::env::var(CACHE_ENV) {
         PathBuf::from(dir)
     } else if let Some(project_dir) = project_dir() {
-        project_dir.data_local_dir().to_path_buf()
+        project_dir.cache_dir().to_path_buf()
     } else {
         bail!("Unable to find data directory for wiki-tui");
     };

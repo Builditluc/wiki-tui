@@ -8,7 +8,7 @@ use crate::config;
 const LOG_ENV: &str = "WIKI_TUI_LOG";
 
 pub fn initialize_logging(level: Option<LevelFilter>) -> Result<()> {
-    let directory = config::data_dir()?;
+    let directory = config::cache_dir()?;
     std::fs::create_dir_all(directory.clone())
         .context(format!("{directory:?} could not be created"))?;
     let log_path = directory.join("wiki-tui.log");

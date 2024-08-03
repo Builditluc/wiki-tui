@@ -18,6 +18,9 @@ use wiki_tui::{
 
 #[tokio::main]
 async fn main() -> Result<()> {
+    let results = match_cli();
+    let mut actions = results.actions;
+
     println!(
         r#"
 IMPORTANT:
@@ -34,9 +37,6 @@ Thank you!
 - Builditluc
     "#
     );
-
-    let results = match_cli();
-    let mut actions = results.actions;
 
     initialize_logging(results.log_level)?;
     initialize_panic_handler()?;
