@@ -17,7 +17,7 @@ struct Cli {
     /// Override the configured search language of wikipedia. The value can be either the language
     /// code, the name of the language in english or the native language name
     #[arg(value_name = "LANGUAGE", short = 'l', long = "language")]
-    language: Option<String>,
+    language: Option<Language>,
 
     /// Override the configured logging level
     #[arg(value_name = "LEVEL", long = "level")]
@@ -56,19 +56,18 @@ pub fn match_cli() -> CliResults {
 
     let mut packet = ActionPacket::default();
 
-    if let Some(search_query) = cli.search_query {
-        packet.add_action(Action::ExitSearchBar);
-        packet.add_action(Action::SwitchContextSearch);
-        packet.add_action(Action::Search(SearchAction::StartSearch(search_query)));
-    }
-
     if let Some(language) = cli.language {
-        let language = Language::from(language);
         packet.add_action(Action::Search(SearchAction::ChangeLanguage(language)));
     }
 
     if let Some(level) = cli.level {
         results.log_level = Some(level);
+    }
+
+    if let Some(search_query) = cli.search_query {
+        packet.add_action(Action::ExitSearchBar);
+        packet.add_action(Action::SwitchContextSearch);
+        packet.add_action(Action::Search(SearchAction::StartSearch(search_query)));
     }
 
     if cli.print_config_path {

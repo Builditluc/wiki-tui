@@ -189,8 +189,9 @@ impl WikipediaParser {
                         Data::Disambiguation
                     }
 
-                    "a" => Self::parse_link(&self.endpoint, self.language.clone(), &attrs)
-                        .unwrap_or_default(),
+                    "a" => {
+                        Self::parse_link(&self.endpoint, self.language, &attrs).unwrap_or_default()
+                    }
 
                     "div" => Data::Division,
                     _ => {
@@ -337,7 +338,7 @@ impl WikipediaParser {
                 .and_then(|x| x.split_once('.').map(|x| x.0));
 
             let language = match lang_str {
-                Some(lang_str) => Language::from(lang_str),
+                Some(str) => Language::from_str(str).unwrap_or(language),
                 None => language,
             };
 

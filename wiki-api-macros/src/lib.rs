@@ -83,7 +83,7 @@ pub fn parse_languages(input: TokenStream) -> TokenStream {
         };
         from_str_arms = quote! {
             #from_str_arms
-            #lang_code_lowercase | #lang_name_lowercase | #en_name_lowercase => Language::#ident,
+            #lang_code_lowercase | #lang_name_lowercase | #en_name_lowercase => Some(Language::#ident),
         };
         array_def = quote! {
             #array_def
@@ -93,9 +93,9 @@ pub fn parse_languages(input: TokenStream) -> TokenStream {
 
     let expanded = quote! {
         use serde::{Serialize, Deserialize};
+        use std::str::FromStr;
 
-        #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
-        #[serde(from = "String")]
+        #[derive(Copy, Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
         pub enum Language{
             Unknown,
             #variants
@@ -126,25 +126,31 @@ pub fn parse_languages(input: TokenStream) -> TokenStream {
             }
         }
 
-        impl From<&str> for Language {
-            fn from(s: &str) -> Self {
-                match s.to_lowercase().as_ref() {
+        impl FromStr for Language {
+            type Err = ParseLanguageError;
+            fn from_str(from: &str) -> Result<Self, Self::Err> {
+                match from.to_lowercase().as_ref() {
                     #from_str_arms
-                    _ => Language::default()
-                }
+                    _ => None,
+                }.ok_or(ParseLanguageError(from.to_string()))
             }
         }
 
-        impl From<String> for Language {
-            fn from(s: String) -> Self {
-                match s.to_lowercase().as_ref() {
-                    #from_str_arms
-                    _ => Language::default()
-                }
+        #[derive(Debug)]
+        pub struct ParseLanguageError(String);
+
+        impl std::fmt::Display for ParseLanguageError {
+            fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                f.pad(
+                    &format!("error parsing langugage: '{}' is an unknown language", self.0)
+                )
             }
         }
 
-       pub static LANGUAGES: &[Language] = &[#array_def];
+        impl std::error::Error for ParseLanguageError {}
+
+
+        pub static LANGUAGES: &[Language] = &[#array_def];
 
         impl Default for Language {
             fn default() -> Self {
