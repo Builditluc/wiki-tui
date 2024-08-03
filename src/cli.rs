@@ -1,8 +1,7 @@
-use std::path::PathBuf;
+use clap::Parser;
 
-use clap::{Args, Parser, Subcommand};
-
-use crate::action::{Action, ActionPacket, PageViewerAction, SearchAction};
+use crate::action::{Action, ActionPacket, SearchAction};
+use wiki_api::languages::Language;
 
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
@@ -12,23 +11,12 @@ struct Cli {
     #[arg(value_name = "QUERY")]
     search_query: Option<String>,
 
-    #[command(subcommand)]
-    commands: Option<Commands>,
-}
+    #[arg(value_name = "LANGUAGE", short = 'l', long = "language")]
+    language: Option<String>,
 
-#[derive(Subcommand)]
-enum Commands {
-    Debug(DebugCommand),
-}
-
-#[derive(Args)]
-struct DebugCommand {
-    /// Print debug information
-    #[arg(short, long)]
-    list: bool,
-    /// Load a custom page
-    #[arg(short, long)]
-    page: Option<PathBuf>,
+    #[cfg(debug_assertions)]
+    #[arg(value_name = "PATH", long = "page")]
+    debug_page: Option<std::path::PathBuf>,
 }
 
 pub fn match_cli() -> Option<ActionPacket> {
@@ -42,43 +30,20 @@ pub fn match_cli() -> Option<ActionPacket> {
         packet.add_action(Action::Search(SearchAction::StartSearch(search_query)));
     }
 
-    packet = match &cli.commands {
-        Some(Commands::Debug(command)) => command_debug(command, packet),
-        None => packet,
-    };
-
-    Some(packet)
-}
-
-fn command_debug(command: &DebugCommand, mut packet: ActionPacket) -> ActionPacket {
-    println!("wiki-tui DEBUG: Debug Information");
-
-    if command.list {
-        use crate::config::{config_dir, data_dir, CONFIG_ENV, DATA_ENV};
-        println!("Config Values:");
-
-        let data_dir = data_dir()
-            .map(|path| path.to_string_lossy().to_string())
-            .unwrap_or("NO_PATH".to_string());
-        println!("\t data_dir: '{}' ({})", data_dir, DATA_ENV);
-
-        let config_dir = config_dir()
-            .map(|path| path.to_string_lossy().to_string())
-            .unwrap_or("NO_PATH".to_string());
-        println!("\t config_dir: '{}' ({})", config_dir, CONFIG_ENV);
-
-        std::process::exit(libc::EXIT_SUCCESS)
+    if let Some(language) = cli.language {
+        let language = Language::from(language);
+        packet.add_action(Action::Search(SearchAction::ChangeLanguage(language)));
     }
 
-    if let Some(ref page_path) = command.page {
-        #[cfg(debug_assertions)]
-        {
-            if let Some(page) = wiki_api::page::Page::from_path(page_path) {
-                packet.add_action(Action::SwitchContextPage);
-                packet.add_action(Action::PageViewer(PageViewerAction::DisplayPage(page)));
-            }
+    #[cfg(debug_assertions)]
+    if let Some(ref debug_page) = cli.debug_page {
+        if let Some(page) = wiki_api::page::Page::from_path(debug_page) {
+            packet.add_action(Action::SwitchContextPage);
+            packet.add_action(Action::PageViewer(
+                crate::action::PageViewerAction::DisplayPage(page),
+            ));
         }
     }
 
-    packet
+    Some(packet)
 }

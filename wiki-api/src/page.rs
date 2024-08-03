@@ -134,12 +134,10 @@ impl Page {
     #[cfg(debug_assertions)]
     pub fn from_path(path: &std::path::PathBuf) -> Option<Page> {
         if !path.exists() {
-            println!("no page exists");
             return None;
         }
 
         let content = std::fs::read_to_string(path).ok()?;
-        println!("found content");
         let nodes = WikipediaParser::parse_document(
             &content,
             url::Url::parse("https://en.wikipedia.org/w/api.php").ok()?,
