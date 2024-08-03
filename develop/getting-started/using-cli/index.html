@@ -1175,21 +1175,25 @@ wiki-tui --language deutsch
 </div>
 <p>For more information about language changing, view <a href="../../configuration/api/#supported-languages">this page</a> of the docs</p>
 <h3 id="print-cache-and-config">Print cache and config</h3>
-<p>To view the cache directory where the log file and crash-reports are written to,
+<p>To view the cache directory where the log file is written to,
 use this command</p>
 <div class="highlight"><pre><span></span><code>wiki-tui --cache-dir
 </code></pre></div>
 <p>If you want to instead view the path for the config file, use this command</p>
 <div class="highlight"><pre><span></span><code>wiki-tui --config-path
 </code></pre></div>
+<p>If you want to view the path for the theme configuration file, use this command</p>
+<div class="highlight"><pre><span></span><code>wiki-tui<span class="w"> </span>--theme-config-path
+</code></pre></div>
 <h3 id="change-logging-level">Change logging level</h3>
-<p>You can also change the configured logging level. </p>
-<div class="highlight"><pre><span></span><code>wiki-tui --level &lt;level&gt;
+<p>You can also change the configured logging level. This can be done by either using a number to set
+the level or by using the name of the logging leven (for more information, see the table below)</p>
+<div class="highlight"><pre><span></span><code>wiki-tui<span class="w"> </span>--level<span class="w"> </span>&lt;level&gt;
 </code></pre></div>
 <div class="admonition example">
 <p class="admonition-title">Example</p>
 <p>Changing the level to <code>Debug</code></p>
-<div class="highlight"><pre><span></span><code>wiki-tui --level 0
+<div class="highlight"><pre><span></span><code>wiki-tui<span class="w"> </span>--level<span class="w"> </span><span class="m">4</span>
 </code></pre></div>
 </div>
 <p>Available values are:</p>
@@ -1197,25 +1201,40 @@ use this command</p>
 <thead>
 <tr>
 <th>Value</th>
+<th>Name</th>
 <th>Level</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>0</td>
+<td>5</td>
+<td><code>trace</code></td>
+<td>Trace</td>
+</tr>
+<tr>
+<td>4</td>
+<td><code>debug</code></td>
 <td>Debug</td>
 </tr>
 <tr>
-<td>1</td>
+<td>3</td>
+<td><code>info</code></td>
 <td>Info</td>
 </tr>
 <tr>
 <td>2</td>
+<td><code>warn</code></td>
 <td>Warn</td>
 </tr>
 <tr>
-<td>3</td>
+<td>1</td>
+<td><code>error</code></td>
 <td>Error</td>
+</tr>
+<tr>
+<td>0</td>
+<td><code>off</code></td>
+<td>Turn off Logging</td>
 </tr>
 </tbody>
 </table>
@@ -1241,7 +1260,7 @@ use this command</p>
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1-2.1-2M12.5 7v5.2l4 2.4-1 1L11 13V7h1.5M11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2v1.8Z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">July 31, 2024</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">August 3, 2024</span>
   </span>
 
     
