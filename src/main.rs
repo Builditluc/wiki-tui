@@ -18,6 +18,9 @@ use wiki_tui::{
 
 #[tokio::main]
 async fn main() -> Result<()> {
+    let results = match_cli();
+    let mut actions = results.actions;
+
     println!(
         r#"
 IMPORTANT:
@@ -35,9 +38,7 @@ Thank you!
     "#
     );
 
-    let mut actions = match_cli();
-
-    initialize_logging()?;
+    initialize_logging(results.log_level)?;
     initialize_panic_handler()?;
 
     let (action_tx, mut action_rx) = mpsc::unbounded_channel();

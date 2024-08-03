@@ -54,7 +54,7 @@ For more information about language changing, view [this page](../configuration/
 
 ### Print cache and config
 
-To view the cache directory where the log file and crash-reports are written to,
+To view the cache directory where the log file is written to,
 use this command
 
 ```
@@ -67,26 +67,35 @@ If you want to instead view the path for the config file, use this command
 wiki-tui --config-path
 ```
 
+If you want to view the path for the theme configuration file, use this command
+
+```sh 
+wiki-tui --theme-config-path
+```
+
 ### Change logging level
 
-You can also change the configured logging level. 
+You can also change the configured logging level. This can be done by either using a number to set
+the level or by using the name of the logging leven (for more information, see the table below)
 
-```
+```sh
 wiki-tui --level <level>
 ```
 
 !!! example
     Changing the level to `Debug`
 
-    ```
-    wiki-tui --level 0
+    ```sh
+    wiki-tui --level 4
     ```
 
 Available values are:
 
-| Value | Level | 
-|---|-------|
-| 0 | Debug | 
-| 1 | Info  |
-| 2 | Warn  |
-| 3 | Error |
+| Value | Name | Level | 
+|---|-------|-------|
+| 5 | `trace`| Trace |
+| 4 | `debug`| Debug |
+| 3 | `info`| Info  |
+| 2 | `warn`| Warn  |
+| 1 | `error`| Error |
+| 0 | `off` | Turn off Logging | 

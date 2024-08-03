@@ -134,12 +134,10 @@ impl Page {
     #[cfg(debug_assertions)]
     pub fn from_path(path: &std::path::PathBuf) -> Option<Page> {
         if !path.exists() {
-            println!("no page exists");
             return None;
         }
 
         let content = std::fs::read_to_string(path).ok()?;
-        println!("found content");
         let nodes = WikipediaParser::parse_document(
             &content,
             url::Url::parse("https://en.wikipedia.org/w/api.php").ok()?,
@@ -461,7 +459,7 @@ impl<I, P> PageBuilder<I, P, WithEndpoint, WithLanguage> {
             .and_then(|x| x.get("text"))
             .and_then(|x| x.as_str())
             .map(|x| {
-                let parser = WikipediaParser::parse_document(x, endpoint.clone(), language.clone());
+                let parser = WikipediaParser::parse_document(x, endpoint.clone(), language);
                 Document {
                     nodes: parser.nodes(),
                 }

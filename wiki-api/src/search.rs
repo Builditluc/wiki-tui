@@ -45,7 +45,7 @@ impl Search {
             return Some(SearchContinue {
                 query: info.query.clone(),
                 endpoint: self.endpoint.clone(),
-                language: info.language.clone(),
+                language: info.language,
                 offset: *offset,
             });
         }
@@ -767,7 +767,7 @@ impl SearchBuilder<WithQuery, WithEndpoint, WithLanguage> {
                     namespace: value_from_json!(result, "ns"),
                     title: value_from_json!(result, "title"),
                     pageid: value_from_json!(result, "pageid"),
-                    language: self.language.0.clone(),
+                    language: self.language.0,
                     endpoint: self.endpoint.0.clone(),
                     size: value_from_json!(result, "size"),
                     wordcount: value_from_json!(result, "wordcount"),

@@ -8,6 +8,8 @@ Usually it's this path:
 $HOME/.config/wiki-tui/theme.toml
 ```
 
+But you can also verify the path using `wiki-tui --theme-config-path`
+
 !!! warning
     The actual colors displayed in your terminal can change depending on your terminal settings
 

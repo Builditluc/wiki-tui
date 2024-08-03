@@ -73,10 +73,7 @@ impl SearchComponent {
             .endpoint
             .clone()
             .ok_or(anyhow!("No Endpoint configured"))?;
-        let language = self
-            .language
-            .clone()
-            .ok_or(anyhow!("No Language configured"))?;
+        let language = self.language.ok_or(anyhow!("No Language configured"))?;
 
         Ok(ApiSearch::builder()
             .query(query)
@@ -160,7 +157,7 @@ impl SearchComponent {
         let search_request = ApiSearch::builder()
             .query(code.query.clone())
             .endpoint(code.endpoint.clone())
-            .language(code.language.clone())
+            .language(code.language)
             .offset(code.offset);
         tokio::spawn(async move {
             tx.send(Action::Search(SearchAction::ChangeMode(Mode::Searching)))
