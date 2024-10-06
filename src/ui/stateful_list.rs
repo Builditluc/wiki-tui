@@ -86,6 +86,9 @@ impl<T> StatefulList<T> {
     }
 
     pub fn selected(&self) -> Option<&T> {
+        if self.state.selected().unwrap_or_default() >= self.items.len() {
+            return None;
+        }
         self.state.selected().map(|i| &self.items[i])
     }
 }

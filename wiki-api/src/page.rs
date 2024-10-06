@@ -6,8 +6,9 @@ use crate::{
 use anyhow::{anyhow, Context, Result};
 use reqwest::{Client, Response};
 use scraper::Html;
-use serde::Deserialize;
+use serde::{de, Deserialize, Deserializer};
 use std::fmt::Display;
+use std::str::FromStr;
 use tracing::{debug, warn};
 use url::Url;
 
@@ -101,10 +102,22 @@ struct LanguageLinkInt {
     #[serde(rename = "langname")]
     name: String,
     #[serde(rename = "lang")]
+    #[serde(deserialize_with = "language_from_str")]
     language: Language,
     autonym: String,
     title: String,
     url: Url,
+}
+
+fn language_from_str<'de, T, D>(deserializer: D) -> Result<T, D::Error>
+where
+    T: FromStr,
+    T::Err: Display,
+    D: Deserializer<'de>,
+{
+    String::deserialize(deserializer)?
+        .parse()
+        .map_err(de::Error::custom)
 }
 
 #[derive(Debug, Deserialize, Clone, PartialEq, Eq)]
