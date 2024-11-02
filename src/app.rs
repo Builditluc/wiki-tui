@@ -124,8 +124,8 @@ impl Component for AppComponent {
             KeyCode::Char('j') => Action::ScrollDown(1).into(),
             KeyCode::Char('k') => Action::ScrollUp(1).into(),
 
-            KeyCode::Char('g') => Action::ScrollToTop.into(),
-            KeyCode::Char('G') => Action::ScrollToBottom.into(),
+            KeyCode::Char('g') | KeyCode::Home => Action::ScrollToTop.into(),
+            KeyCode::Char('G') | KeyCode::End => Action::ScrollToBottom.into(),
 
             KeyCode::Char('d') if has_modifier!(key, Modifier::CONTROL) => {
                 Action::ScrollHalfDown.into()
@@ -133,6 +133,8 @@ impl Component for AppComponent {
             KeyCode::Char('u') if has_modifier!(key, Modifier::CONTROL) => {
                 Action::ScrollHalfUp.into()
             }
+            KeyCode::PageDown => Action::ScrollHalfDown.into(),
+            KeyCode::PageUp => Action::ScrollHalfUp.into(),
 
             KeyCode::Char('h') => Action::UnselectScroll.into(),
 
