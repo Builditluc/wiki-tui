@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use crossterm::event::{KeyCode, KeyEvent};
 use ratatui::{
     layout::{Alignment, Rect},
@@ -19,13 +21,13 @@ pub struct MessagePopupComponent<'a> {
     content: String,
     content_alignment: Alignment,
 
-    theme: Theme,
+    theme: Arc<Theme>,
 
     confirmation: Option<ActionPacket>,
 }
 
 impl<'a> MessagePopupComponent<'a> {
-    pub fn new_raw(title: String, content: String, theme: Theme) -> Self {
+    pub fn new_raw(title: String, content: String, theme: Arc<Theme>) -> Self {
         Self {
             title: Title::from(title).alignment(Alignment::Center),
             content,
@@ -37,7 +39,7 @@ impl<'a> MessagePopupComponent<'a> {
         }
     }
 
-    pub fn new_error(error: String, theme: Theme) -> Self {
+    pub fn new_error(error: String, theme: Arc<Theme>) -> Self {
         const ERROR_MESSAGE: &str =
             "An error occurred\nCheck the logs for further information\n\nError: {ERROR}";
 
@@ -56,7 +58,7 @@ impl<'a> MessagePopupComponent<'a> {
         title: String,
         content: String,
         cb: ActionPacket,
-        theme: Theme,
+        theme: Arc<Theme>,
     ) -> Self {
         Self {
             title: Title::from(title).alignment(Alignment::Center),

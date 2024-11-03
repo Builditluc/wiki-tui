@@ -18,6 +18,7 @@
     - Use the MediaWiki HTML DOM Spec for pages and parsing
 - Rewrite the renderer using `textwrap` to wrap lines of text
 - Rewrite the theme configuration structure
+- Rewrite the configuration structure
 - Change the application pattern to a component-based architecture
 - Change the logging library used to `tracing`
 - Change the cli library from `structopt` to `clap`

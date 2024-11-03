@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use crossterm::event::KeyCode;
 use ratatui::{
     prelude::{Alignment, Rect},
@@ -9,7 +11,7 @@ use wiki_api::page::Page;
 
 use crate::{
     action::{Action, ActionResult, PageViewerAction},
-    config::Theme,
+    config::{Config, Theme},
     terminal::Frame,
     ui::centered_rect,
 };
@@ -26,7 +28,8 @@ pub struct PageViewer {
     is_processing: bool,
     changing_page_language_popup: Option<PageLanguageSelectionComponent>,
 
-    theme: Theme,
+    config: Arc<Config>,
+    theme: Arc<Theme>,
 
     action_tx: Option<UnboundedSender<Action>>,
 }
@@ -42,7 +45,11 @@ impl PageViewer {
 
     fn display_page(&mut self, page: Page) {
         self.page_n = self.page.len();
-        self.page.push(PageComponent::new(page, self.theme.clone()));
+        self.page.push(PageComponent::new(
+            page,
+            self.config.clone(),
+            self.theme.clone(),
+        ));
 
         if self.changing_page_language_popup.is_some() {
             self.changing_page_language_popup = None;
@@ -64,8 +71,14 @@ impl PageViewer {
 }
 
 impl Component for PageViewer {
-    fn init(&mut self, action_tx: UnboundedSender<Action>, theme: Theme) -> anyhow::Result<()> {
+    fn init(
+        &mut self,
+        action_tx: UnboundedSender<Action>,
+        config: Arc<Config>,
+        theme: Arc<Theme>,
+    ) -> anyhow::Result<()> {
         self.action_tx = Some(action_tx);
+        self.config = config;
         self.theme = theme;
         Ok(())
     }

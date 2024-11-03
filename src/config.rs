@@ -41,43 +41,172 @@ pub fn config_dir() -> Result<PathBuf> {
     Ok(directory)
 }
 
-pub fn load_theme() -> Result<Theme> {
-    macro_rules! override_color {
-        ($default: expr, $user: expr, $color: ident) => {
-            if let Some(color) = $user.$color {
-                $default.$color = color;
-            }
-        };
+macro_rules! override_options {
+    ($config:expr, $uconfig:ident::{$( $option:ident ),+}) => {
+        $(if let Some(option) = $uconfig.$option {
+            $config.$option = option;
+        })+
+    };
+}
+
+pub fn load_config() -> Result<Config> {
+    let mut default_config = Config::default();
+    let user_config = load_user_config().context("failed loading the user config")?;
+
+    if let Some(user_page_config) = user_config.page {
+        override_page_config(&mut default_config.page, user_page_config)
     }
 
+    Ok(default_config)
+}
+
+fn override_page_config(config: &mut PageConfig, user_config: UserPageConfig) {
+    if let Some(user_toc) = user_config.toc {
+        override_options!(config.toc, user_toc::{
+            enabled,
+            width_percentage,
+            position,
+            title,
+            item_format,
+
+            enable_scrolling
+        });
+    }
+}
+
+fn load_user_config() -> Result<UserConfig> {
+    let path = config_dir()
+        .context("failed retrieving the config dir")?
+        .join(CONFIG_FILE_NAME);
+
+    if !path.exists() {
+        std::fs::write(&path, "").context("failed creating the config file")?;
+    }
+
+    let user_config_str =
+        std::fs::read_to_string(&path).context("failed reading the config file")?;
+
+    toml::from_str::<UserConfig>(&user_config_str).context("failed parsing the user config")
+}
+
+pub struct Config {
+    pub page: PageConfig,
+}
+
+pub struct PageConfig {
+    pub toc: TocConfig,
+}
+
+#[derive(Deserialize, PartialEq, Eq)]
+pub enum TocConfigPosition {
+    Left,
+    Right,
+}
+
+#[derive(Deserialize)]
+pub enum TocConfigTitle {
+    Default,
+    Article,
+    Custom(String),
+}
+
+pub struct TocConfig {
+    pub enabled: bool,
+    pub width_percentage: u16,
+    pub position: TocConfigPosition,
+    pub title: TocConfigTitle,
+    item_format: String,
+
+    pub enable_scrolling: bool,
+}
+
+impl Config {
+    pub fn new() -> Self {
+        Self {
+            page: PageConfig {
+                toc: TocConfig {
+                    enabled: true,
+                    width_percentage: 20,
+                    position: TocConfigPosition::Right,
+                    title: TocConfigTitle::Default,
+                    item_format: "{NUMBER} {TEXT}".to_string(),
+
+                    enable_scrolling: true,
+                },
+            },
+        }
+    }
+}
+
+impl TocConfig {
+    pub fn formatted_item(&self, number: &str, text: &str) -> String {
+        const NUMBER_FMT: &str = "{NUMBER}";
+        const TEXT_FMT: &str = "{TEXT}";
+
+        self.item_format
+            .replace(NUMBER_FMT, number)
+            .replace(TEXT_FMT, text)
+    }
+}
+
+impl Default for Config {
+    fn default() -> Self {
+        Config::new()
+    }
+}
+
+#[derive(Deserialize)]
+struct UserConfig {
+    page: Option<UserPageConfig>,
+}
+
+#[derive(Deserialize)]
+struct UserPageConfig {
+    toc: Option<UserTocConfig>,
+}
+
+#[derive(Deserialize)]
+struct UserTocConfig {
+    enabled: Option<bool>,
+    width_percentage: Option<u16>,
+    position: Option<TocConfigPosition>,
+    title: Option<TocConfigTitle>,
+    item_format: Option<String>,
+
+    enable_scrolling: Option<bool>,
+}
+
+pub fn load_theme() -> Result<Theme> {
     let mut default_theme = Theme::default();
     let user_theme = load_user_theme().context("failed loading the user theme")?;
 
-    override_color!(default_theme, user_theme, bg);
-    override_color!(default_theme, user_theme, fg);
+    override_options!(default_theme, user_theme::{
+        bg,
+        fg,
 
-    override_color!(default_theme, user_theme, title);
+        title,
 
-    override_color!(default_theme, user_theme, selected_bg);
-    override_color!(default_theme, user_theme, selected_fg);
+        selected_bg,
+        selected_fg,
 
-    override_color!(default_theme, user_theme, inactive_fg);
-    override_color!(default_theme, user_theme, highlight_fg);
+        inactive_fg,
+        highlight_fg,
 
-    override_color!(default_theme, user_theme, border_fg);
-    override_color!(default_theme, user_theme, border_bg);
-    override_color!(default_theme, user_theme, border_type);
+        border_fg,
+        border_bg,
+        border_type,
 
-    override_color!(default_theme, user_theme, border_highlight_fg);
-    override_color!(default_theme, user_theme, border_highlight_bg);
+        border_highlight_fg,
+        border_highlight_bg,
 
-    override_color!(default_theme, user_theme, scrollbar_track_fg);
-    override_color!(default_theme, user_theme, scrollbar_thumb_fg);
+        scrollbar_track_fg,
+        scrollbar_thumb_fg,
 
-    override_color!(default_theme, user_theme, search_title_fg);
+        search_title_fg,
 
-    override_color!(default_theme, user_theme, status_bar_fg);
-    override_color!(default_theme, user_theme, status_bar_bg);
+        status_bar_fg,
+        status_bar_bg
+    });
 
     Ok(default_theme)
 }
@@ -151,7 +280,7 @@ impl Theme {
             scrollbar_thumb_fg: Color::Blue,
 
             search_title_fg: Color::Red,
-            
+
             status_bar_fg: Color::Reset,
             status_bar_bg: Color::DarkGray,
         }

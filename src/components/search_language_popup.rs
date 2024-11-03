@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use crossterm::event::KeyCode;
 use ratatui::{
     layout::{Constraint, Direction, Layout, Rect},
@@ -24,11 +26,11 @@ pub struct SearchLanguageSelectionComponent {
     focus: u8,
     list: StatefulList<Language>,
 
-    theme: Theme,
+    theme: Arc<Theme>,
 }
 
 impl SearchLanguageSelectionComponent {
-    pub fn new(theme: Theme) -> Self {
+    pub fn new(theme: Arc<Theme>) -> Self {
         Self {
             input: Input::default(),
             list: StatefulList::with_items(Vec::new()),

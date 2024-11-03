@@ -8,7 +8,7 @@ use wiki_tui::{
     app::AppComponent,
     cli::match_cli,
     components::Component,
-    config::{load_theme, Theme},
+    config::{load_config, load_theme, Config, Theme},
     event::EventHandler,
     logging::initialize_logging,
     panic_handler::initialize_panic_handler,
@@ -46,6 +46,18 @@ Thank you!
     let app_component = Arc::new(Mutex::new(AppComponent::default()));
     let mut should_quit = false;
 
+    let config = load_config()
+        .context("failed loading the config")
+        .unwrap_or_else(|err| {
+            warn!("{:?}", err);
+            let action = Action::PopupMessage("Information".to_string(), "Something went wrong when trying to load you configuration\nCheck the logs for further information".to_string());
+            match actions {
+                Some(ref mut action_packet) => action_packet.add_action(action),
+                None => actions = Some(ActionPacket::single(action))
+            }
+            Config::default()
+        });
+
     let theme = load_theme()
         .context("failed loading the theme")
         .unwrap_or_else(|err| {
@@ -58,7 +70,10 @@ Thank you!
             Theme::default()
         });
 
-    app_component.lock().await.init(action_tx.clone(), theme)?;
+    app_component
+        .lock()
+        .await
+        .init(action_tx.clone(), Arc::new(config), Arc::new(theme))?;
 
     let mut tui = Tui::new()?;
     tui.enter()?;

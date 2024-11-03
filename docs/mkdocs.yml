@@ -58,12 +58,12 @@ nav:
 
   - Configuration:
     - configuration/index.md
-    - Api Settings: configuration/api.md
     - Changing the Theme: configuration/theme.md
+    - Configuring the Pages: configuration/page.md
+    - Api Settings: configuration/api.md
     - Configure the Logging: configuration/logging.md
     - Features: configuration/features.md
     - Keybindings: configuration/keybindings.md
-    - Table of Contents: configuration/toc.md
 
 edit_uri: edit/main/docs/docs/
 

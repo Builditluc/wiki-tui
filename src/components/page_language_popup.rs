@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use crossterm::event::KeyCode;
 use ratatui::{
     layout::{Constraint, Direction, Layout, Rect},
@@ -25,11 +27,11 @@ pub struct PageLanguageSelectionComponent {
     list: StatefulList<LanguageLink>,
     language_links: Vec<LanguageLink>,
 
-    theme: Theme,
+    theme: Arc<Theme>,
 }
 
 impl PageLanguageSelectionComponent {
-    pub fn new(language_links: Vec<LanguageLink>, theme: Theme) -> Self {
+    pub fn new(language_links: Vec<LanguageLink>, theme: Arc<Theme>) -> Self {
         Self {
             input: Input::default(),
             list: StatefulList::with_items(language_links.clone()),

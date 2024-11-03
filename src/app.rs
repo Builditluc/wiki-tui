@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use anyhow::Result;
 use crossterm::event::{KeyCode, KeyEvent};
 use ratatui::{
@@ -21,7 +23,7 @@ use crate::{
         search_language_popup::SearchLanguageSelectionComponent,
         Component,
     },
-    config::Theme,
+    config::{Config, Theme},
     has_modifier,
     page_loader::PageLoader,
     terminal::Frame,
@@ -41,7 +43,7 @@ pub struct AppComponent {
     is_logger: bool,
 
     popups: Vec<Box<dyn Component + Send>>,
-    theme: Theme,
+    theme: Arc<Theme>,
 
     context: u8,
     prev_context: u8,
@@ -62,10 +64,18 @@ impl AppComponent {
 }
 
 impl Component for AppComponent {
-    fn init(&mut self, action_tx: mpsc::UnboundedSender<Action>, theme: Theme) -> Result<()> {
-        self.search.init(action_tx.clone(), theme.clone())?;
-        self.page.init(action_tx.clone(), theme.clone())?;
-        self.search_bar.init(action_tx.clone(), theme.clone())?;
+    fn init(
+        &mut self,
+        action_tx: mpsc::UnboundedSender<Action>,
+        config: Arc<Config>,
+        theme: Arc<Theme>,
+    ) -> Result<()> {
+        self.search
+            .init(action_tx.clone(), config.clone(), theme.clone())?;
+        self.page
+            .init(action_tx.clone(), config.clone(), theme.clone())?;
+        self.search_bar
+            .init(action_tx.clone(), config.clone(), theme.clone())?;
 
         self.theme = theme;
 

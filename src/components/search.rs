@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use anyhow::{anyhow, Result};
 use crossterm::event::{KeyCode, KeyEvent};
 use ratatui::{
@@ -16,7 +18,7 @@ use wiki_api::{
 
 use crate::{
     action::{Action, ActionPacket, ActionResult, SearchAction},
-    config::Theme,
+    config::{Config, Theme},
     terminal::Frame,
     ui::{centered_rect, ScrollBehaviour, StatefulList},
 };
@@ -43,7 +45,8 @@ pub struct SearchComponent {
     search_info: Option<SearchInfo>,
     continue_search: Option<SearchContinue>,
 
-    theme: Theme,
+    config: Arc<Config>,
+    theme: Arc<Theme>,
 
     action_tx: Option<mpsc::UnboundedSender<Action>>,
 }
@@ -60,7 +63,8 @@ impl Default for SearchComponent {
             search_info: None,
             continue_search: None,
 
-            theme: Theme::default(),
+            config: Arc::new(Config::default()),
+            theme: Arc::new(Theme::default()),
 
             action_tx: None,
         }
@@ -211,8 +215,14 @@ impl SearchComponent {
 }
 
 impl Component for SearchComponent {
-    fn init(&mut self, sender: mpsc::UnboundedSender<Action>, theme: Theme) -> anyhow::Result<()> {
+    fn init(
+        &mut self,
+        sender: mpsc::UnboundedSender<Action>,
+        config: Arc<Config>,
+        theme: Arc<Theme>,
+    ) -> anyhow::Result<()> {
         self.action_tx = Some(sender);
+        self.config = config;
         self.theme = theme;
         Ok(())
     }
@@ -420,5 +430,15 @@ impl Component for SearchComponent {
                     .add_modifier(Modifier::ITALIC),
             );
         f.render_stateful_widget(items, results_area, self.search_results.get_state_mut());
+    }
+
+    fn handle_events(&mut self, event: Option<crate::event::Event>) -> ActionResult {
+        match event {
+            Some(crate::event::Event::Quit) => Action::Quit.into(),
+            Some(crate::event::Event::RenderTick) => Action::RenderTick.into(),
+            Some(crate::event::Event::Key(key_event)) => self.handle_key_events(key_event),
+            Some(crate::event::Event::Resize(x, y)) => Action::Resize(x, y).into(),
+            None => ActionResult::Ignored,
+        }
     }
 }

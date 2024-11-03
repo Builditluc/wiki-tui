@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, sync::Arc};
 
 use crossterm::event::{KeyCode, KeyEvent};
 use ratatui::{
@@ -17,7 +17,7 @@ use wiki_api::{
 use crate::{
     action::{Action, ActionPacket, ActionResult, PageAction},
     components::Component,
-    config::Theme,
+    config::{Config, Theme, TocConfigPosition, TocConfigTitle},
     has_modifier,
     renderer::{default_renderer::render_document, RenderedDocument},
     terminal::Frame,
@@ -86,14 +86,15 @@ pub struct PageComponent {
     viewport: Rect,
     selected: (usize, usize),
 
-    theme: Theme,
+    config: Arc<Config>,
+    theme: Arc<Theme>,
 
     is_contents: bool,
     contents_state: PageContentsState,
 }
 
 impl PageComponent {
-    pub fn new(page: Page, theme: Theme) -> Self {
+    pub fn new(page: Page, config: Arc<Config>, theme: Arc<Theme>) -> Self {
         let contents_state = PageContentsState {
             list_state: ListState::default().with_selected(Some(0)),
             max_idx_section: page.sections().map(|x| x.len() as u8).unwrap_or_default(),
@@ -105,6 +106,7 @@ impl PageComponent {
             viewport: Rect::default(),
             selected: (0, 0),
 
+            config,
             theme,
 
             is_contents: false,
@@ -131,8 +133,14 @@ impl PageComponent {
     }
 
     fn render_contents(&mut self, f: &mut Frame<'_>, area: Rect) {
+        let title = match self.config.page.toc.title {
+            TocConfigTitle::Default => "Contents".to_string(),
+            TocConfigTitle::Article => self.page.title.to_string(),
+            TocConfigTitle::Custom(ref title) => title.to_string(),
+        };
+
         let sections = self.page.sections.as_ref();
-        let mut block = self.theme.default_block().title("Contents");
+        let mut block = self.theme.default_block().title(title);
         if self.is_contents {
             block = block.border_style(
                 Style::default()
@@ -152,11 +160,13 @@ impl PageComponent {
         }
 
         let sections = sections.unwrap();
-        let list = List::new(
-            sections
-                .iter()
-                .map(|x| format!("{} {}", x.number, x.text).fg(self.theme.fg)),
-        )
+        let list = List::new(sections.iter().map(|x| {
+            self.config
+                .page
+                .toc
+                .formatted_item(&x.number, &x.text)
+                .fg(self.theme.fg)
+        }))
         .block(block)
         .highlight_style(
             Style::default()
@@ -366,7 +376,7 @@ impl PageComponent {
     }
 
     fn scroll_up(&mut self, amount: u16) {
-        if self.is_contents {
+        if self.is_contents && self.config.page.toc.enable_scrolling {
             let i = match self.contents_state.list_state.selected() {
                 Some(i) => {
                     if i == 0 {
@@ -386,7 +396,7 @@ impl PageComponent {
     }
 
     fn scroll_down(&mut self, amount: u16) {
-        if self.is_contents {
+        if self.is_contents && self.config.page.toc.enable_scrolling {
             let i = match self.contents_state.list_state.selected() {
                 Some(i) => {
                     if i >= self.contents_state.max_idx_section as usize - 1 {
@@ -611,14 +621,35 @@ impl Component for PageComponent {
             status_area,
         );
 
-        let area = {
+        let area = if self.config.page.toc.enabled {
+            let mut constraints = [
+                Constraint::Percentage(
+                    100_u16.saturating_sub(self.config.page.toc.width_percentage),
+                ),
+                Constraint::Percentage(self.config.page.toc.width_percentage),
+            ];
+
+            if self.config.page.toc.position == TocConfigPosition::Left {
+                constraints.reverse();
+            }
+
             let splits = Layout::default()
                 .direction(Direction::Horizontal)
-                .constraints([Constraint::Percentage(80), Constraint::Percentage(20)])
+                .constraints(constraints)
                 .split(area);
 
-            self.render_contents(f, splits[1]);
-            splits[0]
+            match self.config.page.toc.position {
+                TocConfigPosition::Left => {
+                    self.render_contents(f, splits[0]);
+                    splits[1]
+                }
+                TocConfigPosition::Right => {
+                    self.render_contents(f, splits[1]);
+                    splits[0]
+                }
+            }
+        } else {
+            area
         };
 
         let page_area = if SCROLLBAR {

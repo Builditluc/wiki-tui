@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use anyhow::Result;
 use crossterm::event::KeyEvent;
 use ratatui::prelude::Rect;
@@ -5,7 +7,7 @@ use tokio::sync::mpsc;
 
 use crate::{
     action::{Action, ActionResult},
-    config::Theme,
+    config::{Config, Theme},
     event::Event,
     terminal::Frame,
 };
@@ -44,7 +46,12 @@ macro_rules! key_event {
 pub trait Component {
     // TODO: use custom error type
     #[allow(unused_variables)]
-    fn init(&mut self, action_tx: mpsc::UnboundedSender<Action>, theme: Theme) -> Result<()> {
+    fn init(
+        &mut self,
+        action_tx: mpsc::UnboundedSender<Action>,
+        config: Arc<Config>,
+        theme: Arc<Theme>,
+    ) -> Result<()> {
         Ok(())
     }
 

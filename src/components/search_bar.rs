@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use crossterm::event::{KeyCode, KeyEvent};
 use ratatui::{
     prelude::Rect,
@@ -8,7 +10,7 @@ use tui_input::{backend::crossterm::EventHandler, Input};
 
 use crate::{
     action::{Action, ActionResult, SearchAction},
-    config::Theme,
+    config::{Config, Theme},
     terminal::Frame,
     ui::centered_rect,
 };
@@ -23,7 +25,8 @@ pub const SEARCH_BAR_HEIGTH: u16 = 3;
 #[derive(Default)]
 pub struct SearchBarComponent {
     input: Input,
-    theme: Theme,
+    config: Arc<Config>,
+    theme: Arc<Theme>,
     pub is_focussed: bool,
 }
 
@@ -41,8 +44,10 @@ impl Component for SearchBarComponent {
     fn init(
         &mut self,
         _: tokio::sync::mpsc::UnboundedSender<Action>,
-        theme: Theme,
+        config: Arc<Config>,
+        theme: Arc<Theme>,
     ) -> anyhow::Result<()> {
+        self.config = config;
         self.theme = theme;
         Ok(())
     }
