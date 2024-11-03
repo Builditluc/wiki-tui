@@ -1,3 +1,35 @@
+# Unreleased v0.9.0-pre
+
+## Additions
+
+- Add toggleable logger view
+- Add async event system with centralized catching and message passing
+- Add processing pane when loading search results or fetching pages
+- Add `theme.toml` file for configuring the theme
+    - Add `--theme-config-path` cli flag to get the theme config location
+
+## Changes
+
+- Rewrite the UI in `ratatui` instead of `cursive`
+- Rewrite the parser to create a tree of nodes for a page
+    - Use the MediaWiki HTML DOM Spec for pages and parsing
+- Rewrite the renderer using `textwrap` to wrap lines of text
+- Rewrite the theme configuration structure
+- Change the application pattern to a component-based architecture
+- Change the logging library used to `tracing`
+- Change the cli library from `structopt` to `clap`
+- Improve debug panic messages using `better-panic`
+- Improve release panic messages using `human-panic`
+- Improve the cli interface
+
+## Fixes
+
+- Fix multiple issues with line-wrapping and rendering of different languages
+- Fix indentation of lists and nested lists
+- Fix scrollover from happening in some edge-cases
+- Fix language links from not parsing correctly
+- Fix cli errors not appearing when selecting an invalid language
+
 # v0.8.2 (Fri Aug 11 2023)
 
 :tada: This release contains work from a new contributor! :tada:
