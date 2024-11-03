@@ -70,6 +70,7 @@ nix-shell -p \
     python312Packages.mike \
     python312Packages.mkdocs-material \
     python312Packages.mkdocs-git-revision-date-localized-plugin \
+    python312Packages.mkdocs-git-authors-plugin \
     python312Packages.pillow \
     python312Packages.cairosvg
 ```

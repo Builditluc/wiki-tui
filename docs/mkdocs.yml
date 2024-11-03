@@ -9,6 +9,7 @@ repo_url: https://github.com/builditluc/wiki-tui
 
 theme:
   name: material
+  language: en
   custom_dir: docs/.overrides
   icon:
     logo: material/console
@@ -25,16 +26,27 @@ theme:
     - content.action.view
     - content.code.copy
   palette:
-    - media: "(prefers-color-scheme: light)"
-      scheme: default
+    # Palette toggle for automatic mode
+    - media: "(prefers-color-scheme)"
       toggle:
-        icon: material/toggle-switch-off-outline
+        icon: material/brightness-auto
+        name: Switch to light mode
+
+    # Palette toggle for light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default 
+
+
+      toggle:
+        icon: material/brightness-7
         name: Switch to dark mode
+
+    # Palette toggle for dark mode
     - media: "(prefers-color-scheme: dark)"
       scheme: slate
       toggle:
-        icon: material/toggle-switch
-        name: Switch to light mode
+        icon: material/brightness-4
+        name: Switch to system preference
 
 nav:
   - Home: index.md
@@ -44,10 +56,6 @@ nav:
     - Using the CLI: getting-started/using-cli.md
     - Overview of Keybindings: getting-started/overview-keybindings.md
     - License: getting-started/license.md
-
-    - Changelog:
-      - changelog/index.md
-      - How to upgrade: changelog/upgrade.md
 
     - Contributing: 
       - contributing/index.md
@@ -64,6 +72,11 @@ nav:
     - Configure the Logging: configuration/logging.md
     - Features: configuration/features.md
     - Keybindings: configuration/keybindings.md
+
+  - Changelog:
+    - changelog/index.md
+    - How to upgrade: changelog/upgrade.md
+
 
 edit_uri: edit/main/docs/docs/
 
@@ -86,8 +99,11 @@ markdown_extensions:
 plugins:
   - tags
   - social
+  - search
   - git-revision-date-localized:
       enable_creation_date: true
+      type: timeago
+  - git-authors
 
 extra:
   version:
