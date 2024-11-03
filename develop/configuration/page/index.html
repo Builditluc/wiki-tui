@@ -10,11 +10,13 @@
         <meta name="author" content="Builditluc">
       
       
-        <link rel="canonical" href="https://wiki-tui.net/develop/configuration/toc/">
+        <link rel="canonical" href="https://wiki-tui.net/develop/configuration/page/">
       
       
-        <link rel="prev" href="../keybindings/">
+        <link rel="prev" href="../theme/">
       
+      
+        <link rel="next" href="../api/">
       
       
       <link rel="icon" href="../../assets/images/logo.png">
@@ -22,7 +24,7 @@
     
     
       
-        <title>Table of Contents - wiki-tui</title>
+        <title>Configuring the Pages - wiki-tui</title>
       
     
     
@@ -57,11 +59,11 @@
       
         <meta  property="og:type"  content="website" >
       
-        <meta  property="og:title"  content="Table of Contents - wiki-tui" >
+        <meta  property="og:title"  content="Configuring the Pages - wiki-tui" >
       
         <meta  property="og:description"  content="None" >
       
-        <meta  property="og:image"  content="https://wiki-tui.net/develop/assets/images/social/configuration/toc.png" >
+        <meta  property="og:image"  content="https://wiki-tui.net/develop/assets/images/social/configuration/page.png" >
       
         <meta  property="og:image:type"  content="image/png" >
       
@@ -69,15 +71,15 @@
       
         <meta  property="og:image:height"  content="630" >
       
-        <meta  property="og:url"  content="https://wiki-tui.net/develop/configuration/toc/" >
+        <meta  property="og:url"  content="https://wiki-tui.net/develop/configuration/page/" >
       
         <meta  name="twitter:card"  content="summary_large_image" >
       
-        <meta  name="twitter:title"  content="Table of Contents - wiki-tui" >
+        <meta  name="twitter:title"  content="Configuring the Pages - wiki-tui" >
       
         <meta  name="twitter:description"  content="None" >
       
-        <meta  name="twitter:image"  content="https://wiki-tui.net/develop/assets/images/social/configuration/toc.png" >
+        <meta  name="twitter:image"  content="https://wiki-tui.net/develop/assets/images/social/configuration/page.png" >
       
     
     
@@ -100,7 +102,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#table-of-contents-configuration" class="md-skip">
+        <a href="#page-configuration" class="md-skip">
           Skip to content
         </a>
       
@@ -152,7 +154,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Table of Contents
+              Configuring the Pages
             
           </span>
         </div>
@@ -832,11 +834,11 @@
   
   
     <li class="md-nav__item">
-      <a href="../api/" class="md-nav__link">
+      <a href="../theme/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
-    Api Settings
+    Changing the Theme
   </span>
   
 
@@ -850,14 +852,144 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../theme/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    Configuring the Pages
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   <span class="md-ellipsis">
-    Changing the Theme
+    Configuring the Pages
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#table-of-contents-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Table of Contents Configuration
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Table of Contents Configuration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#disabling-the-table-of-contents" class="md-nav__link">
+    <span class="md-ellipsis">
+      Disabling the Table of Contents
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#changing-the-title" class="md-nav__link">
+    <span class="md-ellipsis">
+      Changing the Title
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#positioning-the-table-of-contents" class="md-nav__link">
+    <span class="md-ellipsis">
+      Positioning the Table of Contents
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#adjusting-the-width" class="md-nav__link">
+    <span class="md-ellipsis">
+      Adjusting the width
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#disable-scrolling" class="md-nav__link">
+    <span class="md-ellipsis">
+      Disable Scrolling
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#modify-item-generation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Modify Item generation
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Api Settings
   </span>
   
 
@@ -930,160 +1062,6 @@
 
               
             
-              
-                
-  
-  
-    
-  
-  
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  <span class="md-ellipsis">
-    Table of Contents
-  </span>
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
-        
-  
-  <span class="md-ellipsis">
-    Table of Contents
-  </span>
-  
-
-      </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#changing-the-title" class="md-nav__link">
-    <span class="md-ellipsis">
-      Changing the Title
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#positioning-the-table-of-contents" class="md-nav__link">
-    <span class="md-ellipsis">
-      Positioning the Table of Contents
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#adjusting-the-width" class="md-nav__link">
-    <span class="md-ellipsis">
-      Adjusting the width
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Adjusting the width">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#minimal-width" class="md-nav__link">
-    <span class="md-ellipsis">
-      Minimal Width
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#maximal-width" class="md-nav__link">
-    <span class="md-ellipsis">
-      Maximal Width
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#disable-scrolling" class="md-nav__link">
-    <span class="md-ellipsis">
-      Disable Scrolling
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Disable Scrolling">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#horizontal-scrolling" class="md-nav__link">
-    <span class="md-ellipsis">
-      Horizontal Scrolling
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#vertical-scrolling" class="md-nav__link">
-    <span class="md-ellipsis">
-      Vertical Scrolling
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#modify-item-generation" class="md-nav__link">
-    <span class="md-ellipsis">
-      Modify Item generation
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
-    </li>
-  
-
-              
-            
           </ul>
         </nav>
       
@@ -1118,6 +1096,25 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#table-of-contents-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Table of Contents Configuration
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Table of Contents Configuration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#disabling-the-table-of-contents" class="md-nav__link">
+    <span class="md-ellipsis">
+      Disabling the Table of Contents
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#changing-the-title" class="md-nav__link">
     <span class="md-ellipsis">
       Changing the Title
@@ -1125,8 +1122,8 @@
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
+        
+          <li class="md-nav__item">
   <a href="#positioning-the-table-of-contents" class="md-nav__link">
     <span class="md-ellipsis">
       Positioning the Table of Contents
@@ -1134,63 +1131,29 @@
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
+        
+          <li class="md-nav__item">
   <a href="#adjusting-the-width" class="md-nav__link">
     <span class="md-ellipsis">
       Adjusting the width
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Adjusting the width">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#minimal-width" class="md-nav__link">
-    <span class="md-ellipsis">
-      Minimal Width
-    </span>
-  </a>
-  
 </li>
         
           <li class="md-nav__item">
-  <a href="#maximal-width" class="md-nav__link">
-    <span class="md-ellipsis">
-      Maximal Width
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#disable-scrolling" class="md-nav__link">
     <span class="md-ellipsis">
       Disable Scrolling
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Disable Scrolling">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#horizontal-scrolling" class="md-nav__link">
-    <span class="md-ellipsis">
-      Horizontal Scrolling
-    </span>
-  </a>
-  
 </li>
         
           <li class="md-nav__item">
-  <a href="#vertical-scrolling" class="md-nav__link">
+  <a href="#modify-item-generation" class="md-nav__link">
     <span class="md-ellipsis">
-      Vertical Scrolling
+      Modify Item generation
     </span>
   </a>
   
@@ -1198,15 +1161,6 @@
         
       </ul>
     </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#modify-item-generation" class="md-nav__link">
-    <span class="md-ellipsis">
-      Modify Item generation
-    </span>
-  </a>
   
 </li>
       
@@ -1225,7 +1179,7 @@
                   
 
   
-    <a href="https://github.com/builditluc/wiki-tui/edit/main/docs/docs/configuration/toc.md" title="Edit this page" class="md-content__button md-icon">
+    <a href="https://github.com/builditluc/wiki-tui/edit/main/docs/docs/configuration/page.md" title="Edit this page" class="md-content__button md-icon">
       
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
     </a>
@@ -1234,68 +1188,56 @@
     
       
     
-    <a href="https://github.com/builditluc/wiki-tui/raw/main/docs/docs/configuration/toc.md" title="View source of this page" class="md-content__button md-icon">
+    <a href="https://github.com/builditluc/wiki-tui/raw/main/docs/docs/configuration/page.md" title="View source of this page" class="md-content__button md-icon">
       
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M17 18c.56 0 1 .44 1 1s-.44 1-1 1-1-.44-1-1 .44-1 1-1m0-3c-2.73 0-5.06 1.66-6 4 .94 2.34 3.27 4 6 4s5.06-1.66 6-4c-.94-2.34-3.27-4-6-4m0 6.5a2.5 2.5 0 0 1-2.5-2.5 2.5 2.5 0 0 1 2.5-2.5 2.5 2.5 0 0 1 2.5 2.5 2.5 2.5 0 0 1-2.5 2.5M9.27 20H6V4h7v5h5v4.07c.7.08 1.36.25 2 .49V8l-6-6H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h4.5a8.2 8.2 0 0 1-1.23-2"/></svg>
     </a>
   
 
 
-<h1 id="table-of-contents-configuration">Table of Contents Configuration</h1>
-<div class="admonition info">
-<p class="admonition-title">Info</p>
-<p>You can <a href="../features/#table-of-contents">disable</a> the table of contents</p>
-</div>
-<h2 id="changing-the-title">Changing the Title</h2>
+<h1 id="page-configuration">Page Configuration</h1>
+<p>In this page you can find all of the configuration options for the page. In the configuration file,
+this describes the <code>[page]</code> table.</p>
+<h2 id="table-of-contents-configuration">Table of Contents Configuration</h2>
+<h3 id="disabling-the-table-of-contents">Disabling the Table of Contents</h3>
+<p><a href="https://github.com/Builditluc/wiki-tui/releases/tag/v0.5.0"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M7.75 6.5a1.25 1.25 0 1 0 0 2.5 1.25 1.25 0 0 0 0-2.5"/><path d="M2.5 1h8.44a1.5 1.5 0 0 1 1.06.44l10.25 10.25a1.5 1.5 0 0 1 0 2.12l-8.44 8.44a1.5 1.5 0 0 1-2.12 0L1.44 12A1.5 1.5 0 0 1 1 10.94V2.5A1.5 1.5 0 0 1 2.5 1m0 1.5v8.44l10.25 10.25 8.44-8.44L10.94 2.5Z"/></svg></span> 0.5.0</a> · <span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path d="M7.75 0a.75.75 0 0 1 .75.75V3h3.634c.414 0 .814.147 1.13.414l2.07 1.75a1.75 1.75 0 0 1 0 2.672l-2.07 1.75a1.75 1.75 0 0 1-1.13.414H8.5v5.25a.75.75 0 0 1-1.5 0V10H2.75A1.75 1.75 0 0 1 1 8.25v-3.5C1 3.784 1.784 3 2.75 3H7V.75A.75.75 0 0 1 7.75 0m4.384 8.5a.25.25 0 0 0 .161-.06l2.07-1.75a.248.248 0 0 0 0-.38l-2.07-1.75a.25.25 0 0 0-.161-.06H2.75a.25.25 0 0 0-.25.25v3.5c0 .138.112.25.25.25z"/></svg></span> Default: <code>true</code></p>
+<p>By settings this to false, the table of contents won't be displayed</p>
+<div class="highlight"><pre><span></span><code><span class="n">page</span><span class="p">.</span><span class="n">toc</span><span class="p">.</span><span class="n">enabled</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">false</span>
+</code></pre></div>
+<h3 id="changing-the-title">Changing the Title</h3>
 <p><a href="https://github.com/Builditluc/wiki-tui/releases/tag/v0.5.1"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M7.75 6.5a1.25 1.25 0 1 0 0 2.5 1.25 1.25 0 0 0 0-2.5"/><path d="M2.5 1h8.44a1.5 1.5 0 0 1 1.06.44l10.25 10.25a1.5 1.5 0 0 1 0 2.12l-8.44 8.44a1.5 1.5 0 0 1-2.12 0L1.44 12A1.5 1.5 0 0 1 1 10.94V2.5A1.5 1.5 0 0 1 2.5 1m0 1.5v8.44l10.25 10.25 8.44-8.44L10.94 2.5Z"/></svg></span> 0.5.1</a> ·
 <span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path d="M7.75 0a.75.75 0 0 1 .75.75V3h3.634c.414 0 .814.147 1.13.414l2.07 1.75a1.75 1.75 0 0 1 0 2.672l-2.07 1.75a1.75 1.75 0 0 1-1.13.414H8.5v5.25a.75.75 0 0 1-1.5 0V10H2.75A1.75 1.75 0 0 1 1 8.25v-3.5C1 3.784 1.784 3 2.75 3H7V.75A.75.75 0 0 1 7.75 0m4.384 8.5a.25.25 0 0 0 .161-.06l2.07-1.75a.248.248 0 0 0 0-.38l-2.07-1.75a.25.25 0 0 0-.161-.06H2.75a.25.25 0 0 0-.25.25v3.5c0 .138.112.25.25.25z"/></svg></span> Default: <code>default</code></p>
 <p>The available title options for the table of contents are:</p>
 <ul>
-<li><code>default</code>: uses the table of contents title given by the article (usually "Contents")</li>
-<li><code>article</code>: uses the title of the current article</li>
-<li><code>custom</code>: you can also define a custom title</li>
+<li><code>Default</code>: uses the title <code>Contents</code></li>
+<li><code>Article</code>: uses the title of the current article</li>
+<li><code>Custom</code>: you can also define a custom title</li>
 </ul>
-<div class="highlight"><pre><span></span><code><span class="n">settings</span><span class="p">.</span><span class="n">toc</span><span class="p">.</span><span class="n">title</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;default&quot;</span>
+<div class="highlight"><pre><span></span><code><span class="n">page</span><span class="p">.</span><span class="n">toc</span><span class="p">.</span><span class="n">title</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;Default&quot;</span>
 </code></pre></div>
 <p>With a custom title</p>
-<div class="highlight"><pre><span></span><code><span class="n">settings</span><span class="p">.</span><span class="n">toc</span><span class="p">.</span><span class="n">title</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;custom&quot;</span>
-<span class="n">settings</span><span class="p">.</span><span class="n">toc</span><span class="p">.</span><span class="n">title_custom</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;My Custom Title&quot;</span>
+<div class="highlight"><pre><span></span><code><span class="n">page</span><span class="p">.</span><span class="n">toc</span><span class="p">.</span><span class="n">title</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">Custom</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">&quot;My Custom Title&quot;</span><span class="w"> </span><span class="p">}</span>
 </code></pre></div>
-<h2 id="positioning-the-table-of-contents">Positioning the Table of Contents</h2>
+<h3 id="positioning-the-table-of-contents">Positioning the Table of Contents</h3>
 <p><a href="https://github.com/Builditluc/wiki-tui/releases/tag/v0.5.1"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M7.75 6.5a1.25 1.25 0 1 0 0 2.5 1.25 1.25 0 0 0 0-2.5"/><path d="M2.5 1h8.44a1.5 1.5 0 0 1 1.06.44l10.25 10.25a1.5 1.5 0 0 1 0 2.12l-8.44 8.44a1.5 1.5 0 0 1-2.12 0L1.44 12A1.5 1.5 0 0 1 1 10.94V2.5A1.5 1.5 0 0 1 2.5 1m0 1.5v8.44l10.25 10.25 8.44-8.44L10.94 2.5Z"/></svg></span> 0.5.1</a> ·
-<span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path d="M7.75 0a.75.75 0 0 1 .75.75V3h3.634c.414 0 .814.147 1.13.414l2.07 1.75a1.75 1.75 0 0 1 0 2.672l-2.07 1.75a1.75 1.75 0 0 1-1.13.414H8.5v5.25a.75.75 0 0 1-1.5 0V10H2.75A1.75 1.75 0 0 1 1 8.25v-3.5C1 3.784 1.784 3 2.75 3H7V.75A.75.75 0 0 1 7.75 0m4.384 8.5a.25.25 0 0 0 .161-.06l2.07-1.75a.248.248 0 0 0 0-.38l-2.07-1.75a.25.25 0 0 0-.161-.06H2.75a.25.25 0 0 0-.25.25v3.5c0 .138.112.25.25.25z"/></svg></span> Default: <code>right</code></p>
-<p>Per default, the table of contents is on the right side of the screen. You can also have the table of contents be on the left side of the screen</p>
-<div class="highlight"><pre><span></span><code><span class="n">settings</span><span class="p">.</span><span class="n">toc</span><span class="p">.</span><span class="n">position</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;left&quot;</span>
+<span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path d="M7.75 0a.75.75 0 0 1 .75.75V3h3.634c.414 0 .814.147 1.13.414l2.07 1.75a1.75 1.75 0 0 1 0 2.672l-2.07 1.75a1.75 1.75 0 0 1-1.13.414H8.5v5.25a.75.75 0 0 1-1.5 0V10H2.75A1.75 1.75 0 0 1 1 8.25v-3.5C1 3.784 1.784 3 2.75 3H7V.75A.75.75 0 0 1 7.75 0m4.384 8.5a.25.25 0 0 0 .161-.06l2.07-1.75a.248.248 0 0 0 0-.38l-2.07-1.75a.25.25 0 0 0-.161-.06H2.75a.25.25 0 0 0-.25.25v3.5c0 .138.112.25.25.25z"/></svg></span> Default: <code>Right</code></p>
+<p>Per default, the table of contents is on the right side of the screen. You can also have the table 
+of contents be on the left side of the screen</p>
+<div class="highlight"><pre><span></span><code><span class="n">page</span><span class="p">.</span><span class="n">toc</span><span class="p">.</span><span class="n">position</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;Left&quot;</span>
 </code></pre></div>
-<h2 id="adjusting-the-width">Adjusting the width</h2>
-<p>You can change the minimal and maximal width of the table of contents</p>
-<h3 id="minimal-width">Minimal Width</h3>
-<p><a href="https://github.com/Builditluc/wiki-tui/releases/tag/v0.5.1"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M7.75 6.5a1.25 1.25 0 1 0 0 2.5 1.25 1.25 0 0 0 0-2.5"/><path d="M2.5 1h8.44a1.5 1.5 0 0 1 1.06.44l10.25 10.25a1.5 1.5 0 0 1 0 2.12l-8.44 8.44a1.5 1.5 0 0 1-2.12 0L1.44 12A1.5 1.5 0 0 1 1 10.94V2.5A1.5 1.5 0 0 1 2.5 1m0 1.5v8.44l10.25 10.25 8.44-8.44L10.94 2.5Z"/></svg></span> 0.5.1</a> ·
-<span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path d="M7.75 0a.75.75 0 0 1 .75.75V3h3.634c.414 0 .814.147 1.13.414l2.07 1.75a1.75 1.75 0 0 1 0 2.672l-2.07 1.75a1.75 1.75 0 0 1-1.13.414H8.5v5.25a.75.75 0 0 1-1.5 0V10H2.75A1.75 1.75 0 0 1 1 8.25v-3.5C1 3.784 1.784 3 2.75 3H7V.75A.75.75 0 0 1 7.75 0m4.384 8.5a.25.25 0 0 0 .161-.06l2.07-1.75a.248.248 0 0 0 0-.38l-2.07-1.75a.25.25 0 0 0-.161-.06H2.75a.25.25 0 0 0-.25.25v3.5c0 .138.112.25.25.25z"/></svg></span> Default: <code>20</code></p>
-<p>The minimal width of the table of contents (measured in characters)</p>
-<div class="highlight"><pre><span></span><code><span class="n">settings</span><span class="p">.</span><span class="n">toc</span><span class="p">.</span><span class="n">min_width</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">20</span>
+<h3 id="adjusting-the-width">Adjusting the width</h3>
+<p><a href="https://github.com/Builditluc/wiki-tui/releases/tag/v0.9"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M7.75 6.5a1.25 1.25 0 1 0 0 2.5 1.25 1.25 0 0 0 0-2.5"/><path d="M2.5 1h8.44a1.5 1.5 0 0 1 1.06.44l10.25 10.25a1.5 1.5 0 0 1 0 2.12l-8.44 8.44a1.5 1.5 0 0 1-2.12 0L1.44 12A1.5 1.5 0 0 1 1 10.94V2.5A1.5 1.5 0 0 1 2.5 1m0 1.5v8.44l10.25 10.25 8.44-8.44L10.94 2.5Z"/></svg></span> 0.9.0</a> · <span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path d="M7.75 0a.75.75 0 0 1 .75.75V3h3.634c.414 0 .814.147 1.13.414l2.07 1.75a1.75 1.75 0 0 1 0 2.672l-2.07 1.75a1.75 1.75 0 0 1-1.13.414H8.5v5.25a.75.75 0 0 1-1.5 0V10H2.75A1.75 1.75 0 0 1 1 8.25v-3.5C1 3.784 1.784 3 2.75 3H7V.75A.75.75 0 0 1 7.75 0m4.384 8.5a.25.25 0 0 0 .161-.06l2.07-1.75a.248.248 0 0 0 0-.38l-2.07-1.75a.25.25 0 0 0-.161-.06H2.75a.25.25 0 0 0-.25.25v3.5c0 .138.112.25.25.25z"/></svg></span> Default <code>20</code></p>
+<p>You can change the percentage of the space the table of contents will occupy. The values are in
+percent (only whole numbers between 0 and 100 are allowed)</p>
+<div class="highlight"><pre><span></span><code><span class="n">page</span><span class="p">.</span><span class="n">toc</span><span class="p">.</span><span class="n">width_percentage</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">20</span>
 </code></pre></div>
-<h3 id="maximal-width">Maximal Width</h3>
-<p><a href="https://github.com/Builditluc/wiki-tui/releases/tag/v0.5.1"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M7.75 6.5a1.25 1.25 0 1 0 0 2.5 1.25 1.25 0 0 0 0-2.5"/><path d="M2.5 1h8.44a1.5 1.5 0 0 1 1.06.44l10.25 10.25a1.5 1.5 0 0 1 0 2.12l-8.44 8.44a1.5 1.5 0 0 1-2.12 0L1.44 12A1.5 1.5 0 0 1 1 10.94V2.5A1.5 1.5 0 0 1 2.5 1m0 1.5v8.44l10.25 10.25 8.44-8.44L10.94 2.5Z"/></svg></span> 0.5.1</a> ·
-<span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path d="M7.75 0a.75.75 0 0 1 .75.75V3h3.634c.414 0 .814.147 1.13.414l2.07 1.75a1.75 1.75 0 0 1 0 2.672l-2.07 1.75a1.75 1.75 0 0 1-1.13.414H8.5v5.25a.75.75 0 0 1-1.5 0V10H2.75A1.75 1.75 0 0 1 1 8.25v-3.5C1 3.784 1.784 3 2.75 3H7V.75A.75.75 0 0 1 7.75 0m4.384 8.5a.25.25 0 0 0 .161-.06l2.07-1.75a.248.248 0 0 0 0-.38l-2.07-1.75a.25.25 0 0 0-.161-.06H2.75a.25.25 0 0 0-.25.25v3.5c0 .138.112.25.25.25z"/></svg></span> Default: <code>60</code></p>
-<p>The maximal width of the table of contents (measured in characters)</p>
-<div class="highlight"><pre><span></span><code><span class="n">settings</span><span class="p">.</span><span class="n">toc</span><span class="p">.</span><span class="n">max_width</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">60</span>
-</code></pre></div>
-<h2 id="disable-scrolling">Disable Scrolling</h2>
-<p>If don't want the scrolling (and the scrollbars) in your table of contents, you can disable it</p>
-<h3 id="horizontal-scrolling">Horizontal Scrolling</h3>
-<p><a href="https://github.com/Builditluc/wiki-tui/releases/tag/v0.5.1"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M7.75 6.5a1.25 1.25 0 1 0 0 2.5 1.25 1.25 0 0 0 0-2.5"/><path d="M2.5 1h8.44a1.5 1.5 0 0 1 1.06.44l10.25 10.25a1.5 1.5 0 0 1 0 2.12l-8.44 8.44a1.5 1.5 0 0 1-2.12 0L1.44 12A1.5 1.5 0 0 1 1 10.94V2.5A1.5 1.5 0 0 1 2.5 1m0 1.5v8.44l10.25 10.25 8.44-8.44L10.94 2.5Z"/></svg></span> 0.5.1</a> ·
+<h3 id="disable-scrolling">Disable Scrolling</h3>
+<p><a href="https://github.com/Builditluc/wiki-tui/releases/tag/v0.9"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M7.75 6.5a1.25 1.25 0 1 0 0 2.5 1.25 1.25 0 0 0 0-2.5"/><path d="M2.5 1h8.44a1.5 1.5 0 0 1 1.06.44l10.25 10.25a1.5 1.5 0 0 1 0 2.12l-8.44 8.44a1.5 1.5 0 0 1-2.12 0L1.44 12A1.5 1.5 0 0 1 1 10.94V2.5A1.5 1.5 0 0 1 2.5 1m0 1.5v8.44l10.25 10.25 8.44-8.44L10.94 2.5Z"/></svg></span> 0.9.0</a> ·
 <span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path d="M7.75 0a.75.75 0 0 1 .75.75V3h3.634c.414 0 .814.147 1.13.414l2.07 1.75a1.75 1.75 0 0 1 0 2.672l-2.07 1.75a1.75 1.75 0 0 1-1.13.414H8.5v5.25a.75.75 0 0 1-1.5 0V10H2.75A1.75 1.75 0 0 1 1 8.25v-3.5C1 3.784 1.784 3 2.75 3H7V.75A.75.75 0 0 1 7.75 0m4.384 8.5a.25.25 0 0 0 .161-.06l2.07-1.75a.248.248 0 0 0 0-.38l-2.07-1.75a.25.25 0 0 0-.161-.06H2.75a.25.25 0 0 0-.25.25v3.5c0 .138.112.25.25.25z"/></svg></span> Default: <code>true</code></p>
-<p>Will disable horizontal scrolling (and the horizontal scrollbar) if set to <code>false</code></p>
-<div class="highlight"><pre><span></span><code><span class="n">settings</span><span class="p">.</span><span class="n">toc</span><span class="p">.</span><span class="n">scroll_x</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
+<p>Will disable scrolling inside of the table of contents if set to <code>false</code></p>
+<div class="highlight"><pre><span></span><code><span class="n">page</span><span class="p">.</span><span class="n">toc</span><span class="p">.</span><span class="n">enable_scrolling</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
 </code></pre></div>
-<h3 id="vertical-scrolling">Vertical Scrolling</h3>
-<p><a href="https://github.com/Builditluc/wiki-tui/releases/tag/v0.5.1"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M7.75 6.5a1.25 1.25 0 1 0 0 2.5 1.25 1.25 0 0 0 0-2.5"/><path d="M2.5 1h8.44a1.5 1.5 0 0 1 1.06.44l10.25 10.25a1.5 1.5 0 0 1 0 2.12l-8.44 8.44a1.5 1.5 0 0 1-2.12 0L1.44 12A1.5 1.5 0 0 1 1 10.94V2.5A1.5 1.5 0 0 1 2.5 1m0 1.5v8.44l10.25 10.25 8.44-8.44L10.94 2.5Z"/></svg></span> 0.5.1</a> ·
-<span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path d="M7.75 0a.75.75 0 0 1 .75.75V3h3.634c.414 0 .814.147 1.13.414l2.07 1.75a1.75 1.75 0 0 1 0 2.672l-2.07 1.75a1.75 1.75 0 0 1-1.13.414H8.5v5.25a.75.75 0 0 1-1.5 0V10H2.75A1.75 1.75 0 0 1 1 8.25v-3.5C1 3.784 1.784 3 2.75 3H7V.75A.75.75 0 0 1 7.75 0m4.384 8.5a.25.25 0 0 0 .161-.06l2.07-1.75a.248.248 0 0 0 0-.38l-2.07-1.75a.25.25 0 0 0-.161-.06H2.75a.25.25 0 0 0-.25.25v3.5c0 .138.112.25.25.25z"/></svg></span> Default: <code>true</code></p>
-<p>Will disable vertical scrolling (and the vertical scrollbar) if set to <code>false</code></p>
-<div class="highlight"><pre><span></span><code><span class="n">settings</span><span class="p">.</span><span class="n">toc</span><span class="p">.</span><span class="n">scroll_y</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
-</code></pre></div>
-<h2 id="modify-item-generation">Modify Item generation</h2>
+<h3 id="modify-item-generation">Modify Item generation</h3>
 <p><a href="https://github.com/Builditluc/wiki-tui/releases/tag/v0.5.1"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M7.75 6.5a1.25 1.25 0 1 0 0 2.5 1.25 1.25 0 0 0 0-2.5"/><path d="M2.5 1h8.44a1.5 1.5 0 0 1 1.06.44l10.25 10.25a1.5 1.5 0 0 1 0 2.12l-8.44 8.44a1.5 1.5 0 0 1-2.12 0L1.44 12A1.5 1.5 0 0 1 1 10.94V2.5A1.5 1.5 0 0 1 2.5 1m0 1.5v8.44l10.25 10.25 8.44-8.44L10.94 2.5Z"/></svg></span> 0.5.1</a> ·
 <span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path d="M7.75 0a.75.75 0 0 1 .75.75V3h3.634c.414 0 .814.147 1.13.414l2.07 1.75a1.75 1.75 0 0 1 0 2.672l-2.07 1.75a1.75 1.75 0 0 1-1.13.414H8.5v5.25a.75.75 0 0 1-1.5 0V10H2.75A1.75 1.75 0 0 1 1 8.25v-3.5C1 3.784 1.784 3 2.75 3H7V.75A.75.75 0 0 1 7.75 0m4.384 8.5a.25.25 0 0 0 .161-.06l2.07-1.75a.248.248 0 0 0 0-.38l-2.07-1.75a.25.25 0 0 0-.161-.06H2.75a.25.25 0 0 0-.25.25v3.5c0 .138.112.25.25.25z"/></svg></span> Default: <code>{NUMBER} {TEXT}</code></p>
 <p>If you don't like the look of the items in the table of contents, you can modify how these are generated. Available values are:</p>
@@ -1303,13 +1245,13 @@
 <li><code>{NUMBER}</code>: This is the current number of the header (for example: 1, 1.1, 1.2, 2, ...)</li>
 <li><code>{TEXT}</code>: The text (or content) of the header the item represents</li>
 </ul>
-<div class="highlight"><pre><span></span><code><span class="n">settings</span><span class="p">.</span><span class="n">toc</span><span class="p">.</span><span class="n">item_format</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;{NUMBER} {TEXT}&quot;</span>
+<div class="highlight"><pre><span></span><code><span class="n">page</span><span class="p">.</span><span class="n">toc</span><span class="p">.</span><span class="n">item_format</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;{NUMBER} {TEXT}&quot;</span>
 </code></pre></div>
 <p>If you don't like the numbers at the beginning</p>
-<div class="highlight"><pre><span></span><code><span class="n">settings</span><span class="p">.</span><span class="n">toc</span><span class="p">.</span><span class="n">item_format</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;{TEXT}&quot;</span>
+<div class="highlight"><pre><span></span><code><span class="n">page</span><span class="p">.</span><span class="n">toc</span><span class="p">.</span><span class="n">item_format</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;{TEXT}&quot;</span>
 </code></pre></div>
 <p>Or if you want to have a custom beginning</p>
-<div class="highlight"><pre><span></span><code><span class="n">settings</span><span class="p">.</span><span class="n">toc</span><span class="p">.</span><span class="n">item_format</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;# {TEXT}&quot;</span>
+<div class="highlight"><pre><span></span><code><span class="n">page</span><span class="p">.</span><span class="n">toc</span><span class="p">.</span><span class="n">item_format</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;# {TEXT}&quot;</span>
 </code></pre></div>
 
 
@@ -1333,7 +1275,7 @@
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">July 31, 2024</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">November 3, 2024</span>
   </span>
 
     
@@ -1343,7 +1285,7 @@
     <span class="md-icon" title="Created">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M14.47 15.08 11 13V7h1.5v5.25l3.08 1.83c-.41.28-.79.62-1.11 1m-1.39 4.84c-.36.05-.71.08-1.08.08-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8c0 .37-.03.72-.08 1.08.69.1 1.33.32 1.92.64.1-.56.16-1.13.16-1.72 0-5.5-4.5-10-10-10S2 6.5 2 12s4.47 10 10 10c.59 0 1.16-.06 1.72-.16-.32-.59-.54-1.23-.64-1.92M18 15v3h-3v2h3v3h2v-3h3v-2h-3v-3z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">August 11, 2022</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">November 3, 2024</span>
   </span>
 
     

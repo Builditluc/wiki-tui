@@ -16,7 +16,7 @@
         <link rel="prev" href="../contributing/maintainers/">
       
       
-        <link rel="next" href="api/">
+        <link rel="next" href="theme/">
       
       
       <link rel="icon" href="../assets/images/logo.png">
@@ -834,11 +834,11 @@
   
   
     <li class="md-nav__item">
-      <a href="api/" class="md-nav__link">
+      <a href="theme/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
-    Api Settings
+    Changing the Theme
   </span>
   
 
@@ -855,11 +855,32 @@
   
   
     <li class="md-nav__item">
-      <a href="theme/" class="md-nav__link">
+      <a href="page/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
-    Changing the Theme
+    Configuring the Pages
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="api/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Api Settings
   </span>
   
 
@@ -923,27 +944,6 @@
   
   <span class="md-ellipsis">
     Keybindings
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="toc/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Table of Contents
   </span>
   
 
@@ -1031,24 +1031,26 @@ changes to occur every now and then. Always read the docs!</p>
 <p>It's usually this path:</p>
 <div class="highlight"><pre><span></span><code>$HOME/.config/wiki-tui/config.toml
 </code></pre></div>
+<p>Configuration is separated into the actual configuration and theming. The theme configuration
+options can be found <a href="theme/">here</a>.</p>
 <p>It is written in <a href="https://github.com/toml-lang/toml">toml</a> and the following pages list all of the available configuration options.
-If you are not familiar with time, we suggest you read about the toml specification online.</p>
+If you are not familiar with toml, I suggest you read about the toml specification online.</p>
 <div class="admonition tip">
 <p class="admonition-title">One Quick Note about TOML</p>
 <p>TOML lets you group options that are in the same <a href="https://toml.io/en/v1.0.0#table">table</a>. It is suggested you group the options like this. For example, if you have the following options:</p>
-<div class="highlight"><pre><span></span><code>settings.toc.title = ...
+<div class="highlight"><pre><span></span><code>page.toc.title = ...
 </code></pre></div>
 <p>and </p>
-<div class="highlight"><pre><span></span><code>settings.toc.position = ...
+<div class="highlight"><pre><span></span><code>page.toc.position = ...
 </code></pre></div>
 <p>you can group them like this:</p>
-<div class="highlight"><pre><span></span><code>[settings.toc]
+<div class="highlight"><pre><span></span><code>[page.toc]
 title = ...
 position = ...
 </code></pre></div>
-<p>This is the recommended method because it makes your config easier to read for humans</p>
+<p>This is the recommended method because it makes your config easier to read, but it has no effect
+on the application</p>
 </div>
-<p>Because wiki-tui is under active development, there will be many more configuration options. If you see any option on this page tagged with <code>pre-release</code> that means it hasn't been released yet and will be added on the next release.</p>
 
 
 
@@ -1071,7 +1073,7 @@ position = ...
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">July 31, 2024</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">November 3, 2024</span>
   </span>
 
     
