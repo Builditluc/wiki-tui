@@ -88,15 +88,15 @@ impl Component for AppComponent {
             return Action::Quit.into();
         }
 
-        if self.search_bar.is_focussed {
-            return self.search_bar.handle_key_events(key);
-        }
-
         if let Some(ref mut popup) = self.popups.last_mut() {
             let result = popup.handle_key_events(key);
             if result.is_consumed() {
                 return result;
             }
+        }
+
+        if self.search_bar.is_focussed {
+            return self.search_bar.handle_key_events(key);
         }
 
         let result = match self.context {
