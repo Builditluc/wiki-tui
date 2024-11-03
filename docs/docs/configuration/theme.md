@@ -122,6 +122,15 @@ scrollbar_track_fg = "black"
 scrollbar_thumb_fg = "blue"
 ```
 
+### Statusbar
+[:octicons-tag-24: 0.9.0][release-0.9.0] :octicons-milestone-16: Default: `reset` | `darkgray`
+
+The colors used for the statusbar in the search and page panes
+```toml
+status_bar_fg = "reset"
+status_bar_bg = "darkgray"
+```
+
 ## Configure the borders
 
 ### Colors
@@ -154,5 +163,6 @@ border_type = "Rounded"
 
 > More information about the characters for the borders can be found on ratatui's documentation on
 > the `BorderType` [here](https://docs.rs/ratatui/0.26.3/ratatui/widgets/block/enum.BorderType.html)
+
 
 [release-0.9.0]: https://github.com/Builditluc/wiki-tui/releases/tag/v0.9

@@ -602,7 +602,14 @@ impl Component for PageComponent {
             self.page.language.name(),
             self.page.available_languages().unwrap_or_default()
         );
-        f.render_widget(self.theme.default_paragraph(status_msg), status_area);
+        f.render_widget(
+            self.theme.default_paragraph(status_msg).style(
+                Style::default()
+                    .fg(self.theme.status_bar_fg)
+                    .bg(self.theme.status_bar_bg),
+            ),
+            status_area,
+        );
 
         let area = {
             let splits = Layout::default()

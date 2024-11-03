@@ -7,6 +7,9 @@
 - Add processing pane when loading search results or fetching pages
 - Add `theme.toml` file for configuring the theme
     - Add `--theme-config-path` cli flag to get the theme config location
+    - Add options for changing the border colors
+    - Add options for changing the scrollbar colors
+    - Add options for changing the statusbar colors
 
 ## Changes
 

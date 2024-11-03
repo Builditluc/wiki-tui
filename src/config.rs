@@ -76,6 +76,9 @@ pub fn load_theme() -> Result<Theme> {
 
     override_color!(default_theme, user_theme, search_title_fg);
 
+    override_color!(default_theme, user_theme, status_bar_fg);
+    override_color!(default_theme, user_theme, status_bar_bg);
+
     Ok(default_theme)
 }
 
@@ -118,6 +121,9 @@ pub struct Theme {
     pub scrollbar_thumb_fg: Color,
 
     pub search_title_fg: Color,
+
+    pub status_bar_fg: Color,
+    pub status_bar_bg: Color,
 }
 
 impl Theme {
@@ -145,6 +151,9 @@ impl Theme {
             scrollbar_thumb_fg: Color::Blue,
 
             search_title_fg: Color::Red,
+            
+            status_bar_fg: Color::Reset,
+            status_bar_bg: Color::DarkGray,
         }
     }
 
@@ -219,4 +228,7 @@ struct UserTheme {
     scrollbar_thumb_fg: Option<Color>,
 
     search_title_fg: Option<Color>,
+
+    status_bar_fg: Option<Color>,
+    status_bar_bg: Option<Color>,
 }
