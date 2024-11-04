@@ -19,7 +19,7 @@ impl Tui {
         Ok(Self { terminal })
     }
 
-    pub fn enter(&self) -> Result<()> {
+    pub fn enter(&mut self) -> Result<()> {
         crossterm::terminal::enable_raw_mode()?;
         crossterm::execute!(
             std::io::stderr(),
@@ -27,10 +27,12 @@ impl Tui {
             EnableMouseCapture,
             cursor::Hide
         )?;
+        self.terminal.clear()?;
         Ok(())
     }
 
-    pub fn exit(&self) -> Result<()> {
+    pub fn exit(&mut self) -> Result<()> {
+        self.terminal.clear()?;
         crossterm::execute!(
             std::io::stderr(),
             LeaveAlternateScreen,
@@ -41,7 +43,7 @@ impl Tui {
         Ok(())
     }
 
-    pub fn suspend(&self) -> Result<()> {
+    pub fn suspend(&mut self) -> Result<()> {
         self.exit()?;
         #[cfg(windows)]
         signal_hook::low_level::raise(signal_hook::consts::signal::SIGABRT)?;
@@ -50,7 +52,7 @@ impl Tui {
         Ok(())
     }
 
-    pub fn resume(&self) -> Result<()> {
+    pub fn resume(&mut self) -> Result<()> {
         self.enter()?;
         Ok(())
     }

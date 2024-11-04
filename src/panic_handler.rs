@@ -13,7 +13,7 @@ pub fn initialize_panic_handler() -> Result<()> {
 
     std::panic::set_hook(Box::new(move |panic_info| {
         match Tui::new() {
-            Ok(tui) => {
+            Ok(mut tui) => {
                 if let Err(error) = tui.exit() {
                     error!("unable to exit terminal: {error:?}");
                 }
