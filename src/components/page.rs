@@ -6,7 +6,7 @@ use ratatui::{
     prelude::{Margin, Rect},
     style::{Color, Modifier, Style, Stylize},
     text::{Line, Span},
-    widgets::{List, ListState, Paragraph, Scrollbar, ScrollbarOrientation, ScrollbarState},
+    widgets::{Block, List, ListState, Paragraph, Scrollbar, ScrollbarOrientation, ScrollbarState},
 };
 use tracing::{debug, info, warn};
 use wiki_api::{
@@ -598,6 +598,9 @@ impl Component for PageComponent {
     }
 
     fn render(&mut self, f: &mut Frame, area: Rect) {
+        // we add padding to the area by using a Block with padding
+        let area = Block::new().padding(self.config.page.padding).inner(area);
+
         let (area, status_area) = {
             let splits = Layout::default()
                 .direction(Direction::Vertical)

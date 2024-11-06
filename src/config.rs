@@ -2,7 +2,7 @@ use anyhow::{bail, Context, Result};
 use directories::ProjectDirs;
 use ratatui::{
     style::{Color, Style},
-    widgets::BorderType,
+    widgets::{BorderType, Padding},
 };
 use serde::Deserialize;
 use std::path::PathBuf;
@@ -43,9 +43,12 @@ pub fn config_dir() -> Result<PathBuf> {
 
 macro_rules! override_options {
     ($config:expr, $uconfig:ident::{$( $option:ident ),+}) => {
-        $(if let Some(option) = $uconfig.$option {
-            $config.$option = option;
-        })+
+        $({override_options!($config, $uconfig::$option)})+
+    };
+    ($config:expr, $uconfig:ident::$option:ident) => {
+        if let Some(option) = $uconfig.$option {
+            $config.$option = option.into();
+        }
     };
 }
 
@@ -72,6 +75,9 @@ fn override_page_config(config: &mut PageConfig, user_config: UserPageConfig) {
             enable_scrolling
         });
     }
+
+    tracing::warn!("{:?}", user_config.padding);
+    override_options!(config, user_config::padding);
 }
 
 fn load_user_config() -> Result<UserConfig> {
@@ -95,6 +101,35 @@ pub struct Config {
 
 pub struct PageConfig {
     pub toc: TocConfig,
+    pub padding: Padding,
+}
+
+#[derive(Deserialize, Debug)]
+#[serde(untagged)]
+pub enum PaddingConfig {
+    Uniform(u16),
+    Horizontal { horizontal: u16 },
+    Vertical { veritical: u16 },
+    Proportional { proportional: u16 },
+    Symmetric { symmetric: (u16, u16) },
+    Custom(u16, u16, u16, u16),
+}
+
+#[allow(clippy::from_over_into)] // since we cannot implement From for an external type, we need to
+// ignore the warning
+impl Into<Padding> for PaddingConfig {
+    fn into(self) -> Padding {
+        match self {
+            PaddingConfig::Uniform(val) => Padding::uniform(val),
+            PaddingConfig::Horizontal { horizontal } => Padding::horizontal(horizontal),
+            PaddingConfig::Vertical { veritical } => Padding::vertical(veritical),
+            PaddingConfig::Proportional { proportional } => Padding::proportional(proportional),
+            PaddingConfig::Symmetric { symmetric } => Padding::symmetric(symmetric.0, symmetric.1),
+            PaddingConfig::Custom(left, right, top, bottom) => {
+                Padding::new(left, right, top, bottom)
+            }
+        }
+    }
 }
 
 #[derive(Deserialize, PartialEq, Eq)]
@@ -133,6 +168,7 @@ impl Config {
 
                     enable_scrolling: true,
                 },
+                padding: Padding::zero(),
             },
         }
     }
@@ -163,6 +199,7 @@ struct UserConfig {
 #[derive(Deserialize)]
 struct UserPageConfig {
     toc: Option<UserTocConfig>,
+    padding: Option<PaddingConfig>,
 }
 
 #[derive(Deserialize)]

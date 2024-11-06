@@ -3,6 +3,29 @@
 In this page you can find all of the configuration options for the page. In the configuration file,
 this describes the `[page]` table.
 
+## Padding
+
+[:octicons-tag-24: 0.9.0][release-0.9.0] · :octicons-milestone-16: Default `0`
+
+You can set a padding around the page view (including the table of contents, and the statusbar).
+There are different padding options available, each with their own schema of configuring :
+
+* **Uniform**: `page.padding = VAL` Creates a padding with the same values for all sides (left,
+    right, top, bottom)
+* **Custom**: `page.padding = [VAL, VAL, VAL, VAL]` Creates a padding by specifying every field
+    individually. It is `left`, `right`, `top`, `bottom`.
+* **Horizontal**: `page.padding.horizontal = VAL` Creates a padding with the same value for left 
+    and right
+* **Vertical**: `page.padding.vertical = VAL` Creates a padding with the same value for top and
+    bottom
+* **Proportional**: `page.padding.proportional = VAL` Creates a padding that is visually
+    proportional to the terminal. This represents a padding of 2x the value for left and right and 
+    1x the value for top and bottom.
+* **Symmetric**: `page.padding.symmetric = [VAL, VAL]` Creates a padding that is symmetric. The x 
+    value is used for left and right and the y value is used for top and bottom.
+
+> Note: VAL is a u16
+
 ## Table of Contents Configuration
 
 ### Disabling the Table of Contents
