@@ -10,6 +10,7 @@
     - Add options for changing the border colors
     - Add options for changing the scrollbar colors
     - Add options for changing the statusbar colors
+- Add zen-mode to hide ui elements
 
 ## Changes
 

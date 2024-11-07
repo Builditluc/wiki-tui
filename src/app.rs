@@ -23,7 +23,7 @@ use crate::{
         search_language_popup::SearchLanguageSelectionComponent,
         Component,
     },
-    config::{Config, Theme},
+    config::{Config, Theme, ZenModeComponents},
     has_modifier,
     page_loader::PageLoader,
     terminal::Frame,
@@ -43,6 +43,7 @@ pub struct AppComponent {
     is_logger: bool,
 
     popups: Vec<Box<dyn Component + Send>>,
+    config: Arc<Config>,
     theme: Arc<Theme>,
 
     context: u8,
@@ -61,6 +62,22 @@ impl AppComponent {
         let selection_widget = self.page.get_page_language_selection_popup();
         self.popups.push(Box::new(selection_widget));
     }
+
+    fn render_search_bar(&mut self, f: &mut Frame<'_>, area: Rect) -> Rect {
+        let (search_bar_area, area) = {
+            let chunks = Layout::default()
+                .direction(Direction::Vertical)
+                .constraints([
+                    Constraint::Min(SEARCH_BAR_HEIGTH),
+                    Constraint::Percentage(100),
+                ])
+                .split(area);
+            (chunks[0], chunks[1])
+        };
+
+        self.search_bar.render(f, search_bar_area);
+        area
+    }
 }
 
 impl Component for AppComponent {
@@ -77,6 +94,7 @@ impl Component for AppComponent {
         self.search_bar
             .init(action_tx.clone(), config.clone(), theme.clone())?;
 
+        self.config = config;
         self.theme = theme;
 
         let endpoint = Endpoint::parse("https://en.wikipedia.org/w/api.php").unwrap();
@@ -234,34 +252,38 @@ impl Component for AppComponent {
         ActionResult::consumed()
     }
 
-    fn render(&mut self, f: &mut Frame<'_>, area: Rect) {
+    fn render(&mut self, f: &mut Frame<'_>, mut area: Rect) {
         f.render_widget(
             Block::default().style(Style::default().bg(self.theme.bg)),
             area,
         );
 
-        let (search_bar_area, area) = {
-            let chunks = Layout::default()
-                .direction(Direction::Vertical)
-                .constraints([
-                    Constraint::Min(SEARCH_BAR_HEIGTH),
-                    Constraint::Percentage(100),
-                ])
-                .split(area);
-            (chunks[0], chunks[1])
-        };
+        // don't render the search bar when we're in zen-mode and the config doesn't include the
+        // search bar in the zen-mode settings
+        match self.page.current_page() {
+            // always render the searchbar if its focussed
+            Some(_) if self.search_bar.is_focussed => area = self.render_search_bar(f, area),
+            Some(page) => {
+                if !page.is_zen_mode()
+                    || self
+                        .config
+                        .page
+                        .zen_mode
+                        .contains(ZenModeComponents::SEARCH_BAR)
+                {
+                    area = self.render_search_bar(f, area);
+                }
+            }
+            None => area = self.render_search_bar(f, area),
+        }
 
-        self.search_bar.render(f, search_bar_area);
-
-        let area = if self.is_logger {
+        if self.is_logger {
             let chunks = Layout::default()
                 .direction(Direction::Horizontal)
                 .constraints([Constraint::Percentage(50), Constraint::Percentage(50)])
                 .split(area);
             self.logger.render(f, chunks[1]);
-            chunks[0]
-        } else {
-            area
+            area = chunks[0];
         };
 
         match self.context {

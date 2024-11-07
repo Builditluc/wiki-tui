@@ -119,6 +119,65 @@ Or if you want to have a custom beginning
 page.toc.item_format = "# {TEXT}"
 ```
 
+## Zen Mode
+
+[:octicons-tag-24: 0.9.0][release-0.9.0] · :octicons-milestone-16: Default `""` 
+
+When viewing a page, you can enter `zen-mode` to hide unnecessary and distracting components. To
+select which components will be shown even when in `zen-mode`, set the `page.zen_mode.include` 
+setting accordingly (The default binding for toggling `zen-mode` is ++f4++). Please note that the 
+`zen-mode` setting is individually set for each page, meaning you have to turn it on (again) when 
+you're opening a different page.
+
+```toml
+page.zen_mode.include = "SCROLLBAR"
+```
+
+You can also enable the `zen-mode` by default on a page:
+
+```toml
+page.zen_mode.default = false
+```
+
+The components currently available to show/hide are:
+
+* `STATUS_BAR`
+* `TOC`
+* `SEARCH_BAR`
+* `SCROLLBAR`
+
+If you want to show multiple components, you can add them together. For example, for showing the 
+table of contents and the scrollbar you'd set:
+
+```toml
+page.zen_mode.include = "TOC | SCROLLBAR"
+```
+
+Alternatively, you can leave out the spaces in between the components:
+
+```toml
+page.zen_mode.include  = "TOC|SCROLLBAR"
+```
+
+!!! warning
+    Do note that these identifiers are case-sensitive, meaning this is not equivalent to the 
+    previous (and won't work, because these components don't exist)
+
+    ```toml
+    page.zen_mode.include  = "toc | scrollbar"
+    ```
+
+    > The exact grammar of the text can be found [here](https://docs.rs/bitflags/2.6.0/bitflags/parser/index.html)
+
+=== "Without Zen-Mode"
+
+    ![NoZen](../assets/images/page-nozen.png)
+
+=== "With Zen-Mode"
+    
+    ![Zen](../assets/images/page-zen.png)
+
+
 [release-0.9.0]: https://github.com/Builditluc/wiki-tui/releases/tag/v0.9
 [release-0.5.1]: https://github.com/Builditluc/wiki-tui/releases/tag/v0.5.1
 [release-0.5.0]: https://github.com/Builditluc/wiki-tui/releases/tag/v0.5.0

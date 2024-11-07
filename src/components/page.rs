@@ -17,7 +17,7 @@ use wiki_api::{
 use crate::{
     action::{Action, ActionPacket, ActionResult, PageAction},
     components::Component,
-    config::{Config, Theme, TocConfigPosition, TocConfigTitle},
+    config::{Config, Theme, TocConfigPosition, TocConfigTitle, ZenModeComponents},
     has_modifier,
     renderer::{default_renderer::render_document, RenderedDocument},
     terminal::Frame,
@@ -26,8 +26,6 @@ use crate::{
 
 #[cfg(debug_assertions)]
 use crate::renderer::test_renderer::{render_nodes_raw, render_tree_data, render_tree_raw};
-
-const SCROLLBAR: bool = true;
 
 #[derive(Default, Debug, Clone, PartialEq, Eq)]
 #[repr(u8)]
@@ -90,6 +88,7 @@ pub struct PageComponent {
     theme: Arc<Theme>,
 
     is_contents: bool,
+    is_zen_mode: bool,
     contents_state: PageContentsState,
 }
 
@@ -99,6 +98,7 @@ impl PageComponent {
             list_state: ListState::default().with_selected(Some(0)),
             max_idx_section: page.sections().map(|x| x.len() as u8).unwrap_or_default(),
         };
+
         Self {
             page,
             renderer: Renderer::default(),
@@ -106,12 +106,17 @@ impl PageComponent {
             viewport: Rect::default(),
             selected: (0, 0),
 
+            is_contents: false,
+            is_zen_mode: config.page.default_zen,
+            contents_state,
+
             config,
             theme,
-
-            is_contents: false,
-            contents_state,
         }
+    }
+
+    pub fn is_zen_mode(&self) -> bool {
+        self.is_zen_mode
     }
 
     fn render_page(&mut self, width: u16) {
@@ -519,6 +524,83 @@ impl PageComponent {
         self.viewport.width = width;
         self.viewport.height = height;
     }
+
+    fn render_status_bar(&self, f: &mut Frame<'_>, area: Rect) -> Rect {
+        let (area, status_area) = {
+            let splits = Layout::default()
+                .direction(Direction::Vertical)
+                .constraints([Constraint::Percentage(100), Constraint::Min(1)])
+                .split(padded_rect(area, 1, 1));
+            (splits[0], splits[1])
+        };
+
+        let status_msg = format!(
+            " wiki-tui | Page '{}' | Language '{}' | '{}' other languages available",
+            self.page.title,
+            self.page.language.name(),
+            self.page.available_languages().unwrap_or_default()
+        );
+        f.render_widget(
+            self.theme.default_paragraph(status_msg).style(
+                Style::default()
+                    .fg(self.theme.status_bar_fg)
+                    .bg(self.theme.status_bar_bg),
+            ),
+            status_area,
+        );
+
+        area
+    }
+
+    fn render_toc(&mut self, f: &mut Frame<'_>, area: Rect) -> Rect {
+        if self.config.page.toc.enabled {
+            let mut constraints = [
+                Constraint::Percentage(
+                    100_u16.saturating_sub(self.config.page.toc.width_percentage),
+                ),
+                Constraint::Percentage(self.config.page.toc.width_percentage),
+            ];
+
+            if self.config.page.toc.position == TocConfigPosition::Left {
+                constraints.reverse();
+            }
+
+            let splits = Layout::default()
+                .direction(Direction::Horizontal)
+                .constraints(constraints)
+                .split(area);
+
+            match self.config.page.toc.position {
+                TocConfigPosition::Left => {
+                    self.render_contents(f, splits[0]);
+                    splits[1]
+                }
+                TocConfigPosition::Right => {
+                    self.render_contents(f, splits[1]);
+                    splits[0]
+                }
+            }
+        } else {
+            area
+        }
+    }
+
+    fn render_scrollbar(&mut self, f: &mut Frame<'_>, area: Rect, content_length: usize) {
+        let scrollbar = Scrollbar::default()
+            .begin_symbol(None)
+            .end_symbol(None)
+            .track_symbol(Some(" "))
+            .track_style(
+                Style::new()
+                    .fg(self.theme.scrollbar_track_fg)
+                    .bg(self.theme.scrollbar_track_fg),
+            )
+            .thumb_style(Style::new().fg(self.theme.scrollbar_thumb_fg))
+            .orientation(ScrollbarOrientation::VerticalRight);
+        let mut scrollbar_state =
+            ScrollbarState::new(content_length).position(self.viewport.top() as usize);
+        f.render_stateful_widget(scrollbar, area, &mut scrollbar_state);
+    }
 }
 
 impl Component for PageComponent {
@@ -562,6 +644,10 @@ impl Component for PageComponent {
             KeyCode::Left => Action::Page(PageAction::SelectPrevLink).into(),
             KeyCode::Right => Action::Page(PageAction::SelectNextLink).into(),
             KeyCode::Enter => self.open_link(),
+            KeyCode::F(4) => {
+                self.is_zen_mode = !self.is_zen_mode;
+                ActionResult::Ignored
+            }
             _ => ActionResult::Ignored,
         }
     }
@@ -597,65 +683,21 @@ impl Component for PageComponent {
         ActionResult::consumed()
     }
 
-    fn render(&mut self, f: &mut Frame, area: Rect) {
+    fn render(&mut self, f: &mut Frame, mut area: Rect) {
+        let zen_mode = self.config.page.zen_mode.clone();
+
         // we add padding to the area by using a Block with padding
-        let area = Block::new().padding(self.config.page.padding).inner(area);
+        area = Block::new().padding(self.config.page.padding).inner(area);
 
-        let (area, status_area) = {
-            let splits = Layout::default()
-                .direction(Direction::Vertical)
-                .constraints([Constraint::Percentage(100), Constraint::Min(1)])
-                .split(padded_rect(area, 1, 1));
-            (splits[0], splits[1])
-        };
+        if !self.is_zen_mode || zen_mode.contains(ZenModeComponents::STATUS_BAR) {
+            area = self.render_status_bar(f, area);
+        }
 
-        let status_msg = format!(
-            " wiki-tui | Page '{}' | Language '{}' | '{}' other languages available",
-            self.page.title,
-            self.page.language.name(),
-            self.page.available_languages().unwrap_or_default()
-        );
-        f.render_widget(
-            self.theme.default_paragraph(status_msg).style(
-                Style::default()
-                    .fg(self.theme.status_bar_fg)
-                    .bg(self.theme.status_bar_bg),
-            ),
-            status_area,
-        );
+        if !self.is_zen_mode || zen_mode.contains(ZenModeComponents::TOC) {
+            area = self.render_toc(f, area);
+        }
 
-        let area = if self.config.page.toc.enabled {
-            let mut constraints = [
-                Constraint::Percentage(
-                    100_u16.saturating_sub(self.config.page.toc.width_percentage),
-                ),
-                Constraint::Percentage(self.config.page.toc.width_percentage),
-            ];
-
-            if self.config.page.toc.position == TocConfigPosition::Left {
-                constraints.reverse();
-            }
-
-            let splits = Layout::default()
-                .direction(Direction::Horizontal)
-                .constraints(constraints)
-                .split(area);
-
-            match self.config.page.toc.position {
-                TocConfigPosition::Left => {
-                    self.render_contents(f, splits[0]);
-                    splits[1]
-                }
-                TocConfigPosition::Right => {
-                    self.render_contents(f, splits[1]);
-                    splits[0]
-                }
-            }
-        } else {
-            area
-        };
-
-        let page_area = if SCROLLBAR {
+        let page_area = if !self.is_zen_mode || zen_mode.contains(ZenModeComponents::SCROLLBAR) {
             area.inner(&Margin {
                 vertical: 0,
                 horizontal: 2, // for the scrollbar
@@ -712,28 +754,17 @@ impl Component for PageComponent {
             lines.pop();
         }
 
-        if SCROLLBAR {
-            let scrollbar = Scrollbar::default()
-                .begin_symbol(None)
-                .end_symbol(None)
-                .track_symbol(Some(" "))
-                .track_style(
-                    Style::new()
-                        .fg(self.theme.scrollbar_track_fg)
-                        .bg(self.theme.scrollbar_track_fg),
-                )
-                .thumb_style(Style::new().fg(self.theme.scrollbar_thumb_fg))
-                .orientation(ScrollbarOrientation::VerticalRight);
-            let mut scrollbar_state = ScrollbarState::new(
+        f.render_widget(Paragraph::new(lines), page_area);
+
+        if !self.is_zen_mode || zen_mode.contains(ZenModeComponents::SCROLLBAR) {
+            self.render_scrollbar(
+                f,
+                area,
                 rendered_page
                     .lines
                     .len()
                     .saturating_sub(self.viewport.height as usize),
             )
-            .position(self.viewport.top() as usize);
-            f.render_stateful_widget(scrollbar, area, &mut scrollbar_state);
         }
-
-        f.render_widget(Paragraph::new(lines), page_area);
     }
 }

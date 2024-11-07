@@ -1,4 +1,5 @@
 use anyhow::{bail, Context, Result};
+use bitflags::bitflags;
 use directories::ProjectDirs;
 use ratatui::{
     style::{Color, Style},
@@ -43,10 +44,16 @@ pub fn config_dir() -> Result<PathBuf> {
 
 macro_rules! override_options {
     ($config:expr, $uconfig:ident::{$( $option:ident ),+}) => {
-        $({override_options!($config, $uconfig::$option)})+
+        $({override_options!($config, $uconfig::$option->$option)})+
     };
-    ($config:expr, $uconfig:ident::$option:ident) => {
-        if let Some(option) = $uconfig.$option {
+    ($config:expr, $uconfig:ident::{$( $uoption:ident->$option:ident ),+}) => {
+        $({override_options!($config, $uconfig::$uoption->$option)})+
+    };
+    ($config:expr, $uconfig:ident::$uoption:ident) => {
+        override_options!($config, $uconfig::$uoption->$uoption)
+    };
+    ($config:expr, $uconfig:ident::$uoption:ident->$option:ident) => {
+        if let Some(option) = $uconfig.$uoption {
             $config.$option = option.into();
         }
     };
@@ -76,8 +83,14 @@ fn override_page_config(config: &mut PageConfig, user_config: UserPageConfig) {
         });
     }
 
-    tracing::warn!("{:?}", user_config.padding);
     override_options!(config, user_config::padding);
+
+    if let Some(user_zen) = user_config.zen_mode {
+        override_options!(config, user_zen::{
+            default->default_zen,
+            include->zen_mode
+        });
+    }
 }
 
 fn load_user_config() -> Result<UserConfig> {
@@ -102,6 +115,19 @@ pub struct Config {
 pub struct PageConfig {
     pub toc: TocConfig,
     pub padding: Padding,
+
+    pub default_zen: bool,
+    pub zen_mode: ZenModeComponents,
+}
+
+bitflags! {
+    #[derive(Deserialize, Debug, Clone)]
+    pub struct ZenModeComponents: u8 {
+        const STATUS_BAR = 0b00000001;
+        const TOC        = 0b00000010;
+        const SEARCH_BAR = 0b00000100;
+        const SCROLLBAR  = 0b00001000;
+    }
 }
 
 #[derive(Deserialize, Debug)]
@@ -116,7 +142,7 @@ pub enum PaddingConfig {
 }
 
 #[allow(clippy::from_over_into)] // since we cannot implement From for an external type, we need to
-// ignore the warning
+                                 // ignore the warning
 impl Into<Padding> for PaddingConfig {
     fn into(self) -> Padding {
         match self {
@@ -169,6 +195,9 @@ impl Config {
                     enable_scrolling: true,
                 },
                 padding: Padding::zero(),
+
+                default_zen: false,
+                zen_mode: ZenModeComponents::empty(),
             },
         }
     }
@@ -200,6 +229,14 @@ struct UserConfig {
 struct UserPageConfig {
     toc: Option<UserTocConfig>,
     padding: Option<PaddingConfig>,
+
+    zen_mode: Option<UserZenModeConfig>,
+}
+
+#[derive(Deserialize)]
+struct UserZenModeConfig {
+    default: Option<bool>,
+    include: Option<ZenModeComponents>,
 }
 
 #[derive(Deserialize)]

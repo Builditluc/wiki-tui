@@ -39,7 +39,7 @@ impl PageViewer {
         self.page.get_mut(self.page_n)
     }
 
-    fn current_page(&self) -> Option<&PageComponent> {
+    pub fn current_page(&self) -> Option<&PageComponent> {
         self.page.get(self.page_n)
     }
 
