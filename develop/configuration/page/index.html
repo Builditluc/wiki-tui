@@ -881,6 +881,15 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#padding" class="md-nav__link">
+    <span class="md-ellipsis">
+      Padding
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#table-of-contents-configuration" class="md-nav__link">
     <span class="md-ellipsis">
       Table of Contents Configuration
@@ -946,6 +955,15 @@
         
       </ul>
     </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#zen-mode" class="md-nav__link">
+    <span class="md-ellipsis">
+      Zen Mode
+    </span>
+  </a>
   
 </li>
       
@@ -1162,6 +1180,15 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#padding" class="md-nav__link">
+    <span class="md-ellipsis">
+      Padding
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#table-of-contents-configuration" class="md-nav__link">
     <span class="md-ellipsis">
       Table of Contents Configuration
@@ -1230,6 +1257,15 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#zen-mode" class="md-nav__link">
+    <span class="md-ellipsis">
+      Zen Mode
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -1264,6 +1300,28 @@
 <h1 id="page-configuration">Page Configuration</h1>
 <p>In this page you can find all of the configuration options for the page. In the configuration file,
 this describes the <code>[page]</code> table.</p>
+<h2 id="padding">Padding</h2>
+<p><a href="https://github.com/Builditluc/wiki-tui/releases/tag/v0.9"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M7.75 6.5a1.25 1.25 0 1 0 0 2.5 1.25 1.25 0 0 0 0-2.5"/><path d="M2.5 1h8.44a1.5 1.5 0 0 1 1.06.44l10.25 10.25a1.5 1.5 0 0 1 0 2.12l-8.44 8.44a1.5 1.5 0 0 1-2.12 0L1.44 12A1.5 1.5 0 0 1 1 10.94V2.5A1.5 1.5 0 0 1 2.5 1m0 1.5v8.44l10.25 10.25 8.44-8.44L10.94 2.5Z"/></svg></span> 0.9.0</a> · <span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path d="M7.75 0a.75.75 0 0 1 .75.75V3h3.634c.414 0 .814.147 1.13.414l2.07 1.75a1.75 1.75 0 0 1 0 2.672l-2.07 1.75a1.75 1.75 0 0 1-1.13.414H8.5v5.25a.75.75 0 0 1-1.5 0V10H2.75A1.75 1.75 0 0 1 1 8.25v-3.5C1 3.784 1.784 3 2.75 3H7V.75A.75.75 0 0 1 7.75 0m4.384 8.5a.25.25 0 0 0 .161-.06l2.07-1.75a.248.248 0 0 0 0-.38l-2.07-1.75a.25.25 0 0 0-.161-.06H2.75a.25.25 0 0 0-.25.25v3.5c0 .138.112.25.25.25z"/></svg></span> Default <code>0</code></p>
+<p>You can set a padding around the page view (including the table of contents, and the statusbar).
+There are different padding options available, each with their own schema of configuring :</p>
+<ul>
+<li><strong>Uniform</strong>: <code>page.padding = VAL</code> Creates a padding with the same values for all sides (left,
+    right, top, bottom)</li>
+<li><strong>Custom</strong>: <code>page.padding = [VAL, VAL, VAL, VAL]</code> Creates a padding by specifying every field
+    individually. It is <code>left</code>, <code>right</code>, <code>top</code>, <code>bottom</code>.</li>
+<li><strong>Horizontal</strong>: <code>page.padding.horizontal = VAL</code> Creates a padding with the same value for left 
+    and right</li>
+<li><strong>Vertical</strong>: <code>page.padding.vertical = VAL</code> Creates a padding with the same value for top and
+    bottom</li>
+<li><strong>Proportional</strong>: <code>page.padding.proportional = VAL</code> Creates a padding that is visually
+    proportional to the terminal. This represents a padding of 2x the value for left and right and 
+    1x the value for top and bottom.</li>
+<li><strong>Symmetric</strong>: <code>page.padding.symmetric = [VAL, VAL]</code> Creates a padding that is symmetric. The x 
+    value is used for left and right and the y value is used for top and bottom.</li>
+</ul>
+<blockquote>
+<p>Note: VAL is a u16</p>
+</blockquote>
 <h2 id="table-of-contents-configuration">Table of Contents Configuration</h2>
 <h3 id="disabling-the-table-of-contents">Disabling the Table of Contents</h3>
 <p><a href="https://github.com/Builditluc/wiki-tui/releases/tag/v0.5.0"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M7.75 6.5a1.25 1.25 0 1 0 0 2.5 1.25 1.25 0 0 0 0-2.5"/><path d="M2.5 1h8.44a1.5 1.5 0 0 1 1.06.44l10.25 10.25a1.5 1.5 0 0 1 0 2.12l-8.44 8.44a1.5 1.5 0 0 1-2.12 0L1.44 12A1.5 1.5 0 0 1 1 10.94V2.5A1.5 1.5 0 0 1 2.5 1m0 1.5v8.44l10.25 10.25 8.44-8.44L10.94 2.5Z"/></svg></span> 0.5.0</a> · <span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path d="M7.75 0a.75.75 0 0 1 .75.75V3h3.634c.414 0 .814.147 1.13.414l2.07 1.75a1.75 1.75 0 0 1 0 2.672l-2.07 1.75a1.75 1.75 0 0 1-1.13.414H8.5v5.25a.75.75 0 0 1-1.5 0V10H2.75A1.75 1.75 0 0 1 1 8.25v-3.5C1 3.784 1.784 3 2.75 3H7V.75A.75.75 0 0 1 7.75 0m4.384 8.5a.25.25 0 0 0 .161-.06l2.07-1.75a.248.248 0 0 0 0-.38l-2.07-1.75a.25.25 0 0 0-.161-.06H2.75a.25.25 0 0 0-.25.25v3.5c0 .138.112.25.25.25z"/></svg></span> Default: <code>true</code></p>
@@ -1319,6 +1377,52 @@ percent (only whole numbers between 0 and 100 are allowed)</p>
 <p>Or if you want to have a custom beginning</p>
 <div class="highlight"><pre><span></span><code><span class="n">page</span><span class="p">.</span><span class="n">toc</span><span class="p">.</span><span class="n">item_format</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;# {TEXT}&quot;</span>
 </code></pre></div>
+<h2 id="zen-mode">Zen Mode</h2>
+<p><a href="https://github.com/Builditluc/wiki-tui/releases/tag/v0.9"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M7.75 6.5a1.25 1.25 0 1 0 0 2.5 1.25 1.25 0 0 0 0-2.5"/><path d="M2.5 1h8.44a1.5 1.5 0 0 1 1.06.44l10.25 10.25a1.5 1.5 0 0 1 0 2.12l-8.44 8.44a1.5 1.5 0 0 1-2.12 0L1.44 12A1.5 1.5 0 0 1 1 10.94V2.5A1.5 1.5 0 0 1 2.5 1m0 1.5v8.44l10.25 10.25 8.44-8.44L10.94 2.5Z"/></svg></span> 0.9.0</a> · <span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path d="M7.75 0a.75.75 0 0 1 .75.75V3h3.634c.414 0 .814.147 1.13.414l2.07 1.75a1.75 1.75 0 0 1 0 2.672l-2.07 1.75a1.75 1.75 0 0 1-1.13.414H8.5v5.25a.75.75 0 0 1-1.5 0V10H2.75A1.75 1.75 0 0 1 1 8.25v-3.5C1 3.784 1.784 3 2.75 3H7V.75A.75.75 0 0 1 7.75 0m4.384 8.5a.25.25 0 0 0 .161-.06l2.07-1.75a.248.248 0 0 0 0-.38l-2.07-1.75a.25.25 0 0 0-.161-.06H2.75a.25.25 0 0 0-.25.25v3.5c0 .138.112.25.25.25z"/></svg></span> Default <code>""</code> </p>
+<p>When viewing a page, you can enter <code>zen-mode</code> to hide unnecessary and distracting components. To
+select which components will be shown even when in <code>zen-mode</code>, set the <code>page.zen_mode.include</code> 
+setting accordingly (The default binding for toggling <code>zen-mode</code> is <span class="keys"><kbd class="key-f4">F4</kbd></span>). Please note that the 
+<code>zen-mode</code> setting is individually set for each page, meaning you have to turn it on (again) when 
+you're opening a different page.</p>
+<div class="highlight"><pre><span></span><code><span class="n">page</span><span class="p">.</span><span class="n">zen_mode</span><span class="p">.</span><span class="n">include</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;SCROLLBAR&quot;</span>
+</code></pre></div>
+<p>You can also enable the <code>zen-mode</code> by default on a page:</p>
+<div class="highlight"><pre><span></span><code><span class="n">page</span><span class="p">.</span><span class="n">zen_mode</span><span class="p">.</span><span class="n">default</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">false</span>
+</code></pre></div>
+<p>The components currently available to show/hide are:</p>
+<ul>
+<li><code>STATUS_BAR</code></li>
+<li><code>TOC</code></li>
+<li><code>SEARCH_BAR</code></li>
+<li><code>SCROLLBAR</code></li>
+</ul>
+<p>If you want to show multiple components, you can add them together. For example, for showing the 
+table of contents and the scrollbar you'd set:</p>
+<div class="highlight"><pre><span></span><code><span class="n">page</span><span class="p">.</span><span class="n">zen_mode</span><span class="p">.</span><span class="n">include</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;TOC | SCROLLBAR&quot;</span>
+</code></pre></div>
+<p>Alternatively, you can leave out the spaces in between the components:</p>
+<div class="highlight"><pre><span></span><code><span class="n">page</span><span class="p">.</span><span class="n">zen_mode</span><span class="p">.</span><span class="n">include</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;TOC|SCROLLBAR&quot;</span>
+</code></pre></div>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Do note that these identifiers are case-sensitive, meaning this is not equivalent to the 
+previous (and won't work, because these components don't exist)</p>
+<div class="highlight"><pre><span></span><code><span class="n">page</span><span class="p">.</span><span class="n">zen_mode</span><span class="p">.</span><span class="n">include</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;toc | scrollbar&quot;</span>
+</code></pre></div>
+<blockquote>
+<p>The exact grammar of the text can be found <a href="https://docs.rs/bitflags/2.6.0/bitflags/parser/index.html">here</a></p>
+</blockquote>
+</div>
+<div class="tabbed-set tabbed-alternate" data-tabs="1:2"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio" /><input id="__tabbed_1_2" name="__tabbed_1" type="radio" /><div class="tabbed-labels"><label for="__tabbed_1_1">Without Zen-Mode</label><label for="__tabbed_1_2">With Zen-Mode</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<p><img alt="NoZen" src="../../assets/images/page-nozen.png" /></p>
+</div>
+<div class="tabbed-block">
+<p><img alt="Zen" src="../../assets/images/page-zen.png" /></p>
+</div>
+</div>
+</div>
 
 
 
@@ -1341,7 +1445,7 @@ percent (only whole numbers between 0 and 100 are allowed)</p>
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago"><span class="timeago" datetime="2024-11-03T19:00:09+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date">2024-11-03</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago"><span class="timeago" datetime="2024-11-07T16:27:16+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date">2024-11-07</span>
   </span>
 
     
