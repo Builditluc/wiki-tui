@@ -166,11 +166,16 @@ impl PageComponent {
 
         let sections = sections.unwrap();
         let list = List::new(sections.iter().map(|x| {
-            self.config
-                .page
-                .toc
-                .formatted_item(&x.number, &x.text)
-                .fg(self.theme.fg)
+            let item = self.config.page.toc.formatted_item(&x.number, &x.text);
+            match item.char_indices().nth(block.inner(area).width as usize) {
+                Some((idx, _)) => {
+                    let mut s = item[..idx].to_string();
+                    s.replace_range(idx.saturating_sub(3)..idx, "...");
+                    s
+                }
+                None => item,
+            }
+            .fg(self.theme.fg)
         }))
         .block(block)
         .highlight_style(
