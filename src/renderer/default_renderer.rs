@@ -2,7 +2,7 @@ use ratatui::style::{Color, Modifier, Style};
 use textwrap::wrap_algorithms::{wrap_optimal_fit, Penalties};
 use tracing::warn;
 use wiki_api::{
-    document::{Data, Document, HeaderKind, Node},
+    document::{Data, Document, HeaderKind, Node, UnsupportedElement},
     page::Link,
 };
 
@@ -329,16 +329,21 @@ impl<'a> Renderer {
             }
         };
 
+        self.render_string(contents, node.index());
+        self.render_children(node);
+    }
+
+    fn render_string(&mut self, content: &str, index: usize) {
         const TEXT_SPECIAL_CHARACTERS: [char; 9] = [',', '.', ':', ';', '\"', '\'', '!', '@', '%'];
-        if contents.starts_with(TEXT_SPECIAL_CHARACTERS) && self.is_last_whitespace() {
+        if content.starts_with(TEXT_SPECIAL_CHARACTERS) && self.is_last_whitespace() {
             self.current_line.pop();
         }
 
-        let has_trailing_whitespace = contents.ends_with(' ');
-        let mut words: Vec<Word> = contents
+        let has_trailing_whitespace = content.ends_with(' ');
+        let mut words: Vec<Word> = content
             .split_whitespace()
             .map(|word| Word {
-                index: node.index(),
+                index,
                 content: word.to_string(),
                 style: self.text_style,
                 width: word.chars().count() as f64,
@@ -354,7 +359,6 @@ impl<'a> Renderer {
         }
 
         self.wrap_append(words);
-        self.render_children(node);
     }
 
     fn render_block_element(&mut self, node: Node<'a>) {
@@ -510,6 +514,45 @@ impl<'a> Renderer {
         self.add_whitespace();
     }
 
+    fn render_unsupported_element(
+        &mut self,
+        inline: bool,
+        element: &UnsupportedElement,
+        index: usize,
+    ) {
+        if inline {
+            self.add_modifier(Modifier::ITALIC);
+
+            self.add_whitespace();
+
+            self.set_text_fg(Color::DarkGray);
+            self.render_string("[x]", index);
+            self.reset_text_fg();
+
+            self.add_whitespace();
+
+            self.remove_modifier(Modifier::ITALIC);
+
+            return;
+        }
+
+        self.ensure_empty_line();
+        self.add_modifier(Modifier::ITALIC);
+
+        let message = match element {
+            UnsupportedElement::Table => "<Unsupported Element 'Table'>",
+            UnsupportedElement::Image => "<Unsupported Element 'Image'>",
+            UnsupportedElement::Figure => "<Unsupported Element 'Figure'>",
+            UnsupportedElement::MathElement => "<Unsupported Element 'Math Element'>",
+            UnsupportedElement::PreformattedText => "<Unsupported Element 'PreformattedText'>",
+        };
+
+        self.render_string(message, index);
+
+        self.remove_modifier(Modifier::ITALIC);
+        self.add_empty_line();
+    }
+
     fn render_node(&mut self, node: Node<'a>) {
         match node.data() {
             Data::Section { id: _ } => self.render_section(node),
@@ -532,6 +575,12 @@ impl<'a> Renderer {
             Data::Italic => self.render_italic(node),
             Data::Link(link) => self.render_link(node, link.clone()),
             Data::Unknown => self.render_children(node),
+            Data::Unsupported(element) => {
+                self.render_unsupported_element(false, element, node.index())
+            }
+            Data::UnsupportedInline(element) => {
+                self.render_unsupported_element(true, element, node.index())
+            }
         }
     }
 }

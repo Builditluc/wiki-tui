@@ -5,7 +5,7 @@ use tracing::{trace, warn};
 use url::Url;
 
 use crate::{
-    document::{Data, HeaderKind, Raw},
+    document::{Data, HeaderKind, Raw, UnsupportedElement},
     languages::Language,
     page::{
         link_data::{AnchorData, ExternalData, ExternalToInteralData, InternalData, MediaData},
@@ -63,9 +63,18 @@ impl WikipediaParser {
                 let data = match name.as_str() {
                     "head" | "style" | "link" => return prev,
 
-                    "table" | "img" | "figure" => {
-                        warn!("unsupported node '{name}'");
-                        return prev;
+                    "table" => Data::Unsupported(UnsupportedElement::Table),
+                    "image" => Data::Unsupported(UnsupportedElement::Image),
+                    "figure" => Data::Unsupported(UnsupportedElement::Figure),
+                    "pre" => Data::Unsupported(UnsupportedElement::PreformattedText),
+
+                    "span"
+                        if attrs.iter().any(|(name, value)| {
+                            name.as_str() == "class"
+                                && (value.contains("texhtml") || value.contains("mwe-math-element"))
+                        }) =>
+                    {
+                        Data::UnsupportedInline(UnsupportedElement::MathElement)
                     }
 
                     "ul" if attrs.iter().any(|(name, value)| {

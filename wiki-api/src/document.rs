@@ -64,6 +64,18 @@ pub enum Data {
     Link(Link),
     #[default]
     Unknown,
+
+    Unsupported(UnsupportedElement),
+    UnsupportedInline(UnsupportedElement),
+}
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub enum UnsupportedElement {
+    Table,
+    Image,
+    Figure,
+    MathElement,
+    PreformattedText,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
