@@ -39,6 +39,10 @@ pub fn config_dir() -> Result<PathBuf> {
         bail!("Unable to find config directory for wiki-tui");
     };
 
+    if !directory.exists() {
+        std::fs::create_dir_all(&directory).context("Unable to create the config folder")?;
+    }
+
     Ok(directory)
 }
 
