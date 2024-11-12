@@ -6,6 +6,7 @@ use tracing_subscriber::{self, prelude::*, EnvFilter};
 use crate::config;
 
 const LOG_ENV: &str = "WIKI_TUI_LOG";
+const DEFAULT_LOG: LevelFilter = LevelFilter::WARN;
 
 pub fn initialize_logging(level: Option<LevelFilter>) -> Result<()> {
     let directory = config::cache_dir()?;
@@ -14,10 +15,13 @@ pub fn initialize_logging(level: Option<LevelFilter>) -> Result<()> {
     let log_path = directory.join("wiki-tui.log");
     let log_file = std::fs::File::create(log_path)?;
 
-    let env_filter = EnvFilter::from_env(LOG_ENV);
+    let env_filter = EnvFilter::builder()
+        .with_default_directive(DEFAULT_LOG.into())
+        .with_env_var(LOG_ENV)
+        .from_env()?;
     let level = match level {
         Some(level) => level,
-        None => env_filter.max_level_hint().unwrap_or(LevelFilter::WARN),
+        None => env_filter.max_level_hint().unwrap_or(DEFAULT_LOG),
     };
 
     let file_subscriber = tracing_subscriber::fmt::layer()
