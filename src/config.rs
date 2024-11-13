@@ -2,6 +2,7 @@ use anyhow::{bail, Context, Result};
 use bitflags::bitflags;
 use directories::ProjectDirs;
 use ratatui::{
+    layout::Constraint,
     style::{Color, Style},
     widgets::{BorderType, Padding},
 };
@@ -92,7 +93,10 @@ fn override_page_config(config: &mut PageConfig, user_config: UserPageConfig) {
     if let Some(user_zen) = user_config.zen_mode {
         override_options!(config, user_zen::{
             default->default_zen,
-            include->zen_mode
+            include->zen_mode,
+
+            horizontal->zen_horizontal,
+            vertical->zen_vertical
         });
     }
 }
@@ -122,6 +126,9 @@ pub struct PageConfig {
 
     pub default_zen: bool,
     pub zen_mode: ZenModeComponents,
+
+    pub zen_horizontal: Constraint,
+    pub zen_vertical: Constraint,
 }
 
 bitflags! {
@@ -202,6 +209,9 @@ impl Config {
 
                 default_zen: false,
                 zen_mode: ZenModeComponents::empty(),
+
+                zen_horizontal: Constraint::Percentage(80),
+                zen_vertical: Constraint::Percentage(90),
             },
         }
     }
@@ -238,9 +248,35 @@ struct UserPageConfig {
 }
 
 #[derive(Deserialize)]
+#[serde(rename_all = "lowercase")]
+enum UserConstraint {
+    Min(u16),
+    Max(u16),
+    Length(u16),
+    Percentage(u16),
+    Ratio(u32, u32),
+}
+
+#[allow(clippy::from_over_into)]
+impl Into<Constraint> for UserConstraint {
+    fn into(self) -> Constraint {
+        match self {
+            UserConstraint::Min(u) => Constraint::Min(u),
+            UserConstraint::Max(u) => Constraint::Max(u),
+            UserConstraint::Length(u) => Constraint::Length(u),
+            UserConstraint::Percentage(u) => Constraint::Percentage(u),
+            UserConstraint::Ratio(u, v) => Constraint::Ratio(u, v),
+        }
+    }
+}
+
+#[derive(Deserialize)]
 struct UserZenModeConfig {
     default: Option<bool>,
     include: Option<ZenModeComponents>,
+
+    horizontal: Option<UserConstraint>,
+    vertical: Option<UserConstraint>,
 }
 
 #[derive(Deserialize)]

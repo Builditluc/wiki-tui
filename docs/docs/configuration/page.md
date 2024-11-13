@@ -177,6 +177,46 @@ page.zen_mode.include  = "TOC|SCROLLBAR"
     
     ![Zen](../assets/images/page-zen.png)
 
+### Changing the size of the content in zen mode
+
+[:octicons-tag-24: 0.9.0][release-0.9.0] · :octicons-milestone-16: Default `80` | `90`
+
+You can change the size of the content in zen mode by setting the horizontal and vertical constraint
+of the content. For example, this is the default configuration for the zen mode:
+
+```toml
+page.zen_mode.horizontal.percentage = 80
+page.zen_mode.vertical.percentage = 90
+```
+
+Both of these settings share the same configuration schema. A constraint can have a fixed size or be a
+relative constraint.
+
+* **Min**: `page.zen_mode.{horizontal|vertical}.min = u16` 
+    Applies a minimum size constraint to the element. The element size is set to at least the 
+    specified amount.
+* **Max**: `page.zen_mode.{horizontal|vertical}.max = u16`
+    Applies a maximum size constraint to the element. The element size is set to at most the 
+    specified amount.
+* **Length**: `page.zen_mode.{horizontal|vertical}.length = u16`
+    Applies a length constraint to the element. The element size is set to the specified amount.
+* **Percentage**: `page.zen_mode.{horizontal|vertical}.percentage = u16`
+    Applies a percentage of the available space to the element
+
+    Converts the given percentage to a floating-point value and multiplies that with area. This 
+    value is rounded back to a integer as part of the layout split calculation.
+
+    !!! note 
+        As this value only accepts a u16, certain percentages that cannot be represented exactly 
+        (e.g. 1/3) are not possible. You might want to use Ratio in such cases.
+
+* **Ratio**: `page.zen_mode.{horizontal|vertical}.ratio = [u32, u32]`
+    Applies a ratio of the available space to the element
+
+    Converts the given ratio to a floating-point value and multiplies that with area. This value 
+    is rounded back to a integer as part of the layout split calculation.
+
+
 
 [release-0.9.0]: https://github.com/Builditluc/wiki-tui/releases/tag/v0.9
 [release-0.5.1]: https://github.com/Builditluc/wiki-tui/releases/tag/v0.5.1

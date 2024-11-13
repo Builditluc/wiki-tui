@@ -2,7 +2,7 @@ use std::{collections::HashMap, sync::Arc};
 
 use crossterm::event::{KeyCode, KeyEvent};
 use ratatui::{
-    layout::{Constraint, Direction, Layout},
+    layout::{Constraint, Direction, Flex, Layout},
     prelude::{Margin, Rect},
     style::{Color, Modifier, Style, Stylize},
     text::{Line, Span},
@@ -691,8 +691,17 @@ impl Component for PageComponent {
     fn render(&mut self, f: &mut Frame, mut area: Rect) {
         let zen_mode = self.config.page.zen_mode.clone();
 
-        // we add padding to the area by using a Block with padding
-        area = Block::new().padding(self.config.page.padding).inner(area);
+        // when in zen mode, use the constraints for the zen mode, otherwise the regular padding
+        area = if self.is_zen_mode() {
+            let [area] = Layout::horizontal([self.config.page.zen_horizontal])
+                .flex(Flex::Center)
+                .areas(area);
+            Layout::vertical([self.config.page.zen_vertical])
+                .flex(Flex::Center)
+                .split(area)[0]
+        } else {
+            Block::new().padding(self.config.page.padding).inner(area)
+        };
 
         if !self.is_zen_mode || zen_mode.contains(ZenModeComponents::STATUS_BAR) {
             area = self.render_status_bar(f, area);
