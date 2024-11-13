@@ -965,6 +965,21 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Zen Mode">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#changing-the-size-of-the-content-in-zen-mode" class="md-nav__link">
+    <span class="md-ellipsis">
+      Changing the size of the content in zen mode
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
     </ul>
@@ -1264,6 +1279,21 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Zen Mode">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#changing-the-size-of-the-content-in-zen-mode" class="md-nav__link">
+    <span class="md-ellipsis">
+      Changing the size of the content in zen mode
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
     </ul>
@@ -1423,6 +1453,42 @@ previous (and won't work, because these components don't exist)</p>
 </div>
 </div>
 </div>
+<h3 id="changing-the-size-of-the-content-in-zen-mode">Changing the size of the content in zen mode</h3>
+<p><a href="https://github.com/Builditluc/wiki-tui/releases/tag/v0.9"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M7.75 6.5a1.25 1.25 0 1 0 0 2.5 1.25 1.25 0 0 0 0-2.5"/><path d="M2.5 1h8.44a1.5 1.5 0 0 1 1.06.44l10.25 10.25a1.5 1.5 0 0 1 0 2.12l-8.44 8.44a1.5 1.5 0 0 1-2.12 0L1.44 12A1.5 1.5 0 0 1 1 10.94V2.5A1.5 1.5 0 0 1 2.5 1m0 1.5v8.44l10.25 10.25 8.44-8.44L10.94 2.5Z"/></svg></span> 0.9.0</a> · <span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path d="M7.75 0a.75.75 0 0 1 .75.75V3h3.634c.414 0 .814.147 1.13.414l2.07 1.75a1.75 1.75 0 0 1 0 2.672l-2.07 1.75a1.75 1.75 0 0 1-1.13.414H8.5v5.25a.75.75 0 0 1-1.5 0V10H2.75A1.75 1.75 0 0 1 1 8.25v-3.5C1 3.784 1.784 3 2.75 3H7V.75A.75.75 0 0 1 7.75 0m4.384 8.5a.25.25 0 0 0 .161-.06l2.07-1.75a.248.248 0 0 0 0-.38l-2.07-1.75a.25.25 0 0 0-.161-.06H2.75a.25.25 0 0 0-.25.25v3.5c0 .138.112.25.25.25z"/></svg></span> Default <code>80</code> | <code>90</code></p>
+<p>You can change the size of the content in zen mode by setting the horizontal and vertical constraint
+of the content. For example, this is the default configuration for the zen mode:</p>
+<div class="highlight"><pre><span></span><code><span class="n">page</span><span class="p">.</span><span class="n">zen_mode</span><span class="p">.</span><span class="n">horizontal</span><span class="p">.</span><span class="n">percentage</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">80</span>
+<span class="n">page</span><span class="p">.</span><span class="n">zen_mode</span><span class="p">.</span><span class="n">vertical</span><span class="p">.</span><span class="n">percentage</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">90</span>
+</code></pre></div>
+<p>Both of these settings share the same configuration schema. A constraint can have a fixed size or be a
+relative constraint.</p>
+<ul>
+<li><strong>Min</strong>: <code>page.zen_mode.{horizontal|vertical}.min = u16</code> 
+    Applies a minimum size constraint to the element. The element size is set to at least the 
+    specified amount.</li>
+<li><strong>Max</strong>: <code>page.zen_mode.{horizontal|vertical}.max = u16</code>
+    Applies a maximum size constraint to the element. The element size is set to at most the 
+    specified amount.</li>
+<li><strong>Length</strong>: <code>page.zen_mode.{horizontal|vertical}.length = u16</code>
+    Applies a length constraint to the element. The element size is set to the specified amount.</li>
+<li>
+<p><strong>Percentage</strong>: <code>page.zen_mode.{horizontal|vertical}.percentage = u16</code>
+    Applies a percentage of the available space to the element</p>
+<p>Converts the given percentage to a floating-point value and multiplies that with area. This 
+value is rounded back to a integer as part of the layout split calculation.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>As this value only accepts a u16, certain percentages that cannot be represented exactly 
+(e.g. 1/3) are not possible. You might want to use Ratio in such cases.</p>
+</div>
+</li>
+<li>
+<p><strong>Ratio</strong>: <code>page.zen_mode.{horizontal|vertical}.ratio = [u32, u32]</code>
+    Applies a ratio of the available space to the element</p>
+<p>Converts the given ratio to a floating-point value and multiplies that with area. This value 
+is rounded back to a integer as part of the layout split calculation.</p>
+</li>
+</ul>
 
 
 
@@ -1445,7 +1511,7 @@ previous (and won't work, because these components don't exist)</p>
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago"><span class="timeago" datetime="2024-11-07T16:27:16+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date">2024-11-07</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago"><span class="timeago" datetime="2024-11-13T09:11:24+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date">2024-11-13</span>
   </span>
 
     
