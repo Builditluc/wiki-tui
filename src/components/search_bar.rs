@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use crossterm::event::{KeyEvent};
+use crossterm::event::KeyEvent;
 use ratatui::{
     prelude::Rect,
     style::{Color, Modifier, Style},

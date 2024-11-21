@@ -2,7 +2,7 @@
 
 There are certain actions that you can change the Keybindings for. The configuration for each action is the same.
 
-## Binding Configuration
+## Keybinding Configuration
 
 !!! tip "Multiple Bindings per Action"
     You can also define multiple bindings for one action by putting them into an array (`action = [bidning1, binding2, etc.]`).
@@ -66,11 +66,11 @@ note that these modifiers are case-sensitive
 | ++ctrl++       | `CONTROL`   |
 | ++alt++        | `ALT`       |
 
-## Default Bindings
+## Default Keybindings
 
-Below are the default bindings for all of the configurable actions
+Below are the default keybindings for all of the configurable actions
 
-### Global Bindings
+### Global Keybindings
 
 | Action                             | Description                                          | Default Binding            |
 |------------------------------------|------------------------------------------------------|----------------------------|
@@ -91,7 +91,7 @@ Below are the default bindings for all of the configurable actions
 | `toggle_search_language_selection` | Toggle the search language selection popup           | ++f2++                     |
 | `toggle_logger`                    | Toggle the logger view                               | ++l++                      |
 
-The default configuration file for the global bindings
+The default configuration file for the global keybindings
 
 ```toml
 [bindings.global]
@@ -128,4 +128,17 @@ switch_context_page = "p"
 
 toggle_search_language_selection = "f2"
 toggle_logger = "l"
+```
+
+### Search Keybindings
+
+| Action            | Description         | Default Binding |
+|-------------------|---------------------|-----------------|
+| `continue_search` | Continue the search | ++c++           | 
+
+The default configuration for the search keybindings
+
+```toml
+[bindings.search]
+continue_search = "c"
 ```

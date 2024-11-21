@@ -256,7 +256,15 @@ impl Component for SearchComponent {
                 {
                     Action::Search(SearchAction::OpenSearchResult).into()
                 }
-                KeyCode::Char('c') => Action::Search(SearchAction::ContinueSearch).into(),
+                _ if self
+                    .config
+                    .bindings
+                    .search
+                    .continue_search
+                    .matches_event(key) =>
+                {
+                    Action::Search(SearchAction::ContinueSearch).into()
+                }
                 _ => ActionResult::Ignored,
             },
             _ => ActionResult::Ignored,

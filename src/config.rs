@@ -133,6 +133,10 @@ fn override_bindings_config(config: &mut Keybindings, user_config: UserKeybindin
             toggle_logger
         });
     }
+
+    if let Some(user_search_bindings) = user_config.search {
+        override_options!(config.search, user_search_bindings::continue_search);
+    }
 }
 
 fn load_user_config() -> Result<UserConfig> {
@@ -283,8 +287,13 @@ pub struct GlobalKeybindings {
     pub toggle_logger: Keybinding,
 }
 
+pub struct SearchKeybindings {
+    pub continue_search: Keybinding,
+}
+
 pub struct Keybindings {
     pub global: GlobalKeybindings,
+    pub search: SearchKeybindings,
 }
 
 impl Config {
@@ -346,6 +355,9 @@ impl Config {
 
                     toggle_search_language_selection: keybinding!([KeyCode::F(2);]),
                     toggle_logger: keybinding!([KeyCode::Char('l');]),
+                },
+                search: SearchKeybindings {
+                    continue_search: keybinding!([KeyCode::Char('c');]),
                 },
             },
         }
@@ -578,8 +590,14 @@ struct UserGlobalKeybindings {
 }
 
 #[derive(Deserialize)]
+struct UserSearchKeybindings {
+    continue_search: Option<UserKeybinding>,
+}
+
+#[derive(Deserialize)]
 struct UserKeybindingsConfig {
     global: Option<UserGlobalKeybindings>,
+    search: Option<UserSearchKeybindings>,
 }
 
 pub fn load_theme() -> Result<Theme> {
