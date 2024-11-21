@@ -965,28 +965,28 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#action-configuration" class="md-nav__link">
+  <a href="#binding-configuration" class="md-nav__link">
     <span class="md-ellipsis">
-      Action Configuration
+      Binding Configuration
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Action Configuration">
+    <nav class="md-nav" aria-label="Binding Configuration">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#key" class="md-nav__link">
+  <a href="#keycodes" class="md-nav__link">
     <span class="md-ellipsis">
-      Key
+      Keycodes
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#mode" class="md-nav__link">
+  <a href="#modifiers" class="md-nav__link">
     <span class="md-ellipsis">
-      Mode
+      Modifiers
     </span>
   </a>
   
@@ -998,20 +998,26 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#supported-actions" class="md-nav__link">
+  <a href="#default-bindings" class="md-nav__link">
     <span class="md-ellipsis">
-      Supported Actions
+      Default Bindings
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Default Bindings">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#global-bindings" class="md-nav__link">
+    <span class="md-ellipsis">
+      Global Bindings
     </span>
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
-  <a href="#sample-remap" class="md-nav__link">
-    <span class="md-ellipsis">
-      Sample Remap
-    </span>
-  </a>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -1144,28 +1150,28 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#action-configuration" class="md-nav__link">
+  <a href="#binding-configuration" class="md-nav__link">
     <span class="md-ellipsis">
-      Action Configuration
+      Binding Configuration
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Action Configuration">
+    <nav class="md-nav" aria-label="Binding Configuration">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#key" class="md-nav__link">
+  <a href="#keycodes" class="md-nav__link">
     <span class="md-ellipsis">
-      Key
+      Keycodes
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#mode" class="md-nav__link">
+  <a href="#modifiers" class="md-nav__link">
     <span class="md-ellipsis">
-      Mode
+      Modifiers
     </span>
   </a>
   
@@ -1177,20 +1183,26 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#supported-actions" class="md-nav__link">
+  <a href="#default-bindings" class="md-nav__link">
     <span class="md-ellipsis">
-      Supported Actions
+      Default Bindings
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Default Bindings">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#global-bindings" class="md-nav__link">
+    <span class="md-ellipsis">
+      Global Bindings
     </span>
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
-  <a href="#sample-remap" class="md-nav__link">
-    <span class="md-ellipsis">
-      Sample Remap
-    </span>
-  </a>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -1227,9 +1239,33 @@
 
 <h1 id="keybindings">Keybindings</h1>
 <p>There are certain actions that you can change the Keybindings for. The configuration for each action is the same.</p>
-<h2 id="action-configuration">Action Configuration</h2>
-<h3 id="key">Key</h3>
-<p>The key setting can be a simple character or a non-character key
+<h2 id="binding-configuration">Binding Configuration</h2>
+<div class="admonition tip">
+<p class="admonition-title">Multiple Bindings per Action</p>
+<p>You can also define multiple bindings for one action by putting them into an array (<code>action = [bidning1, binding2, etc.]</code>).</p>
+</div>
+<p>A bindig can be either a keycode or a keycode combined with one or more modifiers for that key. All
+of the following are a valid way of configuring a binding (where <code>action</code> is one of the configurable
+actions)</p>
+<div class="highlight"><pre><span></span><code><span class="n">action</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;esc&quot;</span>
+</code></pre></div>
+<blockquote>
+<p>A keycode without any modifiers</p>
+</blockquote>
+<div class="highlight"><pre><span></span><code><span class="n">action</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">code</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">&quot;l&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">modifiers</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">&quot;CONTROL | SHIFT&quot;</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="c1"># or with just a single modifier</span>
+<span class="n">action</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">code</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">&quot;l&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">modifiers</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">&quot;CONTROL&quot;</span><span class="w"> </span><span class="p">}</span>
+</code></pre></div>
+<blockquote>
+<p>A keycode with modifiers</p>
+</blockquote>
+<p>These can be mixed together when defining multiple bindings for one action</p>
+<div class="highlight"><pre><span></span><code><span class="n">action</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span>
+<span class="w">    </span><span class="p">{</span><span class="w"> </span><span class="n">code</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">&quot;l&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">modifiers</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">&quot;CONTROL&quot;</span><span class="w"> </span><span class="p">},</span>
+<span class="w">    </span><span class="s2">&quot;esc&quot;</span><span class="p">,</span>
+<span class="p">]</span>
+</code></pre></div>
+<h3 id="keycodes">Keycodes</h3>
+<p>A keycode can be a simple character or a non-character key
 These are the supported non-character keys (lower-/uppercase doesn't matter);</p>
 <table>
 <thead>
@@ -1240,45 +1276,74 @@ These are the supported non-character keys (lower-/uppercase doesn't matter);</p
 </thead>
 <tbody>
 <tr>
-<td><span class="keys"><kbd class="key-insert">Ins</kbd></span></td>
-<td><code>insert</code></td>
+<td><span class="keys"><kbd class="key-backspace">Backspace</kbd></span></td>
+<td>backspace</td>
 </tr>
 <tr>
-<td><span class="keys"><kbd class="key-delete">Del</kbd></span></td>
-<td><code>delete</code></td>
+<td><span class="keys"><kbd class="key-enter">Enter</kbd></span></td>
+<td>enter</td>
+</tr>
+<tr>
+<td><span class="keys"><kbd class="key-arrow-left">Left</kbd></span></td>
+<td>left</td>
+</tr>
+<tr>
+<td><span class="keys"><kbd class="key-arrow-right">Right</kbd></span></td>
+<td>right</td>
+</tr>
+<tr>
+<td><span class="keys"><kbd class="key-arrow-up">Up</kbd></span></td>
+<td>up</td>
+</tr>
+<tr>
+<td><span class="keys"><kbd class="key-arrow-down">Down</kbd></span></td>
+<td>down</td>
 </tr>
 <tr>
 <td><span class="keys"><kbd class="key-home">Home</kbd></span></td>
-<td><code>home</code></td>
+<td>home</td>
 </tr>
 <tr>
 <td><span class="keys"><kbd class="key-end">End</kbd></span></td>
-<td><code>end</code></td>
+<td>end</td>
 </tr>
 <tr>
 <td><span class="keys"><kbd class="key-page-up">Page Up</kbd></span></td>
-<td><code>pageup</code></td>
+<td>pageup</td>
 </tr>
 <tr>
 <td><span class="keys"><kbd class="key-page-down">Page Down</kbd></span></td>
-<td><code>pagedown</code></td>
+<td>pagedown</td>
 </tr>
 <tr>
-<td><span class="keys"><kbd class="key-break">Break</kbd></span></td>
-<td><code>pausebreak</code></td>
+<td><span class="keys"><kbd class="key-tab">Tab</kbd></span></td>
+<td>tab</td>
 </tr>
 <tr>
-<td><span class="keys"><kbd class="key-num-enter">Num Enter</kbd></span></td>
-<td><code>numpadcenter</code></td>
+<td><span class="keys"><kbd class="key-backtab">Back Tab</kbd></span></td>
+<td>backtab</td>
 </tr>
 <tr>
-<td><span class="keys"><kbd class="key-f1">F1</kbd></span> - <span class="keys"><kbd class="key-f12">F12</kbd></span></td>
-<td><code>f1</code> - <code>f12</code></td>
+<td><span class="keys"><kbd class="key-delete">Del</kbd></span></td>
+<td>delete</td>
+</tr>
+<tr>
+<td><span class="keys"><kbd class="key-insert">Ins</kbd></span></td>
+<td>insert</td>
+</tr>
+<tr>
+<td><span class="keys"><kbd class="key-escape">Esc</kbd></span></td>
+<td>esc</td>
+</tr>
+<tr>
+<td><span class="keys"><kbd class="key-f1">F1</kbd></span>-<span class="keys"><kbd class="key-f12">F12</kbd></span></td>
+<td>f1-f12</td>
 </tr>
 </tbody>
 </table>
-<h3 id="mode">Mode</h3>
-<p>The following modes are supported</p>
+<h3 id="modifiers">Modifiers</h3>
+<p>The following modifiers are available. You can also combine them using <code>|</code> as a separator. Please
+note that these modifiers are case-sensitive</p>
 <table>
 <thead>
 <tr>
@@ -1288,121 +1353,148 @@ These are the supported non-character keys (lower-/uppercase doesn't matter);</p
 </thead>
 <tbody>
 <tr>
-<td></td>
-<td><code>normal</code></td>
-</tr>
-<tr>
 <td><span class="keys"><kbd class="key-shift">Shift</kbd></span></td>
-<td><code>shift</code></td>
-</tr>
-<tr>
-<td><span class="keys"><kbd class="key-alt">Alt</kbd></span></td>
-<td><code>alt</code></td>
-</tr>
-<tr>
-<td><span class="keys"><kbd class="key-alt">Alt</kbd><span>+</span><kbd class="key-shift">Shift</kbd></span></td>
-<td><code>altshift</code></td>
+<td><code>SHIFT</code></td>
 </tr>
 <tr>
 <td><span class="keys"><kbd class="key-control">Ctrl</kbd></span></td>
-<td><code>ctrl</code></td>
+<td><code>CONTROL</code></td>
 </tr>
 <tr>
-<td><span class="keys"><kbd class="key-control">Ctrl</kbd><span>+</span><kbd class="key-shift">Shift</kbd></span></td>
-<td><code>ctrlshift</code></td>
-</tr>
-<tr>
-<td><span class="keys"><kbd class="key-control">Ctrl</kbd><span>+</span><kbd class="key-alt">Alt</kbd></span></td>
-<td><code>ctrlalt</code></td>
+<td><span class="keys"><kbd class="key-alt">Alt</kbd></span></td>
+<td><code>ALT</code></td>
 </tr>
 </tbody>
 </table>
-<h2 id="supported-actions">Supported Actions</h2>
+<h2 id="default-bindings">Default Bindings</h2>
+<p>Below are the default bindings for all of the configurable actions</p>
+<h3 id="global-bindings">Global Bindings</h3>
 <table>
 <thead>
 <tr>
 <th>Action</th>
-<th>Config Name</th>
-<th>Default Keybinding</th>
+<th>Description</th>
+<th>Default Binding</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>Scroll Down</td>
-<td><code>down</code></td>
-<td><span class="keys"><kbd class="key-arrow-down">Down</kbd></span></td>
+<td><code>scroll_down</code></td>
+<td>Scroll down</td>
+<td><span class="keys"><kbd class="key-j">J</kbd></span></td>
 </tr>
 <tr>
-<td>Scroll Up</td>
-<td><code>up</code></td>
-<td><span class="keys"><kbd class="key-arrow-up">Up</kbd></span></td>
+<td><code>scroll_up</code></td>
+<td>Scroll down</td>
+<td><span class="keys"><kbd class="key-k">K</kbd></span></td>
 </tr>
 <tr>
-<td>Scroll / Select Left</td>
-<td><code>left</code></td>
-<td><span class="keys"><kbd class="key-arrow-left">Left</kbd></span></td>
+<td><code>scroll_to_top</code></td>
+<td>Scroll to the top</td>
+<td><span class="keys"><kbd>g</kbd></span> / <span class="keys"><kbd class="key-home">Home</kbd></span></td>
 </tr>
 <tr>
-<td>Scroll / Select Right</td>
-<td><code>right</code></td>
-<td><span class="keys"><kbd class="key-arrow-right">Right</kbd></span></td>
+<td><code>scroll_to_bottom</code></td>
+<td>Scroll to the bottom</td>
+<td><span class="keys"><kbd>G</kbd></span> / <span class="keys"><kbd class="key-end">End</kbd></span></td>
 </tr>
 <tr>
-<td>Focus the next view</td>
-<td><code>focus_next</code></td>
-<td><span class="keys"><kbd class="key-tab">Tab</kbd></span></td>
+<td><code>pop_popup</code></td>
+<td>Remove the displayed popup</td>
+<td><span class="keys"><kbd class="key-escape">Esc</kbd></span></td>
 </tr>
 <tr>
-<td>Focus the previous view</td>
-<td><code>focus_prev</code></td>
-<td><span class="keys"><kbd class="key-shift">Shift</kbd><span>+</span><kbd class="key-tab">Tab</kbd></span></td>
+<td><code>half_down</code></td>
+<td>Scroll half a page down</td>
+<td><span class="keys"><kbd class="key-control">Ctrl</kbd><span>+</span><kbd class="key-d">D</kbd></span> / <span class="keys"><kbd class="key-page-down">Page Down</kbd></span></td>
 </tr>
 <tr>
-<td>Go to Top</td>
-<td>N/a</td>
-<td><span class="keys"><kbd>g</kbd></span> <span class="keys"><kbd>g</kbd></span></td>
+<td><code>half-up</code></td>
+<td>Scroll half a page up</td>
+<td><span class="keys"><kbd class="key-control">Ctrl</kbd><span>+</span><kbd class="key-u">U</kbd></span> / <span class="keys"><kbd class="key-page-up">Page Up</kbd></span></td>
 </tr>
 <tr>
-<td>Go to Bottom</td>
-<td>N/a</td>
-<td><span class="keys"><kbd>G</kbd></span></td>
+<td><code>unselect_scroll</code></td>
+<td>Unselect the current selection</td>
+<td><span class="keys"><kbd class="key-h">H</kbd></span></td>
 </tr>
 <tr>
-<td>Half page down</td>
-<td>N/a</td>
-<td><span class="keys"><kbd class="key-control">Ctrl</kbd><span>+</span><kbd class="key-d">D</kbd></span></td>
+<td><code>submit</code></td>
+<td>Submit the selected form or open the selection</td>
+<td><span class="keys"><kbd class="key-enter">Enter</kbd></span></td>
 </tr>
 <tr>
-<td>Half page up</td>
-<td>N/a</td>
-<td><span class="keys"><kbd class="key-control">Ctrl</kbd><span>+</span><kbd class="key-u">U</kbd></span></td>
+<td><code>quit</code></td>
+<td>Quit the program</td>
+<td><span class="keys"><kbd class="key-q">Q</kbd></span></td>
 </tr>
 <tr>
-<td>Focus the previous view</td>
-<td><code>focus_prev</code></td>
-<td><span class="keys"><kbd class="key-shift">Shift</kbd><span>+</span><kbd class="key-tab">Tab</kbd></span></td>
+<td><code>enter_search_bar</code></td>
+<td>Focus the searchbar</td>
+<td><span class="keys"><kbd class="key-i">I</kbd></span></td>
 </tr>
 <tr>
-<td>Toggle the language selection</td>
-<td><code>toggle_language_selection</code></td>
+<td><code>exit_search_bar</code></td>
+<td>Defocus the searchbar (return to the previous focus)</td>
+<td><span class="keys"><kbd class="key-escape">Esc</kbd></span></td>
+</tr>
+<tr>
+<td><code>switch_context_search</code></td>
+<td>Switch to the search pane</td>
+<td><span class="keys"><kbd class="key-s">S</kbd></span></td>
+</tr>
+<tr>
+<td><code>switch_context_page</code></td>
+<td>Switch to the page pane</td>
+<td><span class="keys"><kbd class="key-p">P</kbd></span></td>
+</tr>
+<tr>
+<td><code>toggle_search_language_selection</code></td>
+<td>Toggle the search language selection popup</td>
 <td><span class="keys"><kbd class="key-f2">F2</kbd></span></td>
 </tr>
 <tr>
-<td>Toggle the article language selection</td>
-<td><code>toggle_article_language_selection</code></td>
-<td><span class="keys"><kbd class="key-f3">F3</kbd></span></td>
+<td><code>toggle_logger</code></td>
+<td>Toggle the logger view</td>
+<td><span class="keys"><kbd class="key-l">L</kbd></span></td>
 </tr>
 </tbody>
 </table>
-<blockquote>
-<p>When updating the language via the selection popup, existing search results and links in articles
-won't work until you've changed the language back to what it was then opening the article /
-starting the search</p>
-</blockquote>
-<h2 id="sample-remap">Sample Remap</h2>
-<div class="highlight"><pre><span></span><code><span class="k">[keybindings]</span>
-<span class="n">down</span><span class="p">.</span><span class="n">key</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;j&quot;</span>
-<span class="n">down</span><span class="p">.</span><span class="n">mode</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;shift&quot;</span>
+<p>The default configuration file for the global bindings</p>
+<div class="highlight"><pre><span></span><code><span class="k">[bindings.global]</span>
+<span class="n">scroll_down</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;j&quot;</span>
+<span class="n">scroll_up</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;k&quot;</span>
+
+<span class="n">scroll_to_top</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="w"> </span><span class="s2">&quot;g&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;home&quot;</span><span class="w"> </span><span class="p">]</span>
+<span class="n">scroll_to_bottom</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span>
+<span class="w">    </span><span class="p">{</span><span class="w"> </span><span class="n">code</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">&quot;G&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">modifiers</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">&quot;SHIFT&quot;</span><span class="w"> </span><span class="p">},</span><span class="w"> </span>
+<span class="w">    </span><span class="s2">&quot;end&quot;</span><span class="p">,</span>
+<span class="p">]</span>
+
+<span class="n">pop_popup</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;esc&quot;</span>
+
+<span class="n">half_down</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span>
+<span class="w">    </span><span class="p">{</span><span class="w"> </span><span class="n">code</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">&quot;d&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">modifiers</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">&quot;CONTROL&quot;</span><span class="w"> </span><span class="p">},</span>
+<span class="w">    </span><span class="s2">&quot;pagedown&quot;</span><span class="p">,</span>
+<span class="p">]</span>
+<span class="n">half_up</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span>
+<span class="w">    </span><span class="p">{</span><span class="w"> </span><span class="n">code</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">&quot;u&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">modifiers</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">&quot;CONTROL&quot;</span><span class="w"> </span><span class="p">},</span>
+<span class="w">    </span><span class="s2">&quot;pageup&quot;</span><span class="p">,</span>
+<span class="p">]</span>
+
+<span class="n">unselect_scroll</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;h&quot;</span>
+
+<span class="n">submit</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;enter&quot;</span>
+<span class="n">quit</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;q&quot;</span>
+
+<span class="n">enter_search_bar</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;i&quot;</span>
+<span class="n">exit_search_bar</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;esc&quot;</span>
+
+<span class="n">switch_context_search</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;s&quot;</span>
+<span class="n">switch_context_page</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;p&quot;</span>
+
+<span class="n">toggle_search_language_selection</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;f2&quot;</span>
+<span class="n">toggle_logger</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;l&quot;</span>
 </code></pre></div>
 
 
@@ -1426,7 +1518,7 @@ starting the search</p>
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago"><span class="timeago" datetime="2024-07-31T21:11:32+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date">2024-07-31</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago"><span class="timeago" datetime="2024-11-21T12:32:18+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date">2024-11-21</span>
   </span>
 
     
@@ -1452,7 +1544,7 @@ starting the search</p>
     <nav>
       
         <a href="mailto:37375448+builditluc@users.noreply.github.com">Builditluc</a>, 
-        <a href="mailto:enoumy@gmail.com">enoumy</a>
+        <a href="mailto:git@builditluc.eu">Builditluc</a>
     </nav>
   </span>
 
