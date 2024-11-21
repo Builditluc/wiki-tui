@@ -965,13 +965,13 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#binding-configuration" class="md-nav__link">
+  <a href="#keybinding-configuration" class="md-nav__link">
     <span class="md-ellipsis">
-      Binding Configuration
+      Keybinding Configuration
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Binding Configuration">
+    <nav class="md-nav" aria-label="Keybinding Configuration">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -998,19 +998,37 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#default-bindings" class="md-nav__link">
+  <a href="#default-keybindings" class="md-nav__link">
     <span class="md-ellipsis">
-      Default Bindings
+      Default Keybindings
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Default Bindings">
+    <nav class="md-nav" aria-label="Default Keybindings">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#global-bindings" class="md-nav__link">
+  <a href="#global-keybindings" class="md-nav__link">
     <span class="md-ellipsis">
-      Global Bindings
+      Global Keybindings
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#search-keybindings" class="md-nav__link">
+    <span class="md-ellipsis">
+      Search Keybindings
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#page-keybindings" class="md-nav__link">
+    <span class="md-ellipsis">
+      Page Keybindings
     </span>
   </a>
   
@@ -1150,13 +1168,13 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#binding-configuration" class="md-nav__link">
+  <a href="#keybinding-configuration" class="md-nav__link">
     <span class="md-ellipsis">
-      Binding Configuration
+      Keybinding Configuration
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Binding Configuration">
+    <nav class="md-nav" aria-label="Keybinding Configuration">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -1183,19 +1201,37 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#default-bindings" class="md-nav__link">
+  <a href="#default-keybindings" class="md-nav__link">
     <span class="md-ellipsis">
-      Default Bindings
+      Default Keybindings
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Default Bindings">
+    <nav class="md-nav" aria-label="Default Keybindings">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#global-bindings" class="md-nav__link">
+  <a href="#global-keybindings" class="md-nav__link">
     <span class="md-ellipsis">
-      Global Bindings
+      Global Keybindings
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#search-keybindings" class="md-nav__link">
+    <span class="md-ellipsis">
+      Search Keybindings
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#page-keybindings" class="md-nav__link">
+    <span class="md-ellipsis">
+      Page Keybindings
     </span>
   </a>
   
@@ -1239,7 +1275,7 @@
 
 <h1 id="keybindings">Keybindings</h1>
 <p>There are certain actions that you can change the Keybindings for. The configuration for each action is the same.</p>
-<h2 id="binding-configuration">Binding Configuration</h2>
+<h2 id="keybinding-configuration">Keybinding Configuration</h2>
 <div class="admonition tip">
 <p class="admonition-title">Multiple Bindings per Action</p>
 <p>You can also define multiple bindings for one action by putting them into an array (<code>action = [bidning1, binding2, etc.]</code>).</p>
@@ -1366,9 +1402,9 @@ note that these modifiers are case-sensitive</p>
 </tr>
 </tbody>
 </table>
-<h2 id="default-bindings">Default Bindings</h2>
-<p>Below are the default bindings for all of the configurable actions</p>
-<h3 id="global-bindings">Global Bindings</h3>
+<h2 id="default-keybindings">Default Keybindings</h2>
+<p>Below are the default keybindings for all of the configurable actions</p>
+<h3 id="global-keybindings">Global Keybindings</h3>
 <table>
 <thead>
 <tr>
@@ -1460,7 +1496,7 @@ note that these modifiers are case-sensitive</p>
 </tr>
 </tbody>
 </table>
-<p>The default configuration file for the global bindings</p>
+<p>The default configuration file for the global keybindings</p>
 <div class="highlight"><pre><span></span><code><span class="k">[bindings.global]</span>
 <span class="n">scroll_down</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;j&quot;</span>
 <span class="n">scroll_up</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;k&quot;</span>
@@ -1496,6 +1532,106 @@ note that these modifiers are case-sensitive</p>
 <span class="n">toggle_search_language_selection</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;f2&quot;</span>
 <span class="n">toggle_logger</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;l&quot;</span>
 </code></pre></div>
+<h3 id="search-keybindings">Search Keybindings</h3>
+<table>
+<thead>
+<tr>
+<th>Action</th>
+<th>Description</th>
+<th>Default Binding</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>continue_search</code></td>
+<td>Continue the search</td>
+<td><span class="keys"><kbd class="key-c">C</kbd></span></td>
+</tr>
+</tbody>
+</table>
+<p>The default configuration for the search keybindings</p>
+<div class="highlight"><pre><span></span><code><span class="k">[bindings.search]</span>
+<span class="n">continue_search</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;c&quot;</span>
+</code></pre></div>
+<h3 id="page-keybindings">Page Keybindings</h3>
+<table>
+<thead>
+<tr>
+<th>Action</th>
+<th>Description</th>
+<th>Default Binding</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>pop_page</code></td>
+<td>Remove the current page from the stack</td>
+<td><span class="keys"><kbd class="key-escape">Esc</kbd></span></td>
+</tr>
+<tr>
+<td><code>jump_to_header</code></td>
+<td>Jump to the selected header in the toc (only if toc is focussed)</td>
+<td><span class="keys"><kbd class="key-enter">Enter</kbd></span></td>
+</tr>
+<tr>
+<td><code>select_first_link</code></td>
+<td>Select the first link in the page</td>
+<td><span class="keys"><kbd class="key-shift">Shift</kbd><span>+</span><kbd class="key-arrow-left">Left</kbd></span></td>
+</tr>
+<tr>
+<td><code>select_last_link</code></td>
+<td>Select the last link in the page</td>
+<td><span class="keys"><kbd class="key-shift">Shift</kbd><span>+</span><kbd class="key-arrow-right">Right</kbd></span></td>
+</tr>
+<tr>
+<td><code>select_prev_link</code></td>
+<td>Select the previous link in the page</td>
+<td><span class="keys"><kbd class="key-arrow-left">Left</kbd></span></td>
+</tr>
+<tr>
+<td><code>select_next_link</code></td>
+<td>Select the next link in the page</td>
+<td><span class="keys"><kbd class="key-arrow-right">Right</kbd></span></td>
+</tr>
+<tr>
+<td><code>open_link</code></td>
+<td>Open the currently selected link</td>
+<td><span class="keys"><kbd class="key-enter">Enter</kbd></span></td>
+</tr>
+<tr>
+<td><code>toggle_page_language_selection</code></td>
+<td>Toggle the popup for changing the page language</td>
+<td><span class="keys"><kbd class="key-f3">F3</kbd></span></td>
+</tr>
+<tr>
+<td><code>toggle_zen_mode</code></td>
+<td>Toggle the zen-mode for the page</td>
+<td><span class="keys"><kbd class="key-f4">F4</kbd></span></td>
+</tr>
+<tr>
+<td><code>toggle_toc</code></td>
+<td>Switch the focus to the toc (or page)</td>
+<td><span class="keys"><kbd class="key-tab">Tab</kbd></span> / <span class="keys"><kbd class="key-backtab">Back Tab</kbd></span></td>
+</tr>
+</tbody>
+</table>
+<p>The default configuration for the page keybindings</p>
+<div class="highlight"><pre><span></span><code><span class="k">[bindings.page]</span>
+<span class="n">pop_page</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;esc&quot;</span>
+<span class="n">jump_to_header</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;enter&quot;</span>
+
+<span class="n">select_first_link</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">code</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">&quot;left&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">modifiers</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">&quot;SHIFT&quot;</span><span class="w"> </span><span class="p">}</span>
+<span class="n">select_last_link</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">code</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">&quot;right&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">modifiers</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">&quot;SHIFT&quot;</span><span class="w"> </span><span class="p">}</span>
+
+<span class="n">select_prev_link</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;left&quot;</span>
+<span class="n">select_next_link</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;right&quot;</span>
+
+<span class="n">open_link</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;enter&quot;</span>
+
+<span class="n">toggle_page_language_selection</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;f3&quot;</span>
+<span class="n">toggle_zen_mode</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;f4&quot;</span>
+<span class="n">toggle_toc</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="w"> </span><span class="s2">&quot;tab&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;backtab&quot;</span><span class="w"> </span><span class="p">]</span>
+</code></pre></div>
 
 
 
@@ -1518,7 +1654,7 @@ note that these modifiers are case-sensitive</p>
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago"><span class="timeago" datetime="2024-11-21T12:32:18+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date">2024-11-21</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago"><span class="timeago" datetime="2024-11-21T16:48:41+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date">2024-11-21</span>
   </span>
 
     
