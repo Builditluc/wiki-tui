@@ -11,7 +11,7 @@ use wiki_api::languages::{Language, LANGUAGES};
 
 use crate::{
     action::{Action, ActionPacket, ActionResult, SearchAction},
-    config::Theme,
+    config::{Config, Theme},
     terminal::Frame,
     ui::{centered_rect, StatefulList},
 };
@@ -26,16 +26,18 @@ pub struct SearchLanguageSelectionComponent {
     focus: u8,
     list: StatefulList<Language>,
 
+    config: Arc<Config>,
     theme: Arc<Theme>,
 }
 
 impl SearchLanguageSelectionComponent {
-    pub fn new(theme: Arc<Theme>) -> Self {
+    pub fn new(config: Arc<Config>, theme: Arc<Theme>) -> Self {
         Self {
             input: Input::default(),
             list: StatefulList::with_items(Vec::new()),
             focus: 0,
 
+            config,
             theme,
         }
     }
@@ -57,22 +59,27 @@ impl SearchLanguageSelectionComponent {
 
 impl Component for SearchLanguageSelectionComponent {
     fn handle_key_events(&mut self, key: crossterm::event::KeyEvent) -> ActionResult {
-        match key.code {
-            KeyCode::Enter => {
-                if let Some(lang) = self.list.selected() {
-                    return ActionPacket::single(Action::SwitchContextSearch)
-                        .action(Action::PopPopup)
-                        .action(Action::PopupMessage(
-                            "Information".to_string(),
-                            format!("Changed the language for searches to '{}'", lang.name()),
-                        ))
-                        .action(Action::Search(SearchAction::ChangeLanguage(
-                            lang.to_owned(),
-                        )))
-                        .into();
-                }
-                ActionResult::Ignored
+        if self.config.bindings.global.submit.matches_event(key) {
+            if let Some(lang) = self.list.selected() {
+                return ActionPacket::single(Action::SwitchContextSearch)
+                    .action(Action::PopPopup)
+                    .action(Action::PopupMessage(
+                        "Information".to_string(),
+                        format!("Changed the language for searches to '{}'", lang.name()),
+                    ))
+                    .action(Action::Search(SearchAction::ChangeLanguage(
+                        lang.to_owned(),
+                    )))
+                    .into();
             }
+            return ActionResult::Ignored;
+        }
+
+        if self.config.bindings.global.pop_popup.matches_event(key) {
+            return Action::PopPopup.into();
+        }
+
+        match key.code {
             KeyCode::Tab | KeyCode::BackTab => {
                 if self.focus == FOCUS_INPUT {
                     self.focus = FOCUS_LIST;
@@ -89,7 +96,7 @@ impl Component for SearchLanguageSelectionComponent {
                 ActionResult::consumed()
             }
 
-            KeyCode::Esc | KeyCode::F(2) => Action::PopPopup.into(),
+            KeyCode::F(2) => Action::PopPopup.into(),
 
             _ if self.focus == FOCUS_INPUT => {
                 self.input.handle_event(&crossterm::event::Event::Key(key));

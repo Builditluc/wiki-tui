@@ -11,7 +11,7 @@ use wiki_api::page::LanguageLink;
 
 use crate::{
     action::{Action, ActionPacket, ActionResult},
-    config::Theme,
+    config::{Config, Theme},
     terminal::Frame,
     ui::{centered_rect, StatefulList},
 };
@@ -27,17 +27,19 @@ pub struct PageLanguageSelectionComponent {
     list: StatefulList<LanguageLink>,
     language_links: Vec<LanguageLink>,
 
+    config: Arc<Config>,
     theme: Arc<Theme>,
 }
 
 impl PageLanguageSelectionComponent {
-    pub fn new(language_links: Vec<LanguageLink>, theme: Arc<Theme>) -> Self {
+    pub fn new(language_links: Vec<LanguageLink>, config: Arc<Config>, theme: Arc<Theme>) -> Self {
         Self {
             input: Input::default(),
             list: StatefulList::with_items(language_links.clone()),
             language_links,
             focus: 0,
 
+            config,
             theme,
         }
     }
@@ -60,22 +62,27 @@ impl PageLanguageSelectionComponent {
 
 impl Component for PageLanguageSelectionComponent {
     fn handle_key_events(&mut self, key: crossterm::event::KeyEvent) -> ActionResult {
-        match key.code {
-            KeyCode::Enter => {
-                if let Some(link) = self.list.selected() {
-                    return ActionPacket::single(Action::PopPopup)
-                        .action(Action::PopupMessage(
-                            "Information".to_string(),
-                            format!(
-                                "Changing the language of the page to '{}'",
-                                link.language.name()
-                            ),
-                        ))
-                        .action(Action::LoadLangaugeLink(link.to_owned()))
-                        .into();
-                }
-                ActionResult::Ignored
+        if self.config.bindings.global.submit.matches_event(key) {
+            if let Some(link) = self.list.selected() {
+                return ActionPacket::single(Action::PopPopup)
+                    .action(Action::PopupMessage(
+                        "Information".to_string(),
+                        format!(
+                            "Changing the language of the page to '{}'",
+                            link.language.name()
+                        ),
+                    ))
+                    .action(Action::LoadLangaugeLink(link.to_owned()))
+                    .into();
             }
+            return ActionResult::Ignored;
+        }
+
+        if self.config.bindings.global.pop_popup.matches_event(key) {
+            return Action::PopPopup.into();
+        }
+
+        match key.code {
             KeyCode::Tab | KeyCode::BackTab => {
                 if self.focus == FOCUS_INPUT {
                     self.focus = FOCUS_LIST;
@@ -91,7 +98,7 @@ impl Component for PageLanguageSelectionComponent {
                 self.focus = FOCUS_INPUT;
                 ActionResult::consumed()
             }
-            KeyCode::Esc | KeyCode::F(3) => Action::PopPopup.into(),
+            KeyCode::F(3) => Action::PopPopup.into(),
             _ if self.focus == FOCUS_INPUT => {
                 self.input.handle_event(&crossterm::event::Event::Key(key));
                 self.update_list();

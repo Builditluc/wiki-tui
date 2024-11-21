@@ -66,7 +66,7 @@ impl PageViewer {
             .current_page()
             .and_then(|x| x.page.language_links.to_owned())
             .unwrap_or_default();
-        PageLanguageSelectionComponent::new(language_links, self.theme.clone())
+        PageLanguageSelectionComponent::new(language_links, self.config.clone(), self.theme.clone())
     }
 }
 

@@ -251,7 +251,9 @@ impl Component for SearchComponent {
                 }
             }
             Mode::FinishedSearch => match key.code {
-                KeyCode::Enter if self.search_results.is_selected() => {
+                _ if self.search_results.is_selected()
+                    && self.config.bindings.global.submit.matches_event(key) =>
+                {
                     Action::Search(SearchAction::OpenSearchResult).into()
                 }
                 KeyCode::Char('c') => Action::Search(SearchAction::ContinueSearch).into(),

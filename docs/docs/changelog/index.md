@@ -11,6 +11,7 @@
     - Add options for changing the scrollbar colors
     - Add options for changing the statusbar colors
 - Add zen-mode to hide ui elements
+- Add multiple new configurable keybindings
 
 ## Changes
 
@@ -23,6 +24,7 @@
 - Change the application pattern to a component-based architecture
 - Change the logging library used to `tracing`
 - Change the cli library from `structopt` to `clap`
+- Change the configuration layout of the keybindings
 - Improve debug panic messages using `better-panic`
 - Improve release panic messages using `human-panic`
 - Improve the cli interface

@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use crossterm::event::{KeyCode, KeyEvent};
+use crossterm::event::{KeyEvent};
 use ratatui::{
     prelude::Rect,
     style::{Color, Modifier, Style},
@@ -53,14 +53,22 @@ impl Component for SearchBarComponent {
     }
 
     fn handle_key_events(&mut self, key: KeyEvent) -> ActionResult {
-        match key.code {
-            KeyCode::Enter => Action::SubmitSearchBar.into(),
-            KeyCode::Esc => Action::ExitSearchBar.into(),
-            _ => {
-                self.input.handle_event(&crossterm::event::Event::Key(key));
-                ActionResult::consumed()
-            }
+        if self.config.bindings.global.submit.matches_event(key) {
+            return Action::SubmitSearchBar.into();
         }
+
+        if self
+            .config
+            .bindings
+            .global
+            .exit_search_bar
+            .matches_event(key)
+        {
+            return Action::ExitSearchBar.into();
+        }
+
+        self.input.handle_event(&crossterm::event::Event::Key(key));
+        ActionResult::consumed()
     }
 
     fn render(&mut self, f: &mut Frame<'_>, area: Rect) {

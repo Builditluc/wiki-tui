@@ -1,5 +1,6 @@
 use anyhow::{bail, Context, Result};
 use bitflags::bitflags;
+use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 use directories::ProjectDirs;
 use ratatui::{
     layout::Constraint,
@@ -72,6 +73,10 @@ pub fn load_config() -> Result<Config> {
         override_page_config(&mut default_config.page, user_page_config)
     }
 
+    if let Some(user_bindings_config) = user_config.bindings {
+        override_bindings_config(&mut default_config.bindings, user_bindings_config)
+    }
+
     Ok(default_config)
 }
 
@@ -101,6 +106,35 @@ fn override_page_config(config: &mut PageConfig, user_config: UserPageConfig) {
     }
 }
 
+fn override_bindings_config(config: &mut Keybindings, user_config: UserKeybindingsConfig) {
+    if let Some(user_global_bindings) = user_config.global {
+        override_options!(config.global, user_global_bindings::{
+            scroll_down,
+            scroll_up,
+
+            scroll_to_top,
+            scroll_to_bottom,
+
+            pop_popup,
+
+            half_down,
+            half_up,
+            unselect_scroll,
+
+            submit,
+            quit,
+            enter_search_bar,
+            exit_search_bar,
+
+            switch_context_search,
+            switch_context_page,
+
+            toggle_search_language_selection,
+            toggle_logger
+        });
+    }
+}
+
 fn load_user_config() -> Result<UserConfig> {
     let path = config_dir()
         .context("failed retrieving the config dir")?
@@ -118,6 +152,7 @@ fn load_user_config() -> Result<UserConfig> {
 
 pub struct Config {
     pub page: PageConfig,
+    pub bindings: Keybindings,
 }
 
 pub struct PageConfig {
@@ -192,8 +227,80 @@ pub struct TocConfig {
     pub enable_scrolling: bool,
 }
 
+#[derive(Deserialize)]
+struct Binding {
+    code: KeyCode,
+    modifiers: KeyModifiers,
+}
+
+#[derive(Deserialize)]
+pub struct Keybinding {
+    bindings: Vec<Binding>,
+}
+
+impl Keybinding {
+    fn new() -> Self {
+        Self {
+            bindings: Vec::new(),
+        }
+    }
+
+    fn binding(mut self, code: KeyCode, modifiers: KeyModifiers) -> Self {
+        self.bindings.push(Binding { code, modifiers });
+        self
+    }
+
+    pub fn matches_event(&self, event: KeyEvent) -> bool {
+        return self
+            .bindings
+            .iter()
+            .any(|x| x.code == event.code && x.modifiers == event.modifiers);
+    }
+}
+
+pub struct GlobalKeybindings {
+    pub scroll_down: Keybinding,
+    pub scroll_up: Keybinding,
+
+    pub scroll_to_top: Keybinding,
+    pub scroll_to_bottom: Keybinding,
+
+    pub pop_popup: Keybinding,
+
+    pub half_down: Keybinding,
+    pub half_up: Keybinding,
+    pub unselect_scroll: Keybinding,
+
+    pub submit: Keybinding,
+    pub quit: Keybinding,
+    pub enter_search_bar: Keybinding,
+    pub exit_search_bar: Keybinding,
+
+    pub switch_context_search: Keybinding,
+    pub switch_context_page: Keybinding,
+
+    pub toggle_search_language_selection: Keybinding,
+    pub toggle_logger: Keybinding,
+}
+
+pub struct Keybindings {
+    pub global: GlobalKeybindings,
+}
+
 impl Config {
     pub fn new() -> Self {
+        macro_rules! keybinding {
+            ([$($ch:expr; $($md:ident)|*),+]) => {
+                {
+                    Keybinding::new()
+                        $(.binding(
+                            $ch,
+                            KeyModifiers::NONE$(|KeyModifiers::$md)*
+                        ))+
+                }
+            };
+        }
+
         Self {
             page: PageConfig {
                 toc: TocConfig {
@@ -212,6 +319,34 @@ impl Config {
 
                 zen_horizontal: Constraint::Percentage(80),
                 zen_vertical: Constraint::Percentage(90),
+            },
+            bindings: Keybindings {
+                global: GlobalKeybindings {
+                    scroll_down: keybinding!([KeyCode::Char('j');]),
+                    scroll_up: keybinding!([KeyCode::Char('k');]),
+
+                    scroll_to_top: keybinding!([KeyCode::Char('g');, KeyCode::Home;]),
+                    scroll_to_bottom: keybinding!([KeyCode::Char('G'); SHIFT, KeyCode::End;]),
+
+                    pop_popup: keybinding!([KeyCode::Esc;]),
+
+                    half_down: keybinding!([KeyCode::Char('d'); CONTROL, KeyCode::PageDown;]),
+                    half_up: keybinding!([KeyCode::Char('u'); CONTROL, KeyCode::PageUp;]),
+
+                    unselect_scroll: keybinding!([KeyCode::Char('h');]),
+
+                    submit: keybinding!([KeyCode::Enter;]),
+                    quit: keybinding!([KeyCode::Char('q');, KeyCode::Char('c'); CONTROL]),
+
+                    enter_search_bar: keybinding!([KeyCode::Char('i');]),
+                    exit_search_bar: keybinding!([KeyCode::Esc;]),
+
+                    switch_context_search: keybinding!([KeyCode::Char('s');]),
+                    switch_context_page: keybinding!([KeyCode::Char('p');]),
+
+                    toggle_search_language_selection: keybinding!([KeyCode::F(2);]),
+                    toggle_logger: keybinding!([KeyCode::Char('l');]),
+                },
             },
         }
     }
@@ -237,6 +372,7 @@ impl Default for Config {
 #[derive(Deserialize)]
 struct UserConfig {
     page: Option<UserPageConfig>,
+    bindings: Option<UserKeybindingsConfig>,
 }
 
 #[derive(Deserialize)]
@@ -288,6 +424,162 @@ struct UserTocConfig {
     item_format: Option<String>,
 
     enable_scrolling: Option<bool>,
+}
+#[derive(Deserialize)]
+#[serde(rename_all = "lowercase")]
+enum UserKeyCodeInner {
+    Backspace,
+    Enter,
+    Left,
+    Right,
+    Up,
+    Down,
+    Home,
+    End,
+    PageUp,
+    PageDown,
+    Tab,
+    BackTab,
+    Delete,
+    Insert,
+    Esc,
+
+    F1,
+    F2,
+    F3,
+    F4,
+    F5,
+    F6,
+    F7,
+    F8,
+    F9,
+    F10,
+    F11,
+    F12,
+}
+
+#[derive(Deserialize)]
+#[serde(untagged)]
+enum UserKeyCode {
+    Char(char),
+    NonChar(UserKeyCodeInner),
+}
+
+#[allow(clippy::from_over_into)]
+impl Into<KeyCode> for UserKeyCode {
+    fn into(self) -> KeyCode {
+        match self {
+            Self::Char(char) => KeyCode::Char(char),
+            Self::NonChar(inner) => match inner {
+                UserKeyCodeInner::Backspace => KeyCode::Backspace,
+                UserKeyCodeInner::Enter => KeyCode::Enter,
+                UserKeyCodeInner::Left => KeyCode::Left,
+                UserKeyCodeInner::Right => KeyCode::Right,
+                UserKeyCodeInner::Up => KeyCode::Up,
+                UserKeyCodeInner::Down => KeyCode::Down,
+                UserKeyCodeInner::Home => KeyCode::Home,
+                UserKeyCodeInner::End => KeyCode::End,
+                UserKeyCodeInner::PageUp => KeyCode::PageUp,
+                UserKeyCodeInner::PageDown => KeyCode::PageDown,
+                UserKeyCodeInner::Tab => KeyCode::Tab,
+                UserKeyCodeInner::BackTab => KeyCode::BackTab,
+                UserKeyCodeInner::Delete => KeyCode::Delete,
+                UserKeyCodeInner::Insert => KeyCode::Insert,
+                UserKeyCodeInner::Esc => KeyCode::Esc,
+                UserKeyCodeInner::F1 => KeyCode::F(1),
+                UserKeyCodeInner::F2 => KeyCode::F(2),
+                UserKeyCodeInner::F3 => KeyCode::F(3),
+                UserKeyCodeInner::F4 => KeyCode::F(4),
+                UserKeyCodeInner::F5 => KeyCode::F(5),
+                UserKeyCodeInner::F6 => KeyCode::F(6),
+                UserKeyCodeInner::F7 => KeyCode::F(7),
+                UserKeyCodeInner::F8 => KeyCode::F(8),
+                UserKeyCodeInner::F9 => KeyCode::F(9),
+                UserKeyCodeInner::F10 => KeyCode::F(10),
+                UserKeyCodeInner::F11 => KeyCode::F(12),
+                UserKeyCodeInner::F12 => KeyCode::F(13),
+            },
+        }
+    }
+}
+
+#[derive(Deserialize)]
+#[serde(untagged)]
+enum UserBinding {
+    CodeOnly(UserKeyCode),
+    Binding {
+        code: UserKeyCode,
+        modifiers: Option<KeyModifiers>,
+    },
+}
+
+#[allow(clippy::from_over_into)]
+impl Into<Binding> for UserBinding {
+    fn into(self) -> Binding {
+        match self {
+            UserBinding::CodeOnly(code) => UserBinding::Binding {
+                code,
+                modifiers: None,
+            }
+            .into(),
+            UserBinding::Binding { code, modifiers } => Binding {
+                code: code.into(),
+                modifiers: modifiers.unwrap_or(KeyModifiers::empty()),
+            },
+        }
+    }
+}
+
+#[derive(Deserialize)]
+#[serde(untagged)]
+enum UserKeybinding {
+    SingleBinding(UserBinding),
+    MultipleBindings(Vec<UserBinding>),
+}
+
+#[allow(clippy::from_over_into)]
+impl Into<Keybinding> for UserKeybinding {
+    fn into(self) -> Keybinding {
+        match self {
+            UserKeybinding::SingleBinding(binding) => Keybinding {
+                bindings: vec![binding.into()],
+            },
+            UserKeybinding::MultipleBindings(bindings) => Keybinding {
+                bindings: bindings.into_iter().map(|x| x.into()).collect(),
+            },
+        }
+    }
+}
+
+#[derive(Deserialize)]
+struct UserGlobalKeybindings {
+    scroll_down: Option<UserKeybinding>,
+    scroll_up: Option<UserKeybinding>,
+
+    scroll_to_top: Option<UserKeybinding>,
+    scroll_to_bottom: Option<UserKeybinding>,
+
+    pop_popup: Option<UserKeybinding>,
+
+    half_down: Option<UserKeybinding>,
+    half_up: Option<UserKeybinding>,
+    unselect_scroll: Option<UserKeybinding>,
+
+    submit: Option<UserKeybinding>,
+    quit: Option<UserKeybinding>,
+    enter_search_bar: Option<UserKeybinding>,
+    exit_search_bar: Option<UserKeybinding>,
+
+    switch_context_search: Option<UserKeybinding>,
+    switch_context_page: Option<UserKeybinding>,
+
+    toggle_search_language_selection: Option<UserKeybinding>,
+    toggle_logger: Option<UserKeybinding>,
+}
+
+#[derive(Deserialize)]
+struct UserKeybindingsConfig {
+    global: Option<UserGlobalKeybindings>,
 }
 
 pub fn load_theme() -> Result<Theme> {

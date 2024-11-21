@@ -140,43 +140,47 @@ impl Component for AppComponent {
             return result;
         }
 
-        match key.code {
-            KeyCode::Char('q') => Action::Quit.into(),
-            KeyCode::Esc => Action::PopPopup.into(),
+        let global_bindings = &self.config.bindings.global;
+        macro_rules! match_bindings {
+            ($($bind:ident => $action:expr),+) => {
+                $(if global_bindings.$bind.matches_event(key) {
+                    return $action.into();
+                })+
+            };
+        }
 
-            KeyCode::Char('l') => Action::ToggleShowLogger.into(),
+        match_bindings!(
+            quit => Action::Quit,
+            pop_popup => Action::PopPopup,
 
-            KeyCode::Char('s') => Action::SwitchContextSearch.into(),
-            KeyCode::Char('p') => Action::SwitchContextPage.into(),
+            toggle_logger => Action::ToggleShowLogger,
 
-            KeyCode::Char('j') => Action::ScrollDown(1).into(),
-            KeyCode::Char('k') => Action::ScrollUp(1).into(),
+            switch_context_search => Action::SwitchContextSearch,
+            switch_context_page => Action::SwitchContextPage,
 
-            KeyCode::Char('g') | KeyCode::Home => Action::ScrollToTop.into(),
-            KeyCode::Char('G') | KeyCode::End => Action::ScrollToBottom.into(),
+            scroll_down => Action::ScrollDown(1),
+            scroll_up => Action::ScrollUp(1),
 
-            KeyCode::Char('d') if has_modifier!(key, Modifier::CONTROL) => {
-                Action::ScrollHalfDown.into()
-            }
-            KeyCode::Char('u') if has_modifier!(key, Modifier::CONTROL) => {
-                Action::ScrollHalfUp.into()
-            }
-            KeyCode::PageDown => Action::ScrollHalfDown.into(),
-            KeyCode::PageUp => Action::ScrollHalfUp.into(),
+            scroll_to_top => Action::ScrollToTop,
+            scroll_to_bottom => Action::ScrollToBottom,
 
-            KeyCode::Char('h') => Action::UnselectScroll.into(),
+            half_up => Action::ScrollHalfUp,
+            half_down => Action::ScrollHalfDown,
 
-            KeyCode::Char('i') => Action::EnterSearchBar.into(),
+            unselect_scroll => Action::UnselectScroll,
+            enter_search_bar => Action::EnterSearchBar,
 
-            KeyCode::F(2) => {
+            toggle_search_language_selection => {
                 self.popups
                     .push(Box::new(SearchLanguageSelectionComponent::new(
+                        self.config.clone(),
                         self.theme.clone(),
                     )));
                 ActionResult::consumed()
             }
-            _ => ActionResult::Ignored,
-        }
+        );
+
+        ActionResult::Ignored
     }
 
     fn update(&mut self, action: Action) -> ActionResult {
