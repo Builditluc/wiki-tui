@@ -137,6 +137,21 @@ fn override_bindings_config(config: &mut Keybindings, user_config: UserKeybindin
     if let Some(user_search_bindings) = user_config.search {
         override_options!(config.search, user_search_bindings::continue_search);
     }
+
+    if let Some(user_page_bindings) = user_config.page {
+        override_options!(config.page, user_page_bindings::{
+            pop_page,
+            jump_to_header,
+            select_first_link,
+            select_last_link,
+            select_next_link,
+            select_prev_link,
+            open_link,
+            toggle_page_language_selection,
+            toggle_zen_mode,
+            toggle_toc
+        });
+    }
 }
 
 fn load_user_config() -> Result<UserConfig> {
@@ -291,9 +306,27 @@ pub struct SearchKeybindings {
     pub continue_search: Keybinding,
 }
 
+pub struct PageKeybindings {
+    pub pop_page: Keybinding,
+    pub jump_to_header: Keybinding,
+
+    pub select_first_link: Keybinding,
+    pub select_last_link: Keybinding,
+
+    pub select_prev_link: Keybinding,
+    pub select_next_link: Keybinding,
+
+    pub open_link: Keybinding,
+
+    pub toggle_page_language_selection: Keybinding,
+    pub toggle_zen_mode: Keybinding,
+    pub toggle_toc: Keybinding,
+}
+
 pub struct Keybindings {
     pub global: GlobalKeybindings,
     pub search: SearchKeybindings,
+    pub page: PageKeybindings,
 }
 
 impl Config {
@@ -358,6 +391,18 @@ impl Config {
                 },
                 search: SearchKeybindings {
                     continue_search: keybinding!([KeyCode::Char('c');]),
+                },
+                page: PageKeybindings {
+                    pop_page: keybinding!([KeyCode::Esc;]),
+                    jump_to_header: keybinding!([KeyCode::Enter;]),
+                    select_first_link: keybinding!([KeyCode::Left; SHIFT]),
+                    select_last_link: keybinding!([KeyCode::Right; SHIFT]),
+                    select_prev_link: keybinding!([KeyCode::Left;]),
+                    select_next_link: keybinding!([KeyCode::Right;]),
+                    open_link: keybinding!([KeyCode::Enter;]),
+                    toggle_page_language_selection: keybinding!([KeyCode::F(3);]),
+                    toggle_zen_mode: keybinding!([KeyCode::F(4);]),
+                    toggle_toc: keybinding!([KeyCode::Tab;, KeyCode::BackTab;]),
                 },
             },
         }
@@ -563,41 +608,56 @@ impl Into<Keybinding> for UserKeybinding {
     }
 }
 
-#[derive(Deserialize)]
-struct UserGlobalKeybindings {
-    scroll_down: Option<UserKeybinding>,
-    scroll_up: Option<UserKeybinding>,
-
-    scroll_to_top: Option<UserKeybinding>,
-    scroll_to_bottom: Option<UserKeybinding>,
-
-    pop_popup: Option<UserKeybinding>,
-
-    half_down: Option<UserKeybinding>,
-    half_up: Option<UserKeybinding>,
-    unselect_scroll: Option<UserKeybinding>,
-
-    submit: Option<UserKeybinding>,
-    quit: Option<UserKeybinding>,
-    enter_search_bar: Option<UserKeybinding>,
-    exit_search_bar: Option<UserKeybinding>,
-
-    switch_context_search: Option<UserKeybinding>,
-    switch_context_page: Option<UserKeybinding>,
-
-    toggle_search_language_selection: Option<UserKeybinding>,
-    toggle_logger: Option<UserKeybinding>,
+macro_rules! user_keybindings {
+    ($name:ident, $($binding:ident),+) => {
+        #[derive(Deserialize)]
+        struct $name {
+            $($binding: Option<UserKeybinding>,)+
+        }
+    };
 }
 
-#[derive(Deserialize)]
-struct UserSearchKeybindings {
-    continue_search: Option<UserKeybinding>,
-}
+user_keybindings!(
+    UserGlobalKeybindings,
+    scroll_down,
+    scroll_up,
+    scroll_to_top,
+    scroll_to_bottom,
+    pop_popup,
+    half_down,
+    half_up,
+    unselect_scroll,
+    submit,
+    quit,
+    enter_search_bar,
+    exit_search_bar,
+    switch_context_search,
+    switch_context_page,
+    toggle_search_language_selection,
+    toggle_logger
+);
+
+user_keybindings!(UserSearchKeybindings, continue_search);
+
+user_keybindings!(
+    UserPageKeybindings,
+    pop_page,
+    jump_to_header,
+    select_first_link,
+    select_last_link,
+    select_prev_link,
+    select_next_link,
+    open_link,
+    toggle_page_language_selection,
+    toggle_zen_mode,
+    toggle_toc
+);
 
 #[derive(Deserialize)]
 struct UserKeybindingsConfig {
     global: Option<UserGlobalKeybindings>,
     search: Option<UserSearchKeybindings>,
+    page: Option<UserPageKeybindings>,
 }
 
 pub fn load_theme() -> Result<Theme> {

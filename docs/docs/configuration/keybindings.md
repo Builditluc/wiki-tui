@@ -142,3 +142,38 @@ The default configuration for the search keybindings
 [bindings.search]
 continue_search = "c"
 ```
+
+### Page Keybindings
+
+| Action                           | Description                                                      | Default Binding       |
+|----------------------------------|------------------------------------------------------------------|-----------------------|
+| `pop_page`                       | Remove the current page from the stack                           | ++esc++               |
+| `jump_to_header`                 | Jump to the selected header in the toc (only if toc is focussed) | ++enter++             |
+| `select_first_link`              | Select the first link in the page                                | ++shift+left++        |
+| `select_last_link`               | Select the last link in the page                                 | ++shift+right++       |
+| `select_prev_link`               | Select the previous link in the page                             | ++left++              |
+| `select_next_link`               | Select the next link in the page                                 | ++right++             |
+| `open_link`                      | Open the currently selected link                                 | ++enter++             |
+| `toggle_page_language_selection` | Toggle the popup for changing the page language                  | ++f3++                |
+| `toggle_zen_mode`                | Toggle the zen-mode for the page                                 | ++f4++                |
+| `toggle_toc`                     | Switch the focus to the toc (or page)                            | ++tab++ / ++backtab++ |
+
+The default configuration for the page keybindings
+
+```toml
+[bindings.page]
+pop_page = "esc"
+jump_to_header = "enter"
+
+select_first_link = { code = "left", modifiers = "SHIFT" }
+select_last_link = { code = "right", modifiers = "SHIFT" }
+
+select_prev_link = "left"
+select_next_link = "right"
+
+open_link = "enter"
+
+toggle_page_language_selection = "f3"
+toggle_zen_mode = "f4"
+toggle_toc = [ "tab", "backtab" ]
+```

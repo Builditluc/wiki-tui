@@ -1,6 +1,5 @@
 use std::sync::Arc;
 
-use crossterm::event::KeyCode;
 use ratatui::{
     prelude::{Alignment, Rect},
     style::Style,
@@ -84,11 +83,17 @@ impl Component for PageViewer {
     }
 
     fn handle_key_events(&mut self, key: crossterm::event::KeyEvent) -> ActionResult {
-        if matches!(key.code, KeyCode::F(3)) {
+        if self
+            .config
+            .bindings
+            .page
+            .toggle_page_language_selection
+            .matches_event(key)
+        {
             return Action::ShowPageLanguageSelection.into();
         }
 
-        if matches!(key.code, KeyCode::Esc) {
+        if self.config.bindings.page.pop_page.matches_event(key) {
             return Action::PageViewer(PageViewerAction::PopPage).into();
         }
 

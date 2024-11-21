@@ -78,7 +78,14 @@ impl Component for PageLanguageSelectionComponent {
             return ActionResult::Ignored;
         }
 
-        if self.config.bindings.global.pop_popup.matches_event(key) {
+        if self.config.bindings.global.pop_popup.matches_event(key)
+            || self
+                .config
+                .bindings
+                .page
+                .toggle_page_language_selection
+                .matches_event(key)
+        {
             return Action::PopPopup.into();
         }
 
@@ -98,7 +105,6 @@ impl Component for PageLanguageSelectionComponent {
                 self.focus = FOCUS_INPUT;
                 ActionResult::consumed()
             }
-            KeyCode::F(3) => Action::PopPopup.into(),
             _ if self.focus == FOCUS_INPUT => {
                 self.input.handle_event(&crossterm::event::Event::Key(key));
                 self.update_list();

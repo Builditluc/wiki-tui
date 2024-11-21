@@ -610,48 +610,49 @@ impl PageComponent {
 
 impl Component for PageComponent {
     fn handle_key_events(&mut self, key: KeyEvent) -> ActionResult {
-        if self.is_contents {
-            return match key.code {
-                KeyCode::Tab | KeyCode::BackTab => Action::Page(PageAction::ToggleContents).into(),
-                KeyCode::Enter if self.contents_state.list_state.selected().is_some() => {
-                    let header = self.selected_header();
-                    if header.is_none() {
-                        info!("no header selected");
-                        return ActionResult::Ignored;
-                    }
-                    ActionPacket::single(Action::Page(PageAction::GoToHeader(
-                        header.unwrap().anchor.to_string(),
-                    )))
-                    .action(Action::Page(PageAction::ToggleContents))
-                    .into()
+        let page_bindings = &self.config.bindings.page;
+        macro_rules! matches_binding {
+            ($binding:ident, $action:expr) => {
+                if page_bindings.$binding.matches_event(key) {
+                    return $action.into();
                 }
-                _ => ActionResult::Ignored,
             };
         }
+        matches_binding!(toggle_toc, Action::Page(PageAction::ToggleContents));
+
+        if self.is_contents {
+            matches_binding!(jump_to_header, {
+                let header = self.selected_header();
+                if header.is_none() {
+                    info!("no header selected");
+                    return ActionResult::Ignored;
+                }
+                ActionPacket::single(Action::Page(PageAction::GoToHeader(
+                    header.unwrap().anchor.to_string(),
+                )))
+                .action(Action::Page(PageAction::ToggleContents))
+            });
+            return ActionResult::Ignored;
+        }
+
+        matches_binding!(select_first_link, Action::Page(PageAction::SelectFirstLink));
+        matches_binding!(select_last_link, Action::Page(PageAction::SelectLastLink));
+
+        matches_binding!(select_prev_link, Action::Page(PageAction::SelectPrevLink));
+        matches_binding!(select_next_link, Action::Page(PageAction::SelectNextLink));
+
+        matches_binding!(open_link, {
+            self.open_link();
+            ActionResult::consumed()
+        });
+        matches_binding!(toggle_zen_mode, {
+            self.is_zen_mode = !self.is_zen_mode;
+            ActionResult::Ignored
+        });
 
         match key.code {
             KeyCode::Char('r') if has_modifier!(key, Modifier::CONTROL) => {
                 Action::Page(PageAction::SwitchRenderer(self.renderer.next())).into()
-            }
-            KeyCode::Tab | KeyCode::BackTab => Action::Page(PageAction::ToggleContents).into(),
-            KeyCode::Left if has_modifier!(key, Modifier::SHIFT) => {
-                Action::Page(PageAction::SelectFirstLink).into()
-            }
-            KeyCode::Right if has_modifier!(key, Modifier::SHIFT) => {
-                Action::Page(PageAction::SelectLastLink).into()
-            }
-            KeyCode::Up if has_modifier!(key, Modifier::SHIFT) => {
-                Action::Page(PageAction::SelectTopLink).into()
-            }
-            KeyCode::Down if has_modifier!(key, Modifier::SHIFT) => {
-                Action::Page(PageAction::SelectBottomLink).into()
-            }
-            KeyCode::Left => Action::Page(PageAction::SelectPrevLink).into(),
-            KeyCode::Right => Action::Page(PageAction::SelectNextLink).into(),
-            KeyCode::Enter => self.open_link(),
-            KeyCode::F(4) => {
-                self.is_zen_mode = !self.is_zen_mode;
-                ActionResult::Ignored
             }
             _ => ActionResult::Ignored,
         }

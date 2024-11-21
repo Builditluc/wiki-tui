@@ -136,7 +136,7 @@ page.zen_mode.include = "SCROLLBAR"
 You can also enable the `zen-mode` by default on a page:
 
 ```toml
-page.zen_mode.default = false
+page.zen_mode.default = true
 ```
 
 The components currently available to show/hide are:
