@@ -8,7 +8,7 @@ use ratatui::{
     widgets::Block,
 };
 use tracing::warn;
-use wiki_api::{languages::Language, Endpoint};
+
 
 use tokio::sync::mpsc;
 
@@ -94,19 +94,13 @@ impl Component for AppComponent {
         self.search_bar
             .init(action_tx.clone(), config.clone(), theme.clone())?;
 
-        self.config = config;
-        self.theme = theme;
-
-        let endpoint = Endpoint::parse("https://en.wikipedia.org/w/api.php").unwrap();
-        let language = Language::English;
-
-        self.page_loader = Some(PageLoader::new(action_tx.clone()));
-
-        self.search.endpoint = Some(endpoint);
-        self.search.language = Some(language);
+        self.page_loader = Some(PageLoader::new(config.clone(), action_tx.clone()));
 
         action_tx.send(Action::EnterSearchBar).unwrap();
         self.action_tx = Some(action_tx);
+
+        self.config = config;
+        self.theme = theme;
 
         Ok(())
     }

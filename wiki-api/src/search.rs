@@ -1,9 +1,13 @@
 use anyhow::{anyhow, Context, Result};
 
+use bitflags::bitflags;
+use core::fmt;
 use reqwest::{Client, Response};
+use serde::Deserialize;
 use serde_repr::Deserialize_repr;
 use std::fmt::Debug;
 use std::fmt::Display;
+use std::fmt::Write;
 
 use crate::Endpoint;
 
@@ -252,6 +256,8 @@ mod tests {
 }
 
 /// Query independent profile which affects the ranking algorithm
+#[derive(Default, Clone, Deserialize)]
+#[serde(rename_all = "lowercase")]
 pub enum QiProfile {
     /// Ranking based on the number of incoming links, some templates, page language and recency
     /// (templates / language / recency may not be activated on the wiki where the search is
@@ -269,6 +275,7 @@ pub enum QiProfile {
     /// Ranking based primarily on incoming link counts
     PopularIncLinks,
     /// Let the search engine decide on the best profile to use
+    #[default]
     EngineAutoselect,
 }
 
@@ -287,10 +294,13 @@ impl Display for QiProfile {
 }
 
 /// The type of search
+#[derive(Default, Clone, Deserialize)]
+#[serde(rename_all = "lowercase")]
 pub enum SearchType {
     /// Search just by a match  
     NearMatch,
     /// Search the content of the page
+    #[default]
     Text,
     /// Search the title of the page
     Title,
@@ -306,26 +316,59 @@ impl Display for SearchType {
     }
 }
 
-/// A Search metadata
-pub enum Info {
-    /// The query if rewritten by the search backend. Refer to [`SearchBuilder::rewrites`] for more
-    /// information about rewrites by the search backend
-    ///
-    /// [`SearchBuilder::rewrites`]: SearchBuilder::rewrites
-    RewrittenQuery,
-    /// Another query to search instead for. This might include grammatical fixes
-    Suggestion,
-    /// The total amount of pages found for the query
-    TotalHits,
+bitflags! {
+    /// A Search metadata
+    #[derive(Clone, Deserialize)]
+    pub struct Info: u8 {
+        /// The query if rewritten by the search backend. Refer to [`SearchBuilder::rewrites`] for more
+        /// information about rewrites by the search backend
+        ///
+        /// [`SearchBuilder::rewrites`]: SearchBuilder::rewrites
+        const REWRITTEN_QUERY = 0b00000001;
+        /// Another query to search instead for. This might include grammatical fixes
+        const SUGGESTION = 0b00000010;
+        /// The total amount of pages found for the query
+        const TOTAL_HITS = 0b00000100;
+    }
 }
 
-impl Display for Info {
+impl Default for Info {
+    fn default() -> Self {
+        Self::REWRITTEN_QUERY | Self::SUGGESTION | Self::TOTAL_HITS
+    }
+}
+
+impl fmt::Display for Info {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Info::RewrittenQuery => write!(f, "rewrittenquery"),
-            Info::Suggestion => write!(f, "suggestion"),
-            Info::TotalHits => write!(f, "totalhits"),
+        let mut first = true;
+
+        if self.contains(Info::REWRITTEN_QUERY) {
+            if !first {
+                f.write_char('|')?;
+            }
+            first = false;
+
+            f.write_str("rewrittenquery")?;
         }
+
+        if self.contains(Info::SUGGESTION) {
+            if !first {
+                f.write_char('|')?;
+            }
+            first = false;
+
+            f.write_str("suggestion")?;
+        }
+
+        if self.contains(Info::TOTAL_HITS) {
+            if !first {
+                f.write_char('|')?;
+            }
+
+            f.write_str("totalhits")?;
+        }
+
+        Ok(())
     }
 }
 
@@ -374,6 +417,8 @@ impl Display for Property {
 }
 
 /// The sort order of returned search results
+#[derive(Deserialize, Clone)]
+#[serde(rename_all = "lowercase")]
 pub enum SortOrder {
     /// Sort the results by their creation date in ascending order
     CreateTimestampAscending,
@@ -452,7 +497,7 @@ pub struct SearchBuilder<Q, E, L> {
     offset: Option<usize>,
     qiprofile: Option<QiProfile>,
     search_type: Option<SearchType>,
-    info: Option<Vec<Info>>,
+    info: Option<Info>,
     properties: Option<Vec<Property>>,
     interwiki: Option<bool>,
     rewrites: Option<bool>,
@@ -571,7 +616,7 @@ impl<Q, E, L> SearchBuilder<Q, E, L> {
     /// [`Info::TotalHits`]: Info::TotalHits
     /// [`Info::Suggestion`]: Info::Suggestion
     /// [`Info::RewrittenQuery`]: Info::RewrittenQuery
-    pub fn info(mut self, info: Vec<Info>) -> Self {
+    pub fn info(mut self, info: Info) -> Self {
         self.info = Some(info);
         self
     }
@@ -680,12 +725,7 @@ impl SearchBuilder<WithQuery, WithEndpoint, WithLanguage> {
         }
 
         if let Some(info) = self.info {
-            let mut info_str = String::new();
-            for info in info {
-                info_str.push('|');
-                info_str.push_str(&info.to_string());
-            }
-            params.push(("srinfo", info_str));
+            params.push(("srinfo", info.to_string()));
         }
 
         if let Some(prop) = self.properties {

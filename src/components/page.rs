@@ -641,10 +641,7 @@ impl Component for PageComponent {
         matches_binding!(select_prev_link, Action::Page(PageAction::SelectPrevLink));
         matches_binding!(select_next_link, Action::Page(PageAction::SelectNextLink));
 
-        matches_binding!(open_link, {
-            self.open_link();
-            ActionResult::consumed()
-        });
+        matches_binding!(open_link, self.open_link());
         matches_binding!(toggle_zen_mode, {
             self.is_zen_mode = !self.is_zen_mode;
             ActionResult::Ignored

@@ -61,12 +61,17 @@ impl Component for SearchLanguageSelectionComponent {
     fn handle_key_events(&mut self, key: crossterm::event::KeyEvent) -> ActionResult {
         if self.config.bindings.global.submit.matches_event(key) {
             if let Some(lang) = self.list.selected() {
-                return ActionPacket::single(Action::SwitchContextSearch)
-                    .action(Action::PopPopup)
-                    .action(Action::PopupMessage(
+                let mut packet =
+                    ActionPacket::single(Action::SwitchContextSearch).action(Action::PopPopup);
+
+                if self.config.ui.popup_search_language_changed {
+                    packet = packet.action(Action::PopupMessage(
                         "Information".to_string(),
                         format!("Changed the language for searches to '{}'", lang.name()),
-                    ))
+                    ));
+                }
+
+                return packet
                     .action(Action::Search(SearchAction::ChangeLanguage(
                         lang.to_owned(),
                     )))

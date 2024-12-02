@@ -12,6 +12,9 @@
     - Add options for changing the statusbar colors
 - Add zen-mode to hide ui elements
 - Add multiple new configurable keybindings
+- Add multiple new api configuration options
+    - Add options for configuring the search
+    - Add an option for configuring page fetching
 
 ## Changes
 

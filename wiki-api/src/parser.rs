@@ -60,13 +60,27 @@ impl WikipediaParser {
                     .map(|attr| (attr.name.local.to_string(), attr.value.to_string()))
                     .collect();
 
+                let mut ignore_children = false;
+
                 let data = match name.as_str() {
                     "head" | "style" | "link" => return prev,
 
-                    "table" => Data::Unsupported(UnsupportedElement::Table),
-                    "image" => Data::Unsupported(UnsupportedElement::Image),
-                    "figure" => Data::Unsupported(UnsupportedElement::Figure),
-                    "pre" => Data::Unsupported(UnsupportedElement::PreformattedText),
+                    "table" => {
+                        ignore_children = true;
+                        Data::Unsupported(UnsupportedElement::Table)
+                    }
+                    "image" => {
+                        ignore_children = true;
+                        Data::Unsupported(UnsupportedElement::Image)
+                    }
+                    "figure" => {
+                        ignore_children = true;
+                        Data::Unsupported(UnsupportedElement::Figure)
+                    }
+                    "pre" => {
+                        ignore_children = true;
+                        Data::Unsupported(UnsupportedElement::PreformattedText)
+                    }
 
                     "span"
                         if attrs.iter().any(|(name, value)| {
@@ -74,6 +88,7 @@ impl WikipediaParser {
                                 && (value.contains("texhtml") || value.contains("mwe-math-element"))
                         }) =>
                     {
+                        ignore_children = true;
                         Data::UnsupportedInline(UnsupportedElement::MathElement)
                     }
 
@@ -210,6 +225,11 @@ impl WikipediaParser {
                 };
 
                 let index = self.push_node(data, parent, prev);
+
+                if ignore_children {
+                    return Some(index);
+                }
+
                 let mut prev = None;
                 for child in node.children.borrow().iter() {
                     prev = self.parse_node(child, Some(index), prev)

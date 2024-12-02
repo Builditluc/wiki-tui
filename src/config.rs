@@ -9,6 +9,7 @@ use ratatui::{
 };
 use serde::Deserialize;
 use std::path::PathBuf;
+use wiki_api::{languages::Language, search, Endpoint};
 
 pub const CACHE_ENV: &str = "WIKI_TUI_CACHE";
 pub const CONFIG_ENV: &str = "WIKI_TUI_CONFIG";
@@ -75,6 +76,14 @@ pub fn load_config() -> Result<Config> {
 
     if let Some(user_bindings_config) = user_config.bindings {
         override_bindings_config(&mut default_config.bindings, user_bindings_config)
+    }
+
+    if let Some(user_api_config) = user_config.api {
+        override_api_config(&mut default_config.api, user_api_config)?
+    }
+
+    if let Some(user_ui_config) = user_config.ui {
+        override_ui_config(&mut default_config.ui, user_ui_config)
     }
 
     Ok(default_config)
@@ -154,6 +163,51 @@ fn override_bindings_config(config: &mut Keybindings, user_config: UserKeybindin
     }
 }
 
+fn override_api_config(config: &mut ApiConfig, user_config: UserApiConfig) -> Result<()> {
+    // we need to manually build the endpoint
+    {
+        let pre_language = match user_config.pre_language {
+            Some(ref language) => language.as_str(),
+            None => "https://",
+        };
+        let language = &user_config.language.unwrap_or(config.language);
+        let post_language = match user_config.post_language {
+            Some(ref language) => language.as_str(),
+            None => ".wikipedia.org/w/api.php",
+        };
+
+        config.endpoint = Endpoint::parse(&format!(
+            "{}{}{}",
+            pre_language,
+            language.code(),
+            post_language,
+        ))
+        .context("failed parsing the endpoint url")?;
+    }
+
+    override_options!(config, user_config::{
+        language,
+
+        search_limit,
+        search_info,
+        search_type,
+        search_qiprofile,
+        search_rewrites,
+        search_sort_order,
+
+        page_redirects
+    });
+
+    Ok(())
+}
+
+fn override_ui_config(config: &mut UiConfig, user_config: UserUiConfig) {
+    override_options!(config, user_config::{
+        popup_search_language_changed,
+        popup_page_language_changed
+    });
+}
+
 fn load_user_config() -> Result<UserConfig> {
     let path = config_dir()
         .context("failed retrieving the config dir")?
@@ -172,6 +226,8 @@ fn load_user_config() -> Result<UserConfig> {
 pub struct Config {
     pub page: PageConfig,
     pub bindings: Keybindings,
+    pub api: ApiConfig,
+    pub ui: UiConfig,
 }
 
 pub struct PageConfig {
@@ -329,6 +385,25 @@ pub struct Keybindings {
     pub page: PageKeybindings,
 }
 
+pub struct ApiConfig {
+    pub endpoint: Endpoint,
+    pub language: Language,
+
+    pub search_limit: usize,
+    pub search_qiprofile: search::QiProfile,
+    pub search_type: search::SearchType,
+    pub search_info: search::Info,
+    pub search_rewrites: bool,
+    pub search_sort_order: search::SortOrder,
+
+    pub page_redirects: bool,
+}
+
+pub struct UiConfig {
+    pub popup_search_language_changed: bool,
+    pub popup_page_language_changed: bool,
+}
+
 impl Config {
     pub fn new() -> Self {
         macro_rules! keybinding {
@@ -405,6 +480,24 @@ impl Config {
                     toggle_toc: keybinding!([KeyCode::Tab;, KeyCode::BackTab;]),
                 },
             },
+            api: ApiConfig {
+                endpoint: Endpoint::parse("https://en.wikipedia.org/w/api.php")
+                    .expect("Hardcoded links should work"),
+                language: Language::English,
+
+                search_limit: 10,
+                search_qiprofile: search::QiProfile::default(),
+                search_type: search::SearchType::default(),
+                search_info: search::Info::default(),
+                search_rewrites: false,
+                search_sort_order: search::SortOrder::Relevance,
+
+                page_redirects: false,
+            },
+            ui: UiConfig {
+                popup_search_language_changed: true,
+                popup_page_language_changed: true,
+            },
         }
     }
 }
@@ -430,6 +523,8 @@ impl Default for Config {
 struct UserConfig {
     page: Option<UserPageConfig>,
     bindings: Option<UserKeybindingsConfig>,
+    api: Option<UserApiConfig>,
+    ui: Option<UserUiConfig>,
 }
 
 #[derive(Deserialize)]
@@ -658,6 +753,28 @@ struct UserKeybindingsConfig {
     global: Option<UserGlobalKeybindings>,
     search: Option<UserSearchKeybindings>,
     page: Option<UserPageKeybindings>,
+}
+
+#[derive(Deserialize)]
+struct UserApiConfig {
+    pre_language: Option<String>,
+    language: Option<Language>,
+    post_language: Option<String>,
+
+    search_limit: Option<usize>,
+    search_qiprofile: Option<search::QiProfile>,
+    search_type: Option<search::SearchType>,
+    search_info: Option<search::Info>,
+    search_rewrites: Option<bool>,
+    search_sort_order: Option<search::SortOrder>,
+
+    page_redirects: Option<bool>,
+}
+
+#[derive(Deserialize, Debug)]
+struct UserUiConfig {
+    popup_search_language_changed: Option<bool>,
+    popup_page_language_changed: Option<bool>,
 }
 
 pub fn load_theme() -> Result<Theme> {

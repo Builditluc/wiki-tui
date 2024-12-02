@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use anyhow::{anyhow, Result};
+use anyhow::{Result};
 use crossterm::event::{KeyCode, KeyEvent};
 use ratatui::{
     prelude::{Alignment, Constraint, Direction, Layout, Rect},
@@ -73,16 +73,21 @@ impl Default for SearchComponent {
 
 impl SearchComponent {
     fn build_search(&self, query: String) -> Result<SearchRequest> {
-        let endpoint = self
-            .endpoint
-            .clone()
-            .ok_or(anyhow!("No Endpoint configured"))?;
-        let language = self.language.ok_or(anyhow!("No Language configured"))?;
+        let api_config = &self.config.api;
+
+        let endpoint = self.endpoint.clone().unwrap_or(api_config.endpoint.clone());
+        let language = self.language.unwrap_or(api_config.language);
 
         Ok(ApiSearch::builder()
             .query(query)
             .endpoint(endpoint)
-            .language(language))
+            .language(language)
+            .limit(api_config.search_limit)
+            .qiprofile(api_config.search_qiprofile.clone())
+            .search_type(api_config.search_type.clone())
+            .info(api_config.search_info.clone())
+            .rewrites(api_config.search_rewrites)
+            .sort_order(api_config.search_sort_order.clone()))
     }
 
     fn start_search(&mut self, query: String) -> ActionResult {

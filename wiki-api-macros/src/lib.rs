@@ -94,8 +94,10 @@ pub fn parse_languages(input: TokenStream) -> TokenStream {
     let expanded = quote! {
         use serde::{Serialize, Deserialize};
         use std::str::FromStr;
+        use std::convert::TryFrom;
 
         #[derive(Copy, Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+        #[serde(try_from = "String")]
         pub enum Language{
             Unknown,
             #variants
@@ -133,6 +135,13 @@ pub fn parse_languages(input: TokenStream) -> TokenStream {
                     #from_str_arms
                     _ => None,
                 }.ok_or(ParseLanguageError(from.to_string()))
+            }
+        }
+
+        impl TryFrom<String> for Language {
+            type Error = ParseLanguageError;
+            fn try_from(val: String) -> Result<Self, Self::Error> {
+                Self::from_str(val.as_str())
             }
         }
 

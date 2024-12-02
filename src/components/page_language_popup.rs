@@ -64,14 +64,17 @@ impl Component for PageLanguageSelectionComponent {
     fn handle_key_events(&mut self, key: crossterm::event::KeyEvent) -> ActionResult {
         if self.config.bindings.global.submit.matches_event(key) {
             if let Some(link) = self.list.selected() {
-                return ActionPacket::single(Action::PopPopup)
-                    .action(Action::PopupMessage(
+                let mut packet = ActionPacket::single(Action::PopPopup);
+                if self.config.ui.popup_page_language_changed {
+                    packet = packet.action(Action::PopupMessage(
                         "Information".to_string(),
                         format!(
                             "Changing the language of the page to '{}'",
                             link.language.name()
                         ),
-                    ))
+                    ));
+                }
+                return packet
                     .action(Action::LoadLangaugeLink(link.to_owned()))
                     .into();
             }
