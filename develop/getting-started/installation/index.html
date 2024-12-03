@@ -16,7 +16,7 @@
         <link rel="prev" href="../..">
       
       
-        <link rel="next" href="../first-startup/">
+        <link rel="next" href="../using-cli/">
       
       
       <link rel="icon" href="../../assets/images/logo.png">
@@ -431,10 +431,6 @@
       
         
       
-        
-      
-        
-      
     
     
       
@@ -608,53 +604,11 @@
   
   
     <li class="md-nav__item">
-      <a href="../first-startup/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    First Startup
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
       <a href="../using-cli/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
     Using the CLI
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../overview-keybindings/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Overview of Keybindings
   </span>
   
 
@@ -721,7 +675,7 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_6" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_4" >
         
           
           
@@ -737,14 +691,14 @@
             </a>
             
               
-              <label class="md-nav__link " for="__nav_2_6" id="__nav_2_6_label" tabindex="">
+              <label class="md-nav__link " for="__nav_2_4" id="__nav_2_4_label" tabindex="">
                 <span class="md-nav__icon md-icon"></span>
               </label>
             
           </div>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_6_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_2_6">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_4">
             <span class="md-nav__icon md-icon"></span>
             Contributing
           </label>
@@ -862,8 +816,6 @@
       
         
           
-        
-      
         
       
         
@@ -994,27 +946,6 @@
   
   <span class="md-ellipsis">
     Configure the Logging
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../configuration/features/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Features
   </span>
   
 
@@ -1304,63 +1235,10 @@ make<span class="w"> </span>install<span class="w"> </span>clean
 <p>If you want, you can also use the latest development version from GitHub (can be unstable)</p>
 <div class="highlight"><pre><span></span><code>cargo<span class="w"> </span>install<span class="w"> </span>--git<span class="w"> </span>https://github.com/builditluc/wiki-tui
 </code></pre></div>
-<p>When you install wiki-tui with cargo, you can choose what kind of backend (this is what the UI library <a href="https://github.com/gyscos/cursive">cursive</a> uses to draw to the screen and interface with the terminal) is being used. You can select a different backend (the default one is <code>crossterm</code>) by modifying 
-the installation command </p>
-<p>The following backends are available:</p>
-<div class="tabbed-set tabbed-alternate" data-tabs="1:5"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio" /><input id="__tabbed_1_2" name="__tabbed_1" type="radio" /><input id="__tabbed_1_3" name="__tabbed_1" type="radio" /><input id="__tabbed_1_4" name="__tabbed_1" type="radio" /><input id="__tabbed_1_5" name="__tabbed_1" type="radio" /><div class="tabbed-labels"><label for="__tabbed_1_1">crossterm (default)</label><label for="__tabbed_1_2">termion</label><label for="__tabbed_1_3">ncurses</label><label for="__tabbed_1_4">pancurses</label><label for="__tabbed_1_5">blt</label></div>
-<div class="tabbed-content">
-<div class="tabbed-block">
-<p>Uses the pure-rust <a href="https://github.com/TimonPost/crossterm">crossterm</a> library. Works cross-platform, even for windows systems down to version 7</p>
-<p>Install command
-<div class="highlight"><pre><span></span><code>cargo<span class="w"> </span>install<span class="w"> </span>wiki-tui<span class="w"> </span>--no-default-features<span class="w"> </span>--features<span class="w"> </span>crossterm-backend
-</code></pre></div></p>
-</div>
-<div class="tabbed-block">
-<p>Uses the pure-rust <a href="https://github.com/ticki/termion">termion</a> library. Works on Linux, macOS, and Redox</p>
-<p>Install command
-<div class="highlight"><pre><span></span><code>cargo<span class="w"> </span>install<span class="w"> </span>wiki-tui<span class="w"> </span>--no-default-features<span class="w"> </span>--features<span class="w"> </span>termion-backend
-</code></pre></div></p>
-</div>
-<div class="tabbed-block">
-<p>Uses the <a href="https://github.com/jeaye/ncurses-rs">ncurses-rs</a> library directly. Currently only compatible on Linux and macOS. Requires <a href="https://github.com/gyscos/Cursive/wiki/Install-ncurses">ncurses</a> to be installed on the system</p>
-<div class="admonition warning">
-<p class="admonition-title">Warning</p>
-<p>The ncurses backend doesn't support true colors (which is the full RGB color spectrum with 255 values per channel). What that means is the configured colors won't be displayed correctly and depend on your terminal theme</p>
-</div>
-<p>Install command
-<div class="highlight"><pre><span></span><code>cargo<span class="w"> </span>install<span class="w"> </span>wiki-tui<span class="w"> </span>--no-default-features<span class="w"> </span>--features<span class="w"> </span>ncurses-backend
-</code></pre></div></p>
-</div>
-<div class="tabbed-block">
-<p>Uses the <a href="https://github.com/ihalila/pancurses">pancurses</a> library, which forwards calls to <a href="https://github.com/jeaye/ncurses-rs">ncurses-rs</a> on Linux/macOS or <a href="https://github.com/ihalila/pdcurses-sys">pdcurses-sys</a> on Windows</p>
-<div class="admonition warning">
-<p class="admonition-title">Warning</p>
-<p>The pancurses backend doesn't support true colors (which is the full RGB color spectrum with 255 values per channel). What that means is the configured colors won't be displayed correctly and depend on your terminal theme</p>
-</div>
-<div class="highlight"><pre><span></span><code>cargo<span class="w"> </span>install<span class="w"> </span>wiki-tui<span class="w"> </span>--no-default-features<span class="w"> </span>--features<span class="w"> </span>pancurses-backend
-</code></pre></div>
-</div>
-<div class="tabbed-block">
-<p>Uses the cross-platform <a href="https://github.com/nabijaczleweli/BearLibTerminal.rs">BearLibTerminal.rs</a> binding. Works on Linux and Windows.</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>BearLibTerminal is a graphical application emulating a terminal. There is an <a href="https://aur.archlinux.org/packages/bearlibterminal-hg/">archlinux package</a>, or you can 
-<a href="https://github.com/nabijaczleweli/BearLibTerminal.rs/releases">download a release</a></p>
-</div>
-<div class="highlight"><pre><span></span><code>cargo<span class="w"> </span>install<span class="w"> </span>wiki-tui<span class="w"> </span>--no-default-features<span class="w"> </span>--features<span class="w"> </span>blt-backend
-</code></pre></div>
-</div>
-</div>
-</div>
-<div class="admonition info">
-<p class="admonition-title">Info</p>
-<p>The description of the available backends was taken from the corresponding <a href="https://github.com/gyscos/cursive/wiki/Backends">wiki</a> page of the 
-<a href="https://github.com/gyscos/cursive">cursive library</a> (wiki-tui uses cursive for the ui).</p>
-</div>
 <h3 id="git">Git</h3>
 <p>wiki-tui can be directly used from the GitHub <a href="https://github.com/builditluc/wiki-tui">repository</a> by cloning it into a folder on your system and compiling it from source. This can be useful if you want to try out the latest version
 without installing it directly on your system.</p>
-<div class="tabbed-set tabbed-alternate" data-tabs="2:3"><input checked="checked" id="__tabbed_2_1" name="__tabbed_2" type="radio" /><input id="__tabbed_2_2" name="__tabbed_2" type="radio" /><input id="__tabbed_2_3" name="__tabbed_2" type="radio" /><div class="tabbed-labels"><label for="__tabbed_2_1">HTTPS</label><label for="__tabbed_2_2">SSH</label><label for="__tabbed_2_3">GitHub CLI</label></div>
+<div class="tabbed-set tabbed-alternate" data-tabs="1:3"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio" /><input id="__tabbed_1_2" name="__tabbed_1" type="radio" /><input id="__tabbed_1_3" name="__tabbed_1" type="radio" /><div class="tabbed-labels"><label for="__tabbed_1_1">HTTPS</label><label for="__tabbed_1_2">SSH</label><label for="__tabbed_1_3">GitHub CLI</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
 <div class="highlight"><pre><span></span><code>git clone https://github.com/Builditluc/wiki-tui.git
@@ -1402,7 +1280,7 @@ without installing it directly on your system.</p>
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago"><span class="timeago" datetime="2024-07-31T21:11:32+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date">2024-07-31</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago"><span class="timeago" datetime="2024-12-03T05:10:42+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date">2024-12-03</span>
   </span>
 
     
