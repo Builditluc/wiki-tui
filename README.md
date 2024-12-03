@@ -20,17 +20,6 @@
 
 > Note: wiki-tui is still under active development and breaking changes can occur. Please always check the release notes before upgrading
 
-# Rewrite and the main branch
-
-wiki-tui is currently going through a complete rewrite (we're switching from cursive to ratatui).
-That means that the main branch is going to have an in-development and unfinished version of
-wiki-tui for the duration of the rewrite. Please keep that in mind when compiling from source.
-
-Since this is a fairly large change, there won't be new versions released until the rewrite is
-complete.
-
-> Feel free to try the development version out!
-
 <br>
 
 You can find the **installation instructions**, **configuration options**, **more preview images**, **a feature overview** and more on our website, [wiki-tui.net](https://wiki-tui.net/latest)
@@ -65,7 +54,6 @@ You can find the **installation instructions**, **configuration options**, **mor
 ## How it looks
 
 [![preview-3](https://raw.githubusercontent.com/Builditluc/wiki-tui/main/docs/docs/assets/images/preview-3.png)](docs/docs/assets/images/preview-3.png)
-> Note: This screenshot was taken on [iTerm2](https://iterm2.com) (MacOS) with the [Fira Code](https://github.com/tonsky/FiraCode) font
 
 ## Similar Projects
 
@@ -74,7 +62,7 @@ You can find the **installation instructions**, **configuration options**, **mor
 
 ## Acknowledgements
 
-* [cursive](https://github.com/gyscos/cursive)
+* [ratatui](https://ratatui.rs/)
 * [rust](https://www.rust-lang.org/)
 * [mkdocs](https://www.mkdocs.org/)
 * [mkdocs-material](https://github.com/squidfunk/mkdocs-material)

@@ -41,17 +41,15 @@ A simple and easy to use Wikipedia Text User Interface
 - VIM-like Keybindings:
     
     - Basic movement (++h++ / ++j++ / ++k++ / ++l++)
-    - Goto Top / Bottom (++"G"++ / ++"g"++ ++"g"++)
+    - Goto Top / Bottom (++"G"++ / ++"g"++)
     - Half up / down (++ctrl+d++ / ++ctrl+u++)
 
 - It's customizable (we plan on having more features in the future):
 
-    - Change the global and local theme of individual UI components
+    - Change the theme of the ui
     - Change some of the keybindings
-    - Disable features (Table of Contents, Links)
     - Customize the Table of Contents (position, title format, sizes, etc.)
     - Change wikipedias language (even on the fly)
-    - Logging
 
 # How does it look?
 
@@ -60,7 +58,3 @@ A simple and easy to use Wikipedia Text User Interface
 ![Preview-2](assets/images/preview-2.png)
 
 ![Preview-3](assets/images/preview-3.png)
-
-??? note "About those Screenshots"
-    They were taken on MacOS (iTerm2) with the gruvbox terminal colorscheme. 
-    The only configuration change that was done is setting the borders to round

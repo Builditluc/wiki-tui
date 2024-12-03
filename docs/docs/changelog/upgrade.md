@@ -3,6 +3,17 @@ Show the currently installed version with:
 wiki-tui --version
 ```
 
+## Upgrade from v0.8.x to v0.9.x
+
+### Changes to `config.toml`
+
+This release reworks the whole configuration structure, so please check the new [configuratino
+pages](../configuration/index.md) on how to configure wiki-tui in `v0.9.x`. Some options were
+removed in favor of others.
+
+Theming is now done in the `theme.toml` file.
+
+
 ## Upgrade from v0.6.x to v0.7.x
 
 ### Changes to `config.toml`
@@ -36,4 +47,4 @@ This CLI argument was used to override the log level on the fly. Now, it is used
 ### Changed paths for the crash log and logfile
 
 The logfile and the crash log have both moved to the cache directory (can be found using `wiki-tui --cache-dir`).
-The name of the crash log has also changed, more can be found in the corresponding [doc page](../getting-started/crash.md)
+The name of the crash log has also changed, more can be found in the corresponding doc page

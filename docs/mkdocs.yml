@@ -52,9 +52,7 @@ nav:
   - Home: index.md
   - Getting Started:
     - Installation: getting-started/installation.md
-    - First Startup: getting-started/first-startup.md
     - Using the CLI: getting-started/using-cli.md
-    - Overview of Keybindings: getting-started/overview-keybindings.md
     - License: getting-started/license.md
 
     - Contributing: 
@@ -70,7 +68,6 @@ nav:
     - Configuring the Pages: configuration/page.md
     - Api Settings: configuration/api.md
     - Configure the Logging: configuration/logging.md
-    - Features: configuration/features.md
     - Keybindings: configuration/keybindings.md
 
   - Changelog:
