@@ -260,7 +260,7 @@ impl Component for AppComponent {
         match self.page.current_page() {
             // always render the searchbar if its focussed
             Some(_) if self.search_bar.is_focussed => area = self.render_search_bar(f, area),
-            Some(page) => {
+            Some(page) if self.context == CONTEXT_PAGE => {
                 if !page.is_zen_mode()
                     || self
                         .config
@@ -271,7 +271,7 @@ impl Component for AppComponent {
                     area = self.render_search_bar(f, area);
                 }
             }
-            None => area = self.render_search_bar(f, area),
+            _ => area = self.render_search_bar(f, area),
         }
 
         if self.is_logger {
