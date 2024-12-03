@@ -49,6 +49,7 @@ pub enum Data {
     Hatnote,
     RedirectMessage,
     Disambiguation,
+    Blockquote,
 
     OrderedList,
     UnorderedList,
@@ -60,6 +61,8 @@ pub enum Data {
 
     Bold,
     Italic,
+
+    Linebreak,
 
     Link(Link),
     #[default]

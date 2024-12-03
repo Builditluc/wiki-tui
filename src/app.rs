@@ -9,7 +9,6 @@ use ratatui::{
 };
 use tracing::warn;
 
-
 use tokio::sync::mpsc;
 
 use crate::{

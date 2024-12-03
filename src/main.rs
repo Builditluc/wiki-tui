@@ -21,23 +21,6 @@ async fn main() -> Result<()> {
     let results = match_cli();
     let mut actions = results.actions;
 
-    println!(
-        r#"
-IMPORTANT:
-wiki-tui is going through a major rewrite (we're going async and switching backends, among other 
-things). Please note that this is a DEVELOPMENT version and can / will include:
-    - BUGS
-    - MISSING FEATURES
-    - other issues...
-For more information about the rewrite, please refer to PR#226 (and its linked issues):
-    https://github.com/Builditluc/wiki-tui/pull/226
-
-Please feel free to try out this version, and report bugs / suggestions / etc.!
-Thank you!
-- Builditluc
-    "#
-    );
-
     initialize_logging(results.log_level)?;
     initialize_panic_handler()?;
 

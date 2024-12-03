@@ -13,6 +13,8 @@ use super::RenderedDocument;
 const DISAMBIGUATION_PADDING: u8 = 1;
 const DISAMBIGUATION_PREFIX: char = '|';
 
+const BLOCKQUOTE_PADDING: u8 = 4;
+
 const LIST_PADDING: u8 = 1;
 const LIST_PREFIX: char = '-';
 
@@ -400,6 +402,14 @@ impl<'a> Renderer {
         self.ensure_empty_line();
     }
 
+    fn render_block_quote(&mut self, node: Node<'a>) {
+        self.add_n_padding(BLOCKQUOTE_PADDING);
+
+        self.render_block_element(node);
+
+        self.remove_n_padding(BLOCKQUOTE_PADDING);
+    }
+
     fn render_list(&mut self, node: Node<'a>) {
         self.ensure_empty_line();
 
@@ -460,6 +470,11 @@ impl<'a> Renderer {
         self.reset_text_fg();
         self.remove_modifier(Modifier::ITALIC);
         self.add_whitespace();
+    }
+
+    fn render_linebreak(&mut self, node: Node<'a>) {
+        self.clear_line();
+        self.render_children(node);
     }
 
     fn render_link(&mut self, node: Node<'a>, link: Link) {
@@ -565,6 +580,7 @@ impl<'a> Renderer {
             Data::Hatnote => self.render_block_element(node),
             Data::RedirectMessage => self.render_block_element(node),
             Data::Disambiguation => self.render_disambiguation(node),
+            Data::Blockquote => self.render_block_quote(node),
             Data::OrderedList => self.render_list(node),
             Data::UnorderedList => self.render_list(node),
             Data::ListItem => self.render_list_item(node),
@@ -573,6 +589,7 @@ impl<'a> Renderer {
             Data::DerscriptionListDescription => self.render_description_list_description(node),
             Data::Bold => self.render_bold(node),
             Data::Italic => self.render_italic(node),
+            Data::Linebreak => self.render_linebreak(node),
             Data::Link(link) => self.render_link(node, link.clone()),
             Data::Unknown => self.render_children(node),
             Data::Unsupported(element) => {

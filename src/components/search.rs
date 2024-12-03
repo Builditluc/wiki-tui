@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use anyhow::{Result};
+use anyhow::Result;
 use crossterm::event::{KeyCode, KeyEvent};
 use ratatui::{
     prelude::{Alignment, Constraint, Direction, Layout, Rect},

@@ -39,6 +39,7 @@
 - Fix scrollover from happening in some edge-cases
 - Fix language links from not parsing correctly
 - Fix cli errors not appearing when selecting an invalid language
+- Fix blockquotes being hidden and not indented
 
 # v0.8.2 (Fri Aug 11 2023)
 

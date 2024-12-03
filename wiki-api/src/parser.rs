@@ -183,6 +183,8 @@ impl WikipediaParser {
                         .parse_header(attrs.iter(), HeaderKind::Detail)
                         .unwrap_or_default(),
 
+                    "blockquote" => Data::Blockquote,
+
                     "ol" => Data::OrderedList,
                     "ul" => Data::UnorderedList,
                     "li" => Data::ListItem,
@@ -190,6 +192,8 @@ impl WikipediaParser {
                     "dl" => Data::DescriptionList,
                     "dt" => Data::DescriptionListTerm,
                     "dd" => Data::DerscriptionListDescription,
+
+                    "br" => Data::Linebreak,
 
                     "b" => Data::Bold,
                     "i" => Data::Italic,
