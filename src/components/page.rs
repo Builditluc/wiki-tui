@@ -264,7 +264,6 @@ impl PageComponent {
         let last_index = node.last_child().map(|x| x.index()).unwrap_or(first_index);
 
         self.selected = (first_index, last_index);
-        self.check_and_update_scrolling();
     }
 
     fn selected_node(&self) -> Option<Node> {
@@ -285,7 +284,8 @@ impl PageComponent {
             .find(|node| matches!(node.data(), &Data::Link(_)));
 
         if let Some(node) = selectable_node {
-            self.select_node(node.index())
+            self.select_node(node.index());
+            self.check_and_update_scrolling();
         }
     }
 
@@ -304,7 +304,8 @@ impl PageComponent {
             .last();
 
         if let Some(node) = selectable_node {
-            self.select_node(node.index())
+            self.select_node(node.index());
+            self.check_and_update_scrolling();
         }
     }
 
@@ -322,7 +323,8 @@ impl PageComponent {
             .find(|node| matches!(node.data(), &Data::Link(_)) && self.selected.1 < node.index());
 
         if let Some(node) = selectable_node {
-            self.select_node(node.index())
+            self.select_node(node.index());
+            self.check_and_update_scrolling();
         }
     }
 
@@ -341,7 +343,8 @@ impl PageComponent {
             .last();
 
         if let Some(node) = selectable_node {
-            self.select_node(node.index())
+            self.select_node(node.index());
+            self.check_and_update_scrolling();
         }
     }
 
@@ -437,6 +440,12 @@ impl PageComponent {
 
         if self.viewport.bottom() >= n_lines {
             self.viewport.y = n_lines.saturating_sub(self.viewport.height);
+        }
+
+        tracing::debug!("{}", self.viewport.y);
+        if self.viewport.y == 0 {
+            tracing::warn!("reset point");
+            tracing::debug!("{:?}", self.viewport);
         }
 
         self.check_and_update_selection();
