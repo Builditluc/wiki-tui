@@ -442,12 +442,6 @@ impl PageComponent {
             self.viewport.y = n_lines.saturating_sub(self.viewport.height);
         }
 
-        tracing::debug!("{}", self.viewport.y);
-        if self.viewport.y == 0 {
-            tracing::warn!("reset point");
-            tracing::debug!("{:?}", self.viewport);
-        }
-
         self.check_and_update_selection();
     }
 

@@ -3,12 +3,23 @@ use tracing::level_filters::LevelFilter;
 use tracing_log::AsLog;
 use tracing_subscriber::{self, prelude::*, EnvFilter};
 
-use crate::config;
+use crate::config::{self, load_logging_config};
 
 const LOG_ENV: &str = "WIKI_TUI_LOG";
-const DEFAULT_LOG: LevelFilter = LevelFilter::WARN;
 
 pub fn initialize_logging(level: Option<LevelFilter>) -> Result<()> {
+    let logging_config = match load_logging_config() {
+        Ok(config) => config,
+        Err(error) => {
+            eprintln!("{:?}", error.context("failed loading the logging config"));
+            Default::default()
+        }
+    };
+
+    if !logging_config.enabled {
+        return Ok(());
+    }
+
     let directory = config::cache_dir()?;
     std::fs::create_dir_all(directory.clone())
         .context(format!("{directory:?} could not be created"))?;
@@ -16,12 +27,12 @@ pub fn initialize_logging(level: Option<LevelFilter>) -> Result<()> {
     let log_file = std::fs::File::create(log_path)?;
 
     let env_filter = EnvFilter::builder()
-        .with_default_directive(DEFAULT_LOG.into())
+        .with_default_directive(logging_config.level.into())
         .with_env_var(LOG_ENV)
         .from_env()?;
     let level = match level {
         Some(level) => level,
-        None => env_filter.max_level_hint().unwrap_or(DEFAULT_LOG),
+        None => env_filter.max_level_hint().unwrap_or(logging_config.level),
     };
 
     let file_subscriber = tracing_subscriber::fmt::layer()

@@ -8,7 +8,8 @@ use ratatui::{
     widgets::{BorderType, Padding},
 };
 use serde::Deserialize;
-use std::path::PathBuf;
+use std::{path::PathBuf, str::FromStr};
+use tracing::level_filters::LevelFilter;
 use wiki_api::{languages::Language, search, Endpoint};
 
 pub const CACHE_ENV: &str = "WIKI_TUI_CACHE";
@@ -64,6 +65,49 @@ macro_rules! override_options {
             $config.$option = option.into();
         }
     };
+}
+
+pub fn load_logging_config() -> Result<LoggingConfig> {
+    let mut default_config = LoggingConfig::default();
+    let user_config = toml::from_str::<UserLoggingConfig>(&get_user_config()?)
+        .context("failed loading the user logging configuration")?;
+
+    if let Some(inner) = user_config.logging {
+        override_options!(default_config, inner::enabled);
+
+        // we need to manually parse the level
+        if let Some(ref level) = inner.level {
+            default_config.level = LevelFilter::from_str(level)?;
+        }
+    }
+
+    Ok(default_config)
+}
+
+pub struct LoggingConfig {
+    pub enabled: bool,
+    pub level: LevelFilter,
+}
+
+impl Default for LoggingConfig {
+    fn default() -> Self {
+        LoggingConfig {
+            enabled: true,
+            level: LevelFilter::WARN,
+        }
+    }
+}
+
+#[derive(Deserialize)]
+struct UserLoggingConfig {
+    logging: Option<UserLoggingConfigInner>,
+}
+
+#[derive(Deserialize)]
+struct UserLoggingConfigInner {
+    enabled: Option<bool>,
+    #[serde(rename = "log_level")]
+    level: Option<String>,
 }
 
 pub fn load_config() -> Result<Config> {
@@ -208,7 +252,7 @@ fn override_ui_config(config: &mut UiConfig, user_config: UserUiConfig) {
     });
 }
 
-fn load_user_config() -> Result<UserConfig> {
+fn get_user_config() -> Result<String> {
     let path = config_dir()
         .context("failed retrieving the config dir")?
         .join(CONFIG_FILE_NAME);
@@ -217,9 +261,11 @@ fn load_user_config() -> Result<UserConfig> {
         std::fs::write(&path, "").context("failed creating the config file")?;
     }
 
-    let user_config_str =
-        std::fs::read_to_string(&path).context("failed reading the config file")?;
+    std::fs::read_to_string(&path).context("failed reading the config file")
+}
 
+fn load_user_config() -> Result<UserConfig> {
+    let user_config_str = get_user_config()?;
     toml::from_str::<UserConfig>(&user_config_str).context("failed parsing the user config")
 }
 
