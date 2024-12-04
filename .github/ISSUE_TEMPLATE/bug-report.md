@@ -11,7 +11,11 @@ assignees: ''
 Version: 
 Installation Method:
 Operating System:
-Backend (If changed during install):
+
+Used configuration (if available):
+```
+
+```
 
 **Describe the bug**
 A clear and concise description of what the bug is.
