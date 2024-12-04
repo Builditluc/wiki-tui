@@ -1,4 +1,4 @@
-# Unreleased v0.9.0-pre
+# v0.9.0 (Wed Dec 4 2024)
 
 ## Additions
 
