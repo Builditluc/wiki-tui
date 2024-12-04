@@ -110,6 +110,8 @@ impl SearchComponent {
                     .unwrap(),
                 Err(error) => {
                     let error = error.context("Unable to execute the search");
+                    tx.send(Action::Search(SearchAction::ChangeMode(Mode::NoSearch)))
+                        .unwrap();
                     tx.send(Action::PopupError(error.to_string())).unwrap();
                     error!("{:?}", error);
                 }
@@ -177,6 +179,8 @@ impl SearchComponent {
                     .unwrap(),
                 Err(error) => {
                     let error = error.context("Unable to continue the search");
+                    tx.send(Action::Search(SearchAction::ChangeMode(Mode::NoSearch)))
+                        .unwrap();
                     tx.send(Action::PopupError(error.to_string())).unwrap();
                     error!("{:?}", error)
                 }

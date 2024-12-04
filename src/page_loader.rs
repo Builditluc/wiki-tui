@@ -65,6 +65,8 @@ impl PageLoader {
                     .unwrap(),
                 Err(error) => {
                     let error = error.context("Unable to fetch the page");
+                    tx.send(Action::PageViewer(PageViewerAction::ExitLoading))
+                        .unwrap();
                     tx.send(Action::PopupError(error.to_string())).unwrap();
                     error!("{:?}", error);
                 }

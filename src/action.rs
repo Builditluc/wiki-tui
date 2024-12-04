@@ -98,6 +98,7 @@ pub enum PageAction {
 pub enum PageViewerAction {
     DisplayPage(Page),
     PopPage,
+    ExitLoading,
 }
 
 pub enum ActionResult {

@@ -53,6 +53,9 @@ impl PageViewer {
         if self.changing_page_language_popup.is_some() {
             self.changing_page_language_popup = None;
         }
+
+        // always disable the processing screen when displaying a page
+        self.is_processing = false;
     }
 
     fn pop(&mut self) {
@@ -109,6 +112,7 @@ impl Component for PageViewer {
             Action::PageViewer(page_viewer_action) => match page_viewer_action {
                 PageViewerAction::DisplayPage(page) => self.display_page(page),
                 PageViewerAction::PopPage => self.pop(),
+                PageViewerAction::ExitLoading => self.is_processing = false,
             },
             Action::EnterProcessing => self.is_processing = true,
             Action::EnterNormal => self.is_processing = false,

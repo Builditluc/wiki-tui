@@ -232,6 +232,14 @@ impl Component for AppComponent {
                     }
                 }
 
+                if matches!(action, Action::PageViewer(_)) {
+                    return self.page.update(action);
+                }
+
+                if matches!(action, Action::Search(_)) {
+                    return self.search.update(action);
+                }
+
                 let result = match self.context {
                     CONTEXT_SEARCH => self.search.update(action.clone()),
                     CONTEXT_PAGE => self.page.update(action.clone()),
