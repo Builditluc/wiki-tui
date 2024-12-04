@@ -40,7 +40,8 @@ struct SiteMatrixWrapper {
 #[proc_macro]
 pub fn parse_languages(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as LitStr).value();
-    let file = File::open(input).unwrap();
+    let path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join(input);
+    let file = File::open(path).unwrap();
     let reader = BufReader::new(file);
     let sitematrix: SiteMatrixWrapper = serde_json::from_reader(reader).unwrap();
     let languages =
