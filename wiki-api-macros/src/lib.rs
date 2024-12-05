@@ -1,8 +1,4 @@
-use std::{
-    collections::{BTreeMap, HashMap},
-    fs::File,
-    io::BufReader,
-};
+use std::collections::{BTreeMap, HashMap};
 
 use proc_macro::TokenStream;
 use proc_macro2::Span;
@@ -40,9 +36,7 @@ struct SiteMatrixWrapper {
 #[proc_macro]
 pub fn parse_languages(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as LitStr).value();
-    let file = File::open(input).unwrap();
-    let reader = BufReader::new(file);
-    let sitematrix: SiteMatrixWrapper = serde_json::from_reader(reader).unwrap();
+    let sitematrix: SiteMatrixWrapper = serde_json::from_str(&input).unwrap();
     let languages =
         sitematrix
             .site_matrix

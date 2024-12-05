@@ -1,6 +1,6 @@
 [package]
 name = "wiki-api-macros"
-version = "0.1.0"
+version = "0.1.2"
 authors = ["builditluc <37375448+Builditluc@users.noreply.github.com>"]
 edition = "2018"
 description = "Proc-macros for use within wiki-api"
