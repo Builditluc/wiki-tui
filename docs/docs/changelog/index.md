@@ -1,3 +1,9 @@
+# v0.9.1 (Thu Dec 5 2024)
+
+## Fixes
+
+- Fix wiki-api not building with package managers
+
 # v0.9.0 (Wed Dec 4 2024)
 
 ## Additions
