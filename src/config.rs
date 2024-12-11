@@ -485,8 +485,8 @@ impl Config {
             },
             bindings: Keybindings {
                 global: GlobalKeybindings {
-                    scroll_down: keybinding!([KeyCode::Char('j');]),
-                    scroll_up: keybinding!([KeyCode::Char('k');]),
+                    scroll_down: keybinding!([KeyCode::Char('j');, KeyCode::Down;]),
+                    scroll_up: keybinding!([KeyCode::Char('k');, KeyCode::Up;]),
 
                     scroll_to_top: keybinding!([KeyCode::Char('g');, KeyCode::Home;]),
                     scroll_to_bottom: keybinding!([KeyCode::Char('G'); SHIFT, KeyCode::End;]),
