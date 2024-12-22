@@ -2,6 +2,7 @@ on:
   push:
     tags:
       - 'v*.*.*'
+  workflow_dispatch:
 
 name: Continuous Deployment
 
@@ -30,9 +31,10 @@ jobs:
 
     steps:
       - name: Installing Rust toolchain
-        uses: actions-rs/toolchain@v1
+        uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
           toolchain: ${{ matrix.rust }}
+          target: ${{ matrix.target }}
           override: true
       - name: Installing needed macOS dependencies
         if: matrix.os == 'macos-latest'
@@ -44,13 +46,9 @@ jobs:
           sudo apt-get install -y -qq pkg-config libssl-dev      
       - name: Checking out sources
         uses: actions/checkout@v1
-      - name: Running cargo build
-        uses: actions-rs/cargo@v1
-        with:
-          command: build
-          toolchain: ${{ matrix.rust }}
-          args: --release --target ${{ matrix.target }}
-
+      - name: Building the package
+        shell: bash
+        run: cargo build --release --target ${{ matrix.target }}
       - name: Packaging final binary
         shell: bash
         run: |
