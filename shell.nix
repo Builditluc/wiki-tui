@@ -1,10 +1,30 @@
-{ pkgs ? import <nixpkgs> {} }:
-pkgs.mkShell {
-    nativeBuildInputs = with pkgs; [ libiconv rustup ];
+{ 
+  pkgs ? import <nixpkgs> { },
+}:
+let
+  overrides = builtins.readFile ./rust-toolchain;
+in
+pkgs.callPackage (
+  { stdenv, mkShell, rustup, rustPlatform, }:
+  mkShell {
+    strictDeps = true;
+    nativeBuildInputs = [
+      rustup
+      rustPlatform.bindgenHook
+    ];
+    buildInputs = with pkgs; [
+      openssl
+      pkg-config
+    ] ++ lib.optionals stdenv.isDarwin [
+      darwin.apple_sdk.frameworks.Security
+    ];
+    packages = with pkgs; [ gdb ];
+    RUSTC_VERSION = overrides;
 
-    buildInputs = with pkgs; [ openssl ncurses pkg-config ] ++ lib.optionals stdenv.isDarwin [ darwin.apple_sdk.frameworks.Security ];
-    
-    packages = [ pkgs.gdb ];
-
-    RUST_SRC_PATH = "${pkgs.rust.packages.stable.rustPlatform.rustLibSrc}";
-}
+    # https://github.com/rust-lang/rust-bindgen#environment-variables
+    shellHook = ''
+      export PATH="''${CARGO_HOME:-~/.cargo}/bin}":"$PATH"
+      export PATH="''${RUSTUP_HOME:-~/.rustup}/toolchains/$RUSTC_VERSION-${stdenv.hostPlatform.rust.rustcTarget}/bin":"$PATH"
+    '';
+  }
+) { }
