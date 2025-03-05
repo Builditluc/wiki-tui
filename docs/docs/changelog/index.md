@@ -7,6 +7,7 @@
 ## Fixes
 
 - Fix incorrect utf-8 handling in sections
+- Fix incorrect rendering of search result descriptions
 
 # v0.9.1 (Thu Dec 5 2024)
 

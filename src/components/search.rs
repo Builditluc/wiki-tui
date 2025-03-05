@@ -413,20 +413,11 @@ impl Component for SearchComponent {
             .get_items()
             .iter()
             .map(|result| {
-                let snippet = result.snippet.clone().unwrap();
-                let mut cleaned_snippet = String::new();
-                for slice in snippet
-                    .split(r#"<span class="searchmatch">"#)
-                    .collect::<Vec<&str>>()
-                {
-                    let split_slice: Vec<&str> = slice.split("</span>").collect();
-                    cleaned_snippet.push_str(&split_slice.join(""));
-                }
-
+                let snippet = result.cleaned_snippet();
                 let mut text =
                     Text::from(Span::raw(result.title.clone()).fg(self.theme.search_title_fg));
                 text.lines.append(
-                    &mut textwrap::wrap(&cleaned_snippet, results_list_width as usize)
+                    &mut textwrap::wrap(&snippet, results_list_width as usize)
                         .iter()
                         .map(|s| {
                             Line::from(s.to_string()).style(Style::default().fg(self.theme.fg))

@@ -3,6 +3,7 @@ use anyhow::{anyhow, Context, Result};
 use bitflags::bitflags;
 use core::fmt;
 use reqwest::{Client, Response};
+use scraper::Html;
 use serde::Deserialize;
 use serde_repr::Deserialize_repr;
 use std::fmt::Debug;
@@ -142,6 +143,18 @@ pub struct SearchResult {
     pub snippet: Option<String>,
     /// Optional: Timestamp of when the page was last edited
     pub timestamp: Option<String>,
+}
+
+impl SearchResult {
+    pub fn cleaned_snippet(&self) -> String {
+        self.snippet
+            .as_ref()
+            .map(|snip| {
+                let fragment = Html::parse_document(snip);
+                fragment.root_element().text().collect()
+            })
+            .unwrap_or_default()
+    }
 }
 
 /// The 16 built-in namespaces (excluding two "virtual" namespaces) of MediaWiki
