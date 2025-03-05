@@ -4,6 +4,10 @@
 
 - Add up/down as default keymaps for scroll_up/scroll_down
 
+## Fixes
+
+- Fix incorrect utf-8 handling in sections
+
 # v0.9.1 (Thu Dec 5 2024)
 
 ## Fixes
