@@ -88,6 +88,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
     <tr>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/Enoumy"><img src="https://avatars.githubusercontent.com/u/45022810?v=4?s=100" width="100px;" alt="Enoumy"/><br /><sub><b>Enoumy</b></sub></a><br /><a href="https://github.com/Builditluc/wiki-tui/commits?author=Enoumy" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/ethamck"><img src="https://avatars.githubusercontent.com/u/111709736?v=4?s=100" width="100px;" alt="ethamck"/><br /><sub><b>ethamck</b></sub></a><br /><a href="#design-ethamck" title="Design">🎨</a> <a href="#platform-ethamck" title="Packaging/porting to new platform">📦</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://pwned.place"><img src="https://avatars.githubusercontent.com/u/52998857?v=4?s=100" width="100px;" alt="lstuma"/><br /><sub><b>lstuma</b></sub></a><br /><a href="https://github.com/Builditluc/wiki-tui/issues?q=author%3Alstuma" title="Bug reports">🐛</a></td>
     </tr>
   </tbody>
 </table>
