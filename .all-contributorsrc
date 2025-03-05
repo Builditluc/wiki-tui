@@ -91,6 +91,15 @@
         "design",
         "platform"
       ]
+    },
+    {
+      "login": "lstuma",
+      "name": "lstuma",
+      "avatar_url": "https://avatars.githubusercontent.com/u/52998857?v=4",
+      "profile": "https://pwned.place",
+      "contributions": [
+        "bug"
+      ]
     }
   ],
   "contributorsPerLine": 7,
