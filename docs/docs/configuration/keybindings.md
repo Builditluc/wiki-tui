@@ -74,8 +74,8 @@ Below are the default keybindings for all of the configurable actions
 
 | Action                             | Description                                          | Default Binding            |
 |------------------------------------|------------------------------------------------------|----------------------------|
-| `scroll_down`                      | Scroll down                                          | ++j++                      |
-| `scroll_up`                        | Scroll down                                          | ++k++                      |
+| `scroll_down`                      | Scroll down                                          | ++j++ / ++down++           |
+| `scroll_up`                        | Scroll down                                          | ++k++ / ++up++             |
 | `scroll_to_top`                    | Scroll to the top                                    | ++'g'++ / ++home++         |
 | `scroll_to_bottom`                 | Scroll to the bottom                                 | ++'G'++ / ++end++          |
 | `pop_popup`                        | Remove the displayed popup                           | ++esc++                    |
