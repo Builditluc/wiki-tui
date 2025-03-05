@@ -1,3 +1,9 @@
+# Unreleased v0.9.2-pre
+
+## Additions
+
+- Add up/down as default keymaps for scroll_up/scroll_down
+
 # v0.9.1 (Thu Dec 5 2024)
 
 ## Fixes
