@@ -232,13 +232,13 @@ mod tests {
             ($namespace: ident, $namespace_talk: ident) => {
                 let namespace_str = format!("{}", Namespace::$namespace);
                 assert_eq!(
-                    Namespace::from_str(&namespace_str),
+                    Namespace::from_string(&namespace_str),
                     Some(Namespace::$namespace)
                 );
 
                 let namespace_str = format!("{}", Namespace::$namespace_talk);
                 assert_eq!(
-                    Namespace::from_str(&namespace_str),
+                    Namespace::from_string(&namespace_str),
                     Some(Namespace::$namespace_talk)
                 );
             };
@@ -297,7 +297,7 @@ impl Display for QiProfile {
 #[derive(Default, Clone, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum SearchType {
-    /// Search just by a match  
+    /// Search just by a match
     NearMatch,
     /// Search the content of the page
     #[default]
