@@ -113,7 +113,7 @@ impl Component for PageLanguageSelectionComponent {
                 self.update_list();
                 ActionResult::consumed()
             }
-            _ => ActionResult::Ignored,
+            _ => ActionResult::consumed(),
         }
     }
 

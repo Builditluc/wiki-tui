@@ -108,7 +108,7 @@ impl Component for SearchLanguageSelectionComponent {
                 self.update_list();
                 ActionResult::consumed()
             }
-            _ => ActionResult::Ignored,
+            _ => ActionResult::consumed(),
         }
     }
 
