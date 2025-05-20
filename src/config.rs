@@ -479,6 +479,8 @@ pub struct GlobalKeybindings {
 
     pub toggle_search_language_selection: Keybinding,
     pub toggle_logger: Keybinding,
+
+    pub help: Keybinding,
 }
 
 pub struct SearchKeybindings {
@@ -586,6 +588,8 @@ impl Config {
 
                     toggle_search_language_selection: keybinding!([KeyCode::F(2);]),
                     toggle_logger: keybinding!([KeyCode::Char('l');]),
+
+                    help: keybinding!([KeyCode::Char('?'); ]),
                 },
                 search: SearchKeybindings {
                     continue_search: keybinding!([KeyCode::Char('c');]),
