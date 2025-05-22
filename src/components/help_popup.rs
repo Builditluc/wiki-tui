@@ -1,5 +1,6 @@
 use std::{cmp::max, sync::Arc};
 
+use itertools::Itertools;
 use ratatui::{
     layout::{Constraint, Flex::Center, Layout, Rect},
     style::{Color, Style, Stylize},
@@ -17,42 +18,41 @@ use crate::{
 use super::Component;
 
 struct Binding {
-    pub bindings: Arc<[Arc<str>]>,
-    pub name: Arc<str>,
+    pub bindings: Box<[Box<str>]>,
+    pub name: Box<str>,
 }
 
 impl Binding {
     pub fn keys_len(&self) -> usize {
-        self.bindings
-            .into_iter()
-            .fold(0, |acc, elm| acc + elm.len() + 2)
-            - 2
+        self.bindings.iter().fold(0, |acc, elm| acc + elm.len() + 2) - 2
     }
 
     pub fn to_line(&self, gap: usize) -> Line {
-        self.bindings
-            .into_iter()
-            .flat_map(|b| {
-                [
-                    Span::styled(b.as_ref(), Style::default().fg(Color::Green)),
-                    Span::raw(", "),
-                ]
-            })
-            .take(self.bindings.len() * 2 - 1)
-            .chain([
-                (self.keys_len()..gap)
-                    .map(|_| ".")
-                    .collect::<String>()
-                    .into(),
-                Span::raw(self.name.as_ref()),
-            ])
-            .collect()
+        Itertools::intersperse(
+            self.bindings
+                .iter()
+                .map(|b| Span::styled(b.as_ref(), Style::default().fg(Color::Green))),
+            Span::raw(", "),
+        )
+        .take(self.bindings.len() * 2 - 1)
+        .chain([
+            (self.keys_len()..gap)
+                .map(|_| ".")
+                .collect::<String>()
+                .into(),
+            Span::raw(self.name.as_ref()),
+        ])
+        .collect()
     }
 }
 
 impl Binding {
     pub fn from_keys(key: &Keybinding, desc: &str) -> Self {
-        let bindings = key.to_string().split(", ").map(|x| x.into()).collect();
+        let bindings = key
+            .bindings()
+            .iter()
+            .map(|b| b.to_string().into())
+            .collect();
         Self {
             bindings,
             name: desc.into(),

@@ -349,7 +349,7 @@ pub struct TocConfig {
 }
 
 #[derive(Deserialize)]
-struct Binding {
+pub struct Binding {
     code: KeyCode,
     modifiers: KeyModifiers,
 }
@@ -443,6 +443,10 @@ impl Keybinding {
             .bindings
             .iter()
             .any(|x| x.code == event.code && x.modifiers == event.modifiers);
+    }
+
+    pub fn bindings(&self) -> &[Binding] {
+        &self.bindings
     }
 }
 
