@@ -1,6 +1,6 @@
 use anyhow::{bail, Context, Result};
-use bitflags::bitflags;
-use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+use bitflags::{bitflags, bitflags_match};
+use crossterm::event::{KeyCode, KeyEvent, KeyModifiers, MediaKeyCode};
 use directories::ProjectDirs;
 use ratatui::{
     layout::Constraint,
@@ -354,6 +354,73 @@ struct Binding {
     modifiers: KeyModifiers,
 }
 
+impl ToString for Binding {
+    fn to_string(&self) -> String {
+        macro_rules! vim_string {
+            ($s:tt) => {
+                std::format!("<{}>", $s)
+            };
+        }
+
+        let mut string = String::with_capacity(10);
+
+        bitflags_match!(self.modifiers,
+        {
+            KeyModifiers::CONTROL => string.push_str("CTRL-"),
+            KeyModifiers::META => string.push_str("META-"),
+            KeyModifiers::ALT => string.push_str("ALT-"),
+            KeyModifiers::SUPER => string.push_str("SUPER-"),
+            KeyModifiers::HYPER => string.push_str("HYPER-"),
+            _ => (),
+        });
+
+        string.push_str(&match self.code {
+            KeyCode::Null | KeyCode::Modifier(_) => String::default(),
+            KeyCode::F(n) => format!("<F{n}>"),
+            KeyCode::Char(c) => c.to_string(),
+            KeyCode::Media(media_key) => match media_key {
+                MediaKeyCode::Play => vim_string!("Play"),
+                MediaKeyCode::Pause => vim_string!("Pause"),
+                MediaKeyCode::PlayPause => vim_string!("Play Pause"),
+                MediaKeyCode::Reverse => vim_string!("Reverse"),
+                MediaKeyCode::Stop => vim_string!("Stop"),
+                MediaKeyCode::FastForward => vim_string!("Fast Forward"),
+                MediaKeyCode::Rewind => vim_string!("Rewind"),
+                MediaKeyCode::TrackNext => vim_string!("Track Next"),
+                MediaKeyCode::TrackPrevious => vim_string!("Track Previous"),
+                MediaKeyCode::Record => vim_string!("Record"),
+                MediaKeyCode::LowerVolume => vim_string!("Lower Volume"),
+                MediaKeyCode::RaiseVolume => vim_string!("Raise Volume"),
+                MediaKeyCode::MuteVolume => vim_string!("Mute Volume"),
+            },
+            KeyCode::Backspace => vim_string!("Backspace"),
+            KeyCode::Enter => vim_string!("Enter"),
+            KeyCode::Left => vim_string!("Left"),
+            KeyCode::Right => vim_string!("Right"),
+            KeyCode::Up => vim_string!("Up"),
+            KeyCode::Down => vim_string!("Down"),
+            KeyCode::Home => vim_string!("Home"),
+            KeyCode::End => vim_string!("End"),
+            KeyCode::PageUp => vim_string!("Page Up"),
+            KeyCode::PageDown => vim_string!("Page Down"),
+            KeyCode::Tab => vim_string!("Tab"),
+            KeyCode::BackTab => vim_string!("Back Tab"),
+            KeyCode::Delete => vim_string!("Delete"),
+            KeyCode::Insert => vim_string!("Insert"),
+            KeyCode::Esc => vim_string!("Esc"),
+            KeyCode::CapsLock => vim_string!("Caps Lock"),
+            KeyCode::ScrollLock => vim_string!("Scroll Lock"),
+            KeyCode::NumLock => vim_string!("Num Lock"),
+            KeyCode::PrintScreen => vim_string!("Print Screen"),
+            KeyCode::Pause => vim_string!("Pause"),
+            KeyCode::Menu => vim_string!("Menu"),
+            KeyCode::KeypadBegin => vim_string!("Keypad Begin"),
+        });
+
+        string
+    }
+}
+
 #[derive(Deserialize)]
 pub struct Keybinding {
     bindings: Vec<Binding>,
@@ -376,6 +443,16 @@ impl Keybinding {
             .bindings
             .iter()
             .any(|x| x.code == event.code && x.modifiers == event.modifiers);
+    }
+}
+
+impl ToString for Keybinding {
+    fn to_string(&self) -> String {
+        self.bindings
+            .iter()
+            .map(|x| x.to_string())
+            .collect::<Vec<_>>()
+            .join(", ")
     }
 }
 
