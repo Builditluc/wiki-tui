@@ -27,11 +27,11 @@ impl Binding {
         self.bindings.iter().fold(0, |acc, elm| acc + elm.len() + 2) - 2
     }
 
-    pub fn to_line(&self, gap: usize) -> Line {
+    pub fn to_line(&self, gap: usize, highlight: Color) -> Line {
         Itertools::intersperse(
             self.bindings
                 .iter()
-                .map(|b| Span::styled(b.as_ref(), Style::default().fg(Color::Green))),
+                .map(|b| Span::styled(b.as_ref(), Style::default().fg(highlight))),
             Span::raw(", "),
         )
         .take(self.bindings.len() * 2 - 1)
@@ -191,9 +191,13 @@ impl Component for HelpPopupComponent {
             .chain(self.page_bindings_list.iter())
             .fold(0, |acc, elm| max(acc, elm.keys_len()))
             + 1;
+        let highlight_color = self.theme.search_title_fg;
         macro_rules! to_line {
             ($bindings:expr) => {
-                $bindings.iter().map(|x| x.to_line(gap)).collect()
+                $bindings
+                    .iter()
+                    .map(|x| x.to_line(gap, highlight_color))
+                    .collect()
             };
         }
 
