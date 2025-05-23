@@ -11,10 +11,10 @@ pkgs.callPackage (
     nativeBuildInputs = [
       rustup
       rustPlatform.bindgenHook
+      pkgs.pkg-config
     ];
     buildInputs = with pkgs; [
       openssl
-      pkg-config
     ] ++ lib.optionals stdenv.isDarwin [
       darwin.apple_sdk.frameworks.Security
     ];
