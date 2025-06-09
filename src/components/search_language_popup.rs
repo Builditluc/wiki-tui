@@ -168,10 +168,10 @@ impl Component for SearchLanguageSelectionComponent {
         f.render_widget(input_widget, input_area);
 
         if self.focus == FOCUS_INPUT {
-            f.set_cursor(
+            f.set_cursor_position((
                 input_area.x + (cursor.max(scroll) - scroll) as u16,
                 input_area.y,
-            );
+            ));
         }
 
         let list_items = self

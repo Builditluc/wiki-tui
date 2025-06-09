@@ -5,7 +5,7 @@ use ratatui::{
     layout::{Alignment, Rect},
     style::{Style, Stylize},
     text::Line,
-    widgets::{block::Title, Block, Clear},
+    widgets::{Block, Clear},
 };
 
 use crate::{
@@ -16,8 +16,8 @@ use crate::{
 
 use super::Component;
 
-pub struct MessagePopupComponent<'a> {
-    title: Title<'a>,
+pub struct MessagePopupComponent {
+    title: String,
     content: String,
     content_alignment: Alignment,
 
@@ -26,10 +26,10 @@ pub struct MessagePopupComponent<'a> {
     confirmation: Option<ActionPacket>,
 }
 
-impl<'a> MessagePopupComponent<'a> {
+impl MessagePopupComponent {
     pub fn new_raw(title: String, content: String, theme: Arc<Theme>) -> Self {
         Self {
-            title: Title::from(title).alignment(Alignment::Center),
+            title,
             content,
             content_alignment: Alignment::Center,
 
@@ -44,7 +44,7 @@ impl<'a> MessagePopupComponent<'a> {
             "An error occurred\nCheck the logs for further information\n\nError: {ERROR}";
 
         Self {
-            title: Title::from("Error".bold().red()).alignment(Alignment::Center),
+            title: "Error".to_string(),
             content: ERROR_MESSAGE.replace("{ERROR}", &error),
             content_alignment: Alignment::Left,
 
@@ -61,7 +61,7 @@ impl<'a> MessagePopupComponent<'a> {
         theme: Arc<Theme>,
     ) -> Self {
         Self {
-            title: Title::from(title).alignment(Alignment::Center),
+            title,
             content,
             content_alignment: Alignment::Center,
 
@@ -72,7 +72,7 @@ impl<'a> MessagePopupComponent<'a> {
     }
 }
 
-impl<'a> Component for MessagePopupComponent<'a> {
+impl Component for MessagePopupComponent {
     fn handle_key_events(&mut self, key: KeyEvent) -> ActionResult {
         match key.code {
             KeyCode::Char('y') if self.confirmation.is_some() => self
@@ -109,7 +109,13 @@ impl<'a> Component for MessagePopupComponent<'a> {
             area,
         );
 
-        let mut block = self.theme.default_block().title(self.title.clone());
+        let title_line = if self.title == "Error" {
+            Line::from("Error".bold().red()).centered()
+        } else {
+            Line::from(self.title.clone()).centered()
+        };
+        
+        let mut block = self.theme.default_block().title_top(title_line);
 
         block = if self.confirmation.is_some() {
             block

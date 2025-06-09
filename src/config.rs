@@ -475,7 +475,7 @@ impl Config {
 
                     enable_scrolling: true,
                 },
-                padding: Padding::zero(),
+                padding: Padding::ZERO,
 
                 default_zen: false,
                 zen_mode: ZenModeComponents::empty(),

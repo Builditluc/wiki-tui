@@ -45,7 +45,7 @@ pub fn initialize_logging(level: Option<LevelFilter>) -> Result<()> {
 
     tracing_subscriber::registry()
         .with(file_subscriber)
-        .with(tui_logger::tracing_subscriber_layer())
+        .with(tui_logger::TuiTracingSubscriberLayer)
         .init();
 
     tui_logger::set_default_level(level.as_log());

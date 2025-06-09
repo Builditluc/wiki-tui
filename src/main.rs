@@ -95,7 +95,7 @@ async fn main() -> Result<()> {
                 Action::RenderTick => {
                     let mut app_component = app_component.lock().await;
                     tui.terminal
-                        .draw(|frame| app_component.render(frame, frame.size()))
+                        .draw(|frame| app_component.render(frame, frame.area()))
                         .unwrap();
                 }
                 Action::Quit => should_quit = true,
