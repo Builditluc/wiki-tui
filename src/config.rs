@@ -372,10 +372,9 @@ impl Keybinding {
     }
 
     pub fn matches_event(&self, event: KeyEvent) -> bool {
-        return self
-            .bindings
+        self.bindings
             .iter()
-            .any(|x| x.code == event.code && x.modifiers == event.modifiers);
+            .any(|x| x.code == event.code && x.modifiers == event.modifiers)
     }
 }
 

@@ -114,7 +114,7 @@ impl Component for MessagePopupComponent {
         } else {
             Line::from(self.title.clone()).centered()
         };
-        
+
         let mut block = self.theme.default_block().title_top(title_line);
 
         block = if self.confirmation.is_some() {

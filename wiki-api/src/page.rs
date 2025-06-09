@@ -409,9 +409,8 @@ impl<I, P> PageBuilder<I, P, WithEndpoint, WithLanguage> {
                 .query(&params)
                 .send()
                 .await
-                .map(|response| {
+                .inspect(|response| {
                     debug!("response url: '{}'", response.url().as_str());
-                    response
                 })
                 .context("failed sending the request")
         }
@@ -504,9 +503,8 @@ impl<I, P> PageBuilder<I, P, WithEndpoint, WithLanguage> {
                     })
                     .collect::<Vec<LanguageLink>>()
             })
-            .map(|x| {
+            .inspect(|x| {
                 debug!("language_links: '{}'", x.len());
-                x
             });
 
         let sections = res_json

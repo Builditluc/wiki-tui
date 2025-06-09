@@ -129,7 +129,7 @@ impl SearchComponent {
             .get_items_mut()
             .append(&mut search.results);
 
-        self.continue_search = search.continue_data().take();
+        self.continue_search = search.continue_data();
         self.search_info = Some(search.info);
 
         crate::trace_dbg!(has_results);

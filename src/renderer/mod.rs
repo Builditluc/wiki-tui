@@ -21,7 +21,7 @@ pub struct Word {
 
 impl<'a> Word {
     pub fn node(&self, document: &'a Document) -> Option<Node<'a>> {
-        return document.nth(self.index);
+        document.nth(self.index)
     }
 }
 

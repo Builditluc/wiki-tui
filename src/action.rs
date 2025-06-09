@@ -170,6 +170,6 @@ impl Debug for ActionPacket {
             return write!(f, "Nothing");
         }
 
-        f.debug_list().entries(&mut self.actions.iter()).finish()
+        f.debug_list().entries(self.actions.iter()).finish()
     }
 }

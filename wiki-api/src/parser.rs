@@ -343,7 +343,7 @@ impl WikipediaParser {
                 )));
             }
 
-            let page = link_url.path_segments()?.last()?;
+            let page = link_url.path_segments()?.next_back()?;
 
             const NAMESPACE_DELIMITER: char = ':';
             let (namespace, page) =
