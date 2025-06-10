@@ -14,6 +14,7 @@ use tokio::sync::mpsc;
 use crate::{
     action::{Action, ActionPacket, ActionResult},
     components::{
+        help_popup::HelpPopupComponent,
         logger::LoggerComponent,
         message_popup::MessagePopupComponent,
         page_viewer::PageViewer,
@@ -170,7 +171,9 @@ impl Component for AppComponent {
                         self.theme.clone(),
                     )));
                 ActionResult::consumed()
-            }
+            },
+
+            help => Action::ShowHelp
         );
 
         ActionResult::Ignored
@@ -185,6 +188,12 @@ impl Component for AppComponent {
 
             Action::ToggleShowLogger => self.is_logger = !self.is_logger,
             Action::ShowPageLanguageSelection => self.show_page_language(),
+            Action::ShowHelp => {
+                self.popups.push(Box::new(HelpPopupComponent::new(
+                    self.config.clone(),
+                    self.theme.clone(),
+                )));
+            }
 
             Action::SwitchContextSearch => self.switch_context(CONTEXT_SEARCH),
             Action::SwitchContextPage => self.switch_context(CONTEXT_PAGE),

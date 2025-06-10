@@ -20,6 +20,7 @@ pub enum Action {
     // View Focus
     ToggleShowLogger,
     ShowPageLanguageSelection,
+    ShowHelp,
 
     /// PopupMessage(Title, Content)
     PopupMessage(String, String),

@@ -1,6 +1,6 @@
 use anyhow::{bail, Context, Result};
 use bitflags::bitflags;
-use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+use crossterm::event::{KeyCode, KeyEvent, KeyModifiers, MediaKeyCode};
 use directories::ProjectDirs;
 use ratatui::{
     layout::Constraint,
@@ -183,7 +183,9 @@ fn override_bindings_config(config: &mut Keybindings, user_config: UserKeybindin
             switch_context_page,
 
             toggle_search_language_selection,
-            toggle_logger
+            toggle_logger,
+
+            help
         });
     }
 
@@ -349,9 +351,85 @@ pub struct TocConfig {
 }
 
 #[derive(Deserialize)]
-struct Binding {
+pub struct Binding {
     code: KeyCode,
     modifiers: KeyModifiers,
+}
+
+impl std::fmt::Display for Binding {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        macro_rules! vim_string {
+            ($s:tt) => {
+                std::format!("<{}>", $s)
+            };
+        }
+
+        let mut string = String::with_capacity(10);
+
+        if self.modifiers.contains(KeyModifiers::CONTROL) {
+            string.push_str("CTRL-");
+        }
+        if self.modifiers.contains(KeyModifiers::META) {
+            string.push_str("META-");
+        }
+        if self.modifiers.contains(KeyModifiers::ALT) {
+            string.push_str("ALT-");
+        }
+        if self.modifiers.contains(KeyModifiers::SUPER) {
+            string.push_str("SUPER-");
+        }
+        if self.modifiers.contains(KeyModifiers::HYPER) {
+            string.push_str("HYPER-");
+        }
+        if self.modifiers.contains(KeyModifiers::SHIFT) {
+            string.push_str("SHIFT-");
+        }
+
+        string.push_str(&match self.code {
+            KeyCode::Null | KeyCode::Modifier(_) => String::default(),
+            KeyCode::F(n) => format!("F{n}"),
+            KeyCode::Char(c) => c.to_string(),
+            KeyCode::Media(media_key) => match media_key {
+                MediaKeyCode::Play => vim_string!("Play"),
+                MediaKeyCode::Pause => vim_string!("Pause"),
+                MediaKeyCode::PlayPause => vim_string!("Play Pause"),
+                MediaKeyCode::Reverse => vim_string!("Reverse"),
+                MediaKeyCode::Stop => vim_string!("Stop"),
+                MediaKeyCode::FastForward => vim_string!("Fast Forward"),
+                MediaKeyCode::Rewind => vim_string!("Rewind"),
+                MediaKeyCode::TrackNext => vim_string!("Track Next"),
+                MediaKeyCode::TrackPrevious => vim_string!("Track Previous"),
+                MediaKeyCode::Record => vim_string!("Record"),
+                MediaKeyCode::LowerVolume => vim_string!("Lower Volume"),
+                MediaKeyCode::RaiseVolume => vim_string!("Raise Volume"),
+                MediaKeyCode::MuteVolume => vim_string!("Mute Volume"),
+            },
+            KeyCode::Backspace => vim_string!("Backspace"),
+            KeyCode::Enter => vim_string!("Enter"),
+            KeyCode::Left => vim_string!("Left"),
+            KeyCode::Right => vim_string!("Right"),
+            KeyCode::Up => vim_string!("Up"),
+            KeyCode::Down => vim_string!("Down"),
+            KeyCode::Home => vim_string!("Home"),
+            KeyCode::End => vim_string!("End"),
+            KeyCode::PageUp => vim_string!("Page Up"),
+            KeyCode::PageDown => vim_string!("Page Down"),
+            KeyCode::Tab => vim_string!("Tab"),
+            KeyCode::BackTab => vim_string!("Back Tab"),
+            KeyCode::Delete => vim_string!("Delete"),
+            KeyCode::Insert => vim_string!("Insert"),
+            KeyCode::Esc => vim_string!("Esc"),
+            KeyCode::CapsLock => vim_string!("Caps Lock"),
+            KeyCode::ScrollLock => vim_string!("Scroll Lock"),
+            KeyCode::NumLock => vim_string!("Num Lock"),
+            KeyCode::PrintScreen => vim_string!("Print Screen"),
+            KeyCode::Pause => vim_string!("Pause"),
+            KeyCode::Menu => vim_string!("Menu"),
+            KeyCode::KeypadBegin => vim_string!("Keypad Begin"),
+        });
+
+        write!(f, "{}", string)
+    }
 }
 
 #[derive(Deserialize)]
@@ -375,6 +453,10 @@ impl Keybinding {
         self.bindings
             .iter()
             .any(|x| x.code == event.code && x.modifiers == event.modifiers)
+    }
+
+    pub fn bindings(&self) -> &[Binding] {
+        &self.bindings
     }
 }
 
@@ -401,6 +483,8 @@ pub struct GlobalKeybindings {
 
     pub toggle_search_language_selection: Keybinding,
     pub toggle_logger: Keybinding,
+
+    pub help: Keybinding,
 }
 
 pub struct SearchKeybindings {
@@ -508,6 +592,8 @@ impl Config {
 
                     toggle_search_language_selection: keybinding!([KeyCode::F(2);]),
                     toggle_logger: keybinding!([KeyCode::Char('l');]),
+
+                    help: keybinding!([KeyCode::Char('?');]),
                 },
                 search: SearchKeybindings {
                     continue_search: keybinding!([KeyCode::Char('c');]),
@@ -774,7 +860,8 @@ user_keybindings!(
     switch_context_search,
     switch_context_page,
     toggle_search_language_selection,
-    toggle_logger
+    toggle_logger,
+    help
 );
 
 user_keybindings!(UserSearchKeybindings, continue_search);
