@@ -13,6 +13,7 @@ use std::fmt::Write;
 use crate::Endpoint;
 
 use crate::languages::Language;
+use crate::proxy::get_proxy;
 
 /// A finished search containing the found results and additional optional information regarding
 /// the search
@@ -699,7 +700,14 @@ impl SearchBuilder<WithQuery, WithEndpoint, WithLanguage> {
     /// - The returned result could not interpreted as a `Search`
     pub async fn search(self) -> Result<Search> {
         async fn action_query(params: Vec<(&str, String)>, endpoint: Endpoint) -> Result<Response> {
-            Client::new()
+            let client_builder = match get_proxy() {
+                Some(proxy) => Client::builder().proxy(proxy.clone()),
+                None => Client::builder(),
+            };
+
+            client_builder
+                .build()
+                .expect("clinet build error")
                 .get(endpoint)
                 .query(&[
                     ("action", "query"),
