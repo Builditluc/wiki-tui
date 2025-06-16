@@ -5,6 +5,7 @@ use crate::{
     config::{cache_dir, config_dir, CONFIG_FILE_NAME, THEME_FILE_NAME},
 };
 use wiki_api::languages::Language;
+use wiki_api::proxy::init_proxy;
 
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
@@ -34,6 +35,10 @@ struct Cli {
     /// Print the path to the theme configuration file
     #[arg(long = "theme-config-path")]
     print_theme_config_path: bool,
+
+    /// Set the proxy
+    #[arg(long = "proxy")]
+    proxy: Option<String>,
 
     #[cfg(debug_assertions)]
     #[arg(value_name = "PATH", long = "page")]
@@ -102,6 +107,10 @@ pub fn match_cli() -> CliResults {
         );
         should_quit = true;
     }
+
+    if let Some(proxy) = cli.proxy {
+        init_proxy(&proxy);
+    };
 
     #[cfg(debug_assertions)]
     if let Some(ref debug_page) = cli.load_debug_page {
