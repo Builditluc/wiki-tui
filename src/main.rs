@@ -24,6 +24,11 @@ async fn main() -> Result<()> {
     initialize_logging(results.log_level)?;
     initialize_panic_handler()?;
 
+    // Log match cli message
+    for err in results.warn_list {
+        warn!(err)
+    }
+
     let (action_tx, mut action_rx) = mpsc::unbounded_channel();
 
     let app_component = Arc::new(Mutex::new(AppComponent::default()));

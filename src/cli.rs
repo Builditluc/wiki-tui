@@ -5,6 +5,7 @@ use crate::{
     config::{cache_dir, config_dir, CONFIG_FILE_NAME, THEME_FILE_NAME},
 };
 use wiki_api::languages::Language;
+use wiki_api::proxy::init_proxy;
 
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
@@ -35,6 +36,10 @@ struct Cli {
     #[arg(long = "theme-config-path")]
     print_theme_config_path: bool,
 
+    /// Set the proxy
+    #[arg(long = "proxy")]
+    proxy: Option<String>,
+
     #[cfg(debug_assertions)]
     #[arg(value_name = "PATH", long = "page")]
     load_debug_page: Option<std::path::PathBuf>,
@@ -43,6 +48,7 @@ struct Cli {
 pub struct CliResults {
     pub actions: Option<ActionPacket>,
     pub log_level: Option<tracing::level_filters::LevelFilter>,
+    pub warn_list: Vec<String>,
 }
 
 pub fn match_cli() -> CliResults {
@@ -52,6 +58,7 @@ pub fn match_cli() -> CliResults {
     let mut results = CliResults {
         actions: None,
         log_level: None,
+        warn_list: Vec::new(),
     };
 
     let mut packet = ActionPacket::default();
@@ -102,6 +109,14 @@ pub fn match_cli() -> CliResults {
         );
         should_quit = true;
     }
+
+    if let Some(proxy) = cli.proxy {
+        if let Err(err) = init_proxy(&proxy) {
+            results.warn_list.push(err);
+            let action = Action::PopupMessage("Information".to_string(), "Something went wrong when trying to initial proxy \nCheck the logs for further information".to_string());
+            packet.add_action(action);
+        }
+    };
 
     #[cfg(debug_assertions)]
     if let Some(ref debug_page) = cli.load_debug_page {
