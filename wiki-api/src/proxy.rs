@@ -5,7 +5,17 @@ use std::net::SocketAddr;
 static PROXY: OnceLock<Proxy> = OnceLock::new();
 
 fn validate_proxy(addr: &str) -> Result<(), String> {
-    addr.parse::<SocketAddr>()
+    let addr_clean = if let Some(addr) = addr.strip_prefix("socks5://") {
+        addr
+    } else if let Some(addr) = addr.strip_prefix("http://") {
+        addr
+    } else if let Some(addr) = addr.strip_prefix("https://") {
+        addr
+    } else {
+        return Err(format!("Invalid proxy protocol: {}", addr));
+    };
+
+    addr_clean.parse::<SocketAddr>()
         .map(|_| ())
         .map_err(|_| format!("Invalid proxy address: {}", addr))
 }

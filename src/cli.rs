@@ -1,5 +1,4 @@
 use clap::Parser;
-use tracing::warn;
 
 use crate::{
     action::{Action, ActionPacket, SearchAction},
@@ -49,6 +48,7 @@ struct Cli {
 pub struct CliResults {
     pub actions: Option<ActionPacket>,
     pub log_level: Option<tracing::level_filters::LevelFilter>,
+    pub warn_list: Vec<String>,
 }
 
 pub fn match_cli() -> CliResults {
@@ -58,6 +58,7 @@ pub fn match_cli() -> CliResults {
     let mut results = CliResults {
         actions: None,
         log_level: None,
+        warn_list: Vec::new(),
     };
 
     let mut packet = ActionPacket::default();
@@ -111,7 +112,7 @@ pub fn match_cli() -> CliResults {
 
     if let Some(proxy) = cli.proxy {
         if let Err(err) = init_proxy(&proxy)  {
-            warn!("{:?}", err);
+            results.warn_list.push(err);
             let action = Action::PopupMessage("Information".to_string(), "Something went wrong when trying to initial proxy \nCheck the logs for further information".to_string());
             packet.add_action(action);
         }
