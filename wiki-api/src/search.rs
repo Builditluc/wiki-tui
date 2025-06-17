@@ -700,6 +700,7 @@ impl SearchBuilder<WithQuery, WithEndpoint, WithLanguage> {
     /// - The returned result could not interpreted as a `Search`
     pub async fn search(self) -> Result<Search> {
         async fn action_query(params: Vec<(&str, String)>, endpoint: Endpoint) -> Result<Response> {
+            // Create builder with proxy
             let client_builder = match get_proxy() {
                 Some(proxy) => Client::builder().proxy(proxy.clone()),
                 None => Client::builder(),

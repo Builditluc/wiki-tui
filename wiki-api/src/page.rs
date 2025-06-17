@@ -397,6 +397,7 @@ impl<I, P, U, L> PageBuilder<I, P, U, L> {
 impl<I, P> PageBuilder<I, P, WithEndpoint, WithLanguage> {
     async fn fetch_with_params(self, mut params: Vec<(&str, String)>) -> Result<Page> {
         async fn action_parse(params: Vec<(&str, String)>, endpoint: Url) -> Result<Response> {
+            // Create builder with proxy
             let client_builder = match get_proxy() {
                 Some(proxy) => Client::builder().proxy(proxy.clone()),
                 None => Client::builder(),

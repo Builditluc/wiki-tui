@@ -1,4 +1,5 @@
 use clap::Parser;
+use tracing::warn;
 
 use crate::{
     action::{Action, ActionPacket, SearchAction},
@@ -109,7 +110,11 @@ pub fn match_cli() -> CliResults {
     }
 
     if let Some(proxy) = cli.proxy {
-        init_proxy(&proxy);
+        if let Err(err) = init_proxy(&proxy)  {
+            warn!("{:?}", err);
+            let action = Action::PopupMessage("Information".to_string(), "Something went wrong when trying to initial proxy \nCheck the logs for further information".to_string());
+            packet.add_action(action);
+        }
     };
 
     #[cfg(debug_assertions)]
