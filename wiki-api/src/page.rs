@@ -1,5 +1,7 @@
 use crate::{
-    document::{Document, HeaderKind}, parser::{Parser, WikipediaParser}, Endpoint
+    document::{Document, HeaderKind},
+    parser::{Parser, WikipediaParser},
+    Endpoint,
 };
 use anyhow::{anyhow, Context, Result};
 use reqwest::{Client, Response};

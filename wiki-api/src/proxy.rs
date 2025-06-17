@@ -1,6 +1,6 @@
-use std::sync::OnceLock;
 use reqwest::Proxy;
 use std::net::SocketAddr;
+use std::sync::OnceLock;
 
 static PROXY: OnceLock<Proxy> = OnceLock::new();
 
@@ -15,14 +15,15 @@ fn validate_proxy(addr: &str) -> Result<(), String> {
         return Err(format!("Invalid proxy protocol: {}", addr));
     };
 
-    addr_clean.parse::<SocketAddr>()
+    addr_clean
+        .parse::<SocketAddr>()
         .map(|_| ())
         .map_err(|_| format!("Invalid proxy address: {}", addr))
 }
 
 // Init proxy only once
 pub fn init_proxy(str: &str) -> Result<(), String> {
-    validate_proxy(&str)?;
+    validate_proxy(str)?;
     let proxy = match Proxy::all(str) {
         Ok(o) => o,
         Err(e) => return Err(e.to_string()),

@@ -111,7 +111,7 @@ pub fn match_cli() -> CliResults {
     }
 
     if let Some(proxy) = cli.proxy {
-        if let Err(err) = init_proxy(&proxy)  {
+        if let Err(err) = init_proxy(&proxy) {
             results.warn_list.push(err);
             let action = Action::PopupMessage("Information".to_string(), "Something went wrong when trying to initial proxy \nCheck the logs for further information".to_string());
             packet.add_action(action);
