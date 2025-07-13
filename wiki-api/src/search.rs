@@ -68,7 +68,7 @@ impl Debug for Search {
     }
 }
 
-/// Contains general informations about the search
+/// Contains general information about the search
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct SearchInfo {
     /// Whether the search is complete and no more results are available
@@ -99,7 +99,7 @@ pub struct SearchInfo {
 /// let continued_search = Search::builder()
 ///     .query(continue_data.query)
 ///     .endpoint(continue_data.endpoint)
-///     .langauge(continue_data.language)
+///     .language(continue_data.language)
 ///     .offset(continue_data.offset)
 ///     .search()?;
 /// ```
@@ -665,7 +665,7 @@ impl<Q, E, L> SearchBuilder<Q, E, L> {
         self
     }
 
-    /// Set the sort order of returend results
+    /// Set the sort order of returned results
     ///
     /// Default: [`SortOrder::Relevance`]
     ///
@@ -677,7 +677,7 @@ impl<Q, E, L> SearchBuilder<Q, E, L> {
 }
 
 impl SearchBuilder<WithQuery, WithEndpoint, WithLanguage> {
-    /// Performes the search and returns the result. The search can only be made when the query,
+    /// Performs the search and returns the result. The search can only be made when the query,
     /// endpoint and language are set
     ///
     /// # Example

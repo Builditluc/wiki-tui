@@ -106,7 +106,7 @@ impl SearchComponent {
                 .unwrap();
             match search_request.search().await {
                 Ok(search) => tx
-                    .send(Action::Search(SearchAction::FinshSearch(search)))
+                    .send(Action::Search(SearchAction::FinishSearch(search)))
                     .unwrap(),
                 Err(error) => {
                     let error = error.context("Unable to execute the search");
@@ -175,7 +175,7 @@ impl SearchComponent {
                 .unwrap();
             match search_request.search().await {
                 Ok(search) => tx
-                    .send(Action::Search(SearchAction::FinshSearch(search)))
+                    .send(Action::Search(SearchAction::FinishSearch(search)))
                     .unwrap(),
                 Err(error) => {
                     let error = error.context("Unable to continue the search");
@@ -284,7 +284,7 @@ impl Component for SearchComponent {
         match action {
             Action::Search(search_action) => match search_action {
                 SearchAction::StartSearch(query) => self.start_search(query),
-                SearchAction::FinshSearch(search) => self.finish_search(search),
+                SearchAction::FinishSearch(search) => self.finish_search(search),
                 SearchAction::ContinueSearch => self.continue_search(),
                 SearchAction::ClearSearchResults => self.clear_search_results(),
                 SearchAction::OpenSearchResult => self.open_selected_result(),

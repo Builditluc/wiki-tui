@@ -59,7 +59,7 @@ pub enum Action {
     // Page loading
     LoadSearchResult(SearchResult),
     LoadLink(Link),
-    LoadLangaugeLink(LanguageLink),
+    LoadLanguageLink(LanguageLink),
 
     Search(SearchAction),
     Page(PageAction),
@@ -69,7 +69,7 @@ pub enum Action {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum SearchAction {
     StartSearch(String),
-    FinshSearch(Search),
+    FinishSearch(Search),
     ContinueSearch,
     ClearSearchResults,
     OpenSearchResult,

@@ -18,7 +18,7 @@ use crate::{
         message_popup::MessagePopupComponent,
         page_viewer::PageViewer,
         search::SearchComponent,
-        search_bar::{SearchBarComponent, SEARCH_BAR_HEIGTH},
+        search_bar::{SearchBarComponent, SEARCH_BAR_HEIGHT},
         search_language_popup::SearchLanguageSelectionComponent,
         Component,
     },
@@ -67,7 +67,7 @@ impl AppComponent {
             let chunks = Layout::default()
                 .direction(Direction::Vertical)
                 .constraints([
-                    Constraint::Min(SEARCH_BAR_HEIGTH),
+                    Constraint::Min(SEARCH_BAR_HEIGHT),
                     Constraint::Percentage(100),
                 ])
                 .split(area);
@@ -205,7 +205,7 @@ impl Component for AppComponent {
                 self.page_loader.as_ref().unwrap().load_search_result(title)
             }
             Action::LoadLink(link) => self.page_loader.as_ref().unwrap().load_link(link),
-            Action::LoadLangaugeLink(link) => {
+            Action::LoadLanguageLink(link) => {
                 self.page_loader.as_ref().unwrap().load_language_link(link)
             }
 

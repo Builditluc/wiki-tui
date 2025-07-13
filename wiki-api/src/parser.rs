@@ -8,7 +8,7 @@ use crate::{
     document::{Data, HeaderKind, Raw, UnsupportedElement},
     languages::Language,
     page::{
-        link_data::{AnchorData, ExternalData, ExternalToInteralData, InternalData, MediaData},
+        link_data::{AnchorData, ExternalData, ExternalToInternalData, InternalData, MediaData},
         Link,
     },
     search::Namespace,
@@ -339,7 +339,7 @@ impl WikipediaParser {
             let is_same_wiki = link_url.domain() == endpoint.domain();
             if !is_same_wiki {
                 return Some(Data::Link(Link::ExternalToInternal(
-                    ExternalToInteralData {},
+                    ExternalToInternalData {},
                 )));
             }
 

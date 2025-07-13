@@ -689,7 +689,7 @@ impl Component for PageComponent {
             Action::ScrollToTop => self.scroll_to_y(0),
             Action::ScrollToBottom => self.scroll_to_bottom(),
 
-            Action::Resize(width, heigth) => self.resize(width, heigth),
+            Action::Resize(width, height) => self.resize(width, height),
             _ => return ActionResult::Ignored,
         }
         ActionResult::consumed()

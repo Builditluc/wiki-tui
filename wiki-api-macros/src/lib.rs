@@ -145,7 +145,7 @@ pub fn parse_languages(input: TokenStream) -> TokenStream {
         impl std::fmt::Display for ParseLanguageError {
             fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
                 f.pad(
-                    &format!("error parsing langugage: '{}' is an unknown language", self.0)
+                    &format!("error parsing language: '{}' is an unknown language", self.0)
                 )
             }
         }

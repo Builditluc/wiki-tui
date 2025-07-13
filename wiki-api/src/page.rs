@@ -52,12 +52,12 @@ pub mod link_data {
     }
 
     #[derive(Debug, Clone, PartialEq, Eq)]
-    pub struct ExternalToInteralData {}
+    pub struct ExternalToInternalData {}
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Link {
-    /// Interal link to another page in the same wiki
+    /// Internal link to another page in the same wiki
     Internal(link_data::InternalData),
     /// Anchor to a specific section in the current page
     /// Note: this only corresponds to anchors on the current page. For anchors in another page on
@@ -69,8 +69,8 @@ pub enum Link {
     MediaLink(link_data::MediaData),
     /// External link to a page at another website
     External(link_data::ExternalData),
-    /// External link to an interal page in the same wiki
-    ExternalToInternal(link_data::ExternalToInteralData),
+    /// External link to an internal page in the same wiki
+    ExternalToInternal(link_data::ExternalToInternalData),
 }
 
 impl Link {

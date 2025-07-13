@@ -12,7 +12,7 @@ pub enum ScrollBehaviour {
 pub struct StatefulList<T> {
     state: ListState,
     items: Vec<T>,
-    behvaiour: ScrollBehaviour,
+    behaviour: ScrollBehaviour,
 }
 
 impl<T> StatefulList<T> {
@@ -20,12 +20,12 @@ impl<T> StatefulList<T> {
         StatefulList {
             state: ListState::default().with_selected(Some(0)),
             items,
-            behvaiour: ScrollBehaviour::default(),
+            behaviour: ScrollBehaviour::default(),
         }
     }
 
     pub fn scroll_behavior(mut self, behavior: ScrollBehaviour) -> Self {
-        self.behvaiour = behavior;
+        self.behaviour = behavior;
         self
     }
 
@@ -45,7 +45,7 @@ impl<T> StatefulList<T> {
         let i = match self.state.selected() {
             Some(i) => {
                 if i >= self.items.len().saturating_sub(1) {
-                    match self.behvaiour {
+                    match self.behaviour {
                         ScrollBehaviour::StickToBottom | ScrollBehaviour::StickToEnds => i,
                         ScrollBehaviour::StickToTop | ScrollBehaviour::Circle => 0,
                     }
@@ -62,7 +62,7 @@ impl<T> StatefulList<T> {
         let i = match self.state.selected() {
             Some(i) => {
                 if i == 0 {
-                    match self.behvaiour {
+                    match self.behaviour {
                         ScrollBehaviour::StickToBottom | ScrollBehaviour::Circle => {
                             self.items.len().saturating_sub(1)
                         }

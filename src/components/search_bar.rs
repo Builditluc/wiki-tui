@@ -20,7 +20,7 @@ use super::Component;
 const EMPTY_PROMPT: &str = "Search Wikipedia";
 const SEARCH_BAR_X: u16 = 50;
 
-pub const SEARCH_BAR_HEIGTH: u16 = 3;
+pub const SEARCH_BAR_HEIGHT: u16 = 3;
 
 #[derive(Default)]
 pub struct SearchBarComponent {

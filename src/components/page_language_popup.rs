@@ -75,7 +75,7 @@ impl Component for PageLanguageSelectionComponent {
                     ));
                 }
                 return packet
-                    .action(Action::LoadLangaugeLink(link.to_owned()))
+                    .action(Action::LoadLanguageLink(link.to_owned()))
                     .into();
             }
             return ActionResult::Ignored;
