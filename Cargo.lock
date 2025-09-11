@@ -1016,15 +1016,6 @@ checksum = "7943c866cc5cd64cbc25b2e01621d07fa8eb2a1a23160ee81ce38704e97b8ecf"
 
 [[package]]
 name = "itertools"
-version = "0.12.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ba291022dbbd398a455acf126c1e341954079855bc60dfdda641363bd6922569"
-dependencies = [
- "either",
-]
-
-[[package]]
-name = "itertools"
 version = "0.13.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "413ee7dfc52ee1a4949ceeb7dbc8a33f2d6c088194d9f922fb8318faf1f01186"
@@ -1572,27 +1563,6 @@ dependencies = [
 
 [[package]]
 name = "ratatui"
-version = "0.26.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f44c9e68fd46eda15c646fbb85e1040b657a58cdc8c98db1d97a55930d991eef"
-dependencies = [
- "bitflags 2.9.4",
- "cassowary",
- "compact_str",
- "crossterm",
- "itertools 0.12.1",
- "lru",
- "paste",
- "serde",
- "stability",
- "strum",
- "unicode-segmentation",
- "unicode-truncate",
- "unicode-width 0.1.14",
-]
-
-[[package]]
-name = "ratatui"
 version = "0.27.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d16546c5b5962abf8ce6e2881e722b4e0ae3b6f1a08a26ae3573c55853ca68d3"
@@ -1601,9 +1571,10 @@ dependencies = [
  "cassowary",
  "compact_str",
  "crossterm",
- "itertools 0.13.0",
+ "itertools",
  "lru",
  "paste",
+ "serde",
  "stability",
  "strum",
  "strum_macros",
@@ -2441,7 +2412,7 @@ dependencies = [
  "lazy_static",
  "log",
  "parking_lot",
- "ratatui 0.27.0",
+ "ratatui",
  "tracing",
  "tracing-subscriber",
 ]
@@ -2470,7 +2441,7 @@ version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b3644627a5af5fa321c95b9b235a72fd24cd29c648c2c379431e6628655627bf"
 dependencies = [
- "itertools 0.13.0",
+ "itertools",
  "unicode-segmentation",
  "unicode-width 0.1.14",
 ]
@@ -2712,7 +2683,7 @@ dependencies = [
  "human-panic",
  "libc",
  "log",
- "ratatui 0.26.3",
+ "ratatui",
  "serde",
  "signal-hook",
  "textwrap",
