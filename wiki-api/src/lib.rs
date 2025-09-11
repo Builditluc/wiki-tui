@@ -5,6 +5,7 @@ pub mod languages;
 pub mod page;
 pub mod parser;
 pub mod search;
+pub mod wiki_client;
 
 // TODO: Make Endpoint a real struct
 pub type Endpoint = Url;

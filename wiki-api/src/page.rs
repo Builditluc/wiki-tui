@@ -1,6 +1,7 @@
 use crate::{
     document::{Document, HeaderKind},
     parser::{Parser, WikipediaParser},
+    wiki_client::WikiClient,
     Endpoint,
 };
 use anyhow::{anyhow, Context, Result};
@@ -398,7 +399,8 @@ impl<I, P, U, L> PageBuilder<I, P, U, L> {
 impl<I, P> PageBuilder<I, P, WithEndpoint, WithLanguage> {
     async fn fetch_with_params(self, mut params: Vec<(&str, String)>) -> Result<Page> {
         async fn action_parse(params: Vec<(&str, String)>, endpoint: Url) -> Result<Response> {
-            Client::new()
+            WikiClient::default()
+                .client
                 .get(endpoint)
                 .query(&[
                     ("action", "parse"),

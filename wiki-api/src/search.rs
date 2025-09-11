@@ -2,7 +2,7 @@ use anyhow::{anyhow, Context, Result};
 
 use bitflags::bitflags;
 use core::fmt;
-use reqwest::{Client, Response};
+use reqwest::Response;
 use scraper::Html;
 use serde::Deserialize;
 use serde_repr::Deserialize_repr;
@@ -10,6 +10,7 @@ use std::fmt::Debug;
 use std::fmt::Display;
 use std::fmt::Write;
 
+use crate::wiki_client::WikiClient;
 use crate::Endpoint;
 
 use crate::languages::Language;
@@ -699,7 +700,8 @@ impl SearchBuilder<WithQuery, WithEndpoint, WithLanguage> {
     /// - The returned result could not interpreted as a `Search`
     pub async fn search(self) -> Result<Search> {
         async fn action_query(params: Vec<(&str, String)>, endpoint: Endpoint) -> Result<Response> {
-            Client::new()
+            WikiClient::default()
+                .client
                 .get(endpoint)
                 .query(&[
                     ("action", "query"),
