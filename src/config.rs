@@ -1028,7 +1028,7 @@ impl Theme {
     }
 
     /// Returns a Block with Borders::ALL, BorderType::Rounded and bg and fg colors set
-    pub fn default_block(&self) -> ratatui::widgets::Block {
+    pub fn default_block(&self) -> ratatui::widgets::Block<'_> {
         ratatui::widgets::Block::default()
             .borders(ratatui::widgets::Borders::ALL)
             .border_type(self.border_type.clone().into())

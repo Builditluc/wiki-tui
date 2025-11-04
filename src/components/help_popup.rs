@@ -27,7 +27,7 @@ impl Binding {
         self.bindings.iter().fold(0, |acc, elm| acc + elm.len() + 2) - 2
     }
 
-    pub fn to_line(&self, gap: usize, highlight: Color) -> Line {
+    pub fn to_line(&self, gap: usize, highlight: Color) -> Line<'_> {
         Itertools::intersperse(
             self.bindings
                 .iter()

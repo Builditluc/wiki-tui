@@ -400,6 +400,7 @@ impl<I, P> PageBuilder<I, P, WithEndpoint, WithLanguage> {
         async fn action_parse(params: Vec<(&str, String)>, endpoint: Url) -> Result<Response> {
             Client::new()
                 .get(endpoint)
+                .header("User-Agent", "wiki-tui/0.9.1")
                 .query(&[
                     ("action", "parse"),
                     ("format", "json"),

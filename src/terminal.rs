@@ -9,12 +9,12 @@ use ratatui::prelude::CrosstermBackend as Backend;
 pub type Frame<'a> = ratatui::Frame<'a>;
 
 pub struct Tui {
-    pub terminal: ratatui::Terminal<Backend<std::io::Stderr>>,
+    pub terminal: ratatui::Terminal<Backend<std::io::Stdout>>,
 }
 
 impl Tui {
     pub fn new() -> Result<Self> {
-        let terminal = ratatui::Terminal::new(Backend::new(std::io::stderr()))
+        let terminal = ratatui::Terminal::new(Backend::new(std::io::stdout()))
             .context("unable to create terminal")?;
         Ok(Self { terminal })
     }
@@ -22,7 +22,7 @@ impl Tui {
     pub fn enter(&mut self) -> Result<()> {
         crossterm::terminal::enable_raw_mode()?;
         crossterm::execute!(
-            std::io::stderr(),
+            std::io::stdout(),
             EnterAlternateScreen,
             EnableMouseCapture,
             cursor::Hide
@@ -34,7 +34,7 @@ impl Tui {
     pub fn exit(&mut self) -> Result<()> {
         self.terminal.clear()?;
         crossterm::execute!(
-            std::io::stderr(),
+            std::io::stdout(),
             LeaveAlternateScreen,
             DisableMouseCapture,
             cursor::Show

@@ -272,7 +272,7 @@ impl PageComponent {
         self.selected = (first_index, last_index);
     }
 
-    fn selected_node(&self) -> Option<Node> {
+    fn selected_node(&self) -> Option<Node<'_>> {
         self.page.content.nth(self.selected.0)
     }
 

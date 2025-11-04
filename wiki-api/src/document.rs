@@ -14,7 +14,7 @@ impl std::fmt::Debug for Document {
 }
 
 impl Document {
-    pub fn nth(&self, n: usize) -> Option<Node> {
+    pub fn nth(&self, n: usize) -> Option<Node<'_>> {
         Node::new(self, n)
     }
 }
