@@ -4,10 +4,9 @@ use ratatui::{
     prelude::{Alignment, Rect},
     style::Style,
 };
+use tracing::{debug, error};
 use tokio::sync::mpsc::UnboundedSender;
 use uuid::Uuid;
-
-use wiki_api::page::Page;
 
 use crate::{
     action::{Action, ActionResult, PageViewerAction},
@@ -18,6 +17,8 @@ use crate::{
 
 use super::{page::PageComponent, page_language_popup::PageLanguageSelectionComponent, Component};
 
+use wiki_api::{languages::Language, page::{Page, Property}};
+
 /// Can display multiple pages and supports selecting between them
 /// Responsible for fetching the pages and managing them (NOT rendering)
 #[derive(Default)]
@@ -25,6 +26,8 @@ pub struct PageViewer {
     page: Vec<PageComponent>,
     page_n: usize,
     page_cache: HashMap<Uuid, PageComponent>,
+    /// Maps (title, language_code) -> UUID for quick cache lookups
+    page_identifier_index: HashMap<(String, String), Uuid>,
 
     is_processing: bool,
     changing_page_language_popup: Option<PageLanguageSelectionComponent>,
@@ -48,32 +51,80 @@ impl PageViewer {
     fn load_cache(&mut self) {
         let path = Self::cache_path();
         if !path.exists() {
+            debug!("no cache file found at {:?}", path);
             return;
         }
 
-        let file = match std::fs::File::open(path) {
+        let file = match std::fs::File::open(&path) {
             Ok(file) => file,
-            Err(_) => return,
+            Err(e) => {
+                error!("failed to open cache file at {:?}: {}", path, e);
+                return;
+            }
         };
 
         let reader = std::io::BufReader::new(file);
-        let cache: HashMap<Uuid, PageComponent> = match serde_json::from_reader(reader) {
-            Ok(cache) => cache,
-            Err(_) => return,
+        match serde_json::from_reader(reader) {
+            Ok(cache) => {
+                debug!("successfully loaded cache from {:?}", path);
+                self.page_cache = cache;
+                self.rebuild_identifier_index();
+            }
+            Err(e) => {
+                error!("failed to deserialize cache from {:?}: {}", path, e);
+            }
         };
+    }
 
-        self.page_cache = cache;
+    fn rebuild_identifier_index(&mut self) {
+        self.page_identifier_index.clear();
+        for (uuid, page_component) in &self.page_cache {
+            let key = (
+                page_component.page.title.clone(),
+                page_component.page.language.code().to_string(),
+            );
+            self.page_identifier_index.insert(key, *uuid);
+        }
+        debug!("rebuilt identifier index with {} entries", self.page_identifier_index.len());
     }
 
     fn save_cache(&self) {
         let path = Self::cache_path();
-        let file = match std::fs::File::create(path) {
+        let file = match std::fs::File::create(&path) {
             Ok(file) => file,
-            Err(_) => return,
+            Err(e) => {
+                error!("failed to create cache file at {:?}: {}", path, e);
+                return;
+            }
         };
 
         let writer = std::io::BufWriter::new(file);
-        serde_json::to_writer(writer, &self.page_cache).ok();
+        match serde_json::to_writer(writer, &self.page_cache) {
+            Ok(_) => debug!("successfully saved cache to {:?}", path),
+            Err(e) => error!("failed to serialize and save cache to {:?}: {}", path, e),
+        }
+    }
+
+    /// Syncs all currently active pages back to the page_cache, then saves to disk
+    pub fn sync_and_save_cache(&mut self) {
+        debug!("syncing {} active pages to cache", self.page.len());
+        for page_component in &self.page {
+            let key = (
+                page_component.page.title.clone(),
+                page_component.page.language.code().to_string(),
+            );
+            self.page_cache.insert(page_component.page.uuid, page_component.clone());
+            self.page_identifier_index.insert(key, page_component.page.uuid);
+        }
+        self.save_cache();
+    }
+
+    /// Check if a page is already cached by its identifier
+    pub fn get_cached_page(&self, title: &str, language: Language) -> Option<Page> {
+        let key = (title.to_string(), language.code().to_string());
+        let uuid = self.page_identifier_index.get(&key)?;
+        let page_component = self.page_cache.get(uuid)?;
+        Some(page_component.page.clone())
     }
 
     fn current_page_mut(&mut self) -> Option<&mut PageComponent> {
@@ -90,8 +141,13 @@ impl PageViewer {
             cached_page.rebuild(self.config.clone(), self.theme.clone());
             self.page.push(cached_page);
         } else {
-            let new_page = PageComponent::new(page, self.config.clone(), self.theme.clone());
+            let new_page = PageComponent::new(page.clone(), self.config.clone(), self.theme.clone());
+            let key = (
+                page.title,
+                page.language.code().to_string(),
+            );
             self.page_cache.insert(new_page.page.uuid, new_page.clone());
+            self.page_identifier_index.insert(key, new_page.page.uuid);
             self.page.push(new_page);
             self.save_cache();
         }
@@ -155,10 +211,55 @@ impl Component for PageViewer {
 
     fn update(&mut self, action: Action) -> ActionResult {
         match action {
+            Action::TryLoadPage(title, language, endpoint) => {
+                if let Some(cached_page) = self.get_cached_page(&title, language) {
+                    debug!("cache hit for page '{}' - loading instantly", title);
+                    self.action_tx.as_ref().unwrap()
+                        .send(Action::SwitchContextPage).unwrap();
+                    self.display_page(cached_page);
+                    return ActionResult::consumed();
+                } else {
+                    debug!("cache miss for page '{}' - fetching from API", title);
+                    // Cache miss - fetch from API
+                    let page_request = wiki_api::page::Page::builder()
+                        .page(title.clone())
+                        .properties(vec![
+                            Property::Text,
+                            Property::Sections,
+                            Property::LangLinks,
+                        ])
+                        .endpoint(endpoint)
+                        .language(language)
+                        .redirects(self.config.api.page_redirects);
+
+                    let tx = self.action_tx.clone().unwrap();
+                    tokio::spawn(async move {
+                        tx.send(Action::SwitchContextPage).unwrap();
+                        tx.send(Action::EnterProcessing).unwrap();
+
+                        match page_request.fetch().await {
+                            Ok(page) => tx
+                                .send(Action::PageViewer(crate::action::PageViewerAction::DisplayPage(page)))
+                                .unwrap(),
+                            Err(error) => {
+                                let error_msg = format!("Unable to fetch the page '{}': {}", title, error);
+                                tracing::error!("{}", error_msg);
+                                tx.send(Action::PageViewer(crate::action::PageViewerAction::ExitLoading))
+                                    .unwrap();
+                                tx.send(Action::PopupError(error_msg)).unwrap();
+                            }
+                        };
+
+                        tx.send(Action::EnterNormal).unwrap();
+                    });
+                    return ActionResult::consumed();
+                }
+            }
             Action::PageViewer(page_viewer_action) => match page_viewer_action {
                 PageViewerAction::DisplayPage(page) => self.display_page(page),
                 PageViewerAction::PopPage => self.pop(),
                 PageViewerAction::ExitLoading => self.is_processing = false,
+                PageViewerAction::SaveCache => self.sync_and_save_cache(),
             },
             Action::EnterProcessing => self.is_processing = true,
             Action::EnterNormal => self.is_processing = false,

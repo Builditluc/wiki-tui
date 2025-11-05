@@ -6,7 +6,7 @@ use ratatui::style::Style;
 use textwrap::core::Fragment;
 use wiki_api::document::{Document, Node};
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct Word {
     pub index: usize,
     pub content: String,
@@ -42,7 +42,7 @@ impl Fragment for Word {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct RenderedDocument {
     pub lines: Vec<Vec<Word>>,
     /// Vec<(y-Coord, idx)>

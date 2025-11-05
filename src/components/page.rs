@@ -81,7 +81,6 @@ macro_rules! rendered_page {
 pub struct PageComponent {
     pub page: Page,
     renderer: Renderer,
-    #[serde(skip)]
     render_cache: HashMap<u16, RenderedDocument>,
     viewport: Rect,
     selected: (usize, usize),
@@ -125,7 +124,6 @@ impl PageComponent {
     }
 
     pub fn rebuild(&mut self, config: Arc<Config>, theme: Arc<Theme>) {
-        self.render_cache = HashMap::new();
         self.config = config;
         self.theme = theme;
         self.contents_state = PageContentsState {
@@ -135,6 +133,7 @@ impl PageComponent {
     }
 
     fn render_page(&mut self, width: u16) {
+        info!("rendering page '{}' at width {}", self.page.title, width);
         let page = match self.renderer {
             Renderer::Default => render_document(&self.page.content, width),
             #[cfg(debug_assertions)]
@@ -146,6 +145,8 @@ impl PageComponent {
         };
 
         self.render_cache.insert(width, page);
+        info!("cached render for page '{}' at width {} (total cached widths: {})",
+              self.page.title, width, self.render_cache.len());
     }
 
     fn rendered_page(&self, width: u16) -> Option<&RenderedDocument> {

@@ -1,4 +1,5 @@
 use anyhow::{Context, Result};
+use std::sync::Mutex;
 use tracing::level_filters::LevelFilter;
 use tracing_log::AsLog;
 use tracing_subscriber::{self, prelude::*, EnvFilter};
@@ -25,6 +26,7 @@ pub fn initialize_logging(level: Option<LevelFilter>) -> Result<()> {
         .context(format!("{directory:?} could not be created"))?;
     let log_path = directory.join("wiki-tui.log");
     let log_file = std::fs::File::create(log_path)?;
+    let log_writer = Mutex::new(log_file);
 
     let env_filter = EnvFilter::builder()
         .with_default_directive(logging_config.level.into())
@@ -38,7 +40,7 @@ pub fn initialize_logging(level: Option<LevelFilter>) -> Result<()> {
     let file_subscriber = tracing_subscriber::fmt::layer()
         .with_file(true)
         .with_line_number(true)
-        .with_writer(log_file)
+        .with_writer(log_writer)
         .with_target(false)
         .with_ansi(false)
         .with_filter(env_filter);
