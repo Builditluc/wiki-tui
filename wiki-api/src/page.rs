@@ -6,19 +6,20 @@ use crate::{
 use anyhow::{anyhow, Context, Result};
 use reqwest::{Client, Response};
 use scraper::Html;
-use serde::{de, Deserialize, Deserializer};
+use serde::{Deserialize, Serialize};
 use std::fmt::Display;
-use std::str::FromStr;
 use tracing::{debug, warn};
 use url::Url;
+use uuid::Uuid;
 
 use super::languages::Language;
 
 pub mod link_data {
     use crate::{languages::Language, search::Namespace, Endpoint};
+    use serde::{Deserialize, Serialize};
     use url::Url;
 
-    #[derive(Debug, Clone, PartialEq, Eq)]
+    #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
     pub struct InternalData {
         pub namespace: Namespace,
         pub page: String,
@@ -28,34 +29,34 @@ pub mod link_data {
         pub anchor: Option<AnchorData>,
     }
 
-    #[derive(Debug, Clone, PartialEq, Eq)]
+    #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
     pub struct AnchorData {
         pub anchor: String,
         pub title: String,
     }
 
-    #[derive(Debug, Clone, PartialEq, Eq)]
+    #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
     pub struct RedLinkData {
         pub url: Url,
         pub title: String,
     }
 
-    #[derive(Debug, Clone, PartialEq, Eq)]
+    #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
     pub struct MediaData {
         pub url: Url,
         pub title: String,
     }
 
-    #[derive(Debug, Clone, PartialEq, Eq)]
+    #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
     pub struct ExternalData {
         pub url: Url,
     }
 
-    #[derive(Debug, Clone, PartialEq, Eq)]
+    #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
     pub struct ExternalToInteralData {}
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub enum Link {
     /// Interal link to another page in the same wiki
     Internal(link_data::InternalData),
@@ -87,9 +88,11 @@ impl Link {
 }
 
 // TODO: replace this with Link::Internal
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct LanguageLink {
+    #[serde(rename = "langname")]
     pub name: String,
+    #[serde(rename = "lang")]
     pub language: Language,
     pub autonym: String,
     pub title: String,
@@ -97,30 +100,7 @@ pub struct LanguageLink {
     pub endpoint: Endpoint,
 }
 
-#[derive(Deserialize)]
-struct LanguageLinkInt {
-    #[serde(rename = "langname")]
-    name: String,
-    #[serde(rename = "lang")]
-    #[serde(deserialize_with = "language_from_str")]
-    language: Language,
-    autonym: String,
-    title: String,
-    url: Url,
-}
-
-fn language_from_str<'de, T, D>(deserializer: D) -> Result<T, D::Error>
-where
-    T: FromStr,
-    T::Err: Display,
-    D: Deserializer<'de>,
-{
-    String::deserialize(deserializer)?
-        .parse()
-        .map_err(de::Error::custom)
-}
-
-#[derive(Debug, Deserialize, Clone, PartialEq, Eq)]
+#[derive(Debug, Deserialize, Clone, PartialEq, Eq, Serialize)]
 pub struct Section {
     #[serde(skip_deserializing)]
     pub index: usize,
@@ -132,7 +112,7 @@ pub struct Section {
     pub anchor: String,
 }
 
-#[derive(Clone, PartialEq, Eq)]
+#[derive(Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Page {
     pub title: String,
     pub pageid: usize,
@@ -141,6 +121,7 @@ pub struct Page {
     pub language_links: Option<Vec<LanguageLink>>,
     pub sections: Option<Vec<Section>>,
     pub revision_id: Option<usize>,
+    pub uuid: Uuid,
 }
 
 impl Page {
@@ -166,6 +147,7 @@ impl Page {
             language_links: None,
             sections: None,
             revision_id: None,
+            uuid: Uuid::new_v4(),
         })
     }
 
@@ -488,19 +470,13 @@ impl<I, P> PageBuilder<I, P, WithEndpoint, WithLanguage> {
             .map(|x| {
                 x.into_iter()
                     .filter_map(|x| {
-                        let language_int: LanguageLinkInt = serde_json::from_value(x)
+                        let mut language_link: LanguageLink = serde_json::from_value(x)
                             .map_err(|err| warn!("language_link parsing error: {:?}", err))
                             .ok()?;
                         let mut endpoint = endpoint.clone();
-                        let _ = endpoint.set_host(Some(language_int.url.host_str().unwrap()));
-                        Some(LanguageLink {
-                            name: language_int.name,
-                            language: language_int.language,
-                            autonym: language_int.autonym,
-                            title: language_int.title,
-                            url: language_int.url,
-                            endpoint,
-                        })
+                        let _ = endpoint.set_host(Some(language_link.url.host_str().unwrap()));
+                        language_link.endpoint = endpoint;
+                        Some(language_link)
                     })
                     .collect::<Vec<LanguageLink>>()
             })
@@ -555,6 +531,7 @@ impl<I, P> PageBuilder<I, P, WithEndpoint, WithLanguage> {
             language_links,
             sections,
             revision_id,
+            uuid: Uuid::new_v4(),
         })
     }
 }

@@ -1,10 +1,11 @@
-use std::sync::Arc;
+use std::{collections::HashMap, sync::Arc};
 
 use ratatui::{
     prelude::{Alignment, Rect},
     style::Style,
 };
 use tokio::sync::mpsc::UnboundedSender;
+use uuid::Uuid;
 
 use wiki_api::page::Page;
 
@@ -23,6 +24,7 @@ use super::{page::PageComponent, page_language_popup::PageLanguageSelectionCompo
 pub struct PageViewer {
     page: Vec<PageComponent>,
     page_n: usize,
+    page_cache: HashMap<Uuid, PageComponent>,
 
     is_processing: bool,
     changing_page_language_popup: Option<PageLanguageSelectionComponent>,
@@ -34,6 +36,46 @@ pub struct PageViewer {
 }
 
 impl PageViewer {
+    fn cache_path() -> std::path::PathBuf {
+        let mut path = directories::ProjectDirs::from("com", "github", "wiki-tui")
+            .unwrap()
+            .cache_dir()
+            .to_path_buf();
+        path.push("page_cache.json");
+        path
+    }
+
+    fn load_cache(&mut self) {
+        let path = Self::cache_path();
+        if !path.exists() {
+            return;
+        }
+
+        let file = match std::fs::File::open(path) {
+            Ok(file) => file,
+            Err(_) => return,
+        };
+
+        let reader = std::io::BufReader::new(file);
+        let cache: HashMap<Uuid, PageComponent> = match serde_json::from_reader(reader) {
+            Ok(cache) => cache,
+            Err(_) => return,
+        };
+
+        self.page_cache = cache;
+    }
+
+    fn save_cache(&self) {
+        let path = Self::cache_path();
+        let file = match std::fs::File::create(path) {
+            Ok(file) => file,
+            Err(_) => return,
+        };
+
+        let writer = std::io::BufWriter::new(file);
+        serde_json::to_writer(writer, &self.page_cache).ok();
+    }
+
     fn current_page_mut(&mut self) -> Option<&mut PageComponent> {
         self.page.get_mut(self.page_n)
     }
@@ -44,11 +86,15 @@ impl PageViewer {
 
     fn display_page(&mut self, page: Page) {
         self.page_n = self.page.len();
-        self.page.push(PageComponent::new(
-            page,
-            self.config.clone(),
-            self.theme.clone(),
-        ));
+        if let Some(mut cached_page) = self.page_cache.get(&page.uuid).cloned() {
+            cached_page.rebuild(self.config.clone(), self.theme.clone());
+            self.page.push(cached_page);
+        } else {
+            let new_page = PageComponent::new(page, self.config.clone(), self.theme.clone());
+            self.page_cache.insert(new_page.page.uuid, new_page.clone());
+            self.page.push(new_page);
+            self.save_cache();
+        }
 
         if self.changing_page_language_popup.is_some() {
             self.changing_page_language_popup = None;
@@ -82,9 +128,9 @@ impl Component for PageViewer {
         self.action_tx = Some(action_tx);
         self.config = config;
         self.theme = theme;
+        self.load_cache();
         Ok(())
     }
-
     fn handle_key_events(&mut self, key: crossterm::event::KeyEvent) -> ActionResult {
         if self
             .config

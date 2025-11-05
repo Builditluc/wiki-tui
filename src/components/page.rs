@@ -27,7 +27,7 @@ use crate::{
 #[cfg(debug_assertions)]
 use crate::renderer::test_renderer::{render_nodes_raw, render_tree_data, render_tree_raw};
 
-#[derive(Default, Debug, Clone, PartialEq, Eq)]
+#[derive(Default, Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 #[repr(u8)]
 pub enum Renderer {
     #[default]
@@ -59,7 +59,7 @@ impl Renderer {
     }
 }
 
-#[derive(Default)]
+#[derive(Default, Clone)]
 struct PageContentsState {
     list_state: ListState,
     max_idx_section: u8,
@@ -77,18 +77,23 @@ macro_rules! rendered_page {
     };
 }
 
+#[derive(serde::Serialize, serde::Deserialize, Clone)]
 pub struct PageComponent {
     pub page: Page,
     renderer: Renderer,
+    #[serde(skip)]
     render_cache: HashMap<u16, RenderedDocument>,
     viewport: Rect,
     selected: (usize, usize),
 
+    #[serde(skip)]
     config: Arc<Config>,
+    #[serde(skip)]
     theme: Arc<Theme>,
 
     is_contents: bool,
     is_zen_mode: bool,
+    #[serde(skip)]
     contents_state: PageContentsState,
 }
 
@@ -117,6 +122,16 @@ impl PageComponent {
 
     pub fn is_zen_mode(&self) -> bool {
         self.is_zen_mode
+    }
+
+    pub fn rebuild(&mut self, config: Arc<Config>, theme: Arc<Theme>) {
+        self.render_cache = HashMap::new();
+        self.config = config;
+        self.theme = theme;
+        self.contents_state = PageContentsState {
+            list_state: ListState::default().with_selected(Some(0)),
+            max_idx_section: self.page.sections().map(|x| x.len() as u8).unwrap_or_default(),
+        };
     }
 
     fn render_page(&mut self, width: u16) {

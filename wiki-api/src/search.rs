@@ -5,7 +5,7 @@ use core::fmt;
 use reqwest::{Client, Response};
 use scraper::Html;
 use serde::Deserialize;
-use serde_repr::Deserialize_repr;
+use serde_repr::{Deserialize_repr, Serialize_repr};
 use std::fmt::Debug;
 use std::fmt::Display;
 use std::fmt::Write;
@@ -16,7 +16,7 @@ use crate::languages::Language;
 
 /// A finished search containing the found results and additional optional information regarding
 /// the search
-#[derive(Clone, PartialEq, Eq)]
+#[derive(Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub struct Search {
     /// The found results in this batch
     pub results: Vec<SearchResult>,
@@ -69,7 +69,7 @@ impl Debug for Search {
 }
 
 /// Contains general informations about the search
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub struct SearchInfo {
     /// Whether the search is complete and no more results are available
     pub complete: bool,
@@ -105,7 +105,7 @@ pub struct SearchInfo {
 /// ```
 ///
 /// [`Search::continue_data`]: Search::continue_data
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct SearchContinue {
     // TODO: SearchContinue::continue() creates a Search::builder() and continues the search
     // WARN: Do the properties and settings still exist?
@@ -121,7 +121,7 @@ pub struct SearchContinue {
 
 /// A single search result containing additional optional properties if they were added in the
 /// search
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub struct SearchResult {
     /// Namespace where the page belongs to
     pub namespace: Namespace,
@@ -168,7 +168,7 @@ impl SearchResult {
 /// They each have a unique number (0 to 15) and are grouped in subject/talk pairs
 ///
 /// Read more in the [MediaWiki API docs](https://www.mediawiki.org/wiki/Manual:Namespace)
-#[derive(Deserialize_repr, Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize_repr, Deserialize_repr, Debug, Clone, PartialEq, Eq)]
 #[repr(usize)]
 pub enum Namespace {
     Main = 0,
@@ -269,7 +269,7 @@ mod tests {
 }
 
 /// Query independent profile which affects the ranking algorithm
-#[derive(Default, Clone, Deserialize)]
+#[derive(Default, Clone, Deserialize, serde::Serialize)]
 #[serde(rename_all = "lowercase")]
 pub enum QiProfile {
     /// Ranking based on the number of incoming links, some templates, page language and recency
@@ -307,7 +307,7 @@ impl Display for QiProfile {
 }
 
 /// The type of search
-#[derive(Default, Clone, Deserialize)]
+#[derive(Default, Clone, Deserialize, serde::Serialize)]
 #[serde(rename_all = "lowercase")]
 pub enum SearchType {
     /// Search just by a match
@@ -331,7 +331,7 @@ impl Display for SearchType {
 
 bitflags! {
     /// A Search metadata
-    #[derive(Clone, Deserialize)]
+    #[derive(Clone, Deserialize, serde::Serialize)]
     pub struct Info: u8 {
         /// The query if rewritten by the search backend. Refer to [`SearchBuilder::rewrites`] for more
         /// information about rewrites by the search backend
@@ -386,6 +386,7 @@ impl fmt::Display for Info {
 }
 
 /// A Page property
+#[derive(serde::Serialize, serde::Deserialize)]
 pub enum Property {
     /// The size of the page in bytes
     Size,
@@ -430,7 +431,7 @@ impl Display for Property {
 }
 
 /// The sort order of returned search results
-#[derive(Deserialize, Clone)]
+#[derive(Deserialize, Clone, serde::Serialize)]
 #[serde(rename_all = "lowercase")]
 pub enum SortOrder {
     /// Sort the results by their creation date in ascending order
@@ -811,7 +812,8 @@ impl SearchBuilder<WithQuery, WithEndpoint, WithLanguage> {
             macro_rules! value_from_json {
                 ($result: ident, $val: expr) => {
                     serde_json::from_value($result.get($val).map(|x| x.to_owned()).ok_or_else(
-                        || anyhow!("couldn't find '{}' in the result", stringify!($val)),
+                        || anyhow!("couldn't find '{}'
+ in the result", stringify!($val)),
                     )?)?
                 };
             }
@@ -850,3 +852,4 @@ impl SearchBuilder<WithQuery, WithEndpoint, WithLanguage> {
         })
     }
 }
+

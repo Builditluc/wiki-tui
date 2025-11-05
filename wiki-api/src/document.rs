@@ -1,8 +1,8 @@
-use serde_repr::Deserialize_repr;
+use serde_repr::{Deserialize_repr, Serialize_repr};
 
 use crate::page::Link;
 
-#[derive(Clone, PartialEq, Eq)]
+#[derive(Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub struct Document {
     pub nodes: Vec<Raw>,
 }
@@ -19,7 +19,7 @@ impl Document {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Eq, Deserialize_repr)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize_repr, Deserialize_repr)]
 #[repr(usize)]
 pub enum HeaderKind {
     Main = 1,
@@ -30,7 +30,7 @@ pub enum HeaderKind {
     Detail = 6,
 }
 
-#[derive(Default, Clone, Debug, PartialEq, Eq)]
+#[derive(Default, Clone, Debug, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub enum Data {
     Section {
         id: usize,
@@ -72,7 +72,7 @@ pub enum Data {
     UnsupportedInline(UnsupportedElement),
 }
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub enum UnsupportedElement {
     Table,
     Image,
@@ -81,7 +81,7 @@ pub enum UnsupportedElement {
     PreformattedText,
 }
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub struct Raw {
     pub index: usize,
     pub parent: Option<usize>,

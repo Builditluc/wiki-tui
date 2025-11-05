@@ -42,7 +42,7 @@ impl Fragment for Word {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct RenderedDocument {
     pub lines: Vec<Vec<Word>>,
     /// Vec<(y-Coord, idx)>
