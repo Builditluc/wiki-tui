@@ -122,8 +122,11 @@ impl PageViewer {
     /// Check if a page is already cached by its identifier
     pub fn get_cached_page(&self, title: &str, language: Language) -> Option<Page> {
         let key = (title.to_string(), language.code().to_string());
+        debug!("cache lookup for: title='{}', language='{}'", title, language.code());
         let uuid = self.page_identifier_index.get(&key)?;
+        debug!("found uuid in index: {}", uuid);
         let page_component = self.page_cache.get(uuid)?;
+        debug!("found page component in cache");
         Some(page_component.page.clone())
     }
 
@@ -137,18 +140,48 @@ impl PageViewer {
 
     fn display_page(&mut self, page: Page) {
         self.page_n = self.page.len();
+        debug!("display_page called for '{}' with uuid {}", page.title, page.uuid);
+
+        // First try to find by UUID (exact match)
         if let Some(mut cached_page) = self.page_cache.get(&page.uuid).cloned() {
+            debug!("found page in cache by uuid, using cached version");
             cached_page.rebuild(self.config.clone(), self.theme.clone());
             self.page.push(cached_page);
         } else {
-            let new_page = PageComponent::new(page.clone(), self.config.clone(), self.theme.clone());
-            let key = (
-                page.title,
-                page.language.code().to_string(),
-            );
-            self.page_cache.insert(new_page.page.uuid, new_page.clone());
-            self.page_identifier_index.insert(key, new_page.page.uuid);
-            self.page.push(new_page);
+            // UUID not found, check if we have this page by (title, language)
+            let key = (page.title.clone(), page.language.code().to_string());
+
+            if let Some(&existing_uuid) = self.page_identifier_index.get(&key) {
+                // We have this page cached, but with a different UUID
+                debug!("found existing page in index with different uuid {}, updating uuid to {}", existing_uuid, page.uuid);
+
+                // Remove the old UUID entry and add with new UUID
+                if let Some(mut existing_page) = self.page_cache.remove(&existing_uuid) {
+                    // Update the page data with the new fetch (in case content changed)
+                    existing_page.page = page.clone();
+                    existing_page.rebuild(self.config.clone(), self.theme.clone());
+
+                    // Store with new UUID and update index
+                    self.page_cache.insert(page.uuid, existing_page.clone());
+                    self.page_identifier_index.insert(key, page.uuid);
+                    self.page.push(existing_page);
+                } else {
+                    // Index pointed to non-existent UUID, treat as new page
+                    debug!("index pointed to non-existent uuid, creating new page");
+                    let new_page = PageComponent::new(page.clone(), self.config.clone(), self.theme.clone());
+                    self.page_cache.insert(page.uuid, new_page.clone());
+                    self.page_identifier_index.insert(key, page.uuid);
+                    self.page.push(new_page);
+                }
+            } else {
+                // Truly new page, not in index at all
+                debug!("page not in cache or index, creating new PageComponent");
+                let new_page = PageComponent::new(page.clone(), self.config.clone(), self.theme.clone());
+                debug!("adding page to cache and index with key: {:?}", key);
+                self.page_cache.insert(new_page.page.uuid, new_page.clone());
+                self.page_identifier_index.insert(key, new_page.page.uuid);
+                self.page.push(new_page);
+            }
             self.save_cache();
         }
 
