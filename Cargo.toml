@@ -2,15 +2,15 @@
 members = ["wiki-api", "wiki-api-macros"]
 
 [package]
-name = "wiki-tui"
-version = "0.9.1"
+name = "wiki-tui2"
+version = "0.9.2"  # Updated version for the fork
 authors = ["builditluc <37375448+Builditluc@users.noreply.github.com>"]
 edition = "2018"
 rust-version = "1.76.0"
 description = "A simple and easy to use Wikipedia Text User Interface"
 readme = "README.md"
-homepage = "https://wiki-tui.net"
-repository = "https://github.com/builditluc/wiki-tui"
+homepage = "https://github.com/mgs/wiki-tui2"  # Updated to point to the fork
+repository = "https://github.com/mgs/wiki-tui2"  # Updated to point to the fork
 license = "MIT"
 keywords = ["tui", "wikipedia"]
 

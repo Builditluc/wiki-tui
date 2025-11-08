@@ -5,8 +5,8 @@ authors = ["builditluc <37375448+Builditluc@users.noreply.github.com>"]
 edition = "2018"
 description = "Backend for wiki-tui"
 documentation = "https://docs.rs/wiki-api"
-homepage = "https://wiki-tui.net"
-repository = "https://github.com/builditluc/wiki-tui"
+homepage = "https://github.com/mgs/wiki-tui2"
+repository = "https://github.com/mgs/wiki-tui2"
 license = "MIT"
 keywords = ["tui", "wikipedia"]
 
