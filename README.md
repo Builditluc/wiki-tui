@@ -22,7 +22,14 @@
 
 <br>
 
-You can find the **installation instructions**, **configuration options**, **more preview images**, **a feature overview** and more on our website, [wiki-tui.net](https://wiki-tui.net/latest)
+## Installation
+
+### Cargo
+You can install this forked version with:
+
+```sh
+cargo install wiki-tui2
+```
 
 # What can it do?
 

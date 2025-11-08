@@ -6,8 +6,8 @@ edition = "2018"
 description = "Proc-macros for use within wiki-api"
 documentation = "https://docs.rs/wiki-api-macros"
 readme = "README.md"
-homepage = "https://builditluc.github.io/wiki-tui"
-repository = "https://github.com/builditluc/wiki-tui"
+homepage = "https://github.com/mgs/wiki-tui2"
+repository = "https://github.com/mgs/wiki-tui2"
 license = "MIT"
 keywords = ["tui", "wikipedia"]
 

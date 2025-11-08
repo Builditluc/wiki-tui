@@ -3,7 +3,7 @@ use std::sync::Arc;
 use anyhow::{Context, Result};
 use tokio::sync::{mpsc, Mutex};
 use tracing::warn;
-use wiki_tui::{
+use wiki_tui2::{
     action::{Action, ActionPacket, ActionResult},
     app::AppComponent,
     cli::match_cli,

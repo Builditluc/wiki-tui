@@ -64,13 +64,19 @@ make install clean
 
 ### Cargo
 
-If wiki-tui cannot be installed with your package manager, you can also install it with cargo. There are no extra dependencies (except rust of course).
+If wiki-tui cannot be installed with your package manager, you can also install the original version with cargo, or install this forked version (wiki-tui2) with cargo. There are no extra dependencies (except rust of course).
 
+For the original version:
 ```sh
 cargo install wiki-tui
 ```
 
-If you want, you can also use the latest development version from GitHub (can be unstable)
+For this forked version (wiki-tui2):
+```sh
+cargo install wiki-tui2
+```
+
+If you want, you can also use the latest development version from the original GitHub repository (can be unstable)
 
 ```sh
 cargo install --git https://github.com/builditluc/wiki-tui
