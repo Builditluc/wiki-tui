@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use tokio::sync::mpsc::UnboundedSender;
 use tracing::error;
-use wiki_api::{
+use wiki_api2::{
     languages::Language,
     page::{LanguageLink, Link, Page, Property},
     search::SearchResult,

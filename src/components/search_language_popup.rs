@@ -7,7 +7,7 @@ use ratatui::{
     widgets::{Clear, List, ListItem},
 };
 use tui_input::{backend::crossterm::EventHandler, Input};
-use wiki_api::languages::{Language, LANGUAGES};
+use wiki_api2::languages::{Language, LANGUAGES};
 
 use crate::{
     action::{Action, ActionPacket, ActionResult, SearchAction},

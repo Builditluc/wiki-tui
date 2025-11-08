@@ -43,6 +43,6 @@ tui-logger = { version = "0.17.3", default-features = false, features = ["crosst
 bitflags = { version = "2.6.0", features = ["serde"] }
 uuid = { version = "1.3", features = ["serde", "v4"] }
 
-[dependencies.wiki-api]
+[dependencies.wiki-api2]
 path = "wiki-api"
-version = "0.1.1"
+version = "0.1.2"

@@ -17,7 +17,7 @@ use crate::{
 
 use super::{page::PageComponent, page_language_popup::PageLanguageSelectionComponent, Component};
 
-use wiki_api::{languages::Language, page::{Page, Property}};
+use wiki_api2::{languages::Language, page::{Page, Property}};
 
 /// Can display multiple pages and supports selecting between them
 /// Responsible for fetching the pages and managing them (NOT rendering)
@@ -254,7 +254,7 @@ impl Component for PageViewer {
                 } else {
                     debug!("cache miss for page '{}' - fetching from API", title);
                     // Cache miss - fetch from API
-                    let page_request = wiki_api::page::Page::builder()
+                    let page_request = wiki_api2::page::Page::builder()
                         .page(title.clone())
                         .properties(vec![
                             Property::Text,

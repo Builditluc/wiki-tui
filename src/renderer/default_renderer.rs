@@ -1,7 +1,7 @@
 use ratatui::style::{Color, Modifier, Style};
 use textwrap::wrap_algorithms::{wrap_optimal_fit, Penalties};
 use tracing::warn;
-use wiki_api::{
+use wiki_api2::{
     document::{Data, Document, HeaderKind, Node, UnsupportedElement},
     page::Link,
 };

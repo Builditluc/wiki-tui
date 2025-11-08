@@ -4,7 +4,7 @@ use crate::{
     action::{Action, ActionPacket, SearchAction},
     config::{cache_dir, config_dir, CONFIG_FILE_NAME, THEME_FILE_NAME},
 };
-use wiki_api::languages::Language;
+use wiki_api2::languages::Language;
 
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
@@ -105,7 +105,7 @@ pub fn match_cli() -> CliResults {
 
     #[cfg(debug_assertions)]
     if let Some(ref debug_page) = cli.load_debug_page {
-        if let Some(page) = wiki_api::page::Page::from_path(debug_page) {
+        if let Some(page) = wiki_api2::page::Page::from_path(debug_page) {
             packet.add_action(Action::SwitchContextPage);
             packet.add_action(Action::PageViewer(
                 crate::action::PageViewerAction::DisplayPage(page),

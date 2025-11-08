@@ -112,7 +112,7 @@ pub struct Section {
     pub anchor: String,
 }
 
-#[derive(Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub struct Page {
     pub title: String,
     pub pageid: usize,
