@@ -47,7 +47,7 @@ api.search_type = "text"
 ### Enabling query rewrites
 [:octicons-tag-24: 0.9.0][release-0.9.0] · :octicons-milestone-16: Default `false`
 
-Enable interal query rewriting. Wikipedia can rewrite the query into another which is thought to
+Enable intenal query rewriting. Wikipedia can rewrite the query into another which is thought to
 provide better results by, for instance, correcting spelling errors
 
 ```toml

@@ -5,7 +5,7 @@ There are certain actions that you can change the Keybindings for. The configura
 ## Keybinding Configuration
 
 !!! tip "Multiple Bindings per Action"
-    You can also define multiple bindings for one action by putting them into an array (`action = [bidning1, binding2, etc.]`).
+    You can also define multiple bindings for one action by putting them into an array (`action = [bindning1, binding2, etc.]`).
 
 A bindig can be either a keycode or a keycode combined with one or more modifiers for that key. All
 of the following are a valid way of configuring a binding (where `action` is one of the configurable

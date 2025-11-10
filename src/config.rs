@@ -302,7 +302,7 @@ bitflags! {
 pub enum PaddingConfig {
     Uniform(u16),
     Horizontal { horizontal: u16 },
-    Vertical { veritical: u16 },
+    Vertical { vertical: u16 },
     Proportional { proportional: u16 },
     Symmetric { symmetric: (u16, u16) },
     Custom(u16, u16, u16, u16),
@@ -315,7 +315,7 @@ impl Into<Padding> for PaddingConfig {
         match self {
             PaddingConfig::Uniform(val) => Padding::uniform(val),
             PaddingConfig::Horizontal { horizontal } => Padding::horizontal(horizontal),
-            PaddingConfig::Vertical { veritical } => Padding::vertical(veritical),
+            PaddingConfig::Vertical { vertical } => Padding::vertical(vertical),
             PaddingConfig::Proportional { proportional } => Padding::proportional(proportional),
             PaddingConfig::Symmetric { symmetric } => Padding::symmetric(symmetric.0, symmetric.1),
             PaddingConfig::Custom(left, right, top, bottom) => {

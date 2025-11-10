@@ -4,7 +4,7 @@
     I'm planning on overhauling the structure of the configuration. This
     includes but is not limited to:
 
-    - Changing the names of varius settings and parameters
+    - Changing the names of various settings and parameters
     - Organizing the configuration into a better thought out structure
 
     This means that all of this is subject to change, however, it'll take a
