@@ -719,7 +719,7 @@ impl Component for PageComponent {
         }
 
         let page_area = if !self.is_zen_mode || zen_mode.contains(ZenModeComponents::SCROLLBAR) {
-            area.inner(&Margin {
+            area.inner(Margin {
                 vertical: 0,
                 horizontal: 2, // for the scrollbar
             })
