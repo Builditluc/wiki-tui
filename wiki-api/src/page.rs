@@ -13,6 +13,7 @@ use tracing::{debug, warn};
 use url::Url;
 
 use super::languages::Language;
+use super::proxy::get_proxy;
 
 pub mod link_data {
     use crate::{languages::Language, search::Namespace, Endpoint};
@@ -398,7 +399,15 @@ impl<I, P, U, L> PageBuilder<I, P, U, L> {
 impl<I, P> PageBuilder<I, P, WithEndpoint, WithLanguage> {
     async fn fetch_with_params(self, mut params: Vec<(&str, String)>) -> Result<Page> {
         async fn action_parse(params: Vec<(&str, String)>, endpoint: Url) -> Result<Response> {
-            Client::new()
+            // Create builder with proxy
+            let client_builder = match get_proxy() {
+                Some(proxy) => Client::builder().proxy(proxy.clone()),
+                None => Client::builder(),
+            };
+
+            client_builder
+                .build()
+                .expect("clinet build error")
                 .get(endpoint)
                 .query(&[
                     ("action", "parse"),
