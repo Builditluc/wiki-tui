@@ -14,6 +14,7 @@ use tokio::sync::mpsc;
 use crate::{
     action::{Action, ActionPacket, ActionResult},
     components::{
+        help_popup::HelpPopupComponent,
         logger::LoggerComponent,
         message_popup::MessagePopupComponent,
         page_viewer::PageViewer,
@@ -166,6 +167,15 @@ impl Component for AppComponent {
             toggle_search_language_selection => {
                 self.popups
                     .push(Box::new(SearchLanguageSelectionComponent::new(
+                        self.config.clone(),
+                        self.theme.clone(),
+                    )));
+                ActionResult::consumed()
+            },
+
+            help => {
+                self.popups
+                    .push(Box::new(HelpPopupComponent::new(
                         self.config.clone(),
                         self.theme.clone(),
                     )));
