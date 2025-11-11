@@ -108,9 +108,11 @@ impl Component for AppComponent {
     fn handle_key_events(&mut self, key: KeyEvent) -> ActionResult {
         // we need to always handle CTRL-C
         if matches!(key.code, KeyCode::Char('c') if has_modifier!(key, Modifier::CONTROL)) {
-            return ActionPacket::single(Action::PageViewer(crate::action::PageViewerAction::SaveCache))
-                .action(Action::Quit)
-                .into();
+            return ActionPacket::single(Action::PageViewer(
+                crate::action::PageViewerAction::SaveCache,
+            ))
+            .action(Action::Quit)
+            .into();
         }
 
         if let Some(ref mut popup) = self.popups.last_mut() {
@@ -215,20 +217,20 @@ impl Component for AppComponent {
             }
 
             Action::TryLoadPage(title, language, endpoint) => {
-                return self.page.update(Action::TryLoadPage(title, language, endpoint));
+                return self
+                    .page
+                    .update(Action::TryLoadPage(title, language, endpoint));
             }
             Action::LoadSearchResult(result) => {
                 // Use TryLoadPage to check cache first
                 return Action::TryLoadPage(result.title, result.language, result.endpoint).into();
             }
-            Action::LoadLink(link) => {
-                match link {
-                    Link::Internal(data) => {
-                        return Action::TryLoadPage(data.page, data.language, data.endpoint).into();
-                    }
-                    _ => self.page_loader.as_ref().unwrap().load_link(link),
+            Action::LoadLink(link) => match link {
+                Link::Internal(data) => {
+                    return Action::TryLoadPage(data.page, data.language, data.endpoint).into();
                 }
-            }
+                _ => self.page_loader.as_ref().unwrap().load_link(link),
+            },
             Action::LoadLangaugeLink(link) => {
                 return Action::TryLoadPage(link.title, link.language, link.endpoint).into();
             }
