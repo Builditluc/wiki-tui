@@ -9,8 +9,8 @@ edition = "2018"
 rust-version = "1.76.0"
 description = "A simple and easy to use Wikipedia Text User Interface"
 readme = "README.md"
-homepage = "https://github.com/mgs/wiki-tui"                            # Updated to point to the fork
-repository = "https://github.com/mgs/wiki-tui"                          # Updated to point to the fork
+homepage = "https://github.com/builditluc/wiki-tui"                     # Updated to point to the fork
+repository = "https://github.com/builditluc/wiki-tui"                   # Updated to point to the fork
 license = "MIT"
 keywords = ["tui", "wikipedia"]
 
