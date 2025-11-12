@@ -9,7 +9,7 @@ use ratatui::{
     widgets::{Block, List, ListState, Paragraph, Scrollbar, ScrollbarOrientation, ScrollbarState},
 };
 use tracing::{debug, info, warn};
-use wiki_api2::{
+use wiki_api::{
     document::{Data, Node},
     page::{Link, Page, Section},
 };

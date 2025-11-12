@@ -1,13 +1,13 @@
 [package]
-name = "wiki-api2-macros"
-version = "0.1.4"  # Updated version for the fork with new name
+name = "wiki-api-macros"
+version = "0.1.4"                                                       # Updated version for the fork with new name
 authors = ["builditluc <37375448+Builditluc@users.noreply.github.com>"]
 edition = "2018"
 description = "Proc-macros for use within wiki-api"
-documentation = "https://docs.rs/wiki-api2-macros"
+documentation = "https://docs.rs/wiki-api-macros"
 readme = "README.md"
-homepage = "https://github.com/mgs/wiki-tui2"
-repository = "https://github.com/mgs/wiki-tui2"
+homepage = "https://github.com/builditluc/wiki-tui"
+repository = "https://github.com/builditluc/wiki-tui"
 license = "MIT"
 keywords = ["tui", "wikipedia"]
 

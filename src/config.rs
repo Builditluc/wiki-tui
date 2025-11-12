@@ -10,7 +10,7 @@ use ratatui::{
 use serde::Deserialize;
 use std::{path::PathBuf, str::FromStr};
 use tracing::level_filters::LevelFilter;
-use wiki_api2::{languages::Language, search, Endpoint};
+use wiki_api::{languages::Language, search, Endpoint};
 
 pub const CACHE_ENV: &str = "WIKI_TUI_CACHE";
 pub const CONFIG_ENV: &str = "WIKI_TUI_CONFIG";

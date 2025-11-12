@@ -28,7 +28,7 @@ use crate::{
     page_loader::PageLoader,
     terminal::Frame,
 };
-use wiki_api2::page::Link;
+use wiki_api::page::Link;
 
 const CONTEXT_SEARCH: u8 = 0;
 const CONTEXT_PAGE: u8 = 1;

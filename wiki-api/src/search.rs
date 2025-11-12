@@ -702,7 +702,7 @@ impl SearchBuilder<WithQuery, WithEndpoint, WithLanguage> {
         async fn action_query(params: Vec<(&str, String)>, endpoint: Endpoint) -> Result<Response> {
             Client::new()
                 .get(endpoint)
-                .header("User-Agent", "wiki-tui2/0.9.2")
+                .header("User-Agent", "wiki-tui/0.9.2")
                 .query(&[
                     ("action", "query"),
                     ("format", "json"),
@@ -812,8 +812,13 @@ impl SearchBuilder<WithQuery, WithEndpoint, WithLanguage> {
             macro_rules! value_from_json {
                 ($result: ident, $val: expr) => {
                     serde_json::from_value($result.get($val).map(|x| x.to_owned()).ok_or_else(
-                        || anyhow!("couldn't find '{}'
- in the result", stringify!($val)),
+                        || {
+                            anyhow!(
+                                "couldn't find '{}'
+ in the result",
+                                stringify!($val)
+                            )
+                        },
                     )?)?
                 };
             }
@@ -852,4 +857,3 @@ impl SearchBuilder<WithQuery, WithEndpoint, WithLanguage> {
         })
     }
 }
-

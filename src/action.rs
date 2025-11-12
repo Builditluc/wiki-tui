@@ -1,7 +1,7 @@
 use std::fmt::Debug;
 
 use tokio::sync::mpsc;
-use wiki_api2::{
+use wiki_api::{
     languages::Language,
     page::{LanguageLink, Link, Page},
     search::{Search, SearchResult},

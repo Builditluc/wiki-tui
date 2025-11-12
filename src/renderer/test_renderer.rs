@@ -1,5 +1,5 @@
 use ratatui::style::Style;
-use wiki_api2::document::{Document, Node};
+use wiki_api::document::{Document, Node};
 
 use super::{RenderedDocument, Word};
 
