@@ -10,7 +10,7 @@ use ratatui::{
 };
 use tokio::sync::mpsc;
 use tracing::{error, info, warn};
-use wiki_api2::{
+use wiki_api::{
     languages::Language,
     search::{Search as ApiSearch, SearchContinue, SearchInfo, SearchRequest, SearchResult},
     Endpoint,

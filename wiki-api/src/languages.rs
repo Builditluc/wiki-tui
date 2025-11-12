@@ -1,4 +1,4 @@
-use wiki_api2_macros::parse_languages;
+use wiki_api_macros::parse_languages;
 
 parse_languages!(
     r#"

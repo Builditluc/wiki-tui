@@ -28,7 +28,7 @@
 You can install this forked version with:
 
 ```sh
-cargo install wiki-tui2
+cargo install wiki-tui
 ```
 
 # What can it do?

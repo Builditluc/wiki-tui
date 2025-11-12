@@ -4,8 +4,8 @@ use ratatui::{
     prelude::{Alignment, Rect},
     style::Style,
 };
-use tracing::{debug, error};
 use tokio::sync::mpsc::UnboundedSender;
+use tracing::{debug, error};
 use uuid::Uuid;
 
 use crate::{
@@ -17,7 +17,10 @@ use crate::{
 
 use super::{page::PageComponent, page_language_popup::PageLanguageSelectionComponent, Component};
 
-use wiki_api2::{languages::Language, page::{Page, Property}};
+use wiki_api::{
+    languages::Language,
+    page::{Page, Property},
+};
 
 /// Can display multiple pages and supports selecting between them
 /// Responsible for fetching the pages and managing them (NOT rendering)
@@ -85,7 +88,10 @@ impl PageViewer {
             );
             self.page_identifier_index.insert(key, *uuid);
         }
-        debug!("rebuilt identifier index with {} entries", self.page_identifier_index.len());
+        debug!(
+            "rebuilt identifier index with {} entries",
+            self.page_identifier_index.len()
+        );
     }
 
     fn save_cache(&self) {
@@ -113,8 +119,10 @@ impl PageViewer {
                 page_component.page.title.clone(),
                 page_component.page.language.code().to_string(),
             );
-            self.page_cache.insert(page_component.page.uuid, page_component.clone());
-            self.page_identifier_index.insert(key, page_component.page.uuid);
+            self.page_cache
+                .insert(page_component.page.uuid, page_component.clone());
+            self.page_identifier_index
+                .insert(key, page_component.page.uuid);
         }
         self.save_cache();
     }
@@ -122,7 +130,11 @@ impl PageViewer {
     /// Check if a page is already cached by its identifier
     pub fn get_cached_page(&self, title: &str, language: Language) -> Option<Page> {
         let key = (title.to_string(), language.code().to_string());
-        debug!("cache lookup for: title='{}', language='{}'", title, language.code());
+        debug!(
+            "cache lookup for: title='{}', language='{}'",
+            title,
+            language.code()
+        );
         let uuid = self.page_identifier_index.get(&key)?;
         debug!("found uuid in index: {}", uuid);
         let page_component = self.page_cache.get(uuid)?;
@@ -140,7 +152,10 @@ impl PageViewer {
 
     fn display_page(&mut self, page: Page) {
         self.page_n = self.page.len();
-        debug!("display_page called for '{}' with uuid {}", page.title, page.uuid);
+        debug!(
+            "display_page called for '{}' with uuid {}",
+            page.title, page.uuid
+        );
 
         // First try to find by UUID (exact match)
         if let Some(mut cached_page) = self.page_cache.get(&page.uuid).cloned() {
@@ -153,7 +168,10 @@ impl PageViewer {
 
             if let Some(&existing_uuid) = self.page_identifier_index.get(&key) {
                 // We have this page cached, but with a different UUID
-                debug!("found existing page in index with different uuid {}, updating uuid to {}", existing_uuid, page.uuid);
+                debug!(
+                    "found existing page in index with different uuid {}, updating uuid to {}",
+                    existing_uuid, page.uuid
+                );
 
                 // Remove the old UUID entry and add with new UUID
                 if let Some(mut existing_page) = self.page_cache.remove(&existing_uuid) {
@@ -168,7 +186,8 @@ impl PageViewer {
                 } else {
                     // Index pointed to non-existent UUID, treat as new page
                     debug!("index pointed to non-existent uuid, creating new page");
-                    let new_page = PageComponent::new(page.clone(), self.config.clone(), self.theme.clone());
+                    let new_page =
+                        PageComponent::new(page.clone(), self.config.clone(), self.theme.clone());
                     self.page_cache.insert(page.uuid, new_page.clone());
                     self.page_identifier_index.insert(key, page.uuid);
                     self.page.push(new_page);
@@ -176,7 +195,8 @@ impl PageViewer {
             } else {
                 // Truly new page, not in index at all
                 debug!("page not in cache or index, creating new PageComponent");
-                let new_page = PageComponent::new(page.clone(), self.config.clone(), self.theme.clone());
+                let new_page =
+                    PageComponent::new(page.clone(), self.config.clone(), self.theme.clone());
                 debug!("adding page to cache and index with key: {:?}", key);
                 self.page_cache.insert(new_page.page.uuid, new_page.clone());
                 self.page_identifier_index.insert(key, new_page.page.uuid);
@@ -247,14 +267,17 @@ impl Component for PageViewer {
             Action::TryLoadPage(title, language, endpoint) => {
                 if let Some(cached_page) = self.get_cached_page(&title, language) {
                     debug!("cache hit for page '{}' - loading instantly", title);
-                    self.action_tx.as_ref().unwrap()
-                        .send(Action::SwitchContextPage).unwrap();
+                    self.action_tx
+                        .as_ref()
+                        .unwrap()
+                        .send(Action::SwitchContextPage)
+                        .unwrap();
                     self.display_page(cached_page);
                     return ActionResult::consumed();
                 } else {
                     debug!("cache miss for page '{}' - fetching from API", title);
                     // Cache miss - fetch from API
-                    let page_request = wiki_api2::page::Page::builder()
+                    let page_request = wiki_api::page::Page::builder()
                         .page(title.clone())
                         .properties(vec![
                             Property::Text,
@@ -272,13 +295,18 @@ impl Component for PageViewer {
 
                         match page_request.fetch().await {
                             Ok(page) => tx
-                                .send(Action::PageViewer(crate::action::PageViewerAction::DisplayPage(page)))
+                                .send(Action::PageViewer(
+                                    crate::action::PageViewerAction::DisplayPage(page),
+                                ))
                                 .unwrap(),
                             Err(error) => {
-                                let error_msg = format!("Unable to fetch the page '{}': {}", title, error);
+                                let error_msg =
+                                    format!("Unable to fetch the page '{}': {}", title, error);
                                 tracing::error!("{}", error_msg);
-                                tx.send(Action::PageViewer(crate::action::PageViewerAction::ExitLoading))
-                                    .unwrap();
+                                tx.send(Action::PageViewer(
+                                    crate::action::PageViewerAction::ExitLoading,
+                                ))
+                                .unwrap();
                                 tx.send(Action::PopupError(error_msg)).unwrap();
                             }
                         };

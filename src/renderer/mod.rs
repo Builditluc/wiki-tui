@@ -4,7 +4,7 @@ pub mod test_renderer;
 
 use ratatui::style::Style;
 use textwrap::core::Fragment;
-use wiki_api2::document::{Document, Node};
+use wiki_api::document::{Document, Node};
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct Word {
