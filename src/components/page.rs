@@ -128,7 +128,11 @@ impl PageComponent {
         self.theme = theme;
         self.contents_state = PageContentsState {
             list_state: ListState::default().with_selected(Some(0)),
-            max_idx_section: self.page.sections().map(|x| x.len() as u8).unwrap_or_default(),
+            max_idx_section: self
+                .page
+                .sections()
+                .map(|x| x.len() as u8)
+                .unwrap_or_default(),
         };
     }
 
@@ -145,8 +149,12 @@ impl PageComponent {
         };
 
         self.render_cache.insert(width, page);
-        info!("cached render for page '{}' at width {} (total cached widths: {})",
-              self.page.title, width, self.render_cache.len());
+        info!(
+            "cached render for page '{}' at width {} (total cached widths: {})",
+            self.page.title,
+            width,
+            self.render_cache.len()
+        );
     }
 
     fn rendered_page(&self, width: u16) -> Option<&RenderedDocument> {
