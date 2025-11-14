@@ -36,11 +36,7 @@ impl Binding {
         )
         .take(self.bindings.len() * 2 - 1)
         .chain([
-            Span::raw(
-                (self.keys_len()..gap)
-                    .map(|_| ".")
-                    .collect::<String>(),
-            ),
+            Span::raw((self.keys_len()..gap).map(|_| ".").collect::<String>()),
             Span::raw(" "),
             Span::raw(self.name.as_ref()),
         ])
@@ -98,9 +94,15 @@ impl HelpPopupComponent {
             convert_binding!(config.bindings.global.unselect_scroll, "unselect scroll"),
             convert_binding!(config.bindings.global.enter_search_bar, "enter search bar"),
             convert_binding!(config.bindings.global.exit_search_bar, "exit search bar"),
-            convert_binding!(config.bindings.global.switch_context_search, "switch to search"),
+            convert_binding!(
+                config.bindings.global.switch_context_search,
+                "switch to search"
+            ),
             convert_binding!(config.bindings.global.switch_context_page, "switch to page"),
-            convert_binding!(config.bindings.global.toggle_search_language_selection, "toggle search language"),
+            convert_binding!(
+                config.bindings.global.toggle_search_language_selection,
+                "toggle search language"
+            ),
             convert_binding!(config.bindings.global.toggle_logger, "toggle logger"),
             convert_binding!(config.bindings.global.help, "show this help"),
             convert_binding!(config.bindings.global.pop_popup, "close popup"),
@@ -108,9 +110,10 @@ impl HelpPopupComponent {
         ]
         .into();
 
-        let search_bindings_list = vec![
-            convert_binding!(config.bindings.search.continue_search, "continue search"),
-        ]
+        let search_bindings_list = vec![convert_binding!(
+            config.bindings.search.continue_search,
+            "continue search"
+        )]
         .into();
 
         let page_bindings_list = vec![
@@ -118,10 +121,16 @@ impl HelpPopupComponent {
             convert_binding!(config.bindings.page.jump_to_header, "jump to header"),
             convert_binding!(config.bindings.page.select_first_link, "select first link"),
             convert_binding!(config.bindings.page.select_last_link, "select last link"),
-            convert_binding!(config.bindings.page.select_prev_link, "select previous link"),
+            convert_binding!(
+                config.bindings.page.select_prev_link,
+                "select previous link"
+            ),
             convert_binding!(config.bindings.page.select_next_link, "select next link"),
             convert_binding!(config.bindings.page.open_link, "open link"),
-            convert_binding!(config.bindings.page.toggle_page_language_selection, "toggle page language"),
+            convert_binding!(
+                config.bindings.page.toggle_page_language_selection,
+                "toggle page language"
+            ),
             convert_binding!(config.bindings.page.toggle_zen_mode, "toggle zen mode"),
             convert_binding!(config.bindings.page.toggle_toc, "toggle table of contents"),
         ]
@@ -166,7 +175,13 @@ impl Component for HelpPopupComponent {
             return Action::ScrollToTop.into();
         }
 
-        if self.config.bindings.global.scroll_to_bottom.matches_event(key) {
+        if self
+            .config
+            .bindings
+            .global
+            .scroll_to_bottom
+            .matches_event(key)
+        {
             return Action::ScrollToBottom.into();
         }
 
@@ -237,7 +252,7 @@ impl Component for HelpPopupComponent {
             .fold(0, |acc, elm| max(acc, elm.keys_len()))
             + 2;
         let highlight_color = self.theme.search_title_fg;
-        
+
         macro_rules! to_line {
             ($bindings:expr) => {
                 $bindings
@@ -247,12 +262,20 @@ impl Component for HelpPopupComponent {
             };
         }
 
-        let consolidated_list: Vec<Line> = [vec![Line::raw("Global Keybindings").bold().underlined()],
+        let consolidated_list: Vec<Line> = [
+            vec![Line::raw("Global Keybindings").bold().underlined()],
             to_line!(self.global_bindings_list),
-            vec![Line::default(), Line::raw("Search Keybindings").bold().underlined()],
+            vec![
+                Line::default(),
+                Line::raw("Search Keybindings").bold().underlined(),
+            ],
             to_line!(self.search_bindings_list),
-            vec![Line::default(), Line::raw("Page Keybindings").bold().underlined()],
-            to_line!(self.page_bindings_list)]
+            vec![
+                Line::default(),
+                Line::raw("Page Keybindings").bold().underlined(),
+            ],
+            to_line!(self.page_bindings_list),
+        ]
         .concat();
 
         // Adjust scroll bounds
@@ -266,4 +289,4 @@ impl Component for HelpPopupComponent {
 
         f.render_widget(paragraph_widget, text_area);
     }
-} 
+}
