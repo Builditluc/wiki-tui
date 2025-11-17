@@ -70,7 +70,7 @@ If wiki-tui cannot be installed with your package manager, you can also install 
 cargo install wiki-tui
 ```
 
-If you want, you can also use the latest development version from the original GitHub repository (can be unstable)
+If you want, you can also use the latest development version from the GitHub (can be unstable)
 
 ```sh
 cargo install --git https://github.com/builditluc/wiki-tui
