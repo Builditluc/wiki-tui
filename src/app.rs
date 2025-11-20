@@ -14,6 +14,7 @@ use tokio::sync::mpsc;
 use crate::{
     action::{Action, ActionPacket, ActionResult},
     components::{
+        help_popup::HelpPopupComponent,
         logger::LoggerComponent,
         message_popup::MessagePopupComponent,
         page_viewer::PageViewer,
@@ -27,6 +28,7 @@ use crate::{
     page_loader::PageLoader,
     terminal::Frame,
 };
+use wiki_api::page::Link;
 
 const CONTEXT_SEARCH: u8 = 0;
 const CONTEXT_PAGE: u8 = 1;
@@ -106,7 +108,11 @@ impl Component for AppComponent {
     fn handle_key_events(&mut self, key: KeyEvent) -> ActionResult {
         // we need to always handle CTRL-C
         if matches!(key.code, KeyCode::Char('c') if has_modifier!(key, Modifier::CONTROL)) {
-            return Action::Quit.into();
+            return ActionPacket::single(Action::PageViewer(
+                crate::action::PageViewerAction::SaveCache,
+            ))
+            .action(Action::Quit)
+            .into();
         }
 
         if let Some(ref mut popup) = self.popups.last_mut() {
@@ -143,7 +149,8 @@ impl Component for AppComponent {
         }
 
         match_bindings!(
-            quit => Action::Quit,
+            quit => ActionPacket::single(Action::PageViewer(crate::action::PageViewerAction::SaveCache))
+                .action(Action::Quit),
             pop_popup => Action::PopPopup,
 
             toggle_logger => Action::ToggleShowLogger,
@@ -170,7 +177,9 @@ impl Component for AppComponent {
                         self.theme.clone(),
                     )));
                 ActionResult::consumed()
-            }
+            },
+
+            help => Action::ShowHelp
         );
 
         ActionResult::Ignored
@@ -185,6 +194,12 @@ impl Component for AppComponent {
 
             Action::ToggleShowLogger => self.is_logger = !self.is_logger,
             Action::ShowPageLanguageSelection => self.show_page_language(),
+            Action::ShowHelp => {
+                self.popups.push(Box::new(HelpPopupComponent::new(
+                    self.config.clone(),
+                    self.theme.clone(),
+                )));
+            }
 
             Action::SwitchContextSearch => self.switch_context(CONTEXT_SEARCH),
             Action::SwitchContextPage => self.switch_context(CONTEXT_PAGE),
@@ -201,12 +216,23 @@ impl Component for AppComponent {
                     .into()
             }
 
-            Action::LoadSearchResult(title) => {
-                self.page_loader.as_ref().unwrap().load_search_result(title)
+            Action::TryLoadPage(title, language, endpoint) => {
+                return self
+                    .page
+                    .update(Action::TryLoadPage(title, language, endpoint));
             }
-            Action::LoadLink(link) => self.page_loader.as_ref().unwrap().load_link(link),
+            Action::LoadSearchResult(result) => {
+                // Use TryLoadPage to check cache first
+                return Action::TryLoadPage(result.title, result.language, result.endpoint).into();
+            }
+            Action::LoadLink(link) => match link {
+                Link::Internal(data) => {
+                    return Action::TryLoadPage(data.page, data.language, data.endpoint).into();
+                }
+                _ => self.page_loader.as_ref().unwrap().load_link(link),
+            },
             Action::LoadLangaugeLink(link) => {
-                self.page_loader.as_ref().unwrap().load_language_link(link)
+                return Action::TryLoadPage(link.title, link.language, link.endpoint).into();
             }
 
             Action::PopupMessage(title, content) => self.popups.push(Box::new(

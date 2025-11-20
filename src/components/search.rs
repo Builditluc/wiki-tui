@@ -112,7 +112,7 @@ impl SearchComponent {
                     let error = error.context("Unable to execute the search");
                     tx.send(Action::Search(SearchAction::ChangeMode(Mode::NoSearch)))
                         .unwrap();
-                    tx.send(Action::PopupError(error.to_string())).unwrap();
+                    tx.send(Action::PopupError(format!("{:?}", error))).unwrap();
                     error!("{:?}", error);
                 }
             };
@@ -129,7 +129,7 @@ impl SearchComponent {
             .get_items_mut()
             .append(&mut search.results);
 
-        self.continue_search = search.continue_data().take();
+        self.continue_search = search.continue_data();
         self.search_info = Some(search.info);
 
         crate::trace_dbg!(has_results);

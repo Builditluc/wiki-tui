@@ -27,7 +27,7 @@ use crate::{
 #[cfg(debug_assertions)]
 use crate::renderer::test_renderer::{render_nodes_raw, render_tree_data, render_tree_raw};
 
-#[derive(Default, Debug, Clone, PartialEq, Eq)]
+#[derive(Default, Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 #[repr(u8)]
 pub enum Renderer {
     #[default]
@@ -59,7 +59,7 @@ impl Renderer {
     }
 }
 
-#[derive(Default)]
+#[derive(Default, Clone)]
 struct PageContentsState {
     list_state: ListState,
     max_idx_section: u8,
@@ -77,6 +77,7 @@ macro_rules! rendered_page {
     };
 }
 
+#[derive(serde::Serialize, serde::Deserialize, Clone)]
 pub struct PageComponent {
     pub page: Page,
     renderer: Renderer,
@@ -84,11 +85,14 @@ pub struct PageComponent {
     viewport: Rect,
     selected: (usize, usize),
 
+    #[serde(skip)]
     config: Arc<Config>,
+    #[serde(skip)]
     theme: Arc<Theme>,
 
     is_contents: bool,
     is_zen_mode: bool,
+    #[serde(skip)]
     contents_state: PageContentsState,
 }
 
@@ -119,7 +123,21 @@ impl PageComponent {
         self.is_zen_mode
     }
 
+    pub fn rebuild(&mut self, config: Arc<Config>, theme: Arc<Theme>) {
+        self.config = config;
+        self.theme = theme;
+        self.contents_state = PageContentsState {
+            list_state: ListState::default().with_selected(Some(0)),
+            max_idx_section: self
+                .page
+                .sections()
+                .map(|x| x.len() as u8)
+                .unwrap_or_default(),
+        };
+    }
+
     fn render_page(&mut self, width: u16) {
+        info!("rendering page '{}' at width {}", self.page.title, width);
         let page = match self.renderer {
             Renderer::Default => render_document(&self.page.content, width),
             #[cfg(debug_assertions)]
@@ -131,6 +149,12 @@ impl PageComponent {
         };
 
         self.render_cache.insert(width, page);
+        info!(
+            "cached render for page '{}' at width {} (total cached widths: {})",
+            self.page.title,
+            width,
+            self.render_cache.len()
+        );
     }
 
     fn rendered_page(&self, width: u16) -> Option<&RenderedDocument> {
@@ -272,7 +296,7 @@ impl PageComponent {
         self.selected = (first_index, last_index);
     }
 
-    fn selected_node(&self) -> Option<Node> {
+    fn selected_node(&self) -> Option<Node<'_>> {
         self.page.content.nth(self.selected.0)
     }
 
@@ -719,7 +743,7 @@ impl Component for PageComponent {
         }
 
         let page_area = if !self.is_zen_mode || zen_mode.contains(ZenModeComponents::SCROLLBAR) {
-            area.inner(&Margin {
+            area.inner(Margin {
                 vertical: 0,
                 horizontal: 2, // for the scrollbar
             })

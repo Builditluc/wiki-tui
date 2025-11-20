@@ -101,12 +101,12 @@ impl Component for SearchBarComponent {
         let input_area = centered_rect(area, SEARCH_BAR_X, 100);
         f.render_widget(input, input_area);
         if self.is_focussed {
-            f.set_cursor(
+            f.set_cursor_position((
                 // Put cursor past the end of the input text
                 input_area.x + ((self.input.visual_cursor()).max(scroll) - scroll) as u16 + 1,
                 // Move one line down, from the border to the input line
                 input_area.y + 1,
-            );
+            ));
         }
     }
 }

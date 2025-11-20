@@ -5,6 +5,7 @@ use wiki_api::{
     languages::Language,
     page::{LanguageLink, Link, Page},
     search::{Search, SearchResult},
+    Endpoint,
 };
 
 use crate::components::page::Renderer;
@@ -20,6 +21,7 @@ pub enum Action {
     // View Focus
     ToggleShowLogger,
     ShowPageLanguageSelection,
+    ShowHelp,
 
     /// PopupMessage(Title, Content)
     PopupMessage(String, String),
@@ -60,6 +62,8 @@ pub enum Action {
     LoadSearchResult(SearchResult),
     LoadLink(Link),
     LoadLangaugeLink(LanguageLink),
+    /// Try to load a page, checking cache first
+    TryLoadPage(String, Language, Endpoint),
 
     Search(SearchAction),
     Page(PageAction),
@@ -99,6 +103,7 @@ pub enum PageViewerAction {
     DisplayPage(Page),
     PopPage,
     ExitLoading,
+    SaveCache,
 }
 
 pub enum ActionResult {
@@ -170,6 +175,6 @@ impl Debug for ActionPacket {
             return write!(f, "Nothing");
         }
 
-        f.debug_list().entries(&mut self.actions.iter()).finish()
+        f.debug_list().entries(self.actions.iter()).finish()
     }
 }
