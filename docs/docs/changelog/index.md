@@ -1,3 +1,18 @@
+# v0.9.3
+
+# Change
+
+- Added page caching functionality so returning to previous pages does not require an expensive page re-rendering
+
+# Additions
+
+- Added page caching functionality so returning to previous pages does not require an expensive page re-rendering
+- Added a help page for viewing the keybindings
+
+# Fixes
+
+- Fixed invalid User-Agent so the latest release can successfully hit the Wikipedia API
+
 # Unreleased v0.9.2-pre
 
 ## Additions
