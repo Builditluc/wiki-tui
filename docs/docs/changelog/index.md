@@ -8,7 +8,7 @@
 # Change
 
 - Updated toolchain to 1.91.1
-src/components/page_viewer.rs now checks for a cached rendering of a page before attempting to render the page from scratch
+- src/components/page_viewer.rs now checks for a cached rendering of a page before attempting to render the page from scratch
 
 # Fixes
 
