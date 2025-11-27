@@ -1,3 +1,19 @@
+# v0.9.2
+
+# Additions
+
+- Added page caching functionality so returning to previous pages does not require an expensive page re-rendering
+- Added a help page for viewing the keybindings
+
+# Change
+
+- Updated toolchain to 1.91.1
+- src/components/page_viewer.rs now checks for a cached rendering of a page before attempting to render the page from scratch
+
+# Fixes
+
+- Fixed invalid User-Agent so the latest release can successfully hit the Wikipedia API
+
 # Unreleased v0.9.2-pre
 
 ## Additions
