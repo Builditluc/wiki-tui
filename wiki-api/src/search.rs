@@ -702,7 +702,13 @@ impl SearchBuilder<WithQuery, WithEndpoint, WithLanguage> {
         async fn action_query(params: Vec<(&str, String)>, endpoint: Endpoint) -> Result<Response> {
             Client::new()
                 .get(endpoint)
-                .header("User-Agent", "wiki-tui/0.9.2")
+                .header(
+                    "User-Agent",
+                    format!(
+                        "wiki-tui/{} (https://github.com/Builditluc/wiki-tui)",
+                        env!("CARGO_PKG_VERSION")
+                    ),
+                )
                 .query(&[
                     ("action", "query"),
                     ("format", "json"),
