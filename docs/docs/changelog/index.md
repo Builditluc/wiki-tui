@@ -1,13 +1,22 @@
-# Unreleased v0.9.2-pre
+# v0.9.2
 
 ## Additions
 
+- Added page caching functionality so returning to previous pages does not require an expensive page re-rendering
+- Added a help page for viewing the keybindings
 - Add up/down as default keymaps for scroll_up/scroll_down
+
+## Change
+
+- Updated toolchain to 1.91.1
+- src/components/page_viewer.rs now checks for a cached rendering of a page before attempting to render the page from scratch
+
 
 ## Fixes
 
 - Fix incorrect utf-8 handling in sections
 - Fix incorrect rendering of search result descriptions
+- Fixed invalid User-Agent so the latest release can successfully hit the Wikipedia API
 
 # v0.9.1 (Thu Dec 5 2024)
 
