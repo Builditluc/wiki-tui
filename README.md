@@ -5,8 +5,6 @@
 [![Continuous Integration](https://img.shields.io/github/actions/workflow/status/builditluc/wiki-tui/ci.yml?label=Continuous%20Integration&style=for-the-badge)](https://github.com/Builditluc/wiki-tui/actions/workflows/ci.yml)
 [![Continuous Deployment](https://img.shields.io/github/actions/workflow/status/builditluc/wiki-tui/cd.yml?label=Continuous%20Deployment&style=for-the-badge)](https://github.com/Builditluc/wiki-tui/actions/workflows/cd.yml)
 
-## Regarding current status of the project: Please see [this comment](https://github.com/Builditluc/wiki-tui/issues/259#issuecomment-3513830387)
-
 <br />
 <p align="center">
   <a href="https://github.com/Builditluc/wiki-tui">
