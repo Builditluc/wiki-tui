@@ -62,6 +62,14 @@ cd /usr/ports/www/wiki-tui/
 make install clean
 ```
 
+### X-CMD
+
+If you are a user of [x-cmd](https://x-cmd.com), you can run:
+
+```sh
+x install wiki-tui
+```
+
 ### Cargo
 
 If wiki-tui cannot be installed with your package manager, you can also install it with cargo. There are no extra dependencies (except rust of course).
