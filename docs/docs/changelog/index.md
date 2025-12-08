@@ -1,4 +1,4 @@
-# v0.9.2
+# v0.9.2 (Mon Dec 8 2025)
 
 ## Additions
 
