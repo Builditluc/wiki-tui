@@ -84,7 +84,7 @@ impl Component for MessagePopupComponent {
             KeyCode::Char('n') if self.confirmation.is_some() => Action::PopPopup.into(),
 
             KeyCode::Esc => Action::PopPopup.into(),
-            _ => ActionResult::Ignored,
+            _ => ActionResult::consumed(),
         }
     }
 
