@@ -91,9 +91,13 @@ pub struct PageComponent {
     theme: Arc<Theme>,
 
     is_contents: bool,
+    is_toc_visible: bool,
     is_zen_mode: bool,
     #[serde(skip)]
     contents_state: PageContentsState,
+
+    #[serde(skip)]
+    pending_anchor: Option<String>,
 }
 
 impl PageComponent {
@@ -111,8 +115,11 @@ impl PageComponent {
             selected: (0, 0),
 
             is_contents: false,
+            is_toc_visible: true,
             is_zen_mode: config.page.default_zen,
             contents_state,
+
+            pending_anchor: None,
 
             config,
             theme,
@@ -298,6 +305,16 @@ impl PageComponent {
 
     fn selected_node(&self) -> Option<Node<'_>> {
         self.page.content.nth(self.selected.0)
+    }
+
+    fn top_node_index(&self) -> Option<usize> {
+        let page = self.rendered_page(self.viewport.width)?;
+        let line_idx = self.viewport.y as usize;
+        page.lines
+            .get(line_idx)?
+            .iter()
+            .find(|w| w.index != usize::MAX)
+            .map(|w| w.index)
     }
 
     fn select_first(&mut self) {
@@ -591,35 +608,29 @@ impl PageComponent {
     }
 
     fn render_toc(&mut self, f: &mut Frame<'_>, area: Rect) -> Rect {
-        if self.config.page.toc.enabled {
-            let mut constraints = [
-                Constraint::Percentage(
-                    100_u16.saturating_sub(self.config.page.toc.width_percentage),
-                ),
-                Constraint::Percentage(self.config.page.toc.width_percentage),
-            ];
+        let mut constraints = [
+            Constraint::Percentage(100_u16.saturating_sub(self.config.page.toc.width_percentage)),
+            Constraint::Percentage(self.config.page.toc.width_percentage),
+        ];
 
-            if self.config.page.toc.position == TocConfigPosition::Left {
-                constraints.reverse();
+        if self.config.page.toc.position == TocConfigPosition::Left {
+            constraints.reverse();
+        }
+
+        let splits = Layout::default()
+            .direction(Direction::Horizontal)
+            .constraints(constraints)
+            .split(area);
+
+        match self.config.page.toc.position {
+            TocConfigPosition::Left => {
+                self.render_contents(f, splits[0]);
+                splits[1]
             }
-
-            let splits = Layout::default()
-                .direction(Direction::Horizontal)
-                .constraints(constraints)
-                .split(area);
-
-            match self.config.page.toc.position {
-                TocConfigPosition::Left => {
-                    self.render_contents(f, splits[0]);
-                    splits[1]
-                }
-                TocConfigPosition::Right => {
-                    self.render_contents(f, splits[1]);
-                    splits[0]
-                }
+            TocConfigPosition::Right => {
+                self.render_contents(f, splits[1]);
+                splits[0]
             }
-        } else {
-            area
         }
     }
 
@@ -651,7 +662,20 @@ impl Component for PageComponent {
                 }
             };
         }
-        matches_binding!(toggle_toc, Action::Page(PageAction::ToggleContents));
+        matches_binding!(toggle_toc_visibility, {
+            self.is_toc_visible = !self.is_toc_visible;
+            if !self.is_toc_visible {
+                self.is_contents = false;
+            }
+            ActionResult::consumed()
+        });
+
+        matches_binding!(toggle_toc_focus, {
+            if self.is_toc_visible {
+                self.is_contents = !self.is_contents;
+            }
+            ActionResult::consumed()
+        });
 
         if self.is_contents {
             matches_binding!(jump_to_header, {
@@ -660,10 +684,8 @@ impl Component for PageComponent {
                     info!("no header selected");
                     return ActionResult::Ignored;
                 }
-                ActionPacket::single(Action::Page(PageAction::GoToHeader(
-                    header.unwrap().anchor.to_string(),
-                )))
-                .action(Action::Page(PageAction::ToggleContents))
+
+                Action::Page(PageAction::GoToHeader(header.unwrap().anchor.to_string()))
             });
             return ActionResult::Ignored;
         }
@@ -692,7 +714,17 @@ impl Component for PageComponent {
         match action {
             Action::Page(page_action) => match page_action {
                 PageAction::SwitchRenderer(renderer) => self.switch_renderer(renderer),
-                PageAction::ToggleContents => self.is_contents = !self.is_contents,
+                PageAction::ToggleTocFocus => {
+                    if self.is_toc_visible {
+                        self.is_contents = !self.is_contents;
+                    }
+                }
+                PageAction::ToggleTocVisibility => {
+                    self.is_toc_visible = !self.is_toc_visible;
+                    if !self.is_toc_visible {
+                        self.is_contents = false;
+                    }
+                }
 
                 PageAction::SelectFirstLink => self.select_first(),
                 PageAction::SelectLastLink => self.select_last(),
@@ -702,7 +734,10 @@ impl Component for PageComponent {
                 PageAction::SelectPrevLink => self.select_prev(),
                 PageAction::SelectNextLink => self.select_next(),
 
-                PageAction::GoToHeader(anchor) => self.select_header(anchor),
+                PageAction::GoToHeader(anchor) => {
+                    self.is_contents = false;
+                    self.pending_anchor = Some(anchor);
+                }
             },
             Action::ScrollUp(amount) => self.scroll_up(amount),
             Action::ScrollDown(amount) => self.scroll_down(amount),
@@ -722,6 +757,13 @@ impl Component for PageComponent {
     fn render(&mut self, f: &mut Frame, mut area: Rect) {
         let zen_mode = self.config.page.zen_mode.clone();
 
+        let old_width = self.viewport.width;
+        let top_node = if old_width > 0 {
+            self.top_node_index()
+        } else {
+            None
+        };
+
         // when in zen mode, use the constraints for the zen mode, otherwise the regular padding
         area = if self.is_zen_mode() {
             let [area] = Layout::horizontal([self.config.page.zen_horizontal])
@@ -738,7 +780,7 @@ impl Component for PageComponent {
             area = self.render_status_bar(f, area);
         }
 
-        if !self.is_zen_mode || zen_mode.contains(ZenModeComponents::TOC) {
+        if (!self.is_zen_mode || zen_mode.contains(ZenModeComponents::TOC)) && self.is_toc_visible {
             area = self.render_toc(f, area);
         }
 
@@ -753,6 +795,14 @@ impl Component for PageComponent {
 
         self.viewport.width = page_area.width;
         self.viewport.height = page_area.height;
+
+        if let Some(anchor) = self.pending_anchor.take() {
+            self.select_header(anchor);
+        } else if old_width != self.viewport.width && old_width > 0 {
+            if let Some(idx) = top_node {
+                self.scroll_to_node(idx);
+            }
+        }
 
         let rendered_page = rendered_page!(self, page_area.width);
         let mut lines: Vec<Line> = rendered_page

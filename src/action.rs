@@ -84,7 +84,8 @@ pub enum SearchAction {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum PageAction {
     SwitchRenderer(Renderer),
-    ToggleContents,
+    ToggleTocFocus,
+    ToggleTocVisibility,
 
     SelectFirstLink,
     SelectLastLink,
