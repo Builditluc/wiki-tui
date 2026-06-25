@@ -204,7 +204,8 @@ fn override_bindings_config(config: &mut Keybindings, user_config: UserKeybindin
             open_link,
             toggle_page_language_selection,
             toggle_zen_mode,
-            toggle_toc
+            toggle_toc_focus,
+            toggle_toc_visibility
         });
     }
 }
@@ -505,7 +506,8 @@ pub struct PageKeybindings {
 
     pub toggle_page_language_selection: Keybinding,
     pub toggle_zen_mode: Keybinding,
-    pub toggle_toc: Keybinding,
+    pub toggle_toc_focus: Keybinding,
+    pub toggle_toc_visibility: Keybinding,
 }
 
 pub struct Keybindings {
@@ -552,7 +554,7 @@ impl Config {
                 toc: TocConfig {
                     enabled: true,
                     width_percentage: 20,
-                    position: TocConfigPosition::Right,
+                    position: TocConfigPosition::Left,
                     title: TocConfigTitle::Default,
                     item_format: "{NUMBER} {TEXT}".to_string(),
 
@@ -608,7 +610,8 @@ impl Config {
                     open_link: keybinding!([KeyCode::Enter;]),
                     toggle_page_language_selection: keybinding!([KeyCode::F(3);]),
                     toggle_zen_mode: keybinding!([KeyCode::F(4);]),
-                    toggle_toc: keybinding!([KeyCode::Tab;, KeyCode::BackTab;]),
+                    toggle_toc_focus: keybinding!([KeyCode::Tab;, KeyCode::BackTab;]),
+                    toggle_toc_visibility: keybinding!([KeyCode::Char('e');]),
                 },
             },
             api: ApiConfig {
@@ -877,7 +880,8 @@ user_keybindings!(
     open_link,
     toggle_page_language_selection,
     toggle_zen_mode,
-    toggle_toc
+    toggle_toc_focus,
+    toggle_toc_visibility
 );
 
 #[derive(Deserialize)]

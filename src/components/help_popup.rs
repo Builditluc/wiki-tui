@@ -132,7 +132,14 @@ impl HelpPopupComponent {
                 "toggle page language"
             ),
             convert_binding!(config.bindings.page.toggle_zen_mode, "toggle zen mode"),
-            convert_binding!(config.bindings.page.toggle_toc, "toggle table of contents"),
+            convert_binding!(
+                config.bindings.page.toggle_toc_visibility,
+                "toggle table of contents visibility"
+            ),
+            convert_binding!(
+                config.bindings.page.toggle_toc_focus,
+                "toggle table of contents focus"
+            ),
         ]
         .into();
 
